@@ -125,104 +125,104 @@ instance Functor f => Monad (Cxt Hole f) where
     (>>=) = applyCxt
 
 
-{-| This type represents context transformations. -}
+{-| This type represents context function. -}
 
 type CxtFun f g = forall a h. Cxt h f a -> Cxt h g a
 
-{-| This type represents uniform signature transformation
+{-| This type represents uniform signature function
 specification.-}
 
 type SigFun f g = forall a. f a -> g a
 
 
-{-| This type represents a non-uniform signature transformation. -}
+{-| This type represents a term algebra. -}
 
 type TermAlg f g = SigFun f (Cxt Hole g)
 
-{-| This function applies a non-uniform signature transformation to
-the given context.  -}
+{-| This function constructs the unique term homomorphism from the
+initial term algebra to the given term algebra. -}
 
 termHom :: (Functor f, Functor g) => TermAlg f g -> CxtFun f g
 termHom _ (Hole b) = Hole b
 termHom f (Term t) = injectCxt . f . fmap (termHom f) $ t
 
-{-| This function composes two non-uniform signature transformation
+{-| This function composes two term algebras
 -}
 
 compTermAlg :: (Functor h, Functor g) => TermAlg g h -> TermAlg f g -> TermAlg f h
 compTermAlg f g = termHom f . g
 
-{-| This function applies a uniform signature transformation to the
+{-| This function applies a signature function to the
 given context. -}
 
 applySigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
 applySigFun f = termHom . termAlg $ f
 
-{-| This function composes two uniform signature transformations.  -}
+{-| This function composes two signature functions.  -}
 
 compSigFun :: SigFun g h -> SigFun f g -> SigFun f h
 compSigFun f g = f . g
 
 {-|
-  This type represents monadic context transformations.
+  This type represents monadic context function.
 -}
 type CxtFunM m f g = forall a h. Cxt h f a -> m (Cxt h g a)
 
 
-{-| Lifts the given uniform signature transformation to a non-uniform
-signature transformation.  -}
+{-| Lifts the given signature function to the canonical term algebra.
+-}
 
 termAlg :: (Functor g) => SigFun f g -> TermAlg f g
 termAlg f = Term . fmap Hole . f
 
-{-| This type represents monadic uniform signature transformations. -}
+{-| This type represents monadic signature functions. -}
 
 type SigFunM m f g = forall a. f a -> m (g a)
 
 
-{-| This function lifts the given (uniform) signature transformation
-to a monadic (uniform) signature transformation. -}
+{-| This function lifts the given signature function to a monadic
+signature function. Note that term algebras are instances of signature
+functions. Hence this function also applies to term algebras. -}
 
 sigFunM :: (Monad m) => SigFun f g -> SigFunM m f g
 sigFunM f = return . f
 
-{-| This type represents monadic non-uniform signature transformations.  -}
+{-| This type represents monadic term algebras.  -}
 
 type TermAlgM m f g = SigFunM m f (Cxt Hole g)
 
-{-| This function lifts the give monadic uniform signature
-transformation to a monadic non-uniform signature transformation. -}
+{-| This function lifts the give monadic signature function to a
+monadic term algebra. -}
 
 termAlg' :: (Functor f, Functor g, Monad m) => SigFunM m f g -> TermAlgM m f g
 termAlg' f = liftM  (Term . fmap Hole) . f
 
-{-| This function lifts the given uniform signature transformation to
-a monadic non-uniform signature transformation. -}
+{-| This function lifts the given signature function to a monadic term
+algebra. -}
 
 termAlgM :: (Functor g, Monad m) => SigFun f g -> TermAlgM m f g
 termAlgM f = sigFunM $ termAlg f
 
-{-| This function applies the given monadic non-uniform signature
-transformation the given context. -}
+{-| This function constructs the unique monadic homomorphism from the
+initial term algebra to the given term algebra. -}
+
 termHomM :: (Traversable f, Functor g, Monad m) => TermAlgM m f g -> CxtFunM m f g
 termHomM _ (Hole b) = return $ Hole b
 termHomM f (Term t) = liftM injectCxt . (>>= f) . sequence . fmap (termHomM f) $ t
 
-{-| This function applies the given monadic uniform signature
-transformation to the given context -}
+{-| This function applies the given monadic signature function to the
+given context -}
 
 applySigFunM :: (Traversable f, Functor g, Monad m) => SigFunM m f g -> CxtFunM m f g
 applySigFunM f = termHomM . termAlg' $ f
 
-{-| This function composes two monadic non-uniform signature
-transformations. -}
+{-| This function composes two monadic term algebras. -}
 
 compTermAlgM :: (Traversable g, Functor h, Monad m)
             => TermAlgM m g h -> TermAlgM m f g -> TermAlgM m f h
 compTermAlgM f g a = g a >>= termHomM f
 
-{-| This function composes two monadic uniform signature
-transformations.  -}
+{-| This function composes two monadic signature functions.  -}
 
 compSigFunM :: (Monad m) => SigFunM m g h -> SigFunM m f g -> SigFunM m f h
 compSigFunM f g a = g a >>= f
