@@ -21,25 +21,25 @@ module Data.ALaCarte
      Cxt(..),
      Alg,
      unTerm,
-     foldCxt,
-     foldCxtM,
+     algHom',
+     algHomM',
      injectCxt,
-     transN,
-     transN',
-     transM,
-     transNM,
-     compTransN,
-     compTransU,
-     compTransNM,
-     compTransUM,
-     applyTransN,
-     applyTransU,
-     applyTransNM,
-     applyTransUM,
+     termAlg,
+     termAlg',
+     termAlgM,
+     sigFunM,
+     compTermAlg,
+     compSigFun,
+     compTermAlgM,
+     compSigFunM,
+     termHom,
+     termHomM,
+     applySigFun,
+     applySigFunM,
      applyCxt,
-     foldTerm,
-     foldTermM,
-     unfoldTerm,
+     algHom,
+     algHomM,
+     coalgHom,
      (:+:)(..),
      (:<:)(..),
      inject,
@@ -86,15 +86,15 @@ data Cxt :: * -> (* -> *) -> * -> * where
 
 type Alg f a = f a -> a
 
-foldCxt' :: (Functor f) => Alg f b -> (a -> b) -> Cxt h f a -> b
-foldCxt' _ g (Hole v) = g v
-foldCxt' f g (Term c) = f $ fmap (foldCxt' f g) c
+freeAlgHom :: (Functor f) => Alg f b -> (a -> b) -> Cxt h f a -> b
+freeAlgHom _ g (Hole v) = g v
+freeAlgHom f g (Term c) = f $ fmap (freeAlgHom f g) c
 
 {-| This function applies the given algebra recursively to each
 subcontext of the given context. -}
 
-foldCxt :: (Functor f) => Alg f a -> Cxt h f a -> a
-foldCxt f = foldCxt' f id
+algHom' :: (Functor f) => Alg f a -> Cxt h f a -> a
+algHom' f = freeAlgHom f id
 
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
 the return type is monadic.  -}
@@ -105,8 +105,8 @@ type AlgM m f a = f a -> m a
 {-| This function applies the given monadic algebra recursively to
 each subcontext of the given context. -}
 
-foldCxtM :: (Traversable f, Monad m) => AlgM m f a -> Cxt h f a -> m a
-foldCxtM f = foldCxt' (\x -> sequence x >>= f) return
+algHomM' :: (Traversable f, Monad m) => AlgM m f a -> Cxt h f a -> m a
+algHomM' f = freeAlgHom (\x -> sequence x >>= f) return
 
 
 {-| This function applies the given context with hole type @a@ to a
@@ -127,105 +127,105 @@ instance Functor f => Monad (Cxt Hole f) where
 
 {-| This type represents context transformations. -}
 
-type TransC f g = forall a h. Cxt h f a -> Cxt h g a
+type CxtFun f g = forall a h. Cxt h f a -> Cxt h g a
 
 {-| This type represents uniform signature transformation
 specification.-}
 
-type TransU f g = forall a. f a -> g a
+type SigFun f g = forall a. f a -> g a
 
 
 {-| This type represents a non-uniform signature transformation. -}
 
-type TransN f g = TransU f (Cxt Hole g)
+type TermAlg f g = SigFun f (Cxt Hole g)
 
 {-| This function applies a non-uniform signature transformation to
 the given context.  -}
 
-applyTransN :: (Functor f, Functor g) => TransN f g -> TransC f g
-applyTransN _ (Hole b) = Hole b
-applyTransN f (Term t) = injectCxt . f . fmap (applyTransN f) $ t
+termHom :: (Functor f, Functor g) => TermAlg f g -> CxtFun f g
+termHom _ (Hole b) = Hole b
+termHom f (Term t) = injectCxt . f . fmap (termHom f) $ t
 
 {-| This function composes two non-uniform signature transformation
 -}
 
-compTransN :: (Functor h, Functor g) => TransN g h -> TransN f g -> TransN f h
-compTransN f g = applyTransN f . g
+compTermAlg :: (Functor h, Functor g) => TermAlg g h -> TermAlg f g -> TermAlg f h
+compTermAlg f g = termHom f . g
 
 {-| This function applies a uniform signature transformation to the
 given context. -}
 
-applyTransU :: (Functor f, Functor g) => TransU f g -> TransC f g
-applyTransU f = applyTransN . transN $ f
+applySigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
+applySigFun f = termHom . termAlg $ f
 
 {-| This function composes two uniform signature transformations.  -}
 
-compTransU :: TransU g h -> TransU f g -> TransU f h
-compTransU f g = f . g
+compSigFun :: SigFun g h -> SigFun f g -> SigFun f h
+compSigFun f g = f . g
 
 {-|
   This type represents monadic context transformations.
 -}
-type TransCM m f g = forall a h. Cxt h f a -> m (Cxt h g a)
+type CxtFunM m f g = forall a h. Cxt h f a -> m (Cxt h g a)
 
 
 {-| Lifts the given uniform signature transformation to a non-uniform
 signature transformation.  -}
 
-transN :: (Functor g) => TransU f g -> TransN f g
-transN f = Term . fmap Hole . f
+termAlg :: (Functor g) => SigFun f g -> TermAlg f g
+termAlg f = Term . fmap Hole . f
 
 {-| This type represents monadic uniform signature transformations. -}
 
-type TransUM m f g = forall a. f a -> m (g a)
+type SigFunM m f g = forall a. f a -> m (g a)
 
 
 {-| This function lifts the given (uniform) signature transformation
 to a monadic (uniform) signature transformation. -}
 
-transM :: (Monad m) => TransU f g -> TransUM m f g
-transM f = return . f
+sigFunM :: (Monad m) => SigFun f g -> SigFunM m f g
+sigFunM f = return . f
 
 {-| This type represents monadic non-uniform signature transformations.  -}
 
-type TransNM m f g = TransUM m f (Cxt Hole g)
+type TermAlgM m f g = SigFunM m f (Cxt Hole g)
 
 {-| This function lifts the give monadic uniform signature
 transformation to a monadic non-uniform signature transformation. -}
 
-transN' :: (Functor f, Functor g, Monad m) => TransUM m f g -> TransNM m f g
-transN' f = liftM  (Term . fmap Hole) . f
+termAlg' :: (Functor f, Functor g, Monad m) => SigFunM m f g -> TermAlgM m f g
+termAlg' f = liftM  (Term . fmap Hole) . f
 
 {-| This function lifts the given uniform signature transformation to
 a monadic non-uniform signature transformation. -}
 
-transNM :: (Functor g, Monad m) => TransU f g -> TransNM m f g
-transNM f = transM $ transN f
+termAlgM :: (Functor g, Monad m) => SigFun f g -> TermAlgM m f g
+termAlgM f = sigFunM $ termAlg f
 
 {-| This function applies the given monadic non-uniform signature
 transformation the given context. -}
-applyTransNM :: (Traversable f, Functor g, Monad m) => TransNM m f g -> TransCM m f g
-applyTransNM _ (Hole b) = return $ Hole b
-applyTransNM f (Term t) = liftM injectCxt . (>>= f) . sequence . fmap (applyTransNM f) $ t
+termHomM :: (Traversable f, Functor g, Monad m) => TermAlgM m f g -> CxtFunM m f g
+termHomM _ (Hole b) = return $ Hole b
+termHomM f (Term t) = liftM injectCxt . (>>= f) . sequence . fmap (termHomM f) $ t
 
 {-| This function applies the given monadic uniform signature
 transformation to the given context -}
 
-applyTransUM :: (Traversable f, Functor g, Monad m) => TransUM m f g -> TransCM m f g
-applyTransUM f = applyTransNM . transN' $ f
+applySigFunM :: (Traversable f, Functor g, Monad m) => SigFunM m f g -> CxtFunM m f g
+applySigFunM f = termHomM . termAlg' $ f
 
 {-| This function composes two monadic non-uniform signature
 transformations. -}
 
-compTransNM :: (Traversable g, Functor h, Monad m)
-            => TransNM m g h -> TransNM m f g -> TransNM m f h
-compTransNM f g a = g a >>= applyTransNM f
+compTermAlgM :: (Traversable g, Functor h, Monad m)
+            => TermAlgM m g h -> TermAlgM m f g -> TermAlgM m f h
+compTermAlgM f g a = g a >>= termHomM f
 
 {-| This function composes two monadic uniform signature
 transformations.  -}
 
-compTransUM :: (Monad m) => TransUM m g h -> TransUM m f g -> TransUM m f h
-compTransUM f g a = g a >>= f
+compSigFunM :: (Monad m) => SigFunM m g h -> SigFunM m f g -> SigFunM m f h
+compSigFunM f g a = g a >>= f
 
 {-| Phantom type used to define 'Term'.  -}
 
@@ -248,15 +248,15 @@ unravelling function. This is the unique homomorphism @a -> Term f@
 from the given coalgebra of type @a -> f a@ to the final coalgebra
 @Term f@. -}
 
-unfoldTerm :: Functor f => (a -> f a ) -> a -> Term f
-unfoldTerm f t = Term $ (fmap (unfoldTerm f)  (f t))
+coalgHom :: Functor f => (a -> f a ) -> a -> Term f
+coalgHom f t = Term $ (fmap (coalgHom f)  (f t))
 
 {-| This function folds the given term using the given fold
 function. This is the unique homomorphism @Term f -> a@ from the
 initial algebra @Term f@ to the given algebra of type @f a -> a@. -}
 
-foldTerm :: Functor f => Alg f a -> Term f -> a 
-foldTerm f = foldCxt' f undefined
+algHom :: Functor f => Alg f a -> Term f -> a 
+algHom f = freeAlgHom f undefined
 -- the above definition is safe since terms do not contain holes
 --
 -- a direct implementation:
@@ -264,8 +264,8 @@ foldTerm f = foldCxt' f undefined
 
 {-| This is a monadic version of 'foldTerm'.  -}
 
-foldTermM :: (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
-foldTermM f = foldTerm (\x -> sequence x >>= f)
+algHomM :: (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
+algHomM f = algHom (\x -> sequence x >>= f)
 
 infixr 6 :+:
 
@@ -311,7 +311,7 @@ project (Term t) = proj t
 
 -- |Project a sub term recursively from a term.
 deepProject :: (Traversable f, g :<: f) => Cxt h f a -> Maybe (Cxt h g a)
-deepProject = applyTransUM proj
+deepProject = applySigFunM proj
 
 -- |Inject a term into a compound term.
 inject :: (g :<: f) => g (Cxt h f a) -> Cxt h f a
@@ -321,13 +321,13 @@ inject = Term . inj
 {-| This function injects a whole context into another context. -}
 
 injectCxt :: (Functor f, g :<: f) => Cxt h' g (Cxt h f a) -> Cxt h f a
-injectCxt = foldCxt inject
+injectCxt = algHom' inject
 
 
 {-| Deep injection function.  -}
 
 deepInject  :: (g :<: f) => Cxt h g a -> Cxt h f a
-deepInject = applyTransU inj
+deepInject = applySigFun inj
 
 {-| This is a variant of 'inj' for binary sum signatures.  -}
 
@@ -337,7 +337,7 @@ inj2 (Inr y) = inj y
 
 -- |A recursive version of 'inj2'.
 deepInject2 :: (f1 :<: g, f2 :<: g) => Cxt h (f1 :+: f2) a -> Cxt h g a
-deepInject2 = applyTransU inj2
+deepInject2 = applySigFun inj2
 
 {-| This is a variant of 'inj' for ternary sum signatures.  -}
 
@@ -347,7 +347,7 @@ inj3 (Inr y) = inj2 y
 
 -- |A recursive version of 'inj3'.
 deepInject3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => Cxt h (f1 :+: f2 :+: f3) a -> Cxt h g a
-deepInject3 =  applyTransU inj3
+deepInject3 =  applySigFun inj3
 
 
 infixr 7 :*:
@@ -384,7 +384,7 @@ liftP f v = f (projectP v)
 functor with products. -}
 
 stripP :: (ProjectP f g, Functor g, Functor f) => Cxt h f a -> Cxt h g a
-stripP = applyTransU projectP
+stripP = applySigFun projectP
 
 
 
@@ -421,7 +421,7 @@ with the given value (of type a). -}
 
 constP :: (InjectP f g c, Functor f, Functor g)
        => c -> Cxt h f a -> Cxt h g a
-constP c = applyTransU (injectP c)
+constP c = applySigFun (injectP c)
 
 
 {-| This function is similar to 'project' but applies to signatures
