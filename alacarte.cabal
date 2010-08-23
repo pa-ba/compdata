@@ -12,9 +12,10 @@ Cabal-Version:		>=1.8
 
 
 library
-  Exposed-Modules:      Data.ALaCarte, Data.ALaCarte.Equality, Data.ALaCarte.Ordering
+  Exposed-Modules:      Data.ALaCarte, Data.ALaCarte.Equality, Data.ALaCarte.Ordering,
+                        Data.ALaCarte.TermRewriting, Data.ALaCarte.Automata
   Other-Modules:        Data.ALaCarte.Derive
 
-  Build-Depends:	base >= 4, template-haskell
+  Build-Depends:	base >= 4, template-haskell, containers
   hs-source-dirs:	src
   ghc-options:          -W
