@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell #-}
+{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell, FlexibleContexts #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte.Equality
@@ -15,13 +15,17 @@ module Data.ALaCarte.Equality
     (
      FunctorEq(..),
      deriveFunctorEq,
-     deriveFunctorEqs
+     deriveFunctorEqs,
+     match,
     ) where
 
 import Data.ALaCarte
 import Data.ALaCarte.Derive
-import Language.Haskell.TH hiding (Cxt)
+import Language.Haskell.TH hiding (Cxt, match)
 import Control.Monad
+
+import Data.Map (Map)
+import qualified Data.Map as Map
 
 
 {-|
@@ -29,22 +33,43 @@ import Control.Monad
   term type class.
 -}
 class FunctorEq f where
+    {-| This function is supposed to implement equality of values of
+      type @f a@ modulo the equality of @a@ itself. If two functorial values
+      are equal in this sense, 'eqMod' returns a 'Just' value containing a
+      list of pairs consisting of corresponding components of the two
+      functorial values. -}
+
+    eqMod :: f a -> f b -> Maybe [(a,b)]
+
     eqAlg :: Eq a => f a -> f a -> Bool
+    eqAlg x y = maybe
+                False
+                (all (uncurry (==)))
+                (eqMod x y)
 
 {-|
   'FunctorEq' is propagated through sums.
 -}
 
 instance (FunctorEq f, FunctorEq g) => FunctorEq (f :+: g) where
-  eqAlg (Inl x) (Inl y) = eqAlg x y
-  eqAlg (Inr x) (Inr y) = eqAlg x y
-  eqAlg _ _ = False
+    eqMod (Inl x) (Inl y) = eqMod x y
+    eqMod (Inr x) (Inr y) = eqMod x y
+    eqMod _ _ = Nothing
+
+    eqAlg (Inl x) (Inl y) = eqAlg x y
+    eqAlg (Inr x) (Inr y) = eqAlg x y
+    eqAlg _ _ = False
 
 {-|
   From an 'FunctorEq' functor an 'Eq' instance of the corresponding
   term type can be derived.
 -}
 instance (FunctorEq f) => FunctorEq (Cxt h f) where
+    eqMod (Term e1) (Term e2) = liftM concat $
+                                eqMod e1 e2 >>= mapM (uncurry eqMod)
+    eqMod (Hole h1) (Hole h2) = Just [(h1,h2)]
+    eqMod _ _ = Nothing
+
     eqAlg (Term e1) (Term e2) = e1 `eqAlg` e2
     eqAlg (Hole h1) (Hole h2) = h1 == h2
     eqAlg _ _ = False
@@ -52,10 +77,52 @@ instance (FunctorEq f) => FunctorEq (Cxt h f) where
 instance (FunctorEq f, Eq a)  => Eq (Cxt h f a) where
     (==) = eqAlg
 
+{-| This is an auxiliary function for implementing 'match'. It behaves
+similarly as 'match' but is oblivious to non-linearity. Therefore, the
+substitution that is returned maps holes to non-empty lists of terms
+(resp. contexts in general). This substitution is only a matching
+substitution if all elements in each list of the substitution's range
+are equal. -}
+
+match' :: (Ord v,f :<: g, FunctorEq f) => Context f v -> Cxt h g a -> Maybe (Map v [Cxt h g a])
+match' (Hole v) t = Just $  Map.singleton v [t]
+match' (Term s) t = do
+  t' <- project t
+  eqs <- eqMod s t'
+  substs <- mapM (uncurry match') eqs
+  return $ Map.unionsWith (++) substs
+
+
+{-| This function takes a context @c@ as the first argument and tries
+to match it against the term @t@ (or in general a context with holes
+in @a@). The context @c@ matches the term @t@ if there is a /matching
+substitution/ @s@ that maps holes to terms (resp. contexts in general)
+such that if the holes in the context @c@ are replaced according to
+the substitution @s@, the term @t@ is obtained. Note that the context
+@c@ might be non-linear, i.e. has multiple holes that are
+equal. According to the above definition this means that holes with
+equal holes have to be instantiated by equal terms! -}
+
+match :: (Ord v,f :<: g, FunctorEq f, Eq (Cxt h g a))
+         => Context f v -> Cxt h g a -> Maybe (Map v (Cxt h g a))
+match c1 c2 = do 
+  res <- match' c1 c2
+  let insts = Map.elems res
+  mapM_ checkEq insts
+  return $ Map.map head res
+    where checkEq [] = Nothing
+          checkEq (c : cs)
+              | all (== c) cs = Just ()
+              | otherwise = Nothing
+                             
+
+
+{-| This function generates an instance declaration of class
+'FunctorEq' for a each of the type constructor given in the argument
+list. -}
+
 deriveFunctorEqs :: [Name] -> Q [Dec]
 deriveFunctorEqs = liftM concat . mapM deriveFunctorEq
-
-
 
 {-| This function generates an instance declaration of class
 'FunctorEq' for a type constructor of any first-order kind taking at

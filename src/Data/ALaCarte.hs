@@ -18,8 +18,20 @@
 module Data.ALaCarte
     (
      Term,
+     Hole,
+     NoHole,
+     Nothing,
      Cxt(..),
+     Context,
      Alg,
+     AlgM,
+     TermAlg,
+     TermAlgM,
+     CxtFun,
+     CxtFunM,
+     SigFun,
+     SigFunM,
+     algM,
      unTerm,
      algHom',
      algHomM',
@@ -37,6 +49,7 @@ module Data.ALaCarte
      applySigFun,
      applySigFunM,
      applyCxt,
+     applyCxt',
      algHom,
      algHomM,
      coalgHom,
@@ -57,9 +70,13 @@ module Data.ALaCarte
 
 import Prelude hiding (and, foldr, sequence, foldl, foldr1, foldl1, mapM)
 import Control.Applicative
+import Control.Monad (liftM)
+
 import Data.Traversable 
 import Data.Foldable 
-import Control.Monad (liftM)
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe
 
 {-| Phantom type that signals that a 'Cxt' might contain holes.  -}
 
@@ -80,6 +97,7 @@ data Cxt :: * -> (* -> *) -> * -> * where
             Term :: f (Cxt h f a) -> Cxt h f a
             Hole :: a -> Cxt Hole f a
 
+type Context = Cxt Hole
 
 {-| This type represents an algebra over a functor @f@ and domain
 @a@. -}
@@ -113,14 +131,19 @@ algHomM' f = freeAlgHom (\x -> sequence x >>= f) return
 family @f@ of contexts (possibly terms) indexed by @a@. That is, each
 hole @h@ is replaced by the context @f h@. -}
 
-applyCxt :: (Functor f, f :<: g) => Cxt h' f a -> (a -> Cxt h g b) -> Cxt h g b
+applyCxt :: (Functor f, f :<: g) => Cxt h' f v -> (v -> Cxt h g a) -> Cxt h g a
 applyCxt c f = injectCxt $ fmap f c
+
+applyCxt' :: (Functor f, f :<: g, Ord v) => Cxt h' f v -> Map v (Cxt h g a) -> Cxt h g a
+applyCxt' c m = applyCxt c (fromJust . (`Map.lookup`  m))
+
+
 
 instance Functor f => Functor (Cxt h f) where
     fmap f (Hole v) = Hole (f v)
     fmap f (Term t) = Term (fmap (fmap f) t)
 
-instance Functor f => Monad (Cxt Hole f) where
+instance Functor f => Monad (Context f) where
     return = Hole
     (>>=) = applyCxt
 
@@ -137,7 +160,7 @@ type SigFun f g = forall a. f a -> g a
 
 {-| This type represents a term algebra. -}
 
-type TermAlg f g = SigFun f (Cxt Hole g)
+type TermAlg f g = SigFun f (Context g)
 
 {-| This function constructs the unique term homomorphism from the
 initial term algebra to the given term algebra. -}
@@ -189,7 +212,7 @@ sigFunM f = return . f
 
 {-| This type represents monadic term algebras.  -}
 
-type TermAlgM m f g = SigFunM m f (Cxt Hole g)
+type TermAlgM m f g = SigFunM m f (Context g)
 
 {-| This function lifts the give monadic signature function to a
 monadic term algebra. -}
@@ -262,10 +285,15 @@ algHom f = freeAlgHom f undefined
 -- a direct implementation:
 -- foldTerm f (Term t) = f (fmap (foldTerm f) t)
 
+
+algM :: (Traversable f, Monad m) => AlgM m f a -> Alg f (m a)
+algM f x = sequence x >>= f
+
+
 {-| This is a monadic version of 'foldTerm'.  -}
 
 algHomM :: (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
-algHomM f = algHom (\x -> sequence x >>= f)
+algHomM = algHom . algM
 
 infixr 6 :+:
 
