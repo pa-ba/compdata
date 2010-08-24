@@ -20,32 +20,12 @@ module Data.ALaCarte.Equality
     ) where
 
 import Data.ALaCarte
-import Data.ALaCarte.Derive
-import Language.Haskell.TH hiding (Cxt, match)
+import Data.ALaCarte.Derive.Utils
+import Data.ALaCarte.Derive.Equality
 import Control.Monad
 
 import Data.Map (Map)
 import qualified Data.Map as Map
-
-
-{-|
-  Functor type class that provides an 'Eq' instance for the corresponding
-  term type class.
--}
-class EqF f where
-    {-| This function is supposed to implement equality of values of
-      type @f a@ modulo the equality of @a@ itself. If two functorial values
-      are equal in this sense, 'eqMod' returns a 'Just' value containing a
-      list of pairs consisting of corresponding components of the two
-      functorial values. -}
-
-    eqMod :: f a -> f b -> Maybe [(a,b)]
-
-    eqAlg :: Eq a => f a -> f a -> Bool
-    eqAlg x y = maybe
-                False
-                (all (uncurry (==)))
-                (eqMod x y)
 
 {-|
   'EqF' is propagated through sums.
@@ -76,6 +56,14 @@ instance (EqF f) => EqF (Cxt h f) where
 
 instance (EqF f, Eq a)  => Eq (Cxt h f a) where
     (==) = eqAlg
+
+instance EqF [] where
+    eqMod [] [] = Just []
+    eqMod (x:xs) (y:ys) = do
+                  res <- eqMod xs ys
+                  return $ (x,y) : res
+    eqMod _ _ = Nothing
+    eqAlg = (==)
 
 {-| This is an auxiliary function for implementing 'match'. It behaves
 similarly as 'match' but is oblivious to non-linearity. Therefore, the
@@ -114,59 +102,6 @@ match c1 c2 = do
           checkEq (c : cs)
               | all (== c) cs = Just ()
               | otherwise = Nothing
-                             
 
 
-{-| This function generates an instance declaration of class
-'EqF' for a each of the type constructor given in the argument
-list. -}
-
-deriveEqFs :: [Name] -> Q [Dec]
-deriveEqFs = liftM concat . mapM deriveEqF
-
-{-| This function generates an instance declaration of class
-'EqF' for a type constructor of any first-order kind taking at
-least one argument. -}
-
-deriveEqF :: Name -> Q [Dec]
-deriveEqF fname = do
-  TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
-  let complType = foldl AppT (ConT name) (map (VarT . tyVarBndrName) (tail args))
-      classType = AppT (ConT ''EqF) complType
-  eqAlgDecl <- funD 'eqAlg  (eqAlgClauses constrs)
-  eqModDecl <- funD 'eqMod  (eqModClauses constrs)
-  return $ [InstanceD [] classType [eqModDecl, eqAlgDecl]]
-      where eqAlgClauses constrs = map (genEqClause.abstractConType) constrs ++ (defEqClause constrs)
-            eqModClauses constrs = map (genModClause.abstractConType) constrs ++ (defModClause constrs)
-            defEqClause constrs
-                | length constrs  < 2 = []
-                | otherwise = [clause [wildP,wildP] (normalB [|False|]) []]
-            defModClause constrs
-                | length constrs  < 2 = []
-                | otherwise = [clause [wildP,wildP] (normalB [|Nothing|]) []]
-            genModClause (constr, n) = do 
-              varNs <- newNames n "x"
-              varNs' <- newNames n "y"
-              let pat = ConP constr $ map VarP varNs
-                  pat' = ConP constr $ map VarP varNs'
-                  vars = map VarE varNs
-                  vars' = map VarE varNs'
-                  mkEq x y = let (x',y') = (return x,return y)
-                             in [| ($x', $y')|]
-                  eqs = listE $ zipWith mkEq vars vars'
-              body <- [|Just $eqs|]
-              return $ Clause [pat, pat'] (NormalB body) []
-            genEqClause (constr, n) = do 
-              varNs <- newNames n "x"
-              varNs' <- newNames n "y"
-              let pat = ConP constr $ map VarP varNs
-                  pat' = ConP constr $ map VarP varNs'
-                  vars = map VarE varNs
-                  vars' = map VarE varNs'
-                  mkEq x y = let (x',y') = (return x,return y)
-                             in [| $x' == $y'|]
-                  eqs = listE $ zipWith mkEq vars vars'
-              body <- if n == 0 
-                      then [|True|]
-                      else [|and $eqs|]
-              return $ Clause [pat, pat'] (NormalB body) []
+$(deriveEqFs $ [''Maybe] ++ tupleTypes 2 10)
