@@ -11,7 +11,11 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.ALaCarte.Arbitrary where
+module Data.ALaCarte.Arbitrary
+    ( ArbitraryF,
+      deriveArbitraryFs,
+      deriveArbitraryF
+    )where
 
 import Test.QuickCheck
 import Data.ALaCarte
@@ -33,17 +37,16 @@ class ArbitraryF f where
     shrinkF :: Arbitrary v => f v -> [f v]
     shrinkF _ = []
 
-{-|
-  This lifts instances of 'ArbitraryFunc' to instances of 'Arbitrary' for 
-  the corresponding expression type.
--}
+{-| This lifts instances of 'ArbitraryF' to instances of 'Arbitrary'
+for the corresponding term type. -}
+
 instance (ArbitraryF f) => Arbitrary (Term f) where
     arbitrary = Term <$> arbitraryF
     shrink (Term expr) = map Term $ shrinkF expr
 
 {-|
-  This lifts instances of 'ArbitraryFunc' to instances of 'Arbitrary' for 
-  the corresponding expression type.
+  This lifts instances of 'ArbitraryF' to instances of 'ArbitraryF' for 
+  the corresponding context functor.
 -}
 instance (ArbitraryF f) => ArbitraryF (Context f) where
     arbitraryF = oneof [Term <$> arbitraryF , Hole <$> arbitrary]
@@ -51,18 +54,16 @@ instance (ArbitraryF f) => ArbitraryF (Context f) where
     shrinkF (Hole a) = map Hole $ shrink a
 
 
-{-|
-  This lifts instances of 'ArbitraryFunc' to instances of 'Arbitrary' for 
-  the corresponding expression type.
--}
+{-| This lifts instances of 'ArbitraryF' to instances of 'Arbitrary'
+for the corresponding context type.  -}
+
 instance (ArbitraryF f, Arbitrary a) => Arbitrary (Context f a) where
     arbitrary = arbitraryF
     shrink = shrinkF
 
 
-{-|
-  Instances of 'ArbitraryFunc' are closed under forming sums.
--}
+{-| Instances of 'ArbitraryF' are closed under forming sums.  -}
+
 instance (ArbitraryF f , ArbitraryF g) => ArbitraryF (f :+: g) where
     arbitraryF' = map inl arbitraryF' ++ map inr arbitraryF'
         where inl (i,gen) = (i,Inl <$> gen)
@@ -70,16 +71,17 @@ instance (ArbitraryF f , ArbitraryF g) => ArbitraryF (f :+: g) where
     shrinkF (Inl val) = map Inl (shrinkF val)
     shrinkF (Inr val) = map Inr (shrinkF val)
 
-
+{-| This function derives instances for 'ArbitraryF' for list of data
+types using 'deriveArbitraryF' -}
 
 deriveArbitraryFs :: [Name] -> Q [Dec]
 deriveArbitraryFs ns = liftM concat $ mapM deriveArbitraryF ns
 
-{-|
-  This template function generates an instance declaration of the given data type 
-  name for the class 'Arbitrary'. It is necessary that all types that are used by the data type definition are 
-  themselves instances of 'Arbitrary'.
--}
+{-| This template function generates an instance declaration of the
+given data type name for the class 'ArbitraryF'. It is necessary that
+all types that are used by the data type definition are themselves
+instances of 'Arbitrary'.  -}
+
 deriveArbitraryF :: Name -> Q [Dec]
 deriveArbitraryF dt = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify dt
