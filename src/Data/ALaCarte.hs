@@ -147,6 +147,34 @@ instance Functor f => Monad (Context f) where
     return = Hole
     (>>=) = applyCxt
 
+instance (Foldable f) => Foldable (Cxt h f) where
+    foldr op e (Hole a) = a `op` e
+    foldr op e (Term t) = foldr op' e t
+        where op' c a = foldr op a c
+
+    foldl op e (Hole a) = e `op` a
+    foldl op e (Term t) = foldl op' e t
+        where op' a c = foldl op a c
+
+    fold (Hole a) = a
+    fold (Term t) = foldMap fold t
+
+    foldMap f (Hole a) = f a
+    foldMap f (Term t) = foldMap (foldMap f) t
+
+instance (Traversable f) => Traversable (Cxt h f) where
+    traverse f (Hole a) = Hole <$> f a
+    traverse f (Term t) = Term <$> traverse (traverse f) t
+                          
+    sequenceA (Hole a) = Hole <$> a
+    sequenceA (Term t) = Term <$> traverse sequenceA t
+
+    mapM f (Hole a) = liftM Hole $ f a
+    mapM f (Term t) = liftM Term $ mapM (mapM f) t
+
+    sequence (Hole a) = liftM Hole $ a
+    sequence (Term t) = liftM Term $ mapM sequence t
+
 
 {-| This type represents context function. -}
 
