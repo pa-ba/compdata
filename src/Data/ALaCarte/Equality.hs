@@ -134,11 +134,28 @@ deriveFunctorEq fname = do
   let complType = foldl AppT (ConT name) (map (VarT . tyVarBndrName) (tail args))
       classType = AppT (ConT ''FunctorEq) complType
   eqAlgDecl <- funD 'eqAlg  (eqAlgClauses constrs)
-  return $ [InstanceD [] classType [eqAlgDecl]]
-      where eqAlgClauses constrs = map (genEqClause.abstractConType) constrs ++ (defClause constrs)
-            defClause constrs
+  eqModDecl <- funD 'eqMod  (eqModClauses constrs)
+  return $ [InstanceD [] classType [eqModDecl, eqAlgDecl]]
+      where eqAlgClauses constrs = map (genEqClause.abstractConType) constrs ++ (defEqClause constrs)
+            eqModClauses constrs = map (genModClause.abstractConType) constrs ++ (defModClause constrs)
+            defEqClause constrs
                 | length constrs  < 2 = []
                 | otherwise = [clause [wildP,wildP] (normalB [|False|]) []]
+            defModClause constrs
+                | length constrs  < 2 = []
+                | otherwise = [clause [wildP,wildP] (normalB [|Nothing|]) []]
+            genModClause (constr, n) = do 
+              varNs <- newNames n "x"
+              varNs' <- newNames n "y"
+              let pat = ConP constr $ map VarP varNs
+                  pat' = ConP constr $ map VarP varNs'
+                  vars = map VarE varNs
+                  vars' = map VarE varNs'
+                  mkEq x y = let (x',y') = (return x,return y)
+                             in [| ($x', $y')|]
+                  eqs = listE $ zipWith mkEq vars vars'
+              body <- [|Just $eqs|]
+              return $ Clause [pat, pat'] (NormalB body) []
             genEqClause (constr, n) = do 
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
