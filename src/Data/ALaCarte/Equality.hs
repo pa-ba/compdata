@@ -13,9 +13,9 @@
 --------------------------------------------------------------------------------
 module Data.ALaCarte.Equality
     (
-     FunctorEq(..),
-     deriveFunctorEq,
-     deriveFunctorEqs,
+     EqF(..),
+     deriveEqF,
+     deriveEqFs,
      match,
     ) where
 
@@ -32,7 +32,7 @@ import qualified Data.Map as Map
   Functor type class that provides an 'Eq' instance for the corresponding
   term type class.
 -}
-class FunctorEq f where
+class EqF f where
     {-| This function is supposed to implement equality of values of
       type @f a@ modulo the equality of @a@ itself. If two functorial values
       are equal in this sense, 'eqMod' returns a 'Just' value containing a
@@ -48,10 +48,10 @@ class FunctorEq f where
                 (eqMod x y)
 
 {-|
-  'FunctorEq' is propagated through sums.
+  'EqF' is propagated through sums.
 -}
 
-instance (FunctorEq f, FunctorEq g) => FunctorEq (f :+: g) where
+instance (EqF f, EqF g) => EqF (f :+: g) where
     eqMod (Inl x) (Inl y) = eqMod x y
     eqMod (Inr x) (Inr y) = eqMod x y
     eqMod _ _ = Nothing
@@ -61,10 +61,10 @@ instance (FunctorEq f, FunctorEq g) => FunctorEq (f :+: g) where
     eqAlg _ _ = False
 
 {-|
-  From an 'FunctorEq' functor an 'Eq' instance of the corresponding
+  From an 'EqF' functor an 'Eq' instance of the corresponding
   term type can be derived.
 -}
-instance (FunctorEq f) => FunctorEq (Cxt h f) where
+instance (EqF f) => EqF (Cxt h f) where
     eqMod (Term e1) (Term e2) = liftM concat $
                                 eqMod e1 e2 >>= mapM (uncurry eqMod)
     eqMod (Hole h1) (Hole h2) = Just [(h1,h2)]
@@ -74,7 +74,7 @@ instance (FunctorEq f) => FunctorEq (Cxt h f) where
     eqAlg (Hole h1) (Hole h2) = h1 == h2
     eqAlg _ _ = False
 
-instance (FunctorEq f, Eq a)  => Eq (Cxt h f a) where
+instance (EqF f, Eq a)  => Eq (Cxt h f a) where
     (==) = eqAlg
 
 {-| This is an auxiliary function for implementing 'match'. It behaves
@@ -84,7 +84,7 @@ substitution that is returned maps holes to non-empty lists of terms
 substitution if all elements in each list of the substitution's range
 are equal. -}
 
-match' :: (Ord v,f :<: g, FunctorEq f) => Context f v -> Cxt h g a -> Maybe (Map v [Cxt h g a])
+match' :: (Ord v,f :<: g, EqF f) => Context f v -> Cxt h g a -> Maybe (Map v [Cxt h g a])
 match' (Hole v) t = Just $  Map.singleton v [t]
 match' (Term s) t = do
   t' <- project t
@@ -103,7 +103,7 @@ the substitution @s@, the term @t@ is obtained. Note that the context
 equal. According to the above definition this means that holes with
 equal holes have to be instantiated by equal terms! -}
 
-match :: (Ord v,f :<: g, FunctorEq f, Eq (Cxt h g a))
+match :: (Ord v,f :<: g, EqF f, Eq (Cxt h g a))
          => Context f v -> Cxt h g a -> Maybe (Map v (Cxt h g a))
 match c1 c2 = do 
   res <- match' c1 c2
@@ -118,21 +118,21 @@ match c1 c2 = do
 
 
 {-| This function generates an instance declaration of class
-'FunctorEq' for a each of the type constructor given in the argument
+'EqF' for a each of the type constructor given in the argument
 list. -}
 
-deriveFunctorEqs :: [Name] -> Q [Dec]
-deriveFunctorEqs = liftM concat . mapM deriveFunctorEq
+deriveEqFs :: [Name] -> Q [Dec]
+deriveEqFs = liftM concat . mapM deriveEqF
 
 {-| This function generates an instance declaration of class
-'FunctorEq' for a type constructor of any first-order kind taking at
+'EqF' for a type constructor of any first-order kind taking at
 least one argument. -}
 
-deriveFunctorEq :: Name -> Q [Dec]
-deriveFunctorEq fname = do
+deriveEqF :: Name -> Q [Dec]
+deriveEqF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let complType = foldl AppT (ConT name) (map (VarT . tyVarBndrName) (tail args))
-      classType = AppT (ConT ''FunctorEq) complType
+      classType = AppT (ConT ''EqF) complType
   eqAlgDecl <- funD 'eqAlg  (eqAlgClauses constrs)
   eqModDecl <- funD 'eqMod  (eqModClauses constrs)
   return $ [InstanceD [] classType [eqModDecl, eqAlgDecl]]

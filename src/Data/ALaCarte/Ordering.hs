@@ -13,8 +13,8 @@
 --------------------------------------------------------------------------------
 module Data.ALaCarte.Ordering
     ( compList,
-      deriveFunctorOrds,
-      deriveFunctorOrd
+      deriveOrdFs,
+      deriveOrdF
     ) where
 
 import Data.ALaCarte.Equality
@@ -31,27 +31,27 @@ import Language.Haskell.TH hiding (Cxt)
   Functor type class that provides an 'Eq' instance for the corresponding
   term type class.
 -}
-class FunctorEq f => FunctorOrd f where
+class EqF f => OrdF f where
     compAlg :: Ord a => f a -> f a -> Ordering
 
-instance (FunctorOrd f, Ord a)  => Ord (Cxt h f a) where
+instance (OrdF f, Ord a)  => Ord (Cxt h f a) where
     compare = compAlg
 
 {-|
-  From an 'FunctorOrd' functor an 'Ord' instance of the corresponding
+  From an 'OrdF' functor an 'Ord' instance of the corresponding
   term type can be derived.
 -}
-instance (FunctorOrd f) => FunctorOrd (Cxt h f) where
+instance (OrdF f) => OrdF (Cxt h f) where
     compAlg (Term e1) (Term e2) = compAlg e1 e2
     compAlg (Hole h1) (Hole h2) = compare h1 h2
     compAlg Term{} Hole{} = LT
     compAlg Hole{} Term{} = GT
 
 {-|
-  'FunctorOrd' is propagated through sums.
+  'OrdF' is propagated through sums.
 -}
 
-instance (FunctorOrd f, FunctorOrd g) => FunctorOrd (f :+: g) where
+instance (OrdF f, OrdF g) => OrdF (f :+: g) where
     compAlg (Inl _) (Inr _) = LT
     compAlg (Inr _) (Inl _) = GT
     compAlg (Inl x) (Inl y) = compAlg x y
@@ -60,18 +60,18 @@ instance (FunctorOrd f, FunctorOrd g) => FunctorOrd (f :+: g) where
 compList :: [Ordering] -> Ordering
 compList = fromMaybe EQ . find (/= EQ)
 
-deriveFunctorOrds :: [Name] -> Q [Dec]
-deriveFunctorOrds = liftM concat . mapM deriveFunctorOrd
+deriveOrdFs :: [Name] -> Q [Dec]
+deriveOrdFs = liftM concat . mapM deriveOrdF
 
 {-| This function generates an instance declaration of class
-'FunctorEq' for a type constructor of any first-order kind taking at
+'OrdF' for a type constructor of any first-order kind taking at
 least one argument. -}
 
-deriveFunctorOrd :: Name -> Q [Dec]
-deriveFunctorOrd fname = do
+deriveOrdF :: Name -> Q [Dec]
+deriveOrdF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let complType = foldl AppT (ConT name) (map (VarT . tyVarBndrName) (tail args))
-      classType = AppT (ConT ''FunctorOrd) complType
+      classType = AppT (ConT ''OrdF) complType
   eqAlgDecl <- funD 'compAlg  (compAlgClauses constrs)
   return $ [InstanceD [] classType [eqAlgDecl]]
       where compAlgClauses [] = []
