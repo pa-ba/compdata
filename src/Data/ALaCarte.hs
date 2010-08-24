@@ -33,6 +33,7 @@ module Data.ALaCarte
      SigFunM,
      algM,
      unTerm,
+     freeAlgHom,
      algHom',
      algHomM',
      injectCxt,
@@ -282,8 +283,9 @@ compSigFunM f g a = g a >>= f
 
 data Nothing
 
-
 instance Eq Nothing where
+instance Ord Nothing where
+instance Show Nothing where
 
 {-| A term is a context with no holes.  -}
 
