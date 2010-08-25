@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, IncoherentInstances,
              UndecidableInstances, FlexibleInstances, FlexibleContexts,
              ScopedTypeVariables, FunctionalDependencies, EmptyDataDecls,
-             GADTs, KindSignatures, RankNTypes, TypeSynonymInstances#-}
+             GADTs, KindSignatures, RankNTypes, TypeSynonymInstances, TypeFamilies#-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte
@@ -55,7 +55,10 @@ module Data.ALaCarte
      algHomM,
      coalgHom,
      (:+:)(..),
+     (:++:),
+     NilF,
      (:<:)(..),
+     (:**:),
      inject,
      deepInject,
      deepInject2,
@@ -71,7 +74,7 @@ module Data.ALaCarte
 
 import Prelude hiding (and, foldr, sequence, foldl, foldr1, foldl1, mapM)
 import Control.Applicative
-import Control.Monad (liftM)
+import Control.Monad hiding (sequence, mapM)
 
 import Data.Traversable 
 import Data.Foldable 
@@ -132,10 +135,10 @@ algHomM' f = freeAlgHom (\x -> sequence x >>= f) return
 family @f@ of contexts (possibly terms) indexed by @a@. That is, each
 hole @h@ is replaced by the context @f h@. -}
 
-applyCxt :: (Functor f, f :<: g) => Cxt h' f v -> (v -> Cxt h g a) -> Cxt h g a
+applyCxt :: (f :<: g) => Cxt h' f v -> (v -> Cxt h g a) -> Cxt h g a
 applyCxt c f = injectCxt $ fmap f c
 
-applyCxt' :: (Functor f, f :<: g, Ord v) => Cxt h' f v -> Map v (Cxt h g a) -> Cxt h g a
+applyCxt' :: (Functor f, Functor g, f :<: g, Ord v) => Cxt h' f v -> Map v (Cxt h g a) -> Cxt h g a
 applyCxt' c m = applyCxt c (fromJust . (`Map.lookup`  m))
 
 
@@ -144,7 +147,7 @@ instance Functor f => Functor (Cxt h f) where
     fmap f (Hole v) = Hole (f v)
     fmap f (Term t) = Term (fmap (fmap f) t)
 
-instance Functor f => Monad (Context f) where
+instance Signature f => Monad (Context f) where
     return = Hole
     (>>=) = applyCxt
 
@@ -194,20 +197,20 @@ type TermAlg f g = SigFun f (Context g)
 {-| This function constructs the unique term homomorphism from the
 initial term algebra to the given term algebra. -}
 
-termHom :: (Functor f, Functor g) => TermAlg f g -> CxtFun f g
+termHom :: (Signature f, Signature g) => TermAlg f g -> CxtFun f g
 termHom _ (Hole b) = Hole b
 termHom f (Term t) = injectCxt . f . fmap (termHom f) $ t
 
 {-| This function composes two term algebras
 -}
 
-compTermAlg :: (Functor h, Functor g) => TermAlg g h -> TermAlg f g -> TermAlg f h
+compTermAlg :: (Signature h, Signature g) => TermAlg g h -> TermAlg f g -> TermAlg f h
 compTermAlg f g = termHom f . g
 
 {-| This function applies a signature function to the
 given context. -}
 
-applySigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
+applySigFun :: (Signature f, Signature g) => SigFun f g -> CxtFun f g
 applySigFun f = termHom . termAlg $ f
 
 {-| This function composes two signature functions.  -}
@@ -258,19 +261,19 @@ termAlgM f = sigFunM $ termAlg f
 {-| This function constructs the unique monadic homomorphism from the
 initial term algebra to the given term algebra. -}
 
-termHomM :: (Traversable f, Functor g, Monad m) => TermAlgM m f g -> CxtFunM m f g
+termHomM :: (Traversable f, Signature g, Monad m) => TermAlgM m f g -> CxtFunM m f g
 termHomM _ (Hole b) = return $ Hole b
 termHomM f (Term t) = liftM injectCxt . (>>= f) . sequence . fmap (termHomM f) $ t
 
 {-| This function applies the given monadic signature function to the
 given context -}
 
-applySigFunM :: (Traversable f, Functor g, Monad m) => SigFunM m f g -> CxtFunM m f g
+applySigFunM :: (Traversable f, Signature g, Monad m) => SigFunM m f g -> CxtFunM m f g
 applySigFunM f = termHomM . termAlg' $ f
 
 {-| This function composes two monadic term algebras. -}
 
-compTermAlgM :: (Traversable g, Functor h, Monad m)
+compTermAlgM :: (Traversable g, Signature h, Monad m)
             => TermAlgM m g h -> TermAlgM m f g -> TermAlgM m f h
 compTermAlgM f g a = g a >>= termHomM f
 
@@ -326,6 +329,15 @@ algHomM :: (Traversable f, Monad m) => AlgM m f a -> Term f -> m a
 algHomM = algHom . algM
 
 infixr 6 :+:
+infixr 5 :++:
+
+data NilF :: * -> * 
+
+
+type family (:++:) (f :: * -> *) (g :: * -> *) :: * -> *
+
+type instance (:++:) NilF f = f
+type instance (:++:) (f :+: f') g = f :+: (f' :++: g)
 
 -- |Data type defining coproducts.
 data (f :+: g) e = Inl (f e)
@@ -343,24 +355,55 @@ instance (Traversable f, Traversable g) => Traversable (f :+: g) where
     traverse f (Inl e) = Inl <$> traverse f e
     traverse f (Inr e) = Inr <$> traverse f e
 
+instance Functor NilF where
+    fmap = undefined
+
+
+class Functor f => Signature f  where
+    isNil :: f a -> Bool
+
+instance Signature NilF where
+    isNil _ = True
+
+instance (Signature f, Functor g) => Signature (g :+: f) where
+    isNil (Inl _) = False
+    isNil (Inr v) = isNil v
+
+
+class (Functor f, Signature g) => Elem f g where
+  inj' :: f a -> g a
+  proj' :: g a -> Maybe (f a)
+
+instance (Signature g, Functor f) =>  Elem f (f :+: g) where
+    inj' = Inl
+    proj' (Inl v) = Just v
+    proj' (Inr _) = Nothing
+
+instance (Functor f', Elem f g) => Elem f (f' :+: g) where
+    inj' = Inr . inj'
+    proj' (Inl _) = Nothing
+    proj' (Inr v) = proj' v
+
 -- |The subsumption relation.
-class (Functor sub, Functor sup) => (:<:) sub sup where
+class (Signature sub, Signature sup) => (:<:) sub sup where
   inj :: sub a -> sup a
   proj :: sup a -> Maybe (sub a)
 
-instance Functor f => (:<:) f f where
-  inj = id
-  proj x = Just x
+instance (Signature f) => (:<:) f f where
+    inj = id
+    proj = Just
+                                    
+instance Signature f =>  (:<:) NilF f where
+    inj = undefined
+    proj v
+        | isNil v = Just undefined
+        | otherwise = Nothing
 
-instance (Functor f, Functor g) => (:<:) f (f :+: g) where
-    inj = Inl
-    proj (Inl x) = Just x
-    proj (Inr _) = Nothing
+instance (Elem f g, (:<:) f' g) => (:<:) (f :+: f') g where
+  inj (Inl v) = inj' v
+  inj (Inr v) = inj v
 
-instance (Functor f, Functor g, Functor h, f :<: g) => (:<:) f (h :+: g) where
-    inj = Inr . inj
-    proj (Inr x) = proj x
-    proj (Inl _) = Nothing
+  proj v = (Inl <$> proj' v) `mplus` (Inr <$> proj v)
 
 -- |Project a sub term from a compound term.
 project :: (g :<:f) => Cxt h f a -> Maybe (g (Cxt h f a))
@@ -409,10 +452,14 @@ deepInject3 =  applySigFun inj3
 
 
 infixr 7 :*:
+infixr 7 :**:
 
 -- |Data type defining products.
 data (f :*: a) e = f e :*: a
 
+type family (:**:) (f :: * -> *) p :: (* -> *)
+type instance (f :+: g) :**: p = (f :*: p) :+: g :**: p
+type instance NilF :**: p = NilF
 
 {-| Instances of this class provide functions to strip a product from
 a functor -}
@@ -439,9 +486,9 @@ liftP :: (ProjectP f f') => (f' a -> b) -> f a -> b
 liftP f v = f (projectP v)
     
 {-| This function strips the products from a term over a
-functor with products. -}
+functor whith products. -}
 
-stripP :: (ProjectP f g, Functor g, Functor f) => Cxt h f a -> Cxt h g a
+stripP :: (ProjectP f g, Signature g, Signature f) => Cxt h f a -> Cxt h g a
 stripP = applySigFun projectP
 
 
@@ -477,7 +524,7 @@ instance InjectP g g' c =>  InjectP (f :+: g) (f :*: c :+: g')  c where
 {-| This function annotates each sub term of the given term
 with the given value (of type a). -}
 
-constP :: (InjectP f g c, Functor f, Functor g)
+constP :: (InjectP f g c, Signature f, Signature g)
        => c -> Cxt h f a -> Cxt h g a
 constP c = applySigFun (injectP c)
 

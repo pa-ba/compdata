@@ -21,7 +21,7 @@ $(deriveArbitraryF ''Tree)
 
 type Sig = Maybe :+: Tree Int :+: [] :+: (,) Int
 
-type SigP p = Maybe :*: p :+: Tree Int :*: p :+: [] :*: p :+: (,) Int :*: p
+type SigP = Sig :**: Int
 
 
 instance Show (a -> b) where

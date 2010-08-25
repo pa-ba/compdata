@@ -34,4 +34,4 @@ prop_eqMod_fmap cxt f = case eqMod cxt cxt' of
                    Nothing -> False
                    Just list -> all (uncurry (==)) $ map (\(x,y)->(f x,y)) list
     where cxt' = fmap f cxt 
-          with = (cxt :: Context (SigP Int) Int, f :: Int -> Int)
+          with = (cxt :: Context Sig Int, f :: Int -> Int)
