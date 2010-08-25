@@ -68,7 +68,7 @@ matchRules trs t = listToMaybe $ catMaybes $ map (`matchRule` t) trs
 given term (resp. context in general). If successful, the function
 returns the result term of the rewrite step; otherwise @Nothing@. -}
 
-applyRule :: (Ord v, g :<: f, g' :<: f, EqF g, EqF f, Eq a)
+applyRule :: (Ord v, g :<: f, g' :<: f, EqF g, EqF f, Eq a, Functor g', Functor f)
           => Rule g g' v -> Step (Cxt h f a)
 applyRule rule t = do 
   (res, subst) <- matchRule rule t
@@ -79,7 +79,7 @@ the root of the given term (resp. context in general) by trying each
 rule one by one using 'applyRule' until one rule is applicable. If no
 rule is applicable @Nothing@ is returned. -}
 
-applyTRS :: (Ord v, g :<: f, g' :<: f, EqF g, EqF f, Eq a)
+applyTRS :: (Ord v, g :<: f, g' :<: f, EqF g, EqF f, Eq a, Functor g', Functor f)
          => TRS g g' v -> Step (Cxt h f a)
 applyTRS trs t = listToMaybe $ catMaybes $ map (`applyRule` t) trs
 
@@ -100,7 +100,7 @@ bStep f t = case f t of
 apply rules of the given system to all outermost redexes. If the given
 term contains no redexes, @Nothing@ is returned. -}
 
-parTopStep :: (Ord v, g :<: f, g' :<: f, EqF g, EqF f, Eq a, Foldable f)
+parTopStep :: (Ord v, g :<: f, g' :<: f, EqF g, EqF f, Eq a, Foldable f, Functor g', Functor f)
            => TRS g g' v -> Step (Cxt h f a)
 parTopStep _ Hole{} = Nothing
 parTopStep trs c@(Term t) = tTop `mplus` tBelow'
@@ -116,7 +116,8 @@ apply rules of the given system to all outermost redexes and then
 recursively in the variable positions of the redexes. If the given
 term does not contain any redexes, @Nothing@ is returned. -}
 
-parallelStep :: (Ord v, g :<: f, g' :<: f, EqF g, EqF f, Eq a, Foldable f, Foldable g')
+parallelStep :: (Ord v, g :<: f, g' :<: f, EqF g, EqF f, Eq a,
+                 Foldable f, Functor  f, Foldable g', Functor g')
              => TRS g g' v -> Step (Cxt h f a)
 parallelStep _ Hole{} = Nothing
 parallelStep trs c@(Term t) =

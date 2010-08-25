@@ -86,13 +86,13 @@ type DUTTTrans f g q = forall a. f (q,a) -> (q, Cxt Hole g a)
 {-| This function transforms a DUTT transition function into an
 algebra.  -}
 
-duttTransAlg :: (Functor f, Signature g)  => DUTTTrans f g q -> Alg f (q, Term g)
+duttTransAlg :: (Functor f, Functor g)  => DUTTTrans f g q -> Alg f (q, Term g)
 duttTransAlg trans = fmap injectCxt . trans 
 
 {-| This function runs the given DUTT transition function on the given
 term.  -}
 
-runDUTTTrans :: (Functor f, Signature g)  => DUTTTrans f g q -> Term f -> (q, Term g)
+runDUTTTrans :: (Functor f, Functor g)  => DUTTTrans f g q -> Term f -> (q, Term g)
 runDUTTTrans = algHom . duttTransAlg
 
 {-| This data type represents deterministic bottom-up tree
@@ -107,7 +107,7 @@ data DUTT f g q = DUTT {
 DUTT and returns the resulting term provided it is accepted by the
 DUTT. -}
 
-dutt :: (Functor f, Signature g) => DUTT f g q -> Term f -> Maybe (Term g)
+dutt :: (Functor f, Functor g) => DUTT f g q -> Term f -> Maybe (Term g)
 dutt DUTT{duttTrans = trans, duttAccept = accept} = accept' . runDUTTTrans trans
     where accept' (q,res)
               | accept q = Just res
@@ -121,13 +121,13 @@ type NUTTTrans f g q = forall a. f (q,a) -> [(q, Cxt Hole g a)]
 {-| This function transforms a NUTT transition function into a monadic
 algebra.  -}
 
-nuttTransAlg :: (Functor f, Signature g)  => NUTTTrans f g q -> AlgM [] f (q, Term g)
+nuttTransAlg :: (Functor f, Functor g)  => NUTTTrans f g q -> AlgM [] f (q, Term g)
 nuttTransAlg trans = liftM (fmap injectCxt) . trans 
 
 {-| This function runs the given NUTT transition function on the given
 term.  -}
 
-runNUTTTrans :: (Traversable f, Signature g)  => NUTTTrans f g q -> Term f -> [(q, Term g)]
+runNUTTTrans :: (Traversable f, Functor g)  => NUTTTrans f g q -> Term f -> [(q, Term g)]
 runNUTTTrans = algHomM . nuttTransAlg
 
 {-| This data type represents non-deterministic bottom-up tree
@@ -141,7 +141,7 @@ data NUTT f g q = NUTT {
 {-| This function transforms the given term according to the given
 NUTT and returns a list containing all accepted results. -}
 
-nutt :: (Traversable f, Signature g) => NUTT f g q -> Term f -> [Term g]
+nutt :: (Traversable f, Functor g) => NUTT f g q -> Term f -> [Term g]
 nutt NUTT{nuttTrans = trans, nuttAccept = accept} = catMaybes . map accept' . runNUTTTrans trans
     where accept' (q,res)
               | accept q = Just res
