@@ -18,6 +18,7 @@ module Data.ALaCarte.Show
     ) where
 
 import Data.ALaCarte
+import Data.ALaCarte.Product
 import Data.ALaCarte.Derive.Show
 
 

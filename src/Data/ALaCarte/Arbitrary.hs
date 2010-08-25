@@ -19,6 +19,7 @@ module Data.ALaCarte.Arbitrary
 
 import Test.QuickCheck
 import Data.ALaCarte
+import Data.ALaCarte.Product
 import Data.ALaCarte.Derive.Utils
 import Data.ALaCarte.Derive.Arbitrary
 import Control.Applicative

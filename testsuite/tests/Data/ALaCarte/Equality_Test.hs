@@ -2,6 +2,7 @@ module Data.ALaCarte.Equality_Test where
 
 
 import Data.ALaCarte
+import Data.ALaCarte.Product
 import Data.ALaCarte.Equality
 import Data.ALaCarte.Arbitrary
 import Data.ALaCarte.Show

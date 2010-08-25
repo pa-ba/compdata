@@ -19,6 +19,7 @@ module Data.ALaCarte.Ordering
     ) where
 
 import Data.ALaCarte
+import Data.ALaCarte.Product
 import Data.ALaCarte.Derive.Ordering
 import Data.ALaCarte.Derive.Utils
 

@@ -20,6 +20,7 @@ module Data.ALaCarte.Equality
     ) where
 
 import Data.ALaCarte
+import Data.ALaCarte.Product
 import Data.ALaCarte.Derive.Utils
 import Data.ALaCarte.Derive.Equality
 import Control.Monad

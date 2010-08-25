@@ -58,16 +58,10 @@ module Data.ALaCarte
      (:++:),
      NilF,
      (:<:)(..),
-     (:**:),
      inject,
      deepInject,
      project,
      deepProject,
-     (:*:)(..),
-     liftP,
-     constP,
-     stripP,
-     project'
     ) where
 
 import Prelude hiding (and, foldr, sequence, foldl, foldr1, foldl1, mapM)
@@ -420,87 +414,3 @@ injectCxt = algHom' inject
 deepInject  :: (Functor g, Functor f, g :<: f) => Cxt h g a -> Cxt h f a
 deepInject = applySigFun inj
 
-
-
-infixr 7 :*:
-
-infixr 7 :**:
-
--- |Data type defining products.
-data (f :*: a) e = f e :*: a
-
-
-instance (Functor f) => Functor (f :*: a) where
-    fmap f (v :*: c) = fmap f v :*: c
-
-instance (Foldable f) => Foldable (f :*: a) where
-    fold (v :*: _) = fold v
-    foldMap f (v :*: _) = foldMap f v
-    foldr f e (v :*: _) = foldr f e v
-    foldl f e (v :*: _) = foldl f e v
-    foldr1 f (v :*: _) = foldr1 f v
-    foldl1 f (v :*: _) = foldl1 f v
-
-instance (Traversable f) => Traversable (f :*: a) where
-    traverse f (v :*: c) = liftA (:*: c) (traverse f v)
-    sequenceA (v :*: c) = liftA (:*: c)(sequenceA v)
-    mapM f (v :*: c) = liftM (:*: c) (mapM f v)
-    sequence (v :*: c) = liftM (:*: c) (sequence v)
-
-class DistProd s p where
-    type s :**: p :: * -> *
-    injectP :: p -> s a -> (s :**: p) a
-
-class ProjectP s s' | s -> s'  where
-    projectP :: s a -> s' a
-
-instance ProjectP NilF NilF where
-    projectP v = v
-
-instance (Functor f, ProjectP s s') => ProjectP (f :*: p :+: s) (f :+: s') where
-    projectP (Inl (v :*: _)) = Inl v
-    projectP (Inr v) = Inr $ projectP v
-
-
-instance DistProd NilF p where
-    type NilF :**: p = NilF
-
-    injectP _ v = v
-
-instance (DistProd s p, Functor f) => DistProd (f :+: s) p where
-    type (f :+: s) :**: p = (f :*: p) :+: (s :**: p)
-
-
-    injectP c (Inl v) = Inl (v :*: c)
-    injectP c (Inr v) = Inr $ injectP c v
-
-
-{-| This function transforms a function with a domain constructed from
-a functor to a function with a domain constructed with the same
-functor but with an additional product. -}
-
-liftP :: (ProjectP f g) => (g a -> b) -> f a -> b
-liftP f v = f (projectP v)
-    
-{-| This function strips the products from a term over a
-functor whith products. -}
-
-stripP :: (Functor f, Functor g, ProjectP f g) => Cxt h f a -> Cxt h g a
-stripP = applySigFun projectP
-
-
-
-{-| This function annotates each sub term of the given term
-with the given value (of type a). -}
-
-constP :: (DistProd f p, Functor f, Functor (f :**: p))
-       => p -> Cxt h f a -> Cxt h (f :**: p) a
-constP c = applySigFun (injectP c)
-
-
-{-| This function is similar to 'project' but applies to signatures
-with a product which is then ignored. -}
--- bug in type checker? below is the inferred type, however, the type checker
--- rejects it.
--- project' :: (ProjectP f g, f :<: f1) => Cxt h f1 a -> Maybe (g (Cxt h f1 a))
-project' v = liftM projectP $ project v
