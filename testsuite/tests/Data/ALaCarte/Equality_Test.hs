@@ -1,17 +1,18 @@
-module Data.ALaCarte_Test where
+module Data.ALaCarte.Equality_Test where
 
 
 import Data.ALaCarte
 import Data.ALaCarte.Equality
-import Data.ALaCarte.Arbitrary ()
-import Data.ALaCarte.Show ()
+import Data.ALaCarte.Arbitrary
+import Data.ALaCarte.Show
 
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 import Test.QuickCheck
 import Test.Utils
 
-import qualified Data.ALaCarte.Equality_Test
+
+
 
 
 --------------------------------------------------------------------------------
@@ -20,11 +21,17 @@ import qualified Data.ALaCarte.Equality_Test
 
 main = defaultMain [tests]
 
-tests = testGroup "ALaCarte" [
-         Data.ALaCarte.Equality_Test.tests
+tests = testGroup "Equality" [
+         testProperty "prop_eqMod_fmap" prop_eqMod_fmap
         ]
+
 
 --------------------------------------------------------------------------------
 -- Properties
 --------------------------------------------------------------------------------
 
+prop_eqMod_fmap cxt f = case eqMod cxt cxt' of
+                   Nothing -> False
+                   Just list -> all (uncurry (==)) $ map (\(x,y)->(f x,y)) list
+    where cxt' = fmap f cxt 
+          with = (cxt :: Context (SigP Int) Int, f :: Int -> Int)

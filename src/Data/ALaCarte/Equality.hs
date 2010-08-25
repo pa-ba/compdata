@@ -27,6 +27,12 @@ import Control.Monad
 import Data.Map (Map)
 import qualified Data.Map as Map
 
+
+instance (EqF f, Eq p) => EqF (f :*: p) where
+    eqMod (v1 :*: p1) (v2 :*: p2) = unless (p1 == p2) mzero
+                                    >> eqMod v1 v2
+    eqAlg (v1 :*: p1) (v2 :*: p2) = p1 == p2 && v1 `eqAlg` v2
+
 {-|
   'EqF' is propagated through sums.
 -}

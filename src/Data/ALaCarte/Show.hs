@@ -29,6 +29,9 @@ instance (ShowF f) => ShowF (Cxt h f) where
 instance (ShowF f, Show a) => Show (Cxt h f a) where
     show = freeAlgHom showF show
 
+instance (ShowF f, Show p) => ShowF (f :*: p) where
+    showF (v :*: p) = showF v ++ " :*: " ++ show p
+
 instance (ShowF f, ShowF g) => ShowF (f :+: g) where
     showF (Inl f) = showF f
     showF (Inr g) = showF g

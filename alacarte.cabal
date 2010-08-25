@@ -28,7 +28,7 @@ library
 
 Executable test
   Main-is:		Data_Test.hs
-  Build-Depends:	base >= 4, template-haskell, containers, QuickCheck >= 2, test-framework, test-framework-quickcheck2
+  Build-Depends:	base >= 4, template-haskell, containers, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive
   hs-source-dirs:	src testsuite/tests
   ghc-options:          -fhpc
   if !flag(test)
