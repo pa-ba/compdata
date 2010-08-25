@@ -36,6 +36,12 @@ instance (OrdF f) => OrdF (Cxt h f) where
     compAlg Term{} Hole{} = LT
     compAlg Hole{} Term{} = GT
 
+instance (OrdF f, Ord p) => OrdF (f :*: p) where
+    compAlg (v1 :*: p1) (v2 :*: p2) = 
+        case compAlg v1 v2 of
+          EQ ->  compare p1 p2
+          res -> res
+
 {-|
   'OrdF' is propagated through sums.
 -}
