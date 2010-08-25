@@ -31,7 +31,7 @@ import qualified Data.Map as Map
 instance (EqF f, Eq p) => EqF (f :*: p) where
     eqMod (v1 :*: p1) (v2 :*: p2) = unless (p1 == p2) mzero
                                     >> eqMod v1 v2
-    eqAlg (v1 :*: p1) (v2 :*: p2) = p1 == p2 && v1 `eqAlg` v2
+    eqF (v1 :*: p1) (v2 :*: p2) = p1 == p2 && v1 `eqF` v2
 
 {-|
   'EqF' is propagated through sums.
@@ -42,9 +42,9 @@ instance (EqF f, EqF g) => EqF (f :+: g) where
     eqMod (Inr x) (Inr y) = eqMod x y
     eqMod _ _ = Nothing
 
-    eqAlg (Inl x) (Inl y) = eqAlg x y
-    eqAlg (Inr x) (Inr y) = eqAlg x y
-    eqAlg _ _ = False
+    eqF (Inl x) (Inl y) = eqF x y
+    eqF (Inr x) (Inr y) = eqF x y
+    eqF _ _ = False
 
 {-|
   From an 'EqF' functor an 'Eq' instance of the corresponding
@@ -56,12 +56,12 @@ instance (EqF f) => EqF (Cxt h f) where
     eqMod (Hole h1) (Hole h2) = Just [(h1,h2)]
     eqMod _ _ = Nothing
 
-    eqAlg (Term e1) (Term e2) = e1 `eqAlg` e2
-    eqAlg (Hole h1) (Hole h2) = h1 == h2
-    eqAlg _ _ = False
+    eqF (Term e1) (Term e2) = e1 `eqF` e2
+    eqF (Hole h1) (Hole h2) = h1 == h2
+    eqF _ _ = False
 
 instance (EqF f, Eq a)  => Eq (Cxt h f a) where
-    (==) = eqAlg
+    (==) = eqF
 
 instance EqF [] where
     eqMod [] [] = Just []
@@ -69,7 +69,7 @@ instance EqF [] where
                   res <- eqMod xs ys
                   return $ (x,y) : res
     eqMod _ _ = Nothing
-    eqAlg = (==)
+    eqF = (==)
 
 {-| This is an auxiliary function for implementing 'match'. It behaves
 similarly as 'match' but is oblivious to non-linearity. Therefore, the

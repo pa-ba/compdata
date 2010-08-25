@@ -31,7 +31,7 @@ import Language.Haskell.TH hiding (Cxt)
   term type class.
 -}
 class EqF f => OrdF f where
-    compAlg :: Ord a => f a -> f a -> Ordering
+    compareF :: Ord a => f a -> f a -> Ordering
 
     
 compList :: [Ordering] -> Ordering
@@ -51,10 +51,10 @@ deriveOrdF fname = do
       complType = foldl AppT (ConT name) argNames
       preCond = map (ClassP ''Ord . (: [])) argNames
       classType = AppT (ConT ''OrdF) complType
-  eqAlgDecl <- funD 'compAlg  (compAlgClauses constrs)
+  eqAlgDecl <- funD 'compareF  (compareFClauses constrs)
   return $ [InstanceD preCond classType [eqAlgDecl]]
-      where compAlgClauses [] = []
-            compAlgClauses constrs = 
+      where compareFClauses [] = []
+            compareFClauses constrs = 
                 let constrs' = map abstractConType constrs `zip` [1..]
                     constPairs = [(x,y)| x<-constrs', y <- constrs']
                 in map genClause constPairs

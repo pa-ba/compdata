@@ -38,8 +38,8 @@ class EqF f where
 
     eqMod :: f a -> f b -> Maybe [(a,b)]
 
-    eqAlg :: Eq a => f a -> f a -> Bool
-    eqAlg x y = maybe
+    eqF :: Eq a => f a -> f a -> Bool
+    eqF x y = maybe
                 False
                 (all (uncurry (==)))
                 (eqMod x y)
@@ -67,10 +67,10 @@ deriveEqF fname = do
       complType = foldl AppT (ConT name) argNames
       preCond = map (ClassP ''Eq . (: [])) argNames
       classType = AppT (ConT ''EqF) complType
-  eqAlgDecl <- funD 'eqAlg  (eqAlgClauses constrs)
+  eqFDecl <- funD 'eqF  (eqFClauses constrs)
   eqModDecl <- funD 'eqMod  (eqModClauses fArg constrs)
-  return $ [InstanceD preCond classType [eqModDecl, eqAlgDecl]]
-      where eqAlgClauses constrs = map (genEqClause.abstractConType) constrs
+  return $ [InstanceD preCond classType [eqModDecl, eqFDecl]]
+      where eqFClauses constrs = map (genEqClause.abstractConType) constrs
                                    ++ (defEqClause constrs)
             eqModClauses fArg constrs = map (genModClause fArg .normalCon') constrs
                                         ++ (defModClause constrs)

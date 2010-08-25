@@ -24,21 +24,21 @@ import Data.ALaCarte.Derive.Utils
 
 
 instance (OrdF f, Ord a) => Ord (Cxt h f a) where
-    compare = compAlg
+    compare = compareF
 
 {-|
   From an 'OrdF' functor an 'Ord' instance of the corresponding
   term type can be derived.
 -}
 instance (OrdF f) => OrdF (Cxt h f) where
-    compAlg (Term e1) (Term e2) = compAlg e1 e2
-    compAlg (Hole h1) (Hole h2) = compare h1 h2
-    compAlg Term{} Hole{} = LT
-    compAlg Hole{} Term{} = GT
+    compareF (Term e1) (Term e2) = compareF e1 e2
+    compareF (Hole h1) (Hole h2) = compare h1 h2
+    compareF Term{} Hole{} = LT
+    compareF Hole{} Term{} = GT
 
 instance (OrdF f, Ord p) => OrdF (f :*: p) where
-    compAlg (v1 :*: p1) (v2 :*: p2) = 
-        case compAlg v1 v2 of
+    compareF (v1 :*: p1) (v2 :*: p2) = 
+        case compareF v1 v2 of
           EQ ->  compare p1 p2
           res -> res
 
@@ -47,9 +47,9 @@ instance (OrdF f, Ord p) => OrdF (f :*: p) where
 -}
 
 instance (OrdF f, OrdF g) => OrdF (f :+: g) where
-    compAlg (Inl _) (Inr _) = LT
-    compAlg (Inr _) (Inl _) = GT
-    compAlg (Inl x) (Inl y) = compAlg x y
-    compAlg (Inr x) (Inr y) = compAlg x y
+    compareF (Inl _) (Inr _) = LT
+    compareF (Inr _) (Inl _) = GT
+    compareF (Inl x) (Inl y) = compareF x y
+    compareF (Inr x) (Inr y) = compareF x y
 
 $(deriveOrdFs $ [''Maybe, ''[]] ++ tupleTypes 2 10)
