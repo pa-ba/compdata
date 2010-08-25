@@ -46,6 +46,10 @@ instance (EqF f, EqF g) => EqF (f :+: g) where
     eqF (Inr x) (Inr y) = eqF x y
     eqF _ _ = False
 
+instance EqF NilF where
+    eqMod _ _ = Just []
+    eqF _ _ = True
+
 {-|
   From an 'EqF' functor an 'Eq' instance of the corresponding
   term type can be derived.

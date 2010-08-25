@@ -30,6 +30,13 @@ instance (ArbitraryF f) => Arbitrary (Term f) where
     arbitrary = Term <$> arbitraryF
     shrink (Term expr) = map Term $ shrinkF expr
 
+instance ArbitraryF NilF where
+    arbitraryF' = []
+    arbitraryF = return undefined
+    shrinkF _ = []
+    
+    
+
 instance (ArbitraryF f, Arbitrary p) => ArbitraryF (f :*: p) where
     arbitraryF' = map addP arbitraryF'
         where addP (i,gen) =  (i,(:*:) <$> gen <*> arbitrary)

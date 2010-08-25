@@ -31,6 +31,7 @@ module Data.ALaCarte
      CxtFunM,
      SigFun,
      SigFunM,
+     Signature,
      algM,
      unTerm,
      freeAlgHom,

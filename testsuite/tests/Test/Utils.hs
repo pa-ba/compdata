@@ -19,7 +19,10 @@ $(deriveShowF ''Tree)
 $(deriveEqF ''Tree)
 $(deriveArbitraryF ''Tree)
 
-type Sig = Maybe :+: Tree Int :+: [] :+: (,) Int
+
+type Sig1 = Maybe :+: Tree Int :+: NilF 
+type Sig2 = [] :+: (,) Int :+: NilF
+type Sig = Sig1 :++: Sig2
 
 type SigP = Sig :**: Int
 
