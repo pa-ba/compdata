@@ -19,7 +19,8 @@ module Data.ALaCarte.Equality
      match,
     ) where
 
-import Data.ALaCarte
+import Data.ALaCarte.Term
+import Data.ALaCarte.Sum
 import Data.ALaCarte.Product
 import Data.ALaCarte.Derive.Utils
 import Data.ALaCarte.Derive.Equality

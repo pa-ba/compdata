@@ -72,7 +72,7 @@ applyRule :: (Ord v, g :<: f, g' :<: f, EqF g, EqF f, Eq a, Functor g', Functor 
           => Rule g g' v -> Step (Cxt h f a)
 applyRule rule t = do 
   (res, subst) <- matchRule rule t
-  return $ applyCxt' res subst
+  return $ substHoles' res subst
 
 {-| This function tries to apply one of the rules in the given TRS at
 the root of the given term (resp. context in general) by trying each
@@ -127,7 +127,7 @@ parallelStep trs c@(Term t) =
           | otherwise -> Nothing
         where below = fmap (bStep $ parallelStep trs) t 
               anyBelow = any snd below
-      Just (rhs,subst) -> Just $ applyCxt' rhs substBelow
+      Just (rhs,subst) -> Just $ substHoles' rhs substBelow
           where rhsVars = Set.fromList $ toList rhs
                 substBelow = Map.mapMaybeWithKey apply subst
                 apply v t

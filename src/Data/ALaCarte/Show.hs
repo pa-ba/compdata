@@ -17,8 +17,10 @@ module Data.ALaCarte.Show
       deriveShowF
     ) where
 
-import Data.ALaCarte
+import Data.ALaCarte.Term
+import Data.ALaCarte.Sum
 import Data.ALaCarte.Product
+import Data.ALaCarte.Algebra
 import Data.ALaCarte.Derive.Show
 
 

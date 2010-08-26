@@ -18,7 +18,8 @@ module Data.ALaCarte.Ordering
       deriveOrdF
     ) where
 
-import Data.ALaCarte
+import Data.ALaCarte.Term
+import Data.ALaCarte.Sum
 import Data.ALaCarte.Product
 import Data.ALaCarte.Derive.Ordering
 import Data.ALaCarte.Derive.Utils

@@ -15,9 +15,11 @@ flag test
   default:     False
 
 library
-  Exposed-Modules:      Data.ALaCarte, Data.ALaCarte.Equality, Data.ALaCarte.Ordering,
+  Exposed-Modules:      Data.ALaCarte, Data.ALaCarte.Product, Data.ALaCarte.Sum,
+                        Data.ALaCarte.Term, Data.ALaCarte.Algebra, Data.ALaCarte.Equality,
+                        Data.ALaCarte.Ordering,
                         Data.ALaCarte.TermRewriting, Data.ALaCarte.Automata,
-                        Data.ALaCarte.Arbitrary, Data.ALaCarte.Show, Data.ALaCarte.Product
+                        Data.ALaCarte.Arbitrary, Data.ALaCarte.Show
   Other-Modules:        Data.ALaCarte.Derive.Utils, Data.ALaCarte.Derive.Equality,
                         Data.ALaCarte.Derive.Ordering, Data.ALaCarte.Derive.Arbitrary,
                         Data.ALaCarte.Derive.Show

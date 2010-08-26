@@ -18,7 +18,8 @@ module Data.ALaCarte.Arbitrary
     )where
 
 import Test.QuickCheck
-import Data.ALaCarte
+import Data.ALaCarte.Term
+import Data.ALaCarte.Sum
 import Data.ALaCarte.Product
 import Data.ALaCarte.Derive.Utils
 import Data.ALaCarte.Derive.Arbitrary
