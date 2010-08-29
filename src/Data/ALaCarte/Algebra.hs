@@ -37,6 +37,7 @@ module Data.ALaCarte.Algebra (
       applySigFun,
       compSigFun,
       termAlg,
+      compAlg,
 
       -- * Monadic Term Algebras
       CxtFunM,
@@ -49,6 +50,7 @@ module Data.ALaCarte.Algebra (
       applySigFunM,
       compTermAlgM,
       compSigFunM,
+      compAlgM,
 
       -- * Coalgebras      
       coalgHom
@@ -148,6 +150,13 @@ termHom f (Term t) = applyCxt . f . fmap (termHom f) $ t
 compTermAlg :: (Functor g, Functor h) => TermAlg g h -> TermAlg f g -> TermAlg f h
 compTermAlg f g = termHom f . g
 
+
+{-| This function composes a term algebra with an algebra. -}
+
+compAlg :: (Functor g) => Alg g a -> TermAlg f g -> Alg f a
+compAlg alg talg = algHom' alg . talg
+
+
 {-| This function applies a signature function to the
 given context. -}
 
@@ -219,6 +228,12 @@ applySigFunM f = termHomM . termAlg' $ f
 compTermAlgM :: (Traversable g, Functor h, Monad m)
             => TermAlgM m g h -> TermAlgM m f g -> TermAlgM m f h
 compTermAlgM f g a = g a >>= termHomM f
+
+
+{-| This function composes a monadic term algebra with a monadic algebra -}
+
+compAlgM :: (Traversable g, Monad m) => AlgM m g a -> TermAlgM m f g -> AlgM m f a
+compAlgM alg talg c = algHomM' alg =<< talg c
 
 {-| This function composes two monadic signature functions.  -}
 
