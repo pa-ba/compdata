@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, RankNTypes, GADTs #-}
+{-# LANGUAGE MultiParamTypeClasses, RankNTypes, GADTs, TypeSynonymInstances, FlexibleInstances #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -44,6 +44,11 @@ variables of type @v@. -}
 
 class HasVars f v where
     isVar :: f a -> Maybe v
+
+instance (v :<: f, Functor v) => HasVars f (Const v) where
+    isVar t = fmap  (fmap (const ())) (proj t)
+            
+
 
 containsVarAlg :: (Eq v, HasVars f v, Foldable f) => v -> Alg f Bool
 containsVarAlg v t = local || or t 

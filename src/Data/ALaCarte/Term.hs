@@ -21,10 +21,11 @@ module Data.ALaCarte.Term
      Context,
      Nothing,
      Term,
+     Const,
      unTerm
      ) where
 
-import Control.Applicative
+import Control.Applicative hiding (Const)
 import Control.Monad hiding (mapM, sequence)
 
 import Data.Traversable
@@ -32,6 +33,8 @@ import Data.Foldable
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 
+
+type Const f = f ()
 
 {-| This data type represents contexts over a signature. Contexts are
 terms containing zero or more holes. The first type parameter is
