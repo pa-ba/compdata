@@ -14,13 +14,13 @@
 --
 --------------------------------------------------------------------------------
 module Data.ALaCarte.Variables (
-  HasVars,
+  HasVars(..),
   containsVar,
   variables,
   substVars,
   substVars',
   applySubst,
-  applySubst'                   ) where
+  applySubst') where
 
 import Data.ALaCarte.Term
 import Data.ALaCarte.Algebra

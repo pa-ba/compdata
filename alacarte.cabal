@@ -19,7 +19,8 @@ library
                         Data.ALaCarte.Term, Data.ALaCarte.Algebra, Data.ALaCarte.Equality,
                         Data.ALaCarte.Ordering,
                         Data.ALaCarte.TermRewriting, Data.ALaCarte.Automata,
-                        Data.ALaCarte.Arbitrary, Data.ALaCarte.Show, Data.ALaCarte.Variables
+                        Data.ALaCarte.Arbitrary, Data.ALaCarte.Show, Data.ALaCarte.Variables,
+                        Data.ALaCarte.Decompose													
   Other-Modules:        Data.ALaCarte.Derive.Utils, Data.ALaCarte.Derive.Equality,
                         Data.ALaCarte.Derive.Ordering, Data.ALaCarte.Derive.Arbitrary,
                         Data.ALaCarte.Derive.Show
