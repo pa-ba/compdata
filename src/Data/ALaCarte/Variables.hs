@@ -15,12 +15,14 @@
 --------------------------------------------------------------------------------
 module Data.ALaCarte.Variables (
   HasVars(..),
+  Subst,
   containsVar,
   variables,
   substVars,
   substVars',
   applySubst,
-  applySubst') where
+  applySubst',
+  compSubst) where
 
 import Data.ALaCarte.Term
 import Data.ALaCarte.Algebra
@@ -37,6 +39,9 @@ import qualified Data.Map as Map
 
 import Prelude hiding (or, foldl)
 
+type CxtSubst h a f v = Map v (Cxt h f a)
+
+type Subst f v = CxtSubst NoHole Nothing f v
 
 {-| This multiparameter class defines functors with variables. An
 instance @HasVar f v@ denotes that values over @f@ might contain
@@ -110,3 +115,12 @@ applySubst subst = substVars f
 applySubst' :: (Ord k, HasVars f1 k,Functor f1, Functor f2, Functor g, f1 :<: g, f2 :<: g)
             => Map k (Cxt h f2 a) -> Cxt h f1 a -> Cxt h g a
 applySubst' subst = applySubst (fmap deepInject subst)
+
+
+{-| This function composes two substitutions @s1@ and @s2@. That is,
+applying the resulting substitution is equivalent to first applying
+@s2@ and then @s1@. -}
+
+compSubst :: (Ord v, HasVars f v, Functor f, f :<: g)
+          => CxtSubst h a g v -> CxtSubst h a f v -> CxtSubst h a g v
+compSubst s1 s2 = fmap (applySubst s1) s2 `Map.union` s1

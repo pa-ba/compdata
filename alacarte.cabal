@@ -20,18 +20,19 @@ library
                         Data.ALaCarte.Ordering,
                         Data.ALaCarte.TermRewriting, Data.ALaCarte.Automata,
                         Data.ALaCarte.Arbitrary, Data.ALaCarte.Show, Data.ALaCarte.Variables,
-                        Data.ALaCarte.Decompose													
+                        Data.ALaCarte.Decompose, Data.ALaCarte.Unification
+
   Other-Modules:        Data.ALaCarte.Derive.Utils, Data.ALaCarte.Derive.Equality,
                         Data.ALaCarte.Derive.Ordering, Data.ALaCarte.Derive.Arbitrary,
                         Data.ALaCarte.Derive.Show
 
-  Build-Depends:	base >= 4, template-haskell, containers, QuickCheck >= 2
+  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2
   hs-source-dirs:	src
   ghc-options:          -W
 
 Executable test
   Main-is:		Data_Test.hs
-  Build-Depends:	base >= 4, template-haskell, containers, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive
+  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive
   hs-source-dirs:	src testsuite/tests
   ghc-options:          -fhpc
   if !flag(test)
