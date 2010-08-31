@@ -28,6 +28,7 @@ import Control.Applicative
 
 import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
 
+
 infixr 7 :*:
 
 infixr 7 :**:
@@ -66,6 +67,7 @@ class DistProd s p where
     {-| This function injects a product a value over a signature. -}
     injectP :: p -> s a -> (s :**: p) a
     projectP :: (s :**: p) a -> (s a, p)
+
 
 class RemoveP s s' | s -> s'  where
     removeP :: s a -> s' a

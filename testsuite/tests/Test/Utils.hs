@@ -1,12 +1,9 @@
-{-# LANGUAGE TemplateHaskell, TypeOperators #-}
+{-# LANGUAGE TemplateHaskell, TypeOperators, FlexibleContexts, FlexibleInstances #-}
 
 module Test.Utils where
 
 import Data.ALaCarte
-import Data.ALaCarte.Equality
-import Data.ALaCarte.Arbitrary
-import Data.ALaCarte.Show
-import Data.DeriveTH
+import Data.ALaCarte.Derive
 
 import Data.Foldable
 
@@ -18,19 +15,24 @@ data Tree l e = Leaf l
 
 data Pair a e = Pair a e
 
-$(derives [makeFunctor, makeFoldable] [''Tree, ''Pair])
-$(deriveShowFs [''Tree, ''Pair])
-$(deriveEqFs [''Tree, ''Pair])
-$(deriveArbitraryFs [''Tree, ''Pair])
+$(derive
+  [instanceFunctor, instanceFoldable, instanceShowF, instanceEqF, instanceArbitraryF]
+  [''Tree, ''Pair])
 
+$(derive
+  [smartConstructors]
+  [''Tree, ''Pair, ''Maybe])
 
 
 type Sig1 = Maybe :+: Tree Int :+: NilF 
 type Sig2 = [] :+: Pair Int :+: NilF
 type Sig = Sig1 :++: Sig2
 
+
 type SigP = Sig :**: Int
 
+instance EqF f => EqF (f :*: Int) where
+    eqF (x :*: i) (y :*: j) = x `eqF` y && i == j
 
 instance Show (a -> b) where
     show _ = "<function>"

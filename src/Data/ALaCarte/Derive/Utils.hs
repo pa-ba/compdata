@@ -69,3 +69,4 @@ newNames :: Int -> String -> Q [Name]
 newNames n name = replicateM n (newName name)
 
 tupleTypes n m = map tupleTypeName [n..m]
+

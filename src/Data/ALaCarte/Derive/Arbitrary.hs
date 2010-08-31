@@ -13,13 +13,11 @@
 
 module Data.ALaCarte.Derive.Arbitrary
     ( ArbitraryF(..),
-      deriveArbitraryFs,
-      deriveArbitraryF
+      instanceArbitraryF
     )where
 
 import Test.QuickCheck
 import Data.ALaCarte.Derive.Utils
-import Control.Monad
 import Language.Haskell.TH
 
 
@@ -36,19 +34,14 @@ class ArbitraryF f where
     shrinkF :: Arbitrary v => f v -> [f v]
     shrinkF _ = []
 
-{-| This function derives instances for 'ArbitraryF' for list of data
-types using 'deriveArbitraryF' -}
-
-deriveArbitraryFs :: [Name] -> Q [Dec]
-deriveArbitraryFs ns = liftM concat $ mapM deriveArbitraryF ns
 
 {-| This template function generates an instance declaration of the
 given data type name for the class 'ArbitraryF'. It is necessary that
 all types that are used by the data type definition are themselves
 instances of 'Arbitrary'.  -}
 
-deriveArbitraryF :: Name -> Q [Dec]
-deriveArbitraryF dt = do
+instanceArbitraryF :: Name -> Q [Dec]
+instanceArbitraryF dt = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify dt
   let argNames = (map (VarT . tyVarBndrName) (tail args))
       complType = foldl AppT (ConT name) argNames

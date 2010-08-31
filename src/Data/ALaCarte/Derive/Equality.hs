@@ -14,13 +14,11 @@
 module Data.ALaCarte.Derive.Equality
     (
      EqF(..),
-     deriveEqF,
-     deriveEqFs,
+     instanceEqF
     ) where
 
 import Data.ALaCarte.Derive.Utils
 import Language.Haskell.TH hiding (Cxt, match)
-import Control.Monad
 
 
 {-|
@@ -33,21 +31,13 @@ class EqF f where
 
                              
 
-
-{-| This function generates an instance declaration of class
-'EqF' for a each of the type constructor given in the argument
-list. -}
-
-deriveEqFs :: [Name] -> Q [Dec]
-deriveEqFs = liftM concat . mapM deriveEqF
-
 {-| This function generates an instance declaration of class 'EqF' for
 a type constructor of any first-order kind taking at least one
 argument. The implementation is not capable of deriving instances for
 recursive data types. -}
 
-deriveEqF :: Name -> Q [Dec]
-deriveEqF fname = do
+instanceEqF :: Name -> Q [Dec]
+instanceEqF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let argNames = (map (VarT . tyVarBndrName) (init args))
       complType = foldl AppT (ConT name) argNames

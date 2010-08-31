@@ -14,16 +14,14 @@
 module Data.ALaCarte.Derive.Ordering
     ( OrdF(..),
       compList,
-      deriveOrdFs,
-      deriveOrdF
+      instanceOrdF
     ) where
 
-import Data.ALaCarte.Equality
+import Data.ALaCarte.Derive.Equality
 import Data.ALaCarte.Derive.Utils
 
 import Data.Maybe
 import Data.List
-import Control.Monad
 import Language.Haskell.TH hiding (Cxt)
 
 {-|
@@ -37,15 +35,13 @@ class EqF f => OrdF f where
 compList :: [Ordering] -> Ordering
 compList = fromMaybe EQ . find (/= EQ)
 
-deriveOrdFs :: [Name] -> Q [Dec]
-deriveOrdFs = liftM concat . mapM deriveOrdF
 
 {-| This function generates an instance declaration of class
 'OrdF' for a type constructor of any first-order kind taking at
 least one argument. -}
 
-deriveOrdF :: Name -> Q [Dec]
-deriveOrdF fname = do
+instanceOrdF :: Name -> Q [Dec]
+instanceOrdF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let argNames = (map (VarT . tyVarBndrName) (init args))
       complType = foldl AppT (ConT name) argNames

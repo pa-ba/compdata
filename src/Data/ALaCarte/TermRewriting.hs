@@ -18,7 +18,9 @@ module Data.ALaCarte.TermRewriting where
 
 import Prelude hiding (any)
 
-import Data.ALaCarte
+import Data.ALaCarte.Term
+import Data.ALaCarte.Sum
+import Data.ALaCarte.Algebra
 import Data.ALaCarte.Equality
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -57,7 +59,7 @@ substitution. -}
 matchRule ::  (Ord v, g :<: f, EqF g, EqF f, Eq a, Functor g, Foldable g)
           => Rule g g' v -> Cxt h f a -> Maybe (Context g' v, Map v (Cxt h f a))
 matchRule (lhs,rhs) t = do
-  subst <- match lhs t
+  subst <- matchCxt lhs t
   return (rhs,subst)
 
 matchRules :: (Ord v, g :<: f, EqF g, EqF f, Eq a, Functor g, Foldable g)

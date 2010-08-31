@@ -12,9 +12,7 @@
 --------------------------------------------------------------------------------
 
 module Data.ALaCarte.Arbitrary
-    ( ArbitraryF(..),
-      deriveArbitraryFs,
-      deriveArbitraryF
+    ( ArbitraryF(..)
     )where
 
 import Test.QuickCheck
@@ -22,7 +20,7 @@ import Data.ALaCarte.Term
 import Data.ALaCarte.Sum
 import Data.ALaCarte.Product
 import Data.ALaCarte.Derive.Utils
-import Data.ALaCarte.Derive.Arbitrary
+import Data.ALaCarte.Derive
 import Control.Applicative
 
 {-| This lifts instances of 'ArbitraryF' to instances of 'Arbitrary'
@@ -73,4 +71,4 @@ instance (ArbitraryF f , ArbitraryF g) => ArbitraryF (f :+: g) where
     shrinkF (Inr val) = map Inr (shrinkF val)
 
 
-$(deriveArbitraryFs $ [''Maybe,''[]] ++ tupleTypes 2 10)
+$(derive [instanceArbitraryF] $ [''Maybe,''[]] ++ tupleTypes 2 10)

@@ -17,6 +17,8 @@
 
 module Data.ALaCarte.Sum (
   NilF,
+  MkSig,
+  In,
   (:<:)(..),
   (:+:)(..),
   (:++:),
@@ -25,6 +27,8 @@ module Data.ALaCarte.Sum (
   inject,
   injectCxt,
   deepInject,
+  construct,
+  match,
   substHoles,
   substHoles'
    ) where
@@ -56,6 +60,8 @@ type family (:++:) (f :: * -> *) (g :: * -> *) :: * -> *
 type instance (:++:) NilF f = f
 type instance (:++:) (f :+: f') g = f :+: (f' :++: g)
 
+type MkSig f = f :+: NilF
+
 -- |Data type defining coproducts.
 data (f :+: g) e = Inl (f e)
                  | Inr (g e)
@@ -81,16 +87,16 @@ instance Foldable NilF where
 instance Traversable NilF where
 
 
-class Elem f g where
+class In f g where
   inj' :: f a -> g a
   proj' :: g a -> Maybe (f a)
 
-instance Elem f (f :+: g) where
+instance In f (f :+: g) where
     inj' = Inl
     proj' (Inl v) = Just v
     proj' (Inr _) = Nothing
 
-instance (Elem f g) => Elem f (f' :+: g) where
+instance (In f g) => In f (f' :+: g) where
     inj' = Inr . inj'
     proj' (Inl _) = Nothing
     proj' (Inr v) = proj' v
@@ -103,16 +109,25 @@ class sub :<: sup where
 instance (:<:) f f where
     inj = id
     proj = Just
+
                                     
 instance (:<:) NilF f where
     inj = undefined
     proj _ = undefined
 
-instance (Elem f g, f' :<: g) => (:<:) (f :+: f') g where
+instance (In f g, f' :<: g) => (:<:) (f :+: f') g where
   inj (Inl v) = inj' v
   inj (Inr v) = inj v
 
   proj v = (Inl <$> proj' v) `mplus` (Inr <$> proj v)
+
+
+
+
+-- | This function allows pattern matching against the top-level functor
+match :: (g `In` f) => Cxt h f a -> Maybe (g (Cxt h f a))
+match (Hole _) = Nothing
+match (Term t) = proj' t
 
 -- |Project a sub term from a compound term.
 project :: (g :<: f) => Cxt h f a -> Maybe (g (Cxt h f a))
@@ -122,6 +137,10 @@ project (Term t) = proj t
 -- |Project a sub term recursively from a term.
 deepProject :: (Traversable f, Functor g, g :<: f) => Cxt h f a -> Maybe (Cxt h g a)
 deepProject = applySigFunM proj
+
+-- | Constructs a term by injecting a top-level functor
+construct :: (g `In` f) => g (Cxt h f a) -> Cxt h f a
+construct = Term . inj'
 
 -- |Inject a term into a compound term.
 inject :: (g :<: f) => g (Cxt h f a) -> Cxt h f a

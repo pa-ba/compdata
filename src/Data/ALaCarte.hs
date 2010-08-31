@@ -20,9 +20,13 @@ module Data.ALaCarte(
   , module Data.ALaCarte.Algebra
   , module Data.ALaCarte.Sum
   , module Data.ALaCarte.Product
+  , module Data.ALaCarte.Equality
+  , module Data.ALaCarte.Ordering
     ) where
 
 import Data.ALaCarte.Term
 import Data.ALaCarte.Algebra
 import Data.ALaCarte.Sum
 import Data.ALaCarte.Product
+import Data.ALaCarte.Equality
+import Data.ALaCarte.Ordering

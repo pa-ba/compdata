@@ -13,15 +13,13 @@
 --------------------------------------------------------------------------------
 module Data.ALaCarte.Ordering
     ( OrdF(..),
-      compList,
-      deriveOrdFs,
-      deriveOrdF
+      compList
     ) where
 
 import Data.ALaCarte.Term
 import Data.ALaCarte.Sum
-import Data.ALaCarte.Product
-import Data.ALaCarte.Derive.Ordering
+import Data.ALaCarte.Equality ()
+import Data.ALaCarte.Derive
 import Data.ALaCarte.Derive.Utils
 
 
@@ -38,11 +36,11 @@ instance (OrdF f) => OrdF (Cxt h f) where
     compareF Term{} Hole{} = LT
     compareF Hole{} Term{} = GT
 
-instance (OrdF f, Ord p) => OrdF (f :*: p) where
-    compareF (v1 :*: p1) (v2 :*: p2) = 
-        case compareF v1 v2 of
-          EQ ->  compare p1 p2
-          res -> res
+-- instance (OrdF f, Ord p) => OrdF (f :*: p) where
+--     compareF (v1 :*: p1) (v2 :*: p2) = 
+--         case compareF v1 v2 of
+--           EQ ->  compare p1 p2
+--           res -> res
 
 {-|
   'OrdF' is propagated through sums.
@@ -54,4 +52,4 @@ instance (OrdF f, OrdF g) => OrdF (f :+: g) where
     compareF (Inl x) (Inl y) = compareF x y
     compareF (Inr x) (Inr y) = compareF x y
 
-$(deriveOrdFs $ [''Maybe, ''[]] ++ tupleTypes 2 10)
+$(derive [instanceOrdF] $ [''Maybe, ''[]] ++ tupleTypes 2 10)

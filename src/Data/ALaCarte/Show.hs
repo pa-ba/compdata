@@ -12,16 +12,14 @@
 --------------------------------------------------------------------------------
 
 module Data.ALaCarte.Show
-    ( ShowF(..),
-      deriveShowFs,
-      deriveShowF
+    ( ShowF(..)
     ) where
 
 import Data.ALaCarte.Term
 import Data.ALaCarte.Sum
 import Data.ALaCarte.Product
 import Data.ALaCarte.Algebra
-import Data.ALaCarte.Derive.Show
+import Data.ALaCarte.Derive
 
 
 instance (ShowF f) => ShowF (Cxt h f) where
@@ -43,4 +41,4 @@ instance (ShowF f, ShowF g) => ShowF (f :+: g) where
     showF (Inl f) = showF f
     showF (Inr g) = showF g
 
-$(deriveShowFs $ [''Maybe, ''[], ''(,)])
+$(derive [instanceShowF] $ [''Maybe, ''[], ''(,)])

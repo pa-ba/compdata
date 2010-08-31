@@ -13,13 +13,11 @@
 
 module Data.ALaCarte.Derive.Show
     ( ShowF(..),
-      deriveShowFs,
-      deriveShowF
+      instanceShowF
     ) where
 
 import Data.ALaCarte.Derive.Utils
 import Language.Haskell.TH
-import Control.Monad
 import Data.List
 
 class Functor f => ShowF f where
@@ -29,11 +27,9 @@ showConstr :: String -> [String] -> String
 showConstr con [] = con
 showConstr con args = "(" ++ con ++ " " ++ concat (intersperse " " args) ++ ")"
 
-deriveShowFs :: [Name] -> Q [Dec]
-deriveShowFs = liftM concat . mapM deriveShowF
 
-deriveShowF :: Name -> Q [Dec]
-deriveShowF fname = do
+instanceShowF :: Name -> Q [Dec]
+instanceShowF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = (map (VarT . tyVarBndrName) (init args))
