@@ -43,11 +43,15 @@ module Data.ALaCarte.Algebra (
       CxtFunM,
       SigFunM,
       TermAlgM,
+      SigFunM',
+      TermAlgM',
       sigFunM,
       termAlg',
       termAlgM,
       termHomM,
+      termHomM',
       applySigFunM,
+      applySigFunM',
       compTermAlgM,
       compSigFunM,
       compAlgM,
@@ -184,10 +188,19 @@ type CxtFunM m f g = forall a h. Cxt h f a -> m (Cxt h g a)
 
 type SigFunM m f g = forall a. f a -> m (g a)
 
+{-| This type represents monadic signature functions.  It is similar
+to 'SigFunM' but has monadic values also in the domain. -}
+
+type SigFunM' m f g = forall a. f (m a) -> m (g a)
 
 {-| This type represents monadic term algebras.  -}
 
 type TermAlgM m f g = SigFunM m f (Context g)
+
+{-| This type represents monadic term algebras. It is similar to
+'TermAlgM' but has monadic values also in the domain. -}
+
+type TermAlgM' m f g = SigFunM' m f (Context g)
 
 
 {-| This function lifts the given signature function to a monadic
@@ -210,6 +223,7 @@ algebra. -}
 termAlgM :: (Functor g, Monad m) => SigFun f g -> TermAlgM m f g
 termAlgM f = sigFunM $ termAlg f
 
+
 {-| This function constructs the unique monadic homomorphism from the
 initial term algebra to the given term algebra. -}
 
@@ -217,12 +231,26 @@ termHomM :: (Traversable f, Functor g, Monad m) => TermAlgM m f g -> CxtFunM m f
 termHomM _ (Hole b) = return $ Hole b
 termHomM f (Term t) = liftM applyCxt . (>>= f) . sequence . fmap (termHomM f) $ t
 
+{-| This function constructs the unique monadic homomorphism from the
+initial term algebra to the given term algebra. -}
+
+termHomM' :: (Traversable f, Functor g, Monad m) => TermAlgM' m f g -> CxtFunM m f g
+termHomM' _ (Hole b) = return $ Hole b
+termHomM' f (Term t) = liftM applyCxt . f . fmap (termHomM' f) $ t
+
 
 {-| This function applies the given monadic signature function to the
 given context -}
 
 applySigFunM :: (Traversable f, Functor g, Monad m) => SigFunM m f g -> CxtFunM m f g
 applySigFunM f = termHomM . termAlg' $ f
+
+{-| This function applies the given monadic signature function to the
+given context -}
+
+applySigFunM' :: (Traversable f, Functor g, Monad m) => SigFunM' m f g -> CxtFunM m f g
+applySigFunM' _ (Hole b) = return $ Hole b
+applySigFunM' f (Term t) = liftM Term . f . fmap (applySigFunM' f) $ t
 
 {-| This function composes two monadic term algebras. -}
 
