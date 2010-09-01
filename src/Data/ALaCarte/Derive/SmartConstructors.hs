@@ -21,7 +21,6 @@ import Data.ALaCarte.Derive.Utils
 import Data.ALaCarte.Sum
 import Data.ALaCarte.Term
 
-import Data.Char
 import Control.Monad
 
 
@@ -32,13 +31,7 @@ smartConstructors fname = do
     liftM concat $ mapM (genSmartConstr (map tyVarBndrName targs) tname) cons
         where genSmartConstr targs tname (name, args) = do
                 let bname = nameBase name
-                case bname of
-                  x : xs
-                      | isUpper x -> genSmartConstr' targs tname (mkName $ toLower x : xs) name args
-                  _  -> do
-                    report False $ "cannot make constructor '" ++ bname
-                        ++ "' into a smart constructor"
-                    return []
+                genSmartConstr' targs tname (mkName $ 'i' : bname) name args
               genSmartConstr' targs tname sname name args = do
                 varNs <- newNames args "x"
                 let pats = map varP varNs

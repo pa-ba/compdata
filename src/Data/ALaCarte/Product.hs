@@ -76,6 +76,13 @@ instance RemoveP (f :*: p) f where
     removeP (v :*: _) = v
 
 
+instance (DistProd s p s') => DistProd f p (f :*: p) where
+
+    injectP c v = v :*: c
+
+    projectP (v :*: p) = (v,p)
+
+
 instance (DistProd s p s') => DistProd (f :+: s) p ((f :*: p) :+: s') where
 
 
