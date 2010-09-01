@@ -217,6 +217,7 @@ termHomM :: (Traversable f, Functor g, Monad m) => TermAlgM m f g -> CxtFunM m f
 termHomM _ (Hole b) = return $ Hole b
 termHomM f (Term t) = liftM applyCxt . (>>= f) . sequence . fmap (termHomM f) $ t
 
+
 {-| This function applies the given monadic signature function to the
 given context -}
 

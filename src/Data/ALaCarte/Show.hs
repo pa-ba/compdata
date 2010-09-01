@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, TypeSynonymInstances, GADTs, TemplateHaskell #-}
+{-# LANGUAGE TypeOperators, TypeSynonymInstances, GADTs, TemplateHaskell, FlexibleContexts #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte.Show

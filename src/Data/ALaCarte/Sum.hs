@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, IncoherentInstances,
              FlexibleInstances, FlexibleContexts, EmptyDataDecls,
-             GADTs, KindSignatures, TypeSynonymInstances, TypeFamilies#-}
+             GADTs, KindSignatures, TypeSynonymInstances, TypeFamilies, RankNTypes, ScopedTypeVariables #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -20,6 +20,7 @@ module Data.ALaCarte.Sum (
   (:+:)(..),
   project,
   deepProject,
+  deepProject',
   inject,
   injectCxt,
   deepInject,
@@ -33,7 +34,8 @@ import Data.ALaCarte.Term
 import Data.ALaCarte.Algebra
 
 import Control.Applicative
-import Control.Monad
+import Control.Monad hiding (sequence)
+
 
 import Data.Maybe
 import Data.Traversable
@@ -42,7 +44,7 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 
 
-import Prelude hiding (foldr)
+import Prelude hiding (foldr,sequence)
 
 
 infixr 6 :+:
@@ -95,6 +97,14 @@ project (Term t) = proj t
 deepProject :: (Traversable f, Functor g, g :<: f) => Cxt h f a -> Maybe (Cxt h g a)
 deepProject = applySigFunM proj
 
+-- |Project a sub term recursively from a term, but where the subterm
+-- signature is required to be traversable.
+deepProject' :: forall g f h a. (Traversable g, g :<: f) => Cxt h f a
+             -> Maybe (Cxt h g a)
+deepProject' val = do
+  v <- project val
+  v' <- sequence $ (fmap deepProject' v :: g (Maybe (Cxt h g a)))
+  return $ inject v'
 
 -- |Inject a term into a compound term.
 inject :: (g :<: f) => g (Cxt h f a) -> Cxt h f a
@@ -149,3 +159,21 @@ substHoles' c m = substHoles c (fromJust . (`Map.lookup`  m))
 instance (Functor f) => Monad (Context f) where
     return = Hole
     (>>=) = substHoles
+
+
+instance (Show (f a), Show (g a)) => Show ((f :+: g) a) where
+    show (Inl v) = show v
+    show (Inr v) = show v
+
+
+instance (Ord (f a), Ord (g a)) => Ord ((f :+: g) a) where
+    compare (Inl _) (Inr _) = LT
+    compare (Inr _) (Inl _) = GT
+    compare (Inl x) (Inl y) = compare x y
+    compare (Inr x) (Inr y) = compare x y
+
+
+instance (Eq (f a), Eq (g a)) => Eq ((f :+: g) a) where
+    (Inl x) == (Inl y) = x == y
+    (Inr x) == (Inr y) = x == y                   
+    _ == _ = False
