@@ -29,11 +29,6 @@ for the corresponding term type. -}
 instance (ArbitraryF f) => Arbitrary (Term f) where
     arbitrary = Term <$> arbitraryF
     shrink (Term expr) = map Term $ shrinkF expr
-
-instance ArbitraryF NilF where
-    arbitraryF' = []
-    arbitraryF = return undefined
-    shrinkF _ = []
     
     
 

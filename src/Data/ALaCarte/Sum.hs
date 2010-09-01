@@ -16,19 +16,15 @@
 --------------------------------------------------------------------------------
 
 module Data.ALaCarte.Sum (
-  NilF,
-  MkSig,
-  In,
   (:<:)(..),
   (:+:)(..),
-  (:++:),
   project,
   deepProject,
   inject,
   injectCxt,
   deepInject,
-  construct,
-  match,
+  deepInject2,
+  deepInject3,
   substHoles,
   substHoles'
    ) where
@@ -50,17 +46,7 @@ import Prelude hiding (foldr)
 
 
 infixr 6 :+:
-infixr 5 :++:
 
-data NilF :: * -> * 
-
-
-type family (:++:) (f :: * -> *) (g :: * -> *) :: * -> *
-
-type instance (:++:) NilF f = f
-type instance (:++:) (f :+: f') g = f :+: (f' :++: g)
-
-type MkSig f = f :+: NilF
 
 -- |Data type defining coproducts.
 data (f :+: g) e = Inl (f e)
@@ -78,28 +64,7 @@ instance (Traversable f, Traversable g) => Traversable (f :+: g) where
     traverse f (Inl e) = Inl <$> traverse f e
     traverse f (Inr e) = Inr <$> traverse f e
 
-instance Functor NilF where
-    fmap = undefined
 
-
-instance Foldable NilF where
-
-instance Traversable NilF where
-
-
-class In f g where
-  inj' :: f a -> g a
-  proj' :: g a -> Maybe (f a)
-
-instance In f (f :+: g) where
-    inj' = Inl
-    proj' (Inl v) = Just v
-    proj' (Inr _) = Nothing
-
-instance (In f g) => In f (f' :+: g) where
-    inj' = Inr . inj'
-    proj' (Inl _) = Nothing
-    proj' (Inr v) = proj' v
 
 -- |The subsumption relation.
 class sub :<: sup where
@@ -110,24 +75,16 @@ instance (:<:) f f where
     inj = id
     proj = Just
 
-                                    
-instance (:<:) NilF f where
-    inj = undefined
-    proj _ = undefined
+instance (:<:) f (f :+: g) where
+    inj = Inl
+    proj (Inl x) = Just x
+    proj (Inr _) = Nothing
 
-instance (In f g, f' :<: g) => (:<:) (f :+: f') g where
-  inj (Inl v) = inj' v
-  inj (Inr v) = inj v
+instance (f :<: g) => (:<:) f (h :+: g) where
+    inj = Inr . inj
+    proj (Inr x) = proj x
+    proj (Inl _) = Nothing
 
-  proj v = (Inl <$> proj' v) `mplus` (Inr <$> proj v)
-
-
-
-
--- | This function allows pattern matching against the top-level functor
-match :: (g `In` f) => Cxt h f a -> Maybe (g (Cxt h f a))
-match (Hole _) = Nothing
-match (Term t) = proj' t
 
 -- |Project a sub term from a compound term.
 project :: (g :<: f) => Cxt h f a -> Maybe (g (Cxt h f a))
@@ -138,9 +95,6 @@ project (Term t) = proj t
 deepProject :: (Traversable f, Functor g, g :<: f) => Cxt h f a -> Maybe (Cxt h g a)
 deepProject = applySigFunM proj
 
--- | Constructs a term by injecting a top-level functor
-construct :: (g `In` f) => g (Cxt h f a) -> Cxt h f a
-construct = Term . inj'
 
 -- |Inject a term into a compound term.
 inject :: (g :<: f) => g (Cxt h f a) -> Cxt h f a
@@ -158,7 +112,28 @@ injectCxt = algHom' inject
 deepInject  :: (Functor g, Functor f, g :<: f) => Cxt h g a -> Cxt h f a
 deepInject = applySigFun inj
 
+{-| This is a variant of 'inj' for binary sum signatures.  -}
 
+inj2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) a -> g a
+inj2 (Inl x) = inj x
+inj2 (Inr y) = inj y
+
+-- |A recursive version of 'inj2'.
+deepInject2 :: (Functor f1, Functor f2, Functor g, f1 :<: g, f2 :<: g)
+            => Cxt h (f1 :+: f2) a -> Cxt h g a
+deepInject2 = applySigFun inj2
+
+{-| This is a variant of 'inj' for ternary sum signatures.  -}
+
+inj3 :: (f1 :<: g, f2 :<: g, f3 :<: g)
+     => (f1 :+: f2 :+: f3) a -> g a
+inj3 (Inl x) = inj x
+inj3 (Inr y) = inj2 y
+
+-- |A recursive version of 'inj3'.
+deepInject3 :: (Functor f1, Functor f2, Functor f3, Functor g, f1 :<: g, f2 :<: g, f3 :<: g)
+            => Cxt h (f1 :+: f2 :+: f3) a -> Cxt h g a
+deepInject3 =  applySigFun inj3
 
 
 {-| This function applies the given context with hole type @a@ to a

@@ -45,7 +45,7 @@ smartConstructors fname = do
                     vars = map varE varNs
                     val = foldl appE (conE name) vars
                     sig = genSig targs tname sname args
-                    function = [funD sname [clause pats (normalB [|construct $val|]) []]]
+                    function = [funD sname [clause pats (normalB [|inject $val|]) []]]
                 sequence $ sig ++ function
               genSig targs tname sname 0 = (:[]) $ do
                 fvar <- newName "f"
@@ -53,7 +53,7 @@ smartConstructors fname = do
                     vars = fvar:targs'
                     f = varT fvar
                     ftype = foldl appT (conT tname) (map varT targs')
-                    constr = classP ''In [ftype, f]
+                    constr = classP ''(:<:) [ftype, f]
                     typ = appT (conT ''Term) f
                     typeSig = forallT (map PlainTV vars) (sequence [constr]) typ
                 sigD sname typeSig

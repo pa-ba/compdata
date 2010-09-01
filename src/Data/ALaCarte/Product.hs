@@ -31,8 +31,6 @@ import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
 
 infixr 7 :*:
 
-infixr 7 :**:
-
 {-| This data type adds a constant product to a signature.  -}
 
 data (f :*: a) e = f e :*: a
@@ -58,37 +56,23 @@ instance (Traversable f) => Traversable (f :*: a) where
 {-| This class defines how to distribute a product over a sum of
 signatures. -}
 
-class DistProd s p where
-    {-| This type function distributes a constant product over a
-      signature.  -}
-
-    type s :**: p :: * -> *
+class DistProd s p s' | s' -> s, s' -> p where
         
     {-| This function injects a product a value over a signature. -}
-    injectP :: p -> s a -> (s :**: p) a
-    projectP :: (s :**: p) a -> (s a, p)
+    injectP :: p -> s a -> s' a
+    projectP :: s' a -> (s a, p)
 
 
 class RemoveP s s' | s -> s'  where
     removeP :: s a -> s' a
 
-instance RemoveP NilF NilF where
-    removeP v = v
 
 instance (Functor f, RemoveP s s') => RemoveP (f :*: p :+: s) (f :+: s') where
     removeP (Inl (v :*: _)) = Inl v
     removeP (Inr v) = Inr $ removeP v
 
 
-instance DistProd NilF p where
-    type NilF :**: p = NilF
-
-    injectP _ v = v
-
-    projectP = undefined
-
-instance (DistProd s p) => DistProd (f :+: s) p where
-    type (f :+: s) :**: p = (f :*: p) :+: (s :**: p)
+instance (DistProd s p s') => DistProd (f :+: s) p ((f :*: p) :+: s') where
 
 
     injectP c (Inl v) = Inl (v :*: c)
@@ -117,8 +101,8 @@ stripP = applySigFun removeP
 {-| This function annotates each sub term of the given term
 with the given value (of type a). -}
 
-constP :: (DistProd f p, Functor f, Functor (f :**: p))
-       => p -> Cxt h f a -> Cxt h (f :**: p) a
+constP :: (DistProd f p g, Functor f, Functor g) 
+       => p -> Cxt h f a -> Cxt h g a
 constP c = applySigFun (injectP c)
 
 

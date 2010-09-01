@@ -24,12 +24,12 @@ $(derive
   [''Tree, ''Pair, ''Maybe])
 
 
-type Sig1 = Maybe :+: Tree Int :+: NilF 
-type Sig2 = [] :+: Pair Int :+: NilF
-type Sig = Sig1 :++: Sig2
+type Sig1 = Maybe :+: Tree Int
+type Sig2 = [] :+: Pair Int
+type Sig = Maybe :+: Tree Int :+: [] :+: Pair Int
 
 
-type SigP = Sig :**: Int
+type SigP = Maybe :*: Int :+: Tree Int :*: Int :+: [] :*: Int :+: Pair Int :*: Int
 
 instance EqF f => EqF (f :*: Int) where
     eqF (x :*: i) (y :*: j) = x `eqF` y && i == j
