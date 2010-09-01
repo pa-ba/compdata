@@ -76,7 +76,7 @@ instance RemoveP (f :*: p) f where
     removeP (v :*: _) = v
 
 
-instance (DistProd s p s') => DistProd f p (f :*: p) where
+instance DistProd f p (f :*: p) where
 
     injectP c v = v :*: c
 
