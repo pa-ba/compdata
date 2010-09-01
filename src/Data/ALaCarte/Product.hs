@@ -67,9 +67,13 @@ class RemoveP s s' | s -> s'  where
     removeP :: s a -> s' a
 
 
-instance (Functor f, RemoveP s s') => RemoveP (f :*: p :+: s) (f :+: s') where
+instance (RemoveP s s') => RemoveP (f :*: p :+: s) (f :+: s') where
     removeP (Inl (v :*: _)) = Inl v
     removeP (Inr v) = Inr $ removeP v
+
+
+instance RemoveP (f :*: p) f where
+    removeP (v :*: _) = v
 
 
 instance (DistProd s p s') => DistProd (f :+: s) p ((f :*: p) :+: s') where
