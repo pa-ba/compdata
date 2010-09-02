@@ -177,7 +177,7 @@ compSigFun f g = f . g
 -}
 
 termAlg :: (Functor g) => SigFun f g -> TermAlg f g
-termAlg f = Term . fmap Hole . f
+termAlg f = simpCxt . f
 
 {-|
   This type represents monadic context function.

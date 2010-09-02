@@ -22,7 +22,8 @@ module Data.ALaCarte.Term
      Nothing,
      Term,
      Const,
-     unTerm
+     unTerm,
+     simpCxt
      ) where
 
 import Control.Applicative hiding (Const)
@@ -57,6 +58,9 @@ data Hole
 data NoHole
 
 type Context = Cxt Hole
+
+simpCxt :: (Functor f) => f a -> Context f a
+simpCxt = Term . fmap Hole
 
 
 {-| Phantom type used to define 'Term'.  -}
