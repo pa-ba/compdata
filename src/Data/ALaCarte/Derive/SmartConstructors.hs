@@ -16,7 +16,7 @@ module Data.ALaCarte.Derive.SmartConstructors
 
 
 
-import Language.Haskell.TH
+import Language.Haskell.TH hiding (Cxt)
 import Data.ALaCarte.Derive.Utils
 import Data.ALaCarte.Sum
 import Data.ALaCarte.Term
@@ -42,12 +42,16 @@ smartConstructors fname = do
                 sequence $ sig ++ function
               genSig targs tname sname 0 = (:[]) $ do
                 fvar <- newName "f"
+                hvar <- newName "h"
+                avar <- newName "a"
                 let targs' = init targs
-                    vars = fvar:targs'
+                    vars = fvar:hvar:avar:targs'
                     f = varT fvar
+                    h = varT hvar
+                    a = varT avar
                     ftype = foldl appT (conT tname) (map varT targs')
                     constr = classP ''(:<:) [ftype, f]
-                    typ = appT (conT ''Term) f
+                    typ = foldl appT (conT ''Cxt) [h, f, a]
                     typeSig = forallT (map PlainTV vars) (sequence [constr]) typ
                 sigD sname typeSig
               genSig _ _ _ _ = []

@@ -18,7 +18,6 @@ module Data.ALaCarte.Unification where
 import Data.ALaCarte.Term
 import Data.ALaCarte.Variables
 import Data.ALaCarte.Decompose
-import Data.ALaCarte.Sum
 
 import Control.Monad.Error
 import Control.Monad.State
@@ -38,7 +37,7 @@ type Equations f = [Equation f]
 unification.  -}
 
 data UnifError f v = FailedOccursCheck v (Term f)
-                   | HeadSymbolMismatch (Const f) (Const f)
+                   | HeadSymbolMismatch (Term f) (Term f)
                    | UnifError String
 
 instance Error (UnifError f v) where
@@ -48,11 +47,11 @@ instance Error (UnifError f v) where
 failedOccursCheck :: (MonadError (UnifError f v) m) => v -> Term f -> m a
 failedOccursCheck v t = throwError $ FailedOccursCheck v t
 
-headSymbolMismatch :: (MonadError (UnifError f v) m) => Const f -> Const f -> m a
+headSymbolMismatch :: (MonadError (UnifError f v) m) => Term f -> Term f -> m a
 headSymbolMismatch f g = throwError $ HeadSymbolMismatch f g
 
-applySubstEq :: (Ord v,  HasVars g v,  Functor g, g :<: f) =>
-     Subst f v -> Equation g -> Equation f
+applySubstEq :: (Ord v,  HasVars f v, Functor f) =>
+     Subst f v -> Equation f -> Equation f
 applySubstEq s (t1,t2) = (applySubst s t1,applySubst s t2)
 
 
@@ -110,4 +109,4 @@ unifyStep (s,t) = case decompose s of
                                                  else putBinding (v,s)
                                        Fun s2 args2 -> if s1 == s2
                                                         then putEqs $ zip args1 args2
-                                                        else headSymbolMismatch s1 s2
+                                                        else headSymbolMismatch s t

@@ -53,6 +53,7 @@ instance (Traversable f) => Traversable (f :*: a) where
     mapM f (v :*: c) = liftM (:*: c) (mapM f v)
     sequence (v :*: c) = liftM (:*: c) (sequence v)
 
+
 {-| This class defines how to distribute a product over a sum of
 signatures. -}
 

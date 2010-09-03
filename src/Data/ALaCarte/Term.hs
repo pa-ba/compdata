@@ -23,6 +23,7 @@ module Data.ALaCarte.Term
      Term,
      Const,
      unTerm,
+     toCxt,
      simpCxt
      ) where
 
@@ -62,6 +63,8 @@ type Context = Cxt Hole
 simpCxt :: (Functor f) => f a -> Context f a
 simpCxt = Term . fmap Hole
 
+toCxt :: (Functor f) => Term f -> Context f a
+toCxt (Term t) = Term $ fmap toCxt t
 
 {-| Phantom type used to define 'Term'.  -}
 

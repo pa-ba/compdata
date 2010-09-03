@@ -16,17 +16,15 @@
 module Data.ALaCarte.Variables (
   HasVars(..),
   Subst,
+  CxtSubst,
   containsVar,
   variables,
   substVars,
-  substVars',
   applySubst,
-  applySubst',
   compSubst) where
 
 import Data.ALaCarte.Term
 import Data.ALaCarte.Algebra
-import Data.ALaCarte.Sum
 import Data.Foldable
 
 import Data.Maybe
@@ -81,44 +79,34 @@ variables :: (Ord v, HasVars f v, Foldable f, Functor f)
 variables = freeAlgHom variablesAlg (const Set.empty)
 
 
-substAlg :: (HasVars f v, f :<: g) => (v -> Maybe (Cxt h g a)) -> Alg f (Cxt h g a)
-substAlg f t = fromMaybe (inject t) (isVar t >>= f)
+substAlg :: (HasVars f v) => (v -> Maybe (Cxt h f a)) -> Alg f (Cxt h f a)
+substAlg f t = fromMaybe (Term t) (isVar t >>= f)
 
 {-| This function substitutes variables in a context according to a
 partial mapping from variables to contexts.-}
 
-substVars :: (HasVars f v, Functor f, f :<: g)
-      => (v -> Maybe (Cxt h g a)) -> Cxt h f a -> Cxt h g a
+substVars :: (HasVars f v, Functor f)
+      => (v -> Maybe (Cxt h f a)) -> Cxt h f a -> Cxt h f a
 substVars f (Term v) = substAlg f $ fmap (substVars f) v
 substVars _ (Hole a) = Hole a
 -- have to use explicit GADT pattern matching!!
 -- subst f = freeAlgHom (substAlg f) Hole
 
-{-| This is a slightly more general variant of 'substVars'. -}
-
-substVars'  :: (HasVars f1 v, Functor f1, Functor f2, Functor g, f1 :<: g, f2 :<: g)
-            => (v -> Maybe (Cxt h f2 a)) -> Cxt h f1 a -> Cxt h g a
-substVars' f = substVars (fmap deepInject . f)
 
 {-| This function applies a substitution (in the form of a finite
 mapping) to a context. -}
 
-applySubst :: (Ord k, HasVars f k, Functor f, f :<: g)
-           => Map k (Cxt h g a) -> Cxt h f a -> Cxt h g a
+applySubst :: (Ord k, HasVars f k, Functor f)
+           => Map k (Cxt h f a) -> Cxt h f a -> Cxt h f a
 applySubst subst = substVars f
     where f v = Map.lookup v subst
 
-{-| This is a slightly more general version of 'applySubst'. -}
-
-applySubst' :: (Ord k, HasVars f1 k,Functor f1, Functor f2, Functor g, f1 :<: g, f2 :<: g)
-            => Map k (Cxt h f2 a) -> Cxt h f1 a -> Cxt h g a
-applySubst' subst = applySubst (fmap deepInject subst)
 
 
 {-| This function composes two substitutions @s1@ and @s2@. That is,
 applying the resulting substitution is equivalent to first applying
 @s2@ and then @s1@. -}
 
-compSubst :: (Ord v, HasVars f v, Functor f, f :<: g)
-          => CxtSubst h a g v -> CxtSubst h a f v -> CxtSubst h a g v
+compSubst :: (Ord v, HasVars f v, Functor f)
+          => CxtSubst h a f v -> CxtSubst h a f v -> CxtSubst h a f v
 compSubst s1 s2 = fmap (applySubst s1) s2 `Map.union` s1
