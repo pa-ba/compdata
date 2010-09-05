@@ -1,4 +1,5 @@
-{-# LANGUAGE MultiParamTypeClasses, RankNTypes, GADTs, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies,
+  RankNTypes, GADTs, TypeSynonymInstances, FlexibleInstances, OverlappingInstances #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -17,6 +18,7 @@ module Data.ALaCarte.Variables (
   HasVars(..),
   Subst,
   CxtSubst,
+  varsToHoles,
   containsVar,
   variables,
   substVars,
@@ -48,8 +50,11 @@ variables of type @v@. -}
 class HasVars f v where
     isVar :: f a -> Maybe v
 
-            
-
+varsToHoles :: (Functor f, HasVars f v) => Term f -> Context f v
+varsToHoles = algHom alg
+    where alg t = case isVar t of 
+                    Just v -> Hole v
+                    Nothing -> Term t
 
 containsVarAlg :: (Eq v, HasVars f v, Foldable f) => v -> Alg f Bool
 containsVarAlg v t = local || or t 
@@ -85,21 +90,24 @@ substAlg f t = fromMaybe (Term t) (isVar t >>= f)
 {-| This function substitutes variables in a context according to a
 partial mapping from variables to contexts.-}
 
-substVars :: (HasVars f v, Functor f)
-      => (v -> Maybe (Cxt h f a)) -> Cxt h f a -> Cxt h f a
-substVars f (Term v) = substAlg f $ fmap (substVars f) v
-substVars _ (Hole a) = Hole a
+
+
+class ApplySubst v t a where
+    substVars :: (v -> Maybe t) -> a -> a
+
+
+applySubst :: (Ord v, ApplySubst v t a) => Map v t -> a -> a
+applySubst subst = substVars f
+    where f v = Map.lookup v subst
+
+instance (Ord v, HasVars f v, Functor f) => ApplySubst v (Cxt h f a) (Cxt h f a) where
+    substVars f (Term v) = substAlg f $ fmap (substVars f) v
+    substVars _ (Hole a) = Hole a
 -- have to use explicit GADT pattern matching!!
 -- subst f = freeAlgHom (substAlg f) Hole
 
-
-{-| This function applies a substitution (in the form of a finite
-mapping) to a context. -}
-
-applySubst :: (Ord k, HasVars f k, Functor f)
-           => Map k (Cxt h f a) -> Cxt h f a -> Cxt h f a
-applySubst subst = substVars f
-    where f v = Map.lookup v subst
+instance (ApplySubst v t a, Functor f) => ApplySubst v t (f a) where
+    substVars f = fmap (substVars f) 
 
 
 

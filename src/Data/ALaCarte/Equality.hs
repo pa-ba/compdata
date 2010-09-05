@@ -14,22 +14,19 @@
 module Data.ALaCarte.Equality
     (
      EqF(..),
-     matchCxt,
      eqMod,
     ) where
 
 import Data.ALaCarte.Term
 import Data.ALaCarte.Sum
-import Data.ALaCarte.Derive.Utils
 import Data.ALaCarte.Derive
+import Data.ALaCarte.Derive.Utils
 
 import Data.Foldable
 
 import Control.Monad hiding (mapM_)
 import Prelude hiding (mapM_, all)
 
-import Data.Map (Map)
-import qualified Data.Map as Map
 
 
 -- instance (EqF f, Eq p) => EqF (f :*: p) where
@@ -72,46 +69,5 @@ eqMod s t
     | otherwise = Nothing
     where unit = fmap (const ())
           args = toList s `zip` toList t
-          
-
-{-| This is an auxiliary function for implementing 'matchCxt'. It behaves
-similarly as 'match' but is oblivious to non-linearity. Therefore, the
-substitution that is returned maps holes to non-empty lists of terms
-(resp. contexts in general). This substitution is only a matching
-substitution if all elements in each list of the substitution's range
-are equal. -}
-
-matchCxt' :: (Ord v,f :<: g, EqF f, Functor f, Foldable f)
-       => Context f v -> Cxt h g a -> Maybe (Map v [Cxt h g a])
-matchCxt' (Hole v) t = Just $  Map.singleton v [t]
-matchCxt' (Term s) t = do
-  t' <- project t
-  eqs <- eqMod s t'
-  substs <- mapM (uncurry matchCxt') eqs
-  return $ Map.unionsWith (++) substs
-
-
-{-| This function takes a context @c@ as the first argument and tries
-to match it against the term @t@ (or in general a context with holes
-in @a@). The context @c@ matches the term @t@ if there is a /matching
-substitution/ @s@ that maps holes to terms (resp. contexts in general)
-such that if the holes in the context @c@ are replaced according to
-the substitution @s@, the term @t@ is obtained. Note that the context
-@c@ might be non-linear, i.e. has multiple holes that are
-equal. According to the above definition this means that holes with
-equal holes have to be instantiated by equal terms! -}
-
-matchCxt :: (Ord v,f :<: g, EqF f, Eq (Cxt h g a), Functor f, Foldable f)
-         => Context f v -> Cxt h g a -> Maybe (Map v (Cxt h g a))
-matchCxt c1 c2 = do 
-  res <- matchCxt' c1 c2
-  let insts = Map.elems res
-  mapM_ checkEq insts
-  return $ Map.map head res
-    where checkEq [] = Nothing
-          checkEq (c : cs)
-              | all (== c) cs = Just ()
-              | otherwise = Nothing
-
 
 $(derive [instanceEqF] $ [''Maybe] ++ tupleTypes 2 10)

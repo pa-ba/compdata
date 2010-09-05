@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, TypeFamilies, 
              FunctionalDependencies, FlexibleInstances, UndecidableInstances,
-             FlexibleContexts #-}
+             FlexibleContexts, RankNTypes #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte.Product
@@ -108,6 +108,11 @@ functor whith products. -}
 stripP :: (Functor f, RemoveP g f, Functor g) => Cxt h g a -> Cxt h f a
 stripP = applySigFun removeP
 
+
+productTermAlg :: (DistProd f p f', DistProd g p g', Functor g, Functor g') 
+            => TermAlg f g -> TermAlg f' g'
+productTermAlg alg f' = constP p (alg f)
+    where (f,p) = projectP f'
 
 
 {-| This function annotates each sub term of the given term

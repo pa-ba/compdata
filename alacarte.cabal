@@ -21,7 +21,8 @@ library
                         Data.ALaCarte.TermRewriting, Data.ALaCarte.Automata,
                         Data.ALaCarte.Arbitrary, Data.ALaCarte.Show, Data.ALaCarte.Variables,
                         Data.ALaCarte.Decompose, Data.ALaCarte.Unification,
-                        Data.ALaCarte.Derive, Data.ALaCarte.Derive.SmartConstructors
+                        Data.ALaCarte.Derive, Data.ALaCarte.Derive.SmartConstructors,
+			Data.ALaCarte.Matching
 
   Other-Modules:        Data.ALaCarte.Derive.Utils, Data.ALaCarte.Derive.Equality,
                         Data.ALaCarte.Derive.Ordering, Data.ALaCarte.Derive.Arbitrary,
