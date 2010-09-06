@@ -21,6 +21,7 @@ module Data.ALaCarte.Variables (
   varsToHoles,
   containsVar,
   variables,
+  variables',
   substVars,
   applySubst,
   compSubst) where
@@ -49,6 +50,11 @@ variables of type @v@. -}
 
 class HasVars f v where
     isVar :: f a -> Maybe v
+
+
+instance HasVars f v => HasVars (Cxt h f) v where
+    isVar (Term t) = isVar t
+    isVar _ = Nothing
 
 varsToHoles :: (Functor f, HasVars f v) => Term f -> Context f v
 varsToHoles = algHom alg
@@ -83,6 +89,15 @@ variables :: (Ord v, HasVars f v, Foldable f, Functor f)
             => Cxt h f a -> Set v
 variables = freeAlgHom variablesAlg (const Set.empty)
 
+{-| This function computes the set of variables occurring in a
+context. -}
+
+variables' :: (Ord v, HasVars f v, Foldable f, Functor f)
+            => Const f -> Set v
+variables' c =  case isVar c of
+                  Nothing -> Set.empty
+                  Just v -> Set.singleton v
+
 
 substAlg :: (HasVars f v) => (v -> Maybe (Cxt h f a)) -> Alg f (Cxt h f a)
 substAlg f t = fromMaybe (Term t) (isVar t >>= f)
@@ -92,21 +107,21 @@ partial mapping from variables to contexts.-}
 
 
 
-class ApplySubst v t a where
+class SubstVars v t a where
     substVars :: (v -> Maybe t) -> a -> a
 
 
-applySubst :: (Ord v, ApplySubst v t a) => Map v t -> a -> a
+applySubst :: (Ord v, SubstVars v t a) => Map v t -> a -> a
 applySubst subst = substVars f
     where f v = Map.lookup v subst
 
-instance (Ord v, HasVars f v, Functor f) => ApplySubst v (Cxt h f a) (Cxt h f a) where
+instance (Ord v, HasVars f v, Functor f) => SubstVars v (Cxt h f a) (Cxt h f a) where
     substVars f (Term v) = substAlg f $ fmap (substVars f) v
     substVars _ (Hole a) = Hole a
 -- have to use explicit GADT pattern matching!!
 -- subst f = freeAlgHom (substAlg f) Hole
 
-instance (ApplySubst v t a, Functor f) => ApplySubst v t (f a) where
+instance (SubstVars v t a, Functor f) => SubstVars v t (f a) where
     substVars f = fmap (substVars f) 
 
 

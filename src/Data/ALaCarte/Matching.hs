@@ -15,7 +15,8 @@
 module Data.ALaCarte.Matching
     (
      matchCxt,
-     matchTerm
+     matchTerm,
+     module Data.ALaCarte.Variables
     ) where
 
 import Data.ALaCarte.Term
@@ -55,7 +56,7 @@ equal. According to the above definition this means that holes with
 equal holes have to be instantiated by equal terms! -}
 
 matchCxt :: (Ord v,EqF f, Eq (Cxt h f a), Functor f, Foldable f)
-         => Context f v -> Cxt h f a -> Maybe (Map v (Cxt h f a))
+         => Context f v -> Cxt h f a -> Maybe (CxtSubst h a f v)
 matchCxt c1 c2 = do 
   res <- matchCxt' c1 c2
   let insts = Map.elems res
@@ -70,5 +71,6 @@ matchCxt c1 c2 = do
 matches a term with variables against a context.  -}
 
 matchTerm :: (Ord v, EqF f, Eq (Cxt h f a) , Functor f, Foldable f, HasVars f v)
-          => Term f -> Cxt h f a -> Maybe (Map v (Cxt h f a))
+          => Term f -> Cxt h f a -> Maybe (CxtSubst h a f v)
 matchTerm t c = matchCxt (varsToHoles t) c
+

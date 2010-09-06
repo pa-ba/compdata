@@ -23,6 +23,8 @@ module Data.ALaCarte.Sum (
   deepProject,
   deepProject',
   inject,
+  injectConst,
+  projectConst,
   injectCxt,
   deepInject,
   deepInject2,
@@ -34,7 +36,7 @@ module Data.ALaCarte.Sum (
 import Data.ALaCarte.Term
 import Data.ALaCarte.Algebra
 
-import Control.Applicative
+import Control.Applicative hiding (Const)
 import Control.Monad hiding (sequence)
 
 
@@ -111,6 +113,12 @@ deepProject' val = do
 inject :: (g :<: f) => g (Cxt h f a) -> Cxt h f a
 inject = Term . inj
 
+injectConst :: (Functor g, g :<: f) => Const g -> Cxt h f a
+injectConst = inject . fmap (const undefined)
+
+
+projectConst :: (Functor g, g :<: f) => Cxt h f a -> Maybe (Const g)
+projectConst = fmap (fmap (const ())) . project
 
 {-| This function injects a whole context into another context. -}
 
