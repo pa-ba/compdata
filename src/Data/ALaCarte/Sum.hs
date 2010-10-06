@@ -20,12 +20,18 @@ module Data.ALaCarte.Sum (
   (:<:)(..),
   (:+:)(..),
   project,
+  proj2,
+  proj3,
   deepProject,
   deepProject',
+  deepProject2,
+  deepProject3,
   inject,
   injectConst,
   projectConst,
   injectCxt,
+  inj2,
+  inj3,
   deepInject,
   deepInject2,
   deepInject3,
@@ -109,6 +115,31 @@ deepProject' val = do
   v' <- sequence $ (fmap deepProject' v :: g (Maybe (Cxt h g a)))
   return $ inject v'
 
+-- |Project a binary term from a term.
+proj2 :: forall f g1 g2 a. (g1 :<: f, g2 :<: f) => f a -> Maybe ((g1 :+: g2) a)
+proj2 x = case proj x of
+            Just (y :: g1 a) -> Just $ inj y
+            _ -> liftM inj (proj x :: Maybe (g2 a))
+
+-- |Project a binary sub term recursively from a term.
+deepProject2 :: (Traversable f, Functor g1, Functor g2, g1 :<: f, g2 :<: f) => Cxt h f a -> Maybe (Cxt h (g1 :+: g2) a)
+deepProject2 = applySigFunM proj2
+
+-- |Project a ternary term from a term.
+proj3 :: forall f g1 g2 g3 a. (g1 :<: f, g2 :<: f, g3 :<: f) => f a
+      -> Maybe ((g1 :+: g2 :+: g3) a)
+proj3 x = case proj x of
+            Just (y :: g1 a) -> Just $ inj y
+            _ -> case proj x of
+                   Just (y :: g2 a) -> Just $ inj y
+                   _ -> liftM inj (proj x :: Maybe (g3 a))
+
+-- |Project a ternary sub term recursively from a term.
+deepProject3 :: (Traversable f, Functor g1, Functor g2, Functor g3,
+                 g1 :<: f, g2 :<: f, g3 :<: f) => Cxt h f a
+             -> Maybe (Cxt h (g1 :+: g2 :+: g3) a)
+deepProject3 = applySigFunM proj3
+
 -- |Inject a term into a compound term.
 inject :: (g :<: f) => g (Cxt h f a) -> Cxt h f a
 inject = Term . inj
@@ -144,8 +175,7 @@ deepInject2 = applySigFun inj2
 
 {-| This is a variant of 'inj' for ternary sum signatures.  -}
 
-inj3 :: (f1 :<: g, f2 :<: g, f3 :<: g)
-     => (f1 :+: f2 :+: f3) a -> g a
+inj3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) a -> g a
 inj3 (Inl x) = inj x
 inj3 (Inr y) = inj2 y
 
