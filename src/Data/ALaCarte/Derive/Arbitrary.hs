@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, TypeSynonymInstances, GADTs, TemplateHaskell #-}
+{-# LANGUAGE GADTs, TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte.Derive.Arbitrary

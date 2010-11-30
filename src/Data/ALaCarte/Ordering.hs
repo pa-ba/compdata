@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell, FlexibleContexts #-}
+{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte.Ordering

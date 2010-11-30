@@ -1,4 +1,5 @@
-{-# LANGUAGE ImplicitParams, TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte.Derive.Signature

@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell, FlexibleContexts #-}
+{-# LANGUAGE GADTs, FlexibleContexts #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte.Matching

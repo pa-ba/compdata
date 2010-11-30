@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell, FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte.Derive.Equality

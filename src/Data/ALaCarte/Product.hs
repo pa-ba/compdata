@@ -1,6 +1,5 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, TypeFamilies, 
-             FunctionalDependencies, FlexibleInstances, UndecidableInstances,
-             FlexibleContexts, RankNTypes #-}
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FunctionalDependencies,
+             FlexibleInstances, UndecidableInstances, RankNTypes #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte.Product

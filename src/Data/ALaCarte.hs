@@ -1,7 +1,3 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, IncoherentInstances,
-             UndecidableInstances, FlexibleInstances, FlexibleContexts,
-             ScopedTypeVariables, FunctionalDependencies, EmptyDataDecls,
-             GADTs, KindSignatures, RankNTypes, TypeSynonymInstances, TypeFamilies#-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte

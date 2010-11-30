@@ -1,5 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies,
-  RankNTypes, GADTs, TypeSynonymInstances, FlexibleInstances, OverlappingInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances, OverlappingInstances #-}
 
 --------------------------------------------------------------------------------
 -- |
