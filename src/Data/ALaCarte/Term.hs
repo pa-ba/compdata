@@ -38,6 +38,7 @@ import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 
 type Const f = f ()
 
+
 {-| This data type represents contexts over a signature. Contexts are
 terms containing zero or more holes. The first type parameter is
 supposed to be one of the phantom types 'Hole' and 'NoHole'. The

@@ -26,7 +26,11 @@ module Data.ALaCarte.Sum (
   deepProject2,
   deepProject3,
   inject,
+  inject2,
+  inject3,
   injectConst,
+  injectConst2,
+  injectConst3,
   projectConst,
   injectCxt,
   inj2,
@@ -143,8 +147,19 @@ deepProject3 = applySigFunM proj3
 inject :: (g :<: f) => g (Cxt h f a) -> Cxt h f a
 inject = Term . inj
 
+
 injectConst :: (Functor g, g :<: f) => Const g -> Cxt h f a
 injectConst = inject . fmap (const undefined)
+
+
+injectConst2 :: (Functor f1, Functor f2, Functor g, f1 :<: g, f2 :<: g)
+             => Const (f1 :+: f2) -> Cxt h g a
+injectConst2 = inject2 . fmap (const undefined)
+
+injectConst3 :: (Functor f1, Functor f2, Functor f3, Functor g, f1 :<: g, f2 :<: g, f3 :<: g)
+             => Const (f1 :+: f2 :+: f3) -> Cxt h g a
+injectConst3 = inject3 . fmap (const undefined)
+
 
 
 projectConst :: (Functor g, g :<: f) => Cxt h f a -> Maybe (Const g)
@@ -167,6 +182,11 @@ inj2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) a -> g a
 inj2 (Inl x) = inj x
 inj2 (Inr y) = inj y
 
+
+-- |Inject a term into a compound term.
+inject2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) (Cxt h g a) -> Cxt h g a
+inject2 = Term . inj2
+
 -- |A recursive version of 'inj2'.
 deepInject2 :: (Functor f1, Functor f2, Functor g, f1 :<: g, f2 :<: g)
             => Cxt h (f1 :+: f2) a -> Cxt h g a
@@ -177,6 +197,11 @@ deepInject2 = applySigFun inj2
 inj3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) a -> g a
 inj3 (Inl x) = inj x
 inj3 (Inr y) = inj2 y
+
+
+-- |Inject a term into a compound term.
+inject3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) (Cxt h g a) -> Cxt h g a
+inject3 = Term . inj3
 
 -- |A recursive version of 'inj3'.
 deepInject3 :: (Functor f1, Functor f2, Functor f3, Functor g, f1 :<: g, f2 :<: g, f3 :<: g)
