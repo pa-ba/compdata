@@ -24,7 +24,8 @@ module Data.ALaCarte.Term
      Const,
      unTerm,
      toCxt,
-     simpCxt
+     simpCxt,
+     constTerm,
      ) where
 
 import Control.Applicative hiding (Const)
@@ -38,6 +39,12 @@ import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 
 type Const f = f ()
 
+{-| This function converts a constant to a term. This assumes that the
+argument is indeed a constant, i.e. does not have a value for the
+argument type of the functor f. -}
+
+constTerm :: (Functor f) => Const f -> Term f
+constTerm = Term . fmap (const undefined)
 
 {-| This data type represents contexts over a signature. Contexts are
 terms containing zero or more holes. The first type parameter is
