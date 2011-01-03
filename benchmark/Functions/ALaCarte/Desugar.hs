@@ -8,9 +8,9 @@
   ScopedTypeVariables,
   TypeSynonymInstances #-}
 
-module Functions.Desugar where
+module Functions.ALaCarte.Desugar where
 
-import DataTypes
+import DataTypes.ALaCarte
 import Data.ALaCarte
 
 -- de-sugar

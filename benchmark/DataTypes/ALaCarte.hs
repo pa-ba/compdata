@@ -8,7 +8,7 @@
   ScopedTypeVariables,
   TypeSynonymInstances #-}
 
-module DataTypes where
+module DataTypes.ALaCarte where
 
 import Data.ALaCarte.Derive
 import Data.ALaCarte
@@ -65,7 +65,7 @@ data Sugar e = Neg e
              | Impl e e
           deriving (Eq)
 
-
+$(derive [instanceNFData] [''Proj])
 
 $(derive [instanceFunctor, instanceFoldable, instanceTraversable, instanceEqF, instanceNFDataF, smartConstructors] [''Value, ''Op, ''Sugar, ''ValueT])
 

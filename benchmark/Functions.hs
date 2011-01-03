@@ -1,5 +1,5 @@
 module Functions 
-    ( module Functions.Eval,
-      module Functions.Inference ) where
-import Functions.Eval
-import Functions.Inference
+    ( module Functions.ALaCarte,
+      module Functions.Standard ) where
+import Functions.ALaCarte
+import Functions.Standard

@@ -8,10 +8,10 @@
   ScopedTypeVariables,
   TypeSynonymInstances #-}
 
-module Functions.Inference where
+module Functions.ALaCarte.Inference where
 
-import Functions.Desugar
-import DataTypes
+import Functions.ALaCarte.Desugar
+import DataTypes.ALaCarte
 import Data.ALaCarte
 import Data.Traversable
 

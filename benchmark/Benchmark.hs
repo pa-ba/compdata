@@ -1,20 +1,31 @@
 module Main where
 
 import Criterion.Main
-import Functions
-import DataTypes
+import qualified Functions.ALaCarte as A
+import qualified Functions.Standard as S
+import DataTypes.ALaCarte
+import DataTypes.Standard
+import DataTypes.Transform
 import Data.ALaCarte.DeepSeq ()
+import Control.DeepSeq
 
-testExpr :: SugarExpr
-testExpr = iIf ((iVInt 1 `iGt` (iVInt 2 `iMinus` iVInt 1))
+aExpr :: SugarExpr
+aExpr = iIf ((iVInt 1 `iGt` (iVInt 2 `iMinus` iVInt 1))
             `iOr` ((iVInt 1 `iGt` (iVInt 2 `iMinus` iVInt 1))))
        ((iVInt 2 `iMinus` iVInt 1))
        (iVInt 3)
 
+sExpr :: PExpr
+sExpr = transSugar aExpr
 
-main = defaultMain [bench "desugarType" (nf desugarType testExpr),
-                    bench "desugarType'" (nf desugarType' testExpr),
-                    bench "desugarEval" (nf desugarEval testExpr),
-                    bench "desugarEval'" (nf desugarEval' testExpr),
-                    bench "desugarEval2" (nf desugarEval2 testExpr),
-                    bench "desugarEval2'" (nf desugarEval2' testExpr)]
+
+main = rnf aExpr `seq` rnf sExpr `seq` run
+    where run = defaultMain
+                [bench "ALaCarte.desugarType" (nf A.desugarType aExpr),
+                 bench "ALaCarte.desugarType'" (nf A.desugarType' aExpr),
+                 bench "ALaCarte.desugarEval" (nf A.desugarEval aExpr),
+                 bench "ALaCarte.desugarEval'" (nf A.desugarEval' aExpr),
+                 bench "ALaCarte.desugarEval2" (nf A.desugarEval2 aExpr),
+                 bench "ALaCarte.desugarEval2'" (nf A.desugarEval2' aExpr),
+                 bench "Standard.desugarEval" (nf S.desugarEval sExpr),
+                 bench "Standard.desugarEval2" (nf S.desugarEval2 sExpr)]

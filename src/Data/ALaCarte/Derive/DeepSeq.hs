@@ -48,5 +48,5 @@ instanceNFDataF fname = do
               varNs <- newNames n "x"
               let pat = ConP constr $ zipWith mkPat isFargs varNs
                   allVars = catMaybes $ zipWith filterFarg isFargs varNs
-              body <- foldr (\ x y -> [|$x `seq` $y|]) [| () |] allVars
+              body <- foldr (\ x y -> [|rnf $x `seq` $y|]) [| () |] allVars
               return $ Clause [pat] (NormalB body) []

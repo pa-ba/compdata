@@ -8,10 +8,10 @@
   ScopedTypeVariables,
   TypeSynonymInstances #-}
 
-module Functions.Eval where
+module Functions.ALaCarte.Eval where
 
-import DataTypes
-import Functions.Desugar
+import DataTypes.ALaCarte
+import Functions.ALaCarte.Desugar
 import Data.ALaCarte
 import Control.Monad
 import Data.Traversable
