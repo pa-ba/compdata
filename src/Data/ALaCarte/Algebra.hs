@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, RankNTypes #-}
+{-# LANGUAGE GADTs, RankNTypes, ScopedTypeVariables #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -55,6 +55,7 @@ module Data.ALaCarte.Algebra (
       compTermAlgM,
       compSigFunM,
       compAlgM,
+      compAlgM',
 
       -- * Coalgebras      
       coalgHom
@@ -62,9 +63,9 @@ module Data.ALaCarte.Algebra (
 
 import Data.ALaCarte.Term
 import Data.Traversable
-import Control.Monad hiding (sequence)
+import Control.Monad hiding (sequence, mapM)
 
-import Prelude hiding (sequence)
+import Prelude hiding (sequence, mapM)
 
 
 
@@ -73,20 +74,26 @@ import Prelude hiding (sequence)
 
 type Alg f a = f a -> a
 
-freeAlgHom :: (Functor f) => Alg f b -> (a -> b) -> Cxt h f a -> b
-freeAlgHom _ g (Hole v) = g v
-freeAlgHom f g (Term c) = f $ fmap (freeAlgHom f g) c
+freeAlgHom :: forall f h a b . (Functor f) =>
+              Alg f b -> (a -> b) -> Cxt h f a -> b
+freeAlgHom f g = run
+    where run :: Cxt h f a -> b
+          run (Hole v) = g v
+          run (Term c) = f $ fmap run c
 
 {-| This function folds the given term using the given fold
 function. This is the unique homomorphism @Term f -> a@ from the
 initial algebra @Term f@ to the given algebra of type @f a -> a@. -}
 
-algHom :: (Functor f) => Alg f a -> Term f -> a 
-algHom f = freeAlgHom f undefined
+algHom :: forall f a . (Functor f) =>
+          Alg f a -> Term f -> a 
+-- algHom f = freeAlgHom f undefined
 -- the above definition is safe since terms do not contain holes
 --
 -- a direct implementation:
--- foldTerm f (Term t) = f (fmap (foldTerm f) t)
+algHom f = run 
+    where run :: Term f -> a
+          run (Term t) = f (fmap run t)
 
 {-| This function applies the given algebra recursively to each
 subcontext of the given context. -}
@@ -110,20 +117,33 @@ type AlgM m f a = f a -> m a
 algM :: (Traversable f, Monad m) => AlgM m f a -> Alg f (m a)
 algM f x = sequence x >>= f
 
-freeAlgHomM :: (Traversable f, Monad m) => AlgM m f b -> (a -> m b) -> Cxt h f a -> m b
-freeAlgHomM alg var = freeAlgHom (algM alg) var
+freeAlgHomM :: forall h f a m b. (Traversable f, Monad m) =>
+               AlgM m f b -> (a -> m b) -> Cxt h f a -> m b
+-- freeAlgHomM alg var = freeAlgHom (algM alg) var
+freeAlgHomM algm var = run
+    where run :: Cxt h f a -> m b
+          run (Hole x) = var x
+          run (Term x) = mapM run x >>= algm
 
 {-| This is a monadic version of 'foldTerm'.  -}
 
-algHomM :: (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
-algHomM = algHom . algM
+algHomM :: forall f m a. (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
+-- algHomM = algHom . algM
+algHomM algm = run
+    where run :: Term f -> m a
+          run (Term x) = mapM run x >>= algm
 
 
 {-| This function applies the given monadic algebra recursively to
 each subcontext of the given context. -}
 
-algHomM' :: (Traversable f, Monad m) => AlgM m f a -> Cxt h f a -> m a
-algHomM' f = freeAlgHom (\x -> sequence x >>= f) return
+algHomM' :: forall h f a m . (Traversable f, Monad m)
+            => AlgM m f a -> Cxt h f a -> m a
+-- algHomM' f = freeAlgHom (\x -> sequence x >>= f) return
+algHomM' f = run
+    where run :: Cxt h f a -> m a
+          run (Hole x) = return x
+          run (Term x) = mapM run x >>= f
 
 
 
@@ -227,16 +247,22 @@ termAlgM f = sigFunM $ termAlg f
 {-| This function constructs the unique monadic homomorphism from the
 initial term algebra to the given term algebra. -}
 
-termHomM :: (Traversable f, Functor g, Monad m) => TermAlgM m f g -> CxtFunM m f g
-termHomM _ (Hole b) = return $ Hole b
-termHomM f (Term t) = liftM applyCxt . (>>= f) . sequence . fmap (termHomM f) $ t
+termHomM :: forall f g m . (Traversable f, Functor g, Monad m)
+         => TermAlgM m f g -> CxtFunM m f g
+termHomM f = run
+    where run :: Cxt h f a -> m (Cxt h g a)
+          run (Hole b) = return $ Hole b
+          run (Term t) = liftM applyCxt . (>>= f) . mapM run $ t
 
 {-| This function constructs the unique monadic homomorphism from the
 initial term algebra to the given term algebra. -}
 
-termHomM' :: (Traversable f, Functor g, Monad m) => TermAlgM' m f g -> CxtFunM m f g
-termHomM' _ (Hole b) = return $ Hole b
-termHomM' f (Term t) = liftM applyCxt . f . fmap (termHomM' f) $ t
+termHomM' :: forall f g m . (Traversable f, Functor g, Monad m)
+          => TermAlgM' m f g -> CxtFunM m f g
+termHomM' f = run 
+    where run :: Cxt h f a -> m (Cxt h g a)
+          run (Hole b) = return $ Hole b
+          run (Term t) = liftM applyCxt . f . fmap run $ t
 
 
 {-| This function applies the given monadic signature function to the
@@ -248,9 +274,12 @@ applySigFunM f = termHomM . termAlg' $ f
 {-| This function applies the given monadic signature function to the
 given context -}
 
-applySigFunM' :: (Traversable f, Functor g, Monad m) => SigFunM' m f g -> CxtFunM m f g
-applySigFunM' _ (Hole b) = return $ Hole b
-applySigFunM' f (Term t) = liftM Term . f . fmap (applySigFunM' f) $ t
+applySigFunM' :: forall f g m . (Traversable f, Functor g, Monad m)
+              => SigFunM' m f g -> CxtFunM m f g
+applySigFunM' f = run 
+    where run :: Cxt h f a -> m (Cxt h g a)
+          run (Hole b) = return $ Hole b
+          run (Term t) = liftM Term . f . fmap run $ t
 
 {-| This function composes two monadic term algebras. -}
 
@@ -263,6 +292,12 @@ compTermAlgM f g a = g a >>= termHomM f
 
 compAlgM :: (Traversable g, Monad m) => AlgM m g a -> TermAlgM m f g -> AlgM m f a
 compAlgM alg talg c = algHomM' alg =<< talg c
+
+{-| This function composes a monadic term algebra with a monadic algebra -}
+
+compAlgM' :: forall g f m a. (Traversable g, Monad m) => AlgM m g a -> TermAlg f g -> AlgM m f a
+compAlgM' alg talg = algHomM' alg . talg
+
 
 {-| This function composes two monadic signature functions.  -}
 

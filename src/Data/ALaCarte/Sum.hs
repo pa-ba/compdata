@@ -33,6 +33,7 @@ module Data.ALaCarte.Sum (
   injectConst3,
   projectConst,
   injectCxt,
+  liftCxt,
   inj2,
   inj3,
   deepInject,
@@ -46,7 +47,7 @@ import Data.ALaCarte.Term
 import Data.ALaCarte.Algebra
 
 import Control.Applicative hiding (Const)
-import Control.Monad hiding (sequence)
+import Control.Monad hiding (sequence, mapM)
 
 
 import Data.Maybe
@@ -56,7 +57,7 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 
 
-import Prelude hiding (foldr,sequence)
+import Prelude hiding (foldr,foldl,foldr1,foldl1,sequence, mapM)
 
 
 infixr 6 :+:
@@ -71,12 +72,28 @@ instance (Functor f, Functor g) => Functor (f :+: g) where
     fmap f (Inr e) = Inr (fmap f e)
 
 instance (Foldable f, Foldable g) => Foldable (f :+: g) where
+    fold (Inl e) = fold e
+    fold (Inr e) = fold e
+    foldMap f (Inl e) = foldMap f e
+    foldMap f (Inr e) = foldMap f e
     foldr f b (Inl e) = foldr f b e
     foldr f b (Inr e) = foldr f b e
+    foldl f b (Inl e) = foldl f b e
+    foldl f b (Inr e) = foldl f b e
+    foldr1 f (Inl e) = foldr1 f e
+    foldr1 f (Inr e) = foldr1 f e
+    foldl1 f (Inl e) = foldl1 f e
+    foldl1 f (Inr e) = foldl1 f e
 
 instance (Traversable f, Traversable g) => Traversable (f :+: g) where
     traverse f (Inl e) = Inl <$> traverse f e
     traverse f (Inr e) = Inr <$> traverse f e
+    sequenceA (Inl e) = Inl <$> sequenceA e
+    sequenceA (Inr e) = Inr <$> sequenceA e
+    mapM f (Inl e) = Inl `liftM` mapM f e
+    mapM f (Inr e) = Inr `liftM` mapM f e
+    sequence (Inl e) = Inl `liftM` sequence e
+    sequence (Inr e) = Inr `liftM` sequence e
 
 
 
@@ -169,6 +186,10 @@ projectConst = fmap (fmap (const ())) . project
 
 injectCxt :: (Functor g, g :<: f) => Cxt h' g (Cxt h f a) -> Cxt h f a
 injectCxt = algHom' inject
+
+{-| This function lifts the given functor to a context. -}
+liftCxt :: (Functor f, g :<: f) => g a -> Context f a
+liftCxt g = simpCxt $ inj g
 
 
 {-| Deep injection function.  -}

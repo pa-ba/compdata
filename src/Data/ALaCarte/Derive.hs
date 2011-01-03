@@ -16,11 +16,16 @@ module Data.ALaCarte.Derive (
   module Data.ALaCarte.Derive.Equality,
   module Data.ALaCarte.Derive.Arbitrary,
   module Data.ALaCarte.Derive.SmartConstructors,
+  module Data.ALaCarte.Derive.DeepSeq,
+  module Data.ALaCarte.Derive.Foldable,
+  module Data.ALaCarte.Derive.Traversable,
   instanceFunctor,
-  instanceFoldable,
-  instanceTraversable,
   derive ) where
 
+
+import Data.ALaCarte.Derive.Foldable
+import Data.ALaCarte.Derive.Traversable
+import Data.ALaCarte.Derive.DeepSeq
 import Data.ALaCarte.Derive.Show
 import Data.ALaCarte.Derive.Ordering
 import Data.ALaCarte.Derive.Equality
@@ -38,9 +43,3 @@ derive ders names = liftM concat $ sequence [der name | der <- ders, name <- nam
 
 instanceFunctor :: Name -> Q [Dec]
 instanceFunctor = D.derive makeFunctor
-
-instanceFoldable :: Name -> Q [Dec]
-instanceFoldable = D.derive makeFoldable
-
-instanceTraversable :: Name -> Q [Dec]
-instanceTraversable = D.derive makeTraversable
