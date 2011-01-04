@@ -58,7 +58,10 @@ module Data.ALaCarte.Algebra (
       compAlgM',
 
       -- * Coalgebras      
-      coalgHom
+      Coalg,
+      coalgHom,
+      CoalgM,
+      coalgHomM
     ) where
 
 import Data.ALaCarte.Term
@@ -305,11 +308,28 @@ compSigFunM :: (Monad m) => SigFunM m g h -> SigFunM m f g -> SigFunM m f h
 compSigFunM f g a = g a >>= f
 
 
+type Coalg f a = a -> f a
 
 {-| This function unfolds the given value to a term using the given
 unravelling function. This is the unique homomorphism @a -> Term f@
 from the given coalgebra of type @a -> f a@ to the final coalgebra
 @Term f@. -}
 
-coalgHom :: Functor f => (a -> f a ) -> a -> Term f
-coalgHom f t = Term $ (fmap (coalgHom f)  (f t))
+coalgHom :: forall a f . Functor f
+         => Coalg f a -> a -> Term f
+coalgHom f = run
+    where run :: a -> Term f
+          run t = Term $ fmap run (f t)
+
+type CoalgM m f a = a -> m (f a)
+
+{-| This function unfolds the given value to a term using the given
+monadic unravelling function. This is the unique homomorphism @a ->
+Term f@ from the given coalgebra of type @a -> f a@ to the final
+coalgebra @Term f@. -}
+
+coalgHomM :: forall a m f. (Traversable f, Monad m)
+          => CoalgM m f a -> a -> m (Term f)
+coalgHomM f = run 
+    where run :: a -> m (Term f)
+          run t = liftM Term $ f t >>= mapM run

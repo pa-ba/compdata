@@ -13,12 +13,19 @@
 
 module Data.ALaCarte.Derive.Arbitrary
     ( ArbitraryF(..),
-      instanceArbitraryF
+      instanceArbitraryF,
+      instanceArbitrary,
+      Arbitrary(..),
+      choose
     )where
 
 import Test.QuickCheck
 import Data.ALaCarte.Derive.Utils
 import Language.Haskell.TH
+import Data.DeriveTH
+
+instanceArbitrary :: Name -> Q [Dec]
+instanceArbitrary = derive makeArbitrary
 
 
 {-|
@@ -75,11 +82,10 @@ generateArbitraryFDecl = generateGenDecl 'arbitraryF'
 
 generateGenDecl :: Name -> [Con] -> Q Dec
 generateGenDecl genName constrs
-    = do let constrsNum = length constrs
-         genBody <- listE $ map (addNum constrsNum . constrGen . abstractConType) constrs
+    = do genBody <- listE $ map (addNum . constrGen . abstractConType) constrs
          let genClause = Clause [] (NormalB genBody) []
          return $ FunD genName [genClause]
-    where addNum n e = [| (n,$e) |]
+    where addNum e = [| (1,$e) |]
           constrGen :: (Name,Int) -> ExpQ
           constrGen (constr, n)
               = do varNs <- newNames n "x"

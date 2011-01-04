@@ -47,7 +47,7 @@ Executable test
 
 Executable benchmark
   Main-is:		Benchmark.hs
-  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion
+  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random
   hs-source-dirs:	src benchmark
   ghc-options:          -O2
   if !flag(benchmark)
