@@ -21,6 +21,9 @@ class (Functor e, Functor f) => Desugar f e where
     desugarAlg' :: Alg f (Context e a)
     desugarAlg' x = applyCxt $ desugarAlg x
 
+desugarExpr :: SugarExpr -> Expr
+desugarExpr = desugar
+
 desugar :: Desugar f e => Term f -> Term e
 desugar = termHom desugarAlg
 

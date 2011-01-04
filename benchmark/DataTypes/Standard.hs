@@ -92,4 +92,4 @@ instance Show VType where
     show VTBool = "Bool"
     show (VTPair x y) = "(" ++ show x ++ "," ++ show y ++ ")"
 
-$(derives [makeNFData] [''SProj,''SExpr,''OExpr,''PExpr])
+$(derives [makeNFData] [''SProj,''SExpr,''OExpr,''PExpr, ''VType])
