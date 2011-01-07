@@ -188,7 +188,7 @@ compAlg alg talg = algHom' alg . talg
 given context. -}
 
 applySigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
-applySigFun f = termHom . termAlg $ f
+applySigFun f = termHom $ termAlg $ f
 
 {-| This function composes two signature functions.  -}
 
@@ -272,7 +272,7 @@ termHomM' f = run
 given context -}
 
 applySigFunM :: (Traversable f, Functor g, Monad m) => SigFunM m f g -> CxtFunM m f g
-applySigFunM f = termHomM . termAlg' $ f
+applySigFunM f = termHomM $ termAlg' $ f
 
 {-| This function applies the given monadic signature function to the
 given context -}

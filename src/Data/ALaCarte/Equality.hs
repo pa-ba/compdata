@@ -65,9 +65,10 @@ values. -}
 
 eqMod :: (EqF f, Functor f, Foldable f) => f a -> f b -> Maybe [(a,b)]
 eqMod s t
-    | unit s `eqF` unit t = Just args
+    | unit s `eqF` unit' t = Just args
     | otherwise = Nothing
     where unit = fmap (const ())
+          unit' = fmap (const ())
           args = toList s `zip` toList t
 
 $(derive [instanceEqF] $ [''Maybe] ++ tupleTypes 2 10)

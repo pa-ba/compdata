@@ -60,6 +60,26 @@ abstractConType (ForallC _ _ constr) = abstractConType constr
 tyVarBndrName (PlainTV n) = n
 tyVarBndrName (KindedTV n _) = n
 
+containsType :: Type -> Type -> Bool
+containsType s t
+             | s == t = True
+             | otherwise = case s of
+                             ForallT _ _ s' -> containsType s' t
+                             AppT s1 s2 -> containsType s1 t || containsType s2 t
+                             SigT s' _ -> containsType s' t
+                             _ -> False
+
+containsType' :: Type -> Type -> [Int]
+containsType' = run 0
+    where run n s t
+             | s == t = [n]
+             | otherwise = case s of
+                             ForallT _ _ s' -> run n s' t
+                             -- only going through the right-hand side counts!
+                             AppT s1 s2 -> run n s1 t ++ run (n+1) s2 t
+                             SigT s' _ -> run n s' t
+                             _ -> []
+
 
 {-|
   This function provides a list (of the given length) of new names based
