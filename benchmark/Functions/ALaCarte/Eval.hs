@@ -59,6 +59,14 @@ instance (Value :<: v, EqF v, Monad m) => Eval Op v m where
         where select (x,y) = case p of 
                                ProjLeft -> x
                                ProjRight -> y
+
+instance (Value :<: v, Monad m) => Eval Sugar v m where
+    evalAlg (Neg x) = liftM (iVInt . negate) (coerceInt x)
+    evalAlg (Minus x y) = liftM2 (\ i j -> iVInt (i - j)) (coerceInt x) (coerceInt y)
+    evalAlg (Gt x y) = liftM2 (\ i j -> iVBool (i > j)) (coerceInt x) (coerceInt y)
+    evalAlg (Or x y) = liftM2 (\ b c -> iVBool (b || c)) (coerceBool x) (coerceBool y)
+    evalAlg (Impl x y) = liftM2 (\ b c -> iVBool (not b || c)) (coerceBool x) (coerceBool y)
+
 -- evaluation2
 
 class Eval2 e v where
@@ -103,14 +111,25 @@ instance (Value :<: v, EqF v) => Eval2 Op v where
                                ProjLeft -> x
                                ProjRight -> y
 
+
+instance (Value :<: v) => Eval2 Sugar v where
+    eval2Alg (Neg x) = (iVInt . negate) (coerceInt2 x)
+    eval2Alg (Minus x y) = (\ i j -> iVInt (i - j)) (coerceInt2 x) (coerceInt2 y)
+    eval2Alg (Gt x y) = (\ i j -> iVBool (i > j)) (coerceInt2 x) (coerceInt2 y)
+    eval2Alg (Or x y) = (\ b c -> iVBool (b || c)) (coerceBool2 x) (coerceBool2 y)
+    eval2Alg (Impl x y) = (\ b c -> iVBool (not b || c)) (coerceBool2 x) (coerceBool2 y)
+
 -- desugar
 
 desugarEval :: SugarExpr -> Err ValueExpr
 desugarEval = eval . (desugar :: SugarExpr -> Expr)
 
 
+evalSugar :: SugarExpr -> Err ValueExpr
+evalSugar = eval
+
 desugarEvalAlg  :: AlgM Err SugarSig ValueExpr
-desugarEvalAlg = evalAlg  `compAlgM'` (desugarAlg :: TermAlg SugarSig ExprSig)
+desugarEvalAlg = evalAlg  `compAlgM'` (desugarAlg :: TermHom SugarSig ExprSig)
 
 
 desugarEval' :: SugarExpr -> Err ValueExpr
@@ -119,9 +138,12 @@ desugarEval' e = algHomM desugarEvalAlg e
 desugarEval2 :: SugarExpr -> ValueExpr
 desugarEval2 = eval2 . (desugar :: SugarExpr -> Expr)
 
+evalSugar2 :: SugarExpr -> ValueExpr
+evalSugar2 = eval2
+
 
 desugarEval2Alg  :: Alg SugarSig ValueExpr
-desugarEval2Alg = eval2Alg  `compAlg` (desugarAlg :: TermAlg SugarSig ExprSig)
+desugarEval2Alg = eval2Alg  `compAlg` (desugarAlg :: TermHom SugarSig ExprSig)
 
 
 desugarEval2' :: SugarExpr -> ValueExpr

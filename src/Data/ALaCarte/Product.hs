@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, FunctionalDependencies,
-             FlexibleInstances, UndecidableInstances, RankNTypes #-}
+             FlexibleInstances, UndecidableInstances, RankNTypes, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.ALaCarte.Product
@@ -100,6 +100,35 @@ functor but with an additional product. -}
 
 liftP :: (RemoveP s s') => (s' a -> t) -> s a -> t
 liftP f v = f (removeP v)
+
+stripP_ :: (s :*: p) a -> s a
+stripP_ (v :*: _) = v
+
+liftP_ :: (s a -> t) -> (s :*: p) a -> t
+liftP_  f = f . stripP_
+
+stripPTerm :: Functor s => Term (s:*:p) -> Term s
+stripPTerm = algHom (Term . stripP_)
+
+
+liftPTerm :: Functor s => (Term s -> t) -> (Term (s :*: p) -> t)
+liftPTerm f = f . stripPTerm
+
+constP_ :: (Functor f) => p -> Context f a -> Context (f :*: p) a
+constP_ _ (Hole a) = Hole a
+constP_ p (Term t) = Term (fmap (constP_ p) t :*: p)
+
+liftPTermHom :: (Functor g) =>  TermHom f g -> TermHom (f :*: p) (g :*: p)
+liftPTermHom f (v :*: p) = constP_ p (f v)
+
+{-| This function transforms a function with a domain constructed from
+a functor to a function with a domain constructed with the same
+functor but with an additional product. -}
+
+liftP' :: (DistProd s' p s, Functor s, Functor s')
+       => (s' a -> Cxt h s' a) -> s a -> Cxt h s a
+liftP' f v = let (v',p) = projectP v
+             in constP p (f v')
     
 {-| This function strips the products from a term over a
 functor whith products. -}
@@ -108,9 +137,9 @@ stripP :: (Functor f, RemoveP g f, Functor g) => Cxt h g a -> Cxt h f a
 stripP = applySigFun removeP
 
 
-productTermAlg :: (DistProd f p f', DistProd g p g', Functor g, Functor g') 
-            => TermAlg f g -> TermAlg f' g'
-productTermAlg alg f' = constP p (alg f)
+productTermHom :: (DistProd f p f', DistProd g p g', Functor g, Functor g') 
+            => TermHom f g -> TermHom f' g'
+productTermHom alg f' = constP p (alg f)
     where (f,p) = projectP f'
 
 

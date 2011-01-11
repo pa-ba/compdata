@@ -16,7 +16,7 @@ import Data.ALaCarte
 -- de-sugar
 
 class (Functor e, Functor f) => Desugar f e where
-    desugarAlg :: TermAlg f e
+    desugarAlg :: TermHom f e
     desugarAlg = desugarAlg' . fmap Hole
     desugarAlg' :: Alg f (Context e a)
     desugarAlg' x = applyCxt $ desugarAlg x

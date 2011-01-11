@@ -28,23 +28,23 @@ module Data.ALaCarte.Algebra (
       algHomM,
       algHomM',
 
-      -- * Term Algebras
+      -- * Term Homomorphisms
       CxtFun,
       SigFun,
-      TermAlg,
+      TermHom,
       termHom,
-      compTermAlg,
+      compTermHom,
       applySigFun,
       compSigFun,
       termAlg,
       compAlg,
 
-      -- * Monadic Term Algebras
+      -- * Monadic Term Homomorphisms
       CxtFunM,
       SigFunM,
-      TermAlgM,
+      TermHomM,
       SigFunM',
-      TermAlgM',
+      TermHomM',
       sigFunM,
       termAlg',
       termAlgM,
@@ -52,7 +52,7 @@ module Data.ALaCarte.Algebra (
       termHomM',
       applySigFunM,
       applySigFunM',
-      compTermAlgM,
+      compTermHomM,
       compSigFunM,
       compAlgM,
       compAlgM',
@@ -149,7 +149,6 @@ algHomM' f = run
           run (Term x) = mapM run x >>= f
 
 
-
 {-| This type represents context function. -}
 
 type CxtFun f g = forall a h. Cxt h f a -> Cxt h g a
@@ -162,25 +161,33 @@ type SigFun f g = forall a. f a -> g a
 
 {-| This type represents a term algebra. -}
 
-type TermAlg f g = SigFun f (Context g)
+type TermHom f g = SigFun f (Context g)
 
 {-| This function constructs the unique term homomorphism from the
 initial term algebra to the given term algebra. -}
 
-termHom :: (Functor f, Functor g) => TermAlg f g -> CxtFun f g
+termHom :: (Functor f, Functor g) => TermHom f g -> CxtFun f g
+-- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
+-- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b)) -> Cxt h f b -> Cxt h g b
+-- would achieve the same. The given type is chosen for clarity.
 termHom _ (Hole b) = Hole b
 termHom f (Term t) = applyCxt . f . fmap (termHom f) $ t
 
 {-| This function composes two term algebras
 -}
 
-compTermAlg :: (Functor g, Functor h) => TermAlg g h -> TermAlg f g -> TermAlg f h
-compTermAlg f g = termHom f . g
+compTermHom :: (Functor g, Functor h) => TermHom g h -> TermHom f g -> TermHom f h
+-- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
+-- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b))
+-- -> (a -> Cxt h f b) -> a -> Cxt h g b
+-- would achieve the same. The given type is chosen for clarity.
+
+compTermHom f g = termHom f . g
 
 
 {-| This function composes a term algebra with an algebra. -}
 
-compAlg :: (Functor g) => Alg g a -> TermAlg f g -> Alg f a
+compAlg :: (Functor g) => Alg g a -> TermHom f g -> Alg f a
 compAlg alg talg = algHom' alg . talg
 
 
@@ -199,7 +206,7 @@ compSigFun f g = f . g
 {-| Lifts the given signature function to the canonical term algebra.
 -}
 
-termAlg :: (Functor g) => SigFun f g -> TermAlg f g
+termAlg :: (Functor g) => SigFun f g -> TermHom f g
 termAlg f = simpCxt . f
 
 {-|
@@ -218,12 +225,12 @@ type SigFunM' m f g = forall a. f (m a) -> m (g a)
 
 {-| This type represents monadic term algebras.  -}
 
-type TermAlgM m f g = SigFunM m f (Context g)
+type TermHomM m f g = SigFunM m f (Context g)
 
 {-| This type represents monadic term algebras. It is similar to
-'TermAlgM' but has monadic values also in the domain. -}
+'TermHomM' but has monadic values also in the domain. -}
 
-type TermAlgM' m f g = SigFunM' m f (Context g)
+type TermHomM' m f g = SigFunM' m f (Context g)
 
 
 {-| This function lifts the given signature function to a monadic
@@ -237,13 +244,13 @@ sigFunM f = return . f
 {-| This function lifts the give monadic signature function to a
 monadic term algebra. -}
 
-termAlg' :: (Functor f, Functor g, Monad m) => SigFunM m f g -> TermAlgM m f g
+termAlg' :: (Functor f, Functor g, Monad m) => SigFunM m f g -> TermHomM m f g
 termAlg' f = liftM  (Term . fmap Hole) . f
 
 {-| This function lifts the given signature function to a monadic term
 algebra. -}
 
-termAlgM :: (Functor g, Monad m) => SigFun f g -> TermAlgM m f g
+termAlgM :: (Functor g, Monad m) => SigFun f g -> TermHomM m f g
 termAlgM f = sigFunM $ termAlg f
 
 
@@ -251,7 +258,7 @@ termAlgM f = sigFunM $ termAlg f
 initial term algebra to the given term algebra. -}
 
 termHomM :: forall f g m . (Traversable f, Functor g, Monad m)
-         => TermAlgM m f g -> CxtFunM m f g
+         => TermHomM m f g -> CxtFunM m f g
 termHomM f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole b) = return $ Hole b
@@ -261,7 +268,7 @@ termHomM f = run
 initial term algebra to the given term algebra. -}
 
 termHomM' :: forall f g m . (Traversable f, Functor g, Monad m)
-          => TermAlgM' m f g -> CxtFunM m f g
+          => TermHomM' m f g -> CxtFunM m f g
 termHomM' f = run 
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole b) = return $ Hole b
@@ -286,19 +293,19 @@ applySigFunM' f = run
 
 {-| This function composes two monadic term algebras. -}
 
-compTermAlgM :: (Traversable g, Functor h, Monad m)
-            => TermAlgM m g h -> TermAlgM m f g -> TermAlgM m f h
-compTermAlgM f g a = g a >>= termHomM f
+compTermHomM :: (Traversable g, Functor h, Monad m)
+            => TermHomM m g h -> TermHomM m f g -> TermHomM m f h
+compTermHomM f g a = g a >>= termHomM f
 
 
 {-| This function composes a monadic term algebra with a monadic algebra -}
 
-compAlgM :: (Traversable g, Monad m) => AlgM m g a -> TermAlgM m f g -> AlgM m f a
+compAlgM :: (Traversable g, Monad m) => AlgM m g a -> TermHomM m f g -> AlgM m f a
 compAlgM alg talg c = algHomM' alg =<< talg c
 
 {-| This function composes a monadic term algebra with a monadic algebra -}
 
-compAlgM' :: forall g f m a. (Traversable g, Monad m) => AlgM m g a -> TermAlg f g -> AlgM m f a
+compAlgM' :: forall g f m a. (Traversable g, Monad m) => AlgM m g a -> TermHom f g -> AlgM m f a
 compAlgM' alg talg = algHomM' alg . talg
 
 

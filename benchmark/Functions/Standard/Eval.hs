@@ -32,6 +32,27 @@ eval (OProj p x) = liftM select (eval x >>= coercePair)
                            SProjLeft -> x
                            SProjRight -> y
 
+evalSugar :: PExpr -> Err SExpr
+evalSugar (PInt i) = return $ SInt i
+evalSugar (PBool b) = return $ SBool b
+evalSugar (PPair x y) = liftM2 SPair (evalSugar x) (evalSugar y)
+evalSugar (PPlus x y) = liftM2 (\ x y -> SInt (x + y)) (evalSugar x >>= coerceInt) (evalSugar y >>= coerceInt)
+evalSugar (PMult x y) = liftM2 (\ x y -> SInt (x * y)) (evalSugar x >>= coerceInt) (evalSugar y >>= coerceInt)
+evalSugar (PIf b x y) = evalSugar b >>= coerceBool >>= (\b -> if b then evalSugar x else evalSugar y)
+evalSugar (PEq x y) = liftM2 (\ x y -> SBool (x == y)) (evalSugar x) (evalSugar y)
+evalSugar (PLt x y) = liftM2 (\ x y -> SBool (x < y)) (evalSugar x >>= coerceInt) (evalSugar y >>= coerceInt)
+evalSugar (PAnd x y) = liftM2 (\ x y -> SBool (x && y)) (evalSugar x >>= coerceBool) (evalSugar y >>= coerceBool)
+evalSugar (PNot x) = liftM (SBool . not)(evalSugar x >>= coerceBool)
+evalSugar (PProj p x) = liftM select (evalSugar x >>= coercePair)
+    where select (x,y) = case p of
+                           SProjLeft -> x
+                           SProjRight -> y
+evalSugar (PNeg x) = liftM (SInt . negate) (evalSugar x >>= coerceInt)
+evalSugar (PMinus x y) = liftM2 (\ x y -> SInt (x - y)) (evalSugar x >>= coerceInt) (evalSugar y >>= coerceInt)
+evalSugar (PGt x y) = liftM2 (\ x y -> SBool (x > y)) (evalSugar x >>= coerceInt) (evalSugar y >>= coerceInt)
+evalSugar (POr x y) = liftM2 (\ x y -> SBool (x || y)) (evalSugar x >>= coerceBool) (evalSugar y >>= coerceBool)
+evalSugar (PImpl x y) = liftM2 (\ x y -> SBool (not x || y)) (evalSugar x >>= coerceBool) (evalSugar y >>= coerceBool)
+
 desugarEval :: PExpr -> Err SExpr
 desugarEval = eval . desugar
 
@@ -64,6 +85,27 @@ eval2 (OProj p x) = select (coercePair2 $ eval2 x)
                            SProjLeft -> x
                            SProjRight -> y
 
+
+evalSugar2 :: PExpr -> SExpr
+evalSugar2 (PInt i) = SInt i
+evalSugar2 (PBool b) =  SBool b
+evalSugar2 (PPair x y) = SPair (evalSugar2 x) (evalSugar2 y)
+evalSugar2 (PPlus x y) = (\ x y -> SInt (x + y)) (coerceInt2 $ evalSugar2 x) (coerceInt2 $ evalSugar2 y)
+evalSugar2 (PMult x y) = (\ x y -> SInt (x * y)) (coerceInt2 $ evalSugar2 x) (coerceInt2 $ evalSugar2 y)
+evalSugar2 (PIf b x y) = if coerceBool2 $ evalSugar2 b then evalSugar2 x else evalSugar2 y
+evalSugar2 (PEq x y) = (\ x y -> SBool (x == y)) (evalSugar2 x) (evalSugar2 y)
+evalSugar2 (PLt x y) = (\ x y -> SBool (x < y)) (coerceInt2 $ evalSugar2 x) (coerceInt2 $ evalSugar2 y)
+evalSugar2 (PAnd x y) = (\ x y -> SBool (x && y)) (coerceBool2 $ evalSugar2 x) (coerceBool2 $ evalSugar2 y)
+evalSugar2 (PNot x) = (SBool . not)(coerceBool2 $ evalSugar2 x)
+evalSugar2 (PProj p x) = select (coercePair2 $ evalSugar2 x)
+    where select (x,y) = case p of
+                           SProjLeft -> x
+                           SProjRight -> y
+evalSugar2 (PNeg x) = (SInt . negate) (coerceInt2 $ evalSugar2 x)
+evalSugar2 (PMinus x y) = (\ x y -> SInt (x - y)) (coerceInt2 $ evalSugar2 x) (coerceInt2 $ evalSugar2 y)
+evalSugar2 (PGt x y) = (\ x y -> SBool (x > y)) (coerceInt2 $ evalSugar2 x) (coerceInt2 $ evalSugar2 y)
+evalSugar2 (POr x y) = (\ x y -> SBool (x || y)) (coerceBool2 $ evalSugar2 x) (coerceBool2 $ evalSugar2 y)
+evalSugar2 (PImpl x y) = (\ x y -> SBool (not x || y)) (coerceBool2 $ evalSugar2 x) (coerceBool2 $ evalSugar2 y)
 
 desugarEval2 :: PExpr -> SExpr
 desugarEval2 = eval2 . desugar

@@ -1,4 +1,4 @@
-{-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances, OverlappingInstances #-}
+{-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances, OverlappingInstances, TypeOperators #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -26,6 +26,7 @@ module Data.ALaCarte.Variables (
   compSubst) where
 
 import Data.ALaCarte.Term
+import Data.ALaCarte.Sum
 import Data.ALaCarte.Algebra
 import Data.Foldable
 
@@ -49,7 +50,11 @@ variables of type @v@. -}
 
 class HasVars f v where
     isVar :: f a -> Maybe v
+    isVar _ = Nothing
 
+instance (HasVars f v, HasVars g v) => HasVars (f :+: g) v where
+    isVar (Inl v) = isVar v
+    isVar (Inr v) = isVar v
 
 instance HasVars f v => HasVars (Cxt h f) v where
     isVar (Term t) = isVar t

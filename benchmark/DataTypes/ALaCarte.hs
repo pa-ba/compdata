@@ -17,7 +17,6 @@ import Data.ALaCarte.Show
 import Data.Traversable
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
-import Control.Applicative
 
 
 import Control.Monad hiding (sequence_,mapM)
