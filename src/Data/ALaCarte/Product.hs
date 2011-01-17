@@ -34,46 +34,6 @@ import Control.Monad
 
 
 
-{-| This class defines how to distribute a product over a sum of
-signatures. -}
-
-class DistProd s p s' | s' -> s, s' -> p where
-        
-    {-| This function injects a product a value over a signature. -}
-    injectP :: p -> s a -> s' a
-    projectP :: s' a -> (s a, p)
-
-
-class RemoveP s s' | s -> s'  where
-    removeP :: s a -> s' a
-
-
-instance (RemoveP s s') => RemoveP (f :*: p :+: s) (f :+: s') where
-    removeP (Inl (v :*: _)) = Inl v
-    removeP (Inr v) = Inr $ removeP v
-
-
-instance RemoveP (f :*: p) f where
-    removeP (v :*: _) = v
-
-
-instance DistProd f p (f :*: p) where
-
-    injectP c v = v :*: c
-
-    projectP (v :*: p) = (v,p)
-
-
-instance (DistProd s p s') => DistProd (f :+: s) p ((f :*: p) :+: s') where
-
-
-    injectP c (Inl v) = Inl (v :*: c)
-    injectP c (Inr v) = Inr $ injectP c v
-
-    projectP (Inl (v :*: p)) = (Inl v,p)
-    projectP (Inr v) = let (v',p) = projectP v
-                       in  (Inr v',p)
-
 
 {-| This function transforms a function with a domain constructed from
 a functor to a function with a domain constructed with the same

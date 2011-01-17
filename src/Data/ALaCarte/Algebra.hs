@@ -57,14 +57,24 @@ module Data.ALaCarte.Algebra (
       compAlgM,
       compAlgM',
 
-      -- * Histomorphisms
-      
-
       -- * Coalgebras & Anamorphisms
       Coalg,
       ana,
       CoalgM,
-      anaM
+      anaM,
+
+      -- * CV-Algebras & Histomorphisms
+      CVAlg,
+      histo,
+      CVAlgM,
+      histoM,
+
+      -- * CV-Coalgebras & Futumorphisms
+      CVCoalg,
+      futu,
+      CVCoalgM,
+      futuM
+      
     ) where
 
 import Data.ALaCarte.Term
@@ -316,21 +326,6 @@ compAlgM' alg talg = cataM' alg . talg
 compSigFunM :: (Monad m) => SigFunM m g h -> SigFunM m f g -> SigFunM m f h
 compSigFunM f g a = g a >>= f
 
-
---------------------
--- Histomorphisms --
---------------------
-
-forkF :: (a -> b) -> (a -> f c) -> a -> (f :*: b) c
-forkF f g a = g a :*: f a
-
-hdCV :: Term (f :*: c) -> c
-hdCV (Term (_ :*: c)) = c
-
-tlCV :: Term (f :*: c) -> f (Term (f :*: c))
-tlCV (Term (fx :*: _)) = fx
-
-
 ----------------
 -- Coalgebras --
 ----------------
@@ -360,3 +355,66 @@ anaM :: forall a m f. (Traversable f, Monad m)
 anaM f = run 
     where run :: a -> m (Term f)
           run t = liftM Term $ f t >>= mapM run
+
+----------------------------------
+-- CV-Algebras & Histomorphisms --
+----------------------------------
+
+-- | This type represents cv-algebras over functor @f@ and with domain
+-- @a@.
+
+type CVAlg f a f' = f (Term f') -> a
+
+-- | This function constructs the unique histomorphism from the given
+-- from the term algebra to the given cv-algebra.
+histo :: (Functor f,DistProd f a f') => CVAlg f a f' -> Term f -> a
+histo alg  = snd . projectTip . cata run
+    where run v = Term $ injectP (alg v) v
+
+-- | This type represents monadic cv-algebras over monad @m@ and
+-- functor @f@, and with domain @a@.
+type CVAlgM m f a f' = f (Term f') -> m a
+
+
+-- | This function constructs the unique monadic histomorphism from
+-- the given from the term algebra to the given monadic cv-algebra.
+histoM :: (Traversable f, Monad m, DistProd f a f') =>
+          CVAlgM m f a f' -> Term f -> m a
+histoM alg  = liftM (snd . projectTip) . cataM run
+    where run v = do r <- alg v
+                     return $ Term $ injectP r v
+
+------------------------------------
+-- CV-Coalgebras & Histomorphisms --
+------------------------------------
+
+
+-- | This type represents cv-coalgebras over functor @f@ and with domain
+-- @a@.
+
+type CVCoalg f a = a -> f (Context f a)
+
+
+-- | This function constructs the unique futumorphism from the given
+-- cv-coalgebra to the term algebra.
+
+futu :: forall f a . Functor f => CVCoalg f a -> a -> Term f
+futu coa = ana run . Hole
+    where run :: Coalg f (Context f a)
+          run (Hole a) = coa a
+          run (Term v) = v
+
+
+-- | This type represents monadic cv-coalgebras over monad @m@ and
+-- functor @f@, and with domain @a@.
+
+type CVCoalgM m f a = a -> m (f (Context f a))
+
+-- | This function constructs the unique monadic futumorphism from the
+-- given monadic cv-coalgebra to the term algebra.
+futuM :: forall f a m . (Traversable f, Monad m) =>
+         CVCoalgM m f a -> a -> m (Term f)
+futuM coa = anaM run . Hole
+    where run :: CoalgM m f (Context f a)
+          run (Hole a) = coa a
+          run (Term v) = return v
