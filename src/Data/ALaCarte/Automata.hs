@@ -37,7 +37,7 @@ data DUTA f q = DUTA {
 term. -}
 
 runDUTATrans :: Functor f => DUTATrans f q -> Term f -> q
-runDUTATrans = algHom
+runDUTATrans = cata
 
 {-| This function checks whether a given DUTA accepts a term.  -}
 
@@ -63,7 +63,7 @@ data NUTA f q = NUTA {
 given term -}
 
 runNUTATrans :: Traversable f => NUTATrans f q -> Term f -> [q]
-runNUTATrans = algHomM
+runNUTATrans = cataM
 
 {-| This function checks whether a given NUTA accepts a term. -}
 
@@ -93,7 +93,7 @@ duttTransAlg trans = fmap injectCxt . trans
 term.  -}
 
 runDUTTTrans :: (Functor f, Functor g)  => DUTTTrans f g q -> Term f -> (q, Term g)
-runDUTTTrans = algHom . duttTransAlg
+runDUTTTrans = cata . duttTransAlg
 
 {-| This data type represents deterministic bottom-up tree
 transducers. -}
@@ -128,7 +128,7 @@ nuttTransAlg trans = liftM (fmap injectCxt) . trans
 term.  -}
 
 runNUTTTrans :: (Traversable f, Functor g)  => NUTTTrans f g q -> Term f -> [(q, Term g)]
-runNUTTTrans = algHomM . nuttTransAlg
+runNUTTTrans = cataM . nuttTransAlg
 
 {-| This data type represents non-deterministic bottom-up tree
 transducers (NUTTs). -}

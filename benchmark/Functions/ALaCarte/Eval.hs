@@ -22,7 +22,7 @@ class Monad m => Eval e v m where
     evalAlg :: e (Term v) -> m (Term v)
 
 eval :: (Traversable e, Eval e v m) => Term e -> m (Term v)
-eval = algHomM evalAlg
+eval = cataM evalAlg
 
 instance (Eval f v m, Eval g v m) => Eval (f :+: g) v m where
     evalAlg (Inl v) = evalAlg v
@@ -73,7 +73,7 @@ class Eval2 e v where
     eval2Alg :: e (Term v) -> Term v
 
 eval2 :: (Traversable e, Eval2 e v) => Term e -> Term v
-eval2 = algHom eval2Alg
+eval2 = cata eval2Alg
 
 instance (Eval2 f v, Eval2 g v) => Eval2 (f :+: g) v where
     eval2Alg (Inl v) = eval2Alg v
@@ -133,7 +133,7 @@ desugarEvalAlg = evalAlg  `compAlgM'` (desugarAlg :: TermHom SugarSig ExprSig)
 
 
 desugarEval' :: SugarExpr -> Err ValueExpr
-desugarEval' e = algHomM desugarEvalAlg e
+desugarEval' e = cataM desugarEvalAlg e
 
 desugarEval2 :: SugarExpr -> ValueExpr
 desugarEval2 = eval2 . (desugar :: SugarExpr -> Expr)
@@ -147,4 +147,4 @@ desugarEval2Alg = eval2Alg  `compAlg` (desugarAlg :: TermHom SugarSig ExprSig)
 
 
 desugarEval2' :: SugarExpr -> ValueExpr
-desugarEval2' e = algHom desugarEval2Alg e
+desugarEval2' e = cata desugarEval2Alg e

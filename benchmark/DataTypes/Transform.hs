@@ -18,7 +18,7 @@ class TransSugar f where
     transSugarAlg :: Alg f PExpr
 
 transSugar :: (Functor f, TransSugar f) => Term f -> PExpr
-transSugar = algHom transSugarAlg
+transSugar = cata transSugarAlg
 
 instance (TransSugar f, TransSugar g) => TransSugar (f :+: g) where
     transSugarAlg (Inl v) = transSugarAlg v

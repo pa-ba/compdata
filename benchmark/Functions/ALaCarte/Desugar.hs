@@ -25,7 +25,7 @@ desugarExpr :: SugarExpr -> Expr
 desugarExpr = desugar
 
 desugar :: Desugar f e => Term f -> Term e
-desugar = termHom desugarAlg
+desugar = applyTermHom desugarAlg
 
 instance (Desugar f e, Desugar g e) => Desugar (g :+: f) e where
     desugarAlg (Inl v) = desugarAlg v

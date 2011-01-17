@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, RankNTypes, ScopedTypeVariables #-}
+{-# LANGUAGE GADTs, RankNTypes, ScopedTypeVariables, TypeOperators #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -14,14 +14,14 @@
 --------------------------------------------------------------------------------
 
 module Data.ALaCarte.Algebra (
-      -- * Algebras
+      -- * Algebras & Catamorphisms
       Alg,
       freeAlgHom,
       cata,
       cata',
       applyCxt,
       
-      -- * Monadic Algebras
+      -- * Monadic Algebras & Catamorphisms
       AlgM,
       algM,
       freeAlgHomM,
@@ -57,7 +57,10 @@ module Data.ALaCarte.Algebra (
       compAlgM,
       compAlgM',
 
-      -- * Coalgebras      
+      -- * Histomorphisms
+      
+
+      -- * Coalgebras & Anamorphisms
       Coalg,
       ana,
       CoalgM,
@@ -65,6 +68,7 @@ module Data.ALaCarte.Algebra (
     ) where
 
 import Data.ALaCarte.Term
+import Data.ALaCarte.Ops
 import Data.Traversable
 import Control.Monad hiding (sequence, mapM)
 
@@ -312,6 +316,24 @@ compAlgM' alg talg = cataM' alg . talg
 compSigFunM :: (Monad m) => SigFunM m g h -> SigFunM m f g -> SigFunM m f h
 compSigFunM f g a = g a >>= f
 
+
+--------------------
+-- Histomorphisms --
+--------------------
+
+forkF :: (a -> b) -> (a -> f c) -> a -> (f :*: b) c
+forkF f g a = g a :*: f a
+
+hdCV :: Term (f :*: c) -> c
+hdCV (Term (_ :*: c)) = c
+
+tlCV :: Term (f :*: c) -> f (Term (f :*: c))
+tlCV (Term (fx :*: _)) = fx
+
+
+----------------
+-- Coalgebras --
+----------------
 
 type Coalg f a = a -> f a
 

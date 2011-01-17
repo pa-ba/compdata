@@ -13,44 +13,25 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.ALaCarte.Product where
+module Data.ALaCarte.Product
+    ( (:*:) (..),
+      DistProd (..),
+      RemoveP (..),
+      liftP,
+      liftP',
+      stripP,
+      productTermHom,
+      constP,
+      project'
+    )where
 
 import Data.ALaCarte.Term
 import Data.ALaCarte.Sum
+import Data.ALaCarte.Ops
 import Data.ALaCarte.Algebra
 
-import Data.Foldable
-import Data.Traversable
+import Control.Monad
 
-import Control.Monad  hiding (mapM, sequence)
-import Control.Applicative
-
-import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
-
-
-infixr 7 :*:
-
-{-| This data type adds a constant product to a signature.  -}
-
-data (f :*: a) e = f e :*: a
-
-
-instance (Functor f) => Functor (f :*: a) where
-    fmap f (v :*: c) = fmap f v :*: c
-
-instance (Foldable f) => Foldable (f :*: a) where
-    fold (v :*: _) = fold v
-    foldMap f (v :*: _) = foldMap f v
-    foldr f e (v :*: _) = foldr f e v
-    foldl f e (v :*: _) = foldl f e v
-    foldr1 f (v :*: _) = foldr1 f v
-    foldl1 f (v :*: _) = foldl1 f v
-
-instance (Traversable f) => Traversable (f :*: a) where
-    traverse f (v :*: c) = liftA (:*: c) (traverse f v)
-    sequenceA (v :*: c) = liftA (:*: c)(sequenceA v)
-    mapM f (v :*: c) = liftM (:*: c) (mapM f v)
-    sequence (v :*: c) = liftM (:*: c) (sequence v)
 
 
 {-| This class defines how to distribute a product over a sum of
@@ -101,25 +82,6 @@ functor but with an additional product. -}
 liftP :: (RemoveP s s') => (s' a -> t) -> s a -> t
 liftP f v = f (removeP v)
 
-stripP_ :: (s :*: p) a -> s a
-stripP_ (v :*: _) = v
-
-liftP_ :: (s a -> t) -> (s :*: p) a -> t
-liftP_  f = f . stripP_
-
-stripPTerm :: Functor s => Term (s:*:p) -> Term s
-stripPTerm = algHom (Term . stripP_)
-
-
-liftPTerm :: Functor s => (Term s -> t) -> (Term (s :*: p) -> t)
-liftPTerm f = f . stripPTerm
-
-constP_ :: (Functor f) => p -> Context f a -> Context (f :*: p) a
-constP_ _ (Hole a) = Hole a
-constP_ p (Term t) = Term (fmap (constP_ p) t :*: p)
-
-liftPTermHom :: (Functor g) =>  TermHom f g -> TermHom (f :*: p) (g :*: p)
-liftPTermHom f (v :*: p) = constP_ p (f v)
 
 {-| This function transforms a function with a domain constructed from
 a functor to a function with a domain constructed with the same

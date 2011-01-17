@@ -21,7 +21,7 @@ class Monad m => InferType f t m where
     inferTypeAlg :: f (Term t) -> m (Term t)
 
 inferType :: (Traversable f, InferType f t m) => Term f -> m (Term t)
-inferType = algHomM inferTypeAlg
+inferType = cataM inferTypeAlg
 
 inferBaseType :: (Traversable f, InferType f ValueT m) => Term f -> m BaseType
 inferBaseType = inferType
@@ -79,7 +79,7 @@ desugarTypeAlg  :: AlgM Err SugarSig BaseType
 desugarTypeAlg = inferTypeAlg  `compAlgM'` (desugarAlg :: TermHom SugarSig ExprSig)
 
 desugarType' :: SugarExpr -> Err BaseType
-desugarType' e = algHomM desugarTypeAlg e
+desugarType' e = cataM desugarTypeAlg e
 
 -- pure type inference
 
@@ -87,7 +87,7 @@ class InferType2 f t where
     inferTypeAlg2 :: f (Term t) -> (Term t)
 
 inferType2 :: (Functor f, InferType2 f t) => Term f -> (Term t)
-inferType2 = algHom inferTypeAlg2
+inferType2 = cata inferTypeAlg2
 
 inferBaseType2 :: (Functor f, InferType2 f ValueT) => Term f -> BaseType
 inferBaseType2 = inferType2
@@ -148,4 +148,4 @@ desugarTypeAlg2  :: Alg SugarSig BaseType
 desugarTypeAlg2 = inferTypeAlg2  `compAlg` (desugarAlg :: TermHom SugarSig ExprSig)
 
 desugarType2' :: SugarExpr -> Err BaseType
-desugarType2' e = algHomM desugarTypeAlg e
+desugarType2' e = cataM desugarTypeAlg e

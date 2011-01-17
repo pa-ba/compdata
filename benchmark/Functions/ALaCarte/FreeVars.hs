@@ -37,14 +37,14 @@ freeVars :: SugarExpr -> Set Int
 freeVars = variables
 
 contVar' :: Int -> SugarExpr -> Bool
-contVar' i = algHom alg
+contVar' i = cata alg
     where alg :: SugarSig Bool -> Bool
           alg x = case proj x of
                     Just (VInt j) -> i == j
                     _ -> F.foldl (||) False x
 
 freeVars' :: SugarExpr -> Set Int
-freeVars' = algHom alg
+freeVars' = cata alg
     where alg :: SugarSig (Set Int) -> (Set Int)
           alg x = case proj x of
                     Just (VInt j) -> Set.singleton j

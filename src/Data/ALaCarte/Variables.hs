@@ -61,7 +61,7 @@ instance HasVars f v => HasVars (Cxt h f) v where
     isVar _ = Nothing
 
 varsToHoles :: (Functor f, HasVars f v) => Term f -> Context f v
-varsToHoles = algHom alg
+varsToHoles = cata alg
     where alg t = case isVar t of 
                     Just v -> Hole v
                     Nothing -> Term t

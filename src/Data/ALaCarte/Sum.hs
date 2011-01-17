@@ -45,76 +45,20 @@ module Data.ALaCarte.Sum (
 
 import Data.ALaCarte.Term
 import Data.ALaCarte.Algebra
+import Data.ALaCarte.Ops
 
-import Control.Applicative hiding (Const)
-import Control.Monad hiding (sequence, mapM)
+import Control.Monad hiding (sequence)
+import Prelude hiding (sequence)
 
 
 import Data.Maybe
 import Data.Traversable
-import Data.Foldable
 import Data.Map (Map)
 import qualified Data.Map as Map
 
 
-import Prelude hiding (foldr,foldl,foldr1,foldl1,sequence, mapM)
 
 
-infixr 6 :+:
-
-
--- |Data type defining coproducts.
-data (f :+: g) e = Inl (f e)
-                 | Inr (g e)
-
-instance (Functor f, Functor g) => Functor (f :+: g) where
-    fmap f (Inl e) = Inl (fmap f e)
-    fmap f (Inr e) = Inr (fmap f e)
-
-instance (Foldable f, Foldable g) => Foldable (f :+: g) where
-    fold (Inl e) = fold e
-    fold (Inr e) = fold e
-    foldMap f (Inl e) = foldMap f e
-    foldMap f (Inr e) = foldMap f e
-    foldr f b (Inl e) = foldr f b e
-    foldr f b (Inr e) = foldr f b e
-    foldl f b (Inl e) = foldl f b e
-    foldl f b (Inr e) = foldl f b e
-    foldr1 f (Inl e) = foldr1 f e
-    foldr1 f (Inr e) = foldr1 f e
-    foldl1 f (Inl e) = foldl1 f e
-    foldl1 f (Inr e) = foldl1 f e
-
-instance (Traversable f, Traversable g) => Traversable (f :+: g) where
-    traverse f (Inl e) = Inl <$> traverse f e
-    traverse f (Inr e) = Inr <$> traverse f e
-    sequenceA (Inl e) = Inl <$> sequenceA e
-    sequenceA (Inr e) = Inr <$> sequenceA e
-    mapM f (Inl e) = Inl `liftM` mapM f e
-    mapM f (Inr e) = Inr `liftM` mapM f e
-    sequence (Inl e) = Inl `liftM` sequence e
-    sequence (Inr e) = Inr `liftM` sequence e
-
-
-
--- |The subsumption relation.
-class sub :<: sup where
-  inj :: sub a -> sup a
-  proj :: sup a -> Maybe (sub a)
-
-instance (:<:) f f where
-    inj = id
-    proj = Just
-
-instance (:<:) f (f :+: g) where
-    inj = Inl
-    proj (Inl x) = Just x
-    proj (Inr _) = Nothing
-
-instance (f :<: g) => (:<:) f (h :+: g) where
-    inj = Inr . inj
-    proj (Inr x) = proj x
-    proj (Inl _) = Nothing
 
 
 -- |Project a sub term from a compound term.
@@ -185,7 +129,7 @@ projectConst = fmap (fmap (const ())) . project
 {-| This function injects a whole context into another context. -}
 
 injectCxt :: (Functor g, g :<: f) => Cxt h' g (Cxt h f a) -> Cxt h f a
-injectCxt = algHom' inject
+injectCxt = cata' inject
 
 {-| This function lifts the given functor to a context. -}
 liftCxt :: (Functor f, g :<: f) => g a -> Context f a
