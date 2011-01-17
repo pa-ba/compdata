@@ -17,26 +17,26 @@ module Data.ALaCarte.Algebra (
       -- * Algebras
       Alg,
       freeAlgHom,
-      algHom,
-      algHom',
+      cata,
+      cata',
       applyCxt,
       
       -- * Monadic Algebras
       AlgM,
       algM,
       freeAlgHomM,
-      algHomM,
-      algHomM',
+      cataM,
+      cataM',
 
       -- * Term Homomorphisms
       CxtFun,
       SigFun,
       TermHom,
-      termHom,
+      applyTermHom,
       compTermHom,
       applySigFun,
       compSigFun,
-      termAlg,
+      termHom,
       compAlg,
 
       -- * Monadic Term Homomorphisms
@@ -46,8 +46,8 @@ module Data.ALaCarte.Algebra (
       SigFunM',
       TermHomM',
       sigFunM,
-      termAlg',
-      termAlgM,
+      termHom',
+      applyTermHomM,
       termHomM,
       termHomM',
       applySigFunM,
@@ -59,9 +59,9 @@ module Data.ALaCarte.Algebra (
 
       -- * Coalgebras      
       Coalg,
-      coalgHom,
+      ana,
       CoalgM,
-      coalgHomM
+      anaM
     ) where
 
 import Data.ALaCarte.Term
@@ -88,27 +88,27 @@ freeAlgHom f g = run
 function. This is the unique homomorphism @Term f -> a@ from the
 initial algebra @Term f@ to the given algebra of type @f a -> a@. -}
 
-algHom :: forall f a . (Functor f) =>
+cata :: forall f a . (Functor f) =>
           Alg f a -> Term f -> a 
--- algHom f = freeAlgHom f undefined
+-- cata f = freeAlgHom f undefined
 -- the above definition is safe since terms do not contain holes
 --
 -- a direct implementation:
-algHom f = run 
+cata f = run 
     where run :: Term f -> a
           run (Term t) = f (fmap run t)
 
 {-| This function applies the given algebra recursively to each
 subcontext of the given context. -}
 
-algHom' :: (Functor f) => Alg f a -> Cxt h f a -> a
-algHom' f = freeAlgHom f id
+cata' :: (Functor f) => Alg f a -> Cxt h f a -> a
+cata' f = freeAlgHom f id
 
 
 {-| This function applies a whole context into another context. -}
 
 applyCxt :: (Functor f) => Context f (Cxt h f a) -> Cxt h f a
-applyCxt = algHom' Term
+applyCxt = cata' Term
 
 
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
@@ -130,9 +130,9 @@ freeAlgHomM algm var = run
 
 {-| This is a monadic version of 'foldTerm'.  -}
 
-algHomM :: forall f m a. (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
--- algHomM = algHom . algM
-algHomM algm = run
+cataM :: forall f m a. (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
+-- cataM = cata . algM
+cataM algm = run
     where run :: Term f -> m a
           run (Term x) = mapM run x >>= algm
 
@@ -140,10 +140,10 @@ algHomM algm = run
 {-| This function applies the given monadic algebra recursively to
 each subcontext of the given context. -}
 
-algHomM' :: forall h f a m . (Traversable f, Monad m)
+cataM' :: forall h f a m . (Traversable f, Monad m)
             => AlgM m f a -> Cxt h f a -> m a
--- algHomM' f = freeAlgHom (\x -> sequence x >>= f) return
-algHomM' f = run
+-- cataM' f = freeAlgHom (\x -> sequence x >>= f) return
+cataM' f = run
     where run :: Cxt h f a -> m a
           run (Hole x) = return x
           run (Term x) = mapM run x >>= f
@@ -163,15 +163,15 @@ type SigFun f g = forall a. f a -> g a
 
 type TermHom f g = SigFun f (Context g)
 
-{-| This function constructs the unique term homomorphism from the
-initial term algebra to the given term algebra. -}
+{-| This function applies the given term homomorphism to a
+term/context. -}
 
-termHom :: (Functor f, Functor g) => TermHom f g -> CxtFun f g
+applyTermHom :: (Functor f, Functor g) => TermHom f g -> CxtFun f g
 -- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b)) -> Cxt h f b -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
-termHom _ (Hole b) = Hole b
-termHom f (Term t) = applyCxt . f . fmap (termHom f) $ t
+applyTermHom _ (Hole b) = Hole b
+applyTermHom f (Term t) = applyCxt . f . fmap (applyTermHom f) $ t
 
 {-| This function composes two term algebras
 -}
@@ -181,21 +181,20 @@ compTermHom :: (Functor g, Functor h) => TermHom g h -> TermHom f g -> TermHom f
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b))
 -- -> (a -> Cxt h f b) -> a -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
-
-compTermHom f g = termHom f . g
+compTermHom f g = applyTermHom f . g
 
 
 {-| This function composes a term algebra with an algebra. -}
 
 compAlg :: (Functor g) => Alg g a -> TermHom f g -> Alg f a
-compAlg alg talg = algHom' alg . talg
+compAlg alg talg = cata' alg . talg
 
 
 {-| This function applies a signature function to the
 given context. -}
 
 applySigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
-applySigFun f = termHom $ termAlg $ f
+applySigFun f = applyTermHom $ termHom $ f
 
 {-| This function composes two signature functions.  -}
 
@@ -203,11 +202,11 @@ compSigFun :: SigFun g h -> SigFun f g -> SigFun f h
 compSigFun f g = f . g
 
 
-{-| Lifts the given signature function to the canonical term algebra.
+{-| Lifts the given signature function to the canonical term homomorphism.
 -}
 
-termAlg :: (Functor g) => SigFun f g -> TermHom f g
-termAlg f = simpCxt . f
+termHom :: (Functor g) => SigFun f g -> TermHom f g
+termHom f = simpCxt . f
 
 {-|
   This type represents monadic context function.
@@ -244,22 +243,21 @@ sigFunM f = return . f
 {-| This function lifts the give monadic signature function to a
 monadic term algebra. -}
 
-termAlg' :: (Functor f, Functor g, Monad m) => SigFunM m f g -> TermHomM m f g
-termAlg' f = liftM  (Term . fmap Hole) . f
+termHom' :: (Functor f, Functor g, Monad m) => SigFunM m f g -> TermHomM m f g
+termHom' f = liftM  (Term . fmap Hole) . f
 
 {-| This function lifts the given signature function to a monadic term
 algebra. -}
 
-termAlgM :: (Functor g, Monad m) => SigFun f g -> TermHomM m f g
-termAlgM f = sigFunM $ termAlg f
+termHomM :: (Functor g, Monad m) => SigFun f g -> TermHomM m f g
+termHomM f = sigFunM $ termHom f
 
 
-{-| This function constructs the unique monadic homomorphism from the
-initial term algebra to the given term algebra. -}
-
-termHomM :: forall f g m . (Traversable f, Functor g, Monad m)
+{-| This function applies the given monadic term homomorphism to the
+given term/context. -}
+applyTermHomM :: forall f g m . (Traversable f, Functor g, Monad m)
          => TermHomM m f g -> CxtFunM m f g
-termHomM f = run
+applyTermHomM f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole b) = return $ Hole b
           run (Term t) = liftM applyCxt . (>>= f) . mapM run $ t
@@ -279,7 +277,7 @@ termHomM' f = run
 given context -}
 
 applySigFunM :: (Traversable f, Functor g, Monad m) => SigFunM m f g -> CxtFunM m f g
-applySigFunM f = termHomM $ termAlg' $ f
+applySigFunM f = applyTermHomM $ termHom' $ f
 
 {-| This function applies the given monadic signature function to the
 given context -}
@@ -295,18 +293,18 @@ applySigFunM' f = run
 
 compTermHomM :: (Traversable g, Functor h, Monad m)
             => TermHomM m g h -> TermHomM m f g -> TermHomM m f h
-compTermHomM f g a = g a >>= termHomM f
+compTermHomM f g a = g a >>= applyTermHomM f
 
 
 {-| This function composes a monadic term algebra with a monadic algebra -}
 
 compAlgM :: (Traversable g, Monad m) => AlgM m g a -> TermHomM m f g -> AlgM m f a
-compAlgM alg talg c = algHomM' alg =<< talg c
+compAlgM alg talg c = cataM' alg =<< talg c
 
 {-| This function composes a monadic term algebra with a monadic algebra -}
 
 compAlgM' :: forall g f m a. (Traversable g, Monad m) => AlgM m g a -> TermHom f g -> AlgM m f a
-compAlgM' alg talg = algHomM' alg . talg
+compAlgM' alg talg = cataM' alg . talg
 
 
 {-| This function composes two monadic signature functions.  -}
@@ -322,9 +320,9 @@ unravelling function. This is the unique homomorphism @a -> Term f@
 from the given coalgebra of type @a -> f a@ to the final coalgebra
 @Term f@. -}
 
-coalgHom :: forall a f . Functor f
+ana :: forall a f . Functor f
          => Coalg f a -> a -> Term f
-coalgHom f = run
+ana f = run
     where run :: a -> Term f
           run t = Term $ fmap run (f t)
 
@@ -335,8 +333,8 @@ monadic unravelling function. This is the unique homomorphism @a ->
 Term f@ from the given coalgebra of type @a -> f a@ to the final
 coalgebra @Term f@. -}
 
-coalgHomM :: forall a m f. (Traversable f, Monad m)
+anaM :: forall a m f. (Traversable f, Monad m)
           => CoalgM m f a -> a -> m (Term f)
-coalgHomM f = run 
+anaM f = run 
     where run :: a -> m (Term f)
           run t = liftM Term $ f t >>= mapM run
