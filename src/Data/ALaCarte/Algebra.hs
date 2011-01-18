@@ -63,6 +63,20 @@ module Data.ALaCarte.Algebra (
       CoalgM,
       anaM,
 
+      -- * Paramorphisms
+
+      RAlg,
+      para,
+      RAlgM,
+      paraM,
+
+      -- * Apomorphisms
+
+      RCoalg,
+      apo,
+      RCoalgM,
+      apoM,
+
       -- * CV-Algebras & Histomorphisms
       CVAlg,
       histo,
@@ -355,6 +369,78 @@ anaM :: forall a m f. (Traversable f, Monad m)
 anaM f = run 
     where run :: a -> m (Term f)
           run t = liftM Term $ f t >>= mapM run
+
+
+--------------------------------
+-- R-Algebras & Paramorphisms --
+--------------------------------
+
+-- | This type represents r-algebras over functor @f@ and with domain
+-- @a@.
+type RAlg f a = f (Term f, a) -> a
+
+-- | This function constructs a paramorphism from the given r-algebra
+para :: (Functor f) => RAlg f a -> Term f -> a
+para f = snd . cata run
+    where run t = (Term $ fmap fst t, f t)
+
+-- | This type represents monadic r-algebras over monad @m@ and
+-- functor @f@ and with domain @a@.
+type RAlgM m f a = f (Term f, a) -> m a
+
+-- | This function constructs a monadic paramorphism from the given
+-- monadic r-algebra
+paraM :: (Traversable f, Monad m) => 
+         RAlgM m f a -> Term f -> m a
+paraM f = liftM snd . cataM run
+    where run t = do
+            a <- f t
+            return (Term $ fmap fst t, a)
+
+--------------------------------
+-- R-Coalgebras & Apomorphisms --
+--------------------------------
+
+-- | This type represents r-coalgebras over functor @f@ and with
+-- domain @a@.
+type RCoalg f a = a -> f (Either (Term f) a)
+
+-- | This function constructs an apomorphism from the given
+-- r-coalgebra.
+apo :: (Functor f) => RCoalg f a -> a -> Term f
+apo f = run 
+    where run = Term . fmap run' . f
+          run' (Left t) = t
+          run' (Right a) = run a
+-- can also be defined in terms of anamorphisms (but less
+-- efficiently):
+-- apo f = ana run . Right
+--     where run (Left (Term t)) = fmap Left t
+--           run (Right a) = f a
+
+-- | This type represents monadic r-coalgebras over monad @m@ and
+-- functor @f@ with domain @a@.
+
+type RCoalgM m f a = a -> m (f (Either (Term f) a))
+
+-- | This function constructs a monadic apomorphism from the given
+-- monadic r-coalgebra.
+apoM :: (Traversable f, Monad m) =>
+        RCoalgM m f a -> a -> m (Term f)
+apoM f = run 
+    where run a = do
+            t <- f a
+            t' <- mapM run' t
+            return $ Term t'
+          run' (Left t) = return t
+          run' (Right a) = run a
+
+-- can also be defined in terms of anamorphisms (but less
+-- efficiently):
+-- apoM f = anaM run . Right
+--     where run (Left (Term t)) = return $ fmap Left t
+--           run (Right a) = f a
+
 
 ----------------------------------
 -- CV-Algebras & Histomorphisms --
