@@ -1,20 +1,15 @@
 {-# LANGUAGE TypeSynonymInstances, TemplateHaskell #-}
-module DataTypes.Standard where
+module DataTypes.Standard 
+    ( module DataTypes.Standard,
+      module DataTypes 
+    ) where
 
+import DataTypes
 import Data.Derive.NFData
 import Data.DeriveTH
 import Control.DeepSeq
 
 -- base values
-
-type Err = Either String
-
-instance Monad Err where
-    return = Right
-    e >>= f = case e of 
-                Left m -> Left m
-                Right x -> f x
-    fail  = Left
 
 data VType = VTInt
            | VTBool

@@ -8,8 +8,12 @@
   ScopedTypeVariables,
   TypeSynonymInstances #-}
 
-module DataTypes.ALaCarte where
+module DataTypes.ALaCarte 
+    ( module DataTypes.ALaCarte,
+      module DataTypes 
+    ) where
 
+import DataTypes
 import Data.ALaCarte.Derive
 import Data.ALaCarte
 import Data.ALaCarte.Arbitrary ()
@@ -30,15 +34,6 @@ type Expr = Term ExprSig
 type SugarSig = Value :+: Op :+: Sugar
 type SugarExpr = Term SugarSig
 type BaseType = Term ValueT
-
-type Err = Either String
-
-instance Monad Err where
-    return = Right
-    e >>= f = case e of 
-                Left m -> Left m
-                Right x -> f x
-    fail  = Left
 
 data ValueT e = TInt
               | TBool
