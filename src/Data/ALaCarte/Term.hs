@@ -25,8 +25,7 @@ module Data.ALaCarte.Term
      unTerm,
      toCxt,
      simpCxt,
-     constTerm,
-     size
+     constTerm
      ) where
 
 import Control.Applicative hiding (Const)
@@ -124,10 +123,3 @@ instance (Traversable f) => Traversable (Cxt h f) where
 
     sequence (Hole a) = liftM Hole $ a
     sequence (Term t) = liftM Term $ mapM sequence t
-
-
--- | This function computes the generic size of the given term,
--- i.e. the its number of subterm occurrences.
-size :: Foldable f => Cxt h f a -> Int
-size (Hole {}) = 0
-size (Term t) = foldl (\s x -> s + size x) 1 t

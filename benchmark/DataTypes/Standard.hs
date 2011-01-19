@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeSynonymInstances, TemplateHaskell #-}
+{-# LANGUAGE TypeSynonymInstances, TemplateHaskell, DeriveDataTypeable #-}
 module DataTypes.Standard 
     ( module DataTypes.Standard,
       module DataTypes 
@@ -7,6 +7,7 @@ module DataTypes.Standard
 import DataTypes
 import Data.Derive.NFData
 import Data.DeriveTH
+import Data.Data
 import Control.DeepSeq
 
 -- base values
@@ -14,15 +15,15 @@ import Control.DeepSeq
 data VType = VTInt
            | VTBool
            | VTPair VType VType
-          deriving (Eq)
+          deriving (Eq,Typeable,Data)
 
 data SExpr = SInt Int
            | SBool Bool
            | SPair SExpr SExpr
-             deriving (Eq)
+             deriving (Eq,Typeable,Data)
 
 data SProj = SProjLeft | SProjRight
-          deriving (Eq)
+          deriving (Eq,Typeable,Data)
 
 data OExpr = OInt Int
            | OBool Bool
@@ -35,7 +36,7 @@ data OExpr = OInt Int
            | OAnd OExpr OExpr
            | ONot OExpr
            | OProj SProj OExpr
-             deriving (Eq)
+             deriving (Eq,Typeable,Data)
 
 data PExpr = PInt Int
            | PBool Bool
@@ -53,7 +54,7 @@ data PExpr = PInt Int
            | PGt PExpr PExpr
            | POr PExpr PExpr
            | PImpl PExpr PExpr
-              deriving (Eq)
+              deriving (Eq,Typeable,Data)
 
 
 

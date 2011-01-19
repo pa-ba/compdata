@@ -33,8 +33,8 @@ contVar :: Int -> SugarExpr -> Bool
 contVar = containsVar
 
 
-freeVars :: SugarExpr -> Set Int
-freeVars = variables
+freeVars :: SugarExpr -> [Int]
+freeVars = variableList
 
 contVar' :: Int -> SugarExpr -> Bool
 contVar' i = cata alg
@@ -43,9 +43,16 @@ contVar' i = cata alg
                     Just (VInt j) -> i == j
                     _ -> F.foldl (||) False x
 
-freeVars' :: SugarExpr -> Set Int
+contVarGen :: Int -> SugarExpr -> Bool
+contVarGen i e = elem i [ j | VInt j <- subterms' e]
+
+freeVars' :: SugarExpr -> [Int]
 freeVars' = cata alg
-    where alg :: SugarSig (Set Int) -> (Set Int)
+    where alg :: SugarSig [Int] -> [Int]
           alg x = case proj x of
-                    Just (VInt j) -> Set.singleton j
-                    _ -> F.foldl Set.union Set.empty x
+                    Just (VInt j) -> [ j ]
+                    _ -> F.foldl (++) [] x
+
+
+freeVarsGen :: SugarExpr -> [Int]
+freeVarsGen e =  [ j | VInt j <- subterms' e]

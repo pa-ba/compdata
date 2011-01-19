@@ -20,6 +20,7 @@ module Data.ALaCarte.Variables (
   varsToHoles,
   containsVar,
   variables,
+  variableList,
   variables',
   substVars,
   applySubst,
@@ -84,7 +85,21 @@ variablesAlg :: (Ord v, HasVars f v, Foldable f)
 variablesAlg t = foldl Set.union local t
     where local = case isVar t of
                     Just v -> Set.singleton v
-                    Nothing -> Set.empty 
+                    Nothing -> Set.empty
+
+variableListAlg :: (Ord v, HasVars f v, Foldable f)
+            => Alg f [v]
+variableListAlg t = foldl (++) local t
+    where local = case isVar t of
+                    Just v -> [v]
+                    Nothing -> [] 
+
+{-| This function computes the list of variables occurring in a
+context. -}
+
+variableList :: (Ord v, HasVars f v, Foldable f, Functor f)
+            => Cxt h f a -> [v]
+variableList = freeAlgHom variableListAlg (const [])
 
 {-| This function computes the set of variables occurring in a
 context. -}

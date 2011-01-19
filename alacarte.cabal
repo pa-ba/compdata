@@ -21,7 +21,7 @@ flag benchmark
 library
   Exposed-Modules:      Data.ALaCarte, Data.ALaCarte.Product, Data.ALaCarte.Sum,
                         Data.ALaCarte.Term, Data.ALaCarte.Algebra, Data.ALaCarte.Equality,
-                        Data.ALaCarte.Ordering, Data.ALaCarte.DeepSeq,
+                        Data.ALaCarte.Ordering, Data.ALaCarte.DeepSeq, Data.ALaCarte.Generic
                         Data.ALaCarte.TermRewriting, Data.ALaCarte.Automata,
                         Data.ALaCarte.Arbitrary, Data.ALaCarte.Show, Data.ALaCarte.Variables,
                         Data.ALaCarte.Decompose, Data.ALaCarte.Unification,
@@ -47,7 +47,7 @@ Executable test
 
 Executable benchmark
   Main-is:		Benchmark.hs
-  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random
+  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate
   hs-source-dirs:	src benchmark
   ghc-options:          -O2
   if !flag(benchmark)

@@ -18,6 +18,7 @@ module Data.ALaCarte(
   , module Data.ALaCarte.Product
   , module Data.ALaCarte.Equality
   , module Data.ALaCarte.Ordering
+  , module Data.ALaCarte.Generic
     ) where
 
 import Data.ALaCarte.Term
@@ -26,3 +27,4 @@ import Data.ALaCarte.Sum
 import Data.ALaCarte.Product
 import Data.ALaCarte.Equality
 import Data.ALaCarte.Ordering
+import Data.ALaCarte.Generic

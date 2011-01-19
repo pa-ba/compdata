@@ -2,6 +2,7 @@ module Functions.Standard.FreeVars where
 
 import DataTypes.Standard
 import Data.Set (Set)
+import Data.Generics.Uniplate.Data
 import qualified Data.Set as Set
 
 contVar :: Int -> PExpr -> Bool
@@ -25,11 +26,11 @@ contVar v e =
       PImpl x y -> re x || re y
     where re = contVar v
 
-freeVars :: PExpr -> Set Int
+freeVars :: PExpr -> [Int]
 freeVars e = 
     case e of
-      PInt i -> Set.singleton i
-      PBool{} -> Set.empty
+      PInt i -> [i]
+      PBool{} -> []
       PPair x y -> re2 x y
       PPlus x y -> re2 x y
       PMult x y -> re2 x y
@@ -45,5 +46,11 @@ freeVars e =
       POr x y -> re2 x y
       PImpl x y -> re2 x y
     where re = freeVars
-          re2 x y = re x `Set.union` re y
-          re3 x y z = re x `Set.union` re y `Set.union` re z
+          re2 x y = re x ++ re y
+          re3 x y z = re x ++ re y ++ re z
+
+contVarGen :: Int -> PExpr -> Bool
+contVarGen v e = elem v [ j | (PInt j) <- universe e]
+
+freeVarsGen :: PExpr -> [Int]
+freeVarsGen e = [ j | (PInt j) <- universe e]
