@@ -1,9 +1,26 @@
 module Functions.Standard.FreeVars where
 
 import DataTypes.Standard
-import Data.Set (Set)
-import Data.Generics.Uniplate.Data
-import qualified Data.Set as Set
+import Data.Generics.PlateDirect
+
+instance Uniplate PExpr where
+    uniplate (PInt x) = plate PInt |- x
+    uniplate (PBool x) = plate PBool |- x
+    uniplate (PPair x y) = plate PPair |* x |* y
+    uniplate (PMult x y) = plate PMult |* x |* y
+    uniplate (PPlus x y) = plate PPlus |* x |* y
+    uniplate (PIf x y z) = plate PIf |* x |* y |* z
+    uniplate (PEq x y) = plate PEq |* x |* y
+    uniplate (PLt x y) = plate PLt |* x |* y
+    uniplate (PAnd x y) = plate PAnd |* x |* y
+    uniplate (PNot x) = plate PNot |* x
+    uniplate (PProj x y) = plate PProj |- x |* y
+    uniplate (PNeg x) = plate PNeg |* x
+    uniplate (PMinus x y) = plate PMinus |* x |* y
+    uniplate (PGt x y) = plate PGt |* x |* y
+    uniplate (POr x y) = plate POr |* x |* y
+    uniplate (PImpl x y) = plate PImpl |* x |* y
+
 
 contVar :: Int -> PExpr -> Bool
 contVar v e = 

@@ -77,6 +77,7 @@ main = do b1 <- genExprs 5
                  bench "ALaCarte.freeVars'" (nf A.freeVars' aExpr),
                  bench "ALaCarte.freeVarsGen" (nf A.freeVarsGen aExpr),
                  bench "Standard.freeVars" (nf S.freeVars sExpr),
+                 bench "Standard.freeVarsGen" (nf S.freeVarsGen sExpr),
                  bench "Standard.freeVarsGen" (nf S.freeVarsGen sExpr)]
 
           

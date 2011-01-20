@@ -14,8 +14,6 @@ import DataTypes.ALaCarte
 import Data.ALaCarte.Variables
 import Data.ALaCarte.Sum
 import Data.ALaCarte
-import Data.Set (Set)
-import qualified Data.Set as Set
 import qualified Data.Foldable as F
 
 -- we interpret integers as variables here
