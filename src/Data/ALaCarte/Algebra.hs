@@ -156,7 +156,7 @@ freeAlgHomM algm var = run
           run (Hole x) = var x
           run (Term x) = mapM run x >>= algm
 
-{-| This is a monadic version of 'foldTerm'.  -}
+{-| This is a monadic version of 'cata'.  -}
 
 cataM :: forall f m a. (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
 -- cataM = cata . algM
@@ -331,7 +331,7 @@ compAlgM alg talg c = cataM' alg =<< talg c
 
 {-| This function composes a monadic term algebra with a monadic algebra -}
 
-compAlgM' :: forall g f m a. (Traversable g, Monad m) => AlgM m g a -> TermHom f g -> AlgM m f a
+compAlgM' :: (Traversable g, Monad m) => AlgM m g a -> TermHom f g -> AlgM m f a
 compAlgM' alg talg = cataM' alg . talg
 
 
@@ -470,9 +470,9 @@ histoM alg  = liftM (snd . projectTip) . cataM run
     where run v = do r <- alg v
                      return $ Term $ injectP r v
 
-------------------------------------
--- CV-Coalgebras & Histomorphisms --
-------------------------------------
+-----------------------------------
+-- CV-Coalgebras & Futumorphisms --
+-----------------------------------
 
 
 -- | This type represents cv-coalgebras over functor @f@ and with domain

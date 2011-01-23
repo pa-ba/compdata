@@ -10,7 +10,7 @@
 -- Portability :  unknown
 --
 -- This module defines the central notion of /terms/ and its
--- generalisation contexts.
+-- generalisation to contexts.
 --
 --------------------------------------------------------------------------------
 
