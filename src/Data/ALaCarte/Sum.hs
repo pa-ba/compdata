@@ -56,11 +56,6 @@ import Data.Traversable
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-
-
-
-
-
 -- |Project a sub term from a compound term.
 project :: (g :<: f) => Cxt h f a -> Maybe (g (Cxt h f a))
 project (Hole _) = Nothing

@@ -451,6 +451,12 @@ apoM f = run
 
 type CVAlg f a f' = f (Term f') -> a
 
+
+-- | This function applies 'projectP' at the tip of the term.
+
+projectTip  :: (DistProd f a f') => Term f' -> (f (Term f'), a)
+projectTip (Term v) = projectP v
+
 -- | This function constructs the unique histomorphism from the given
 -- from the term algebra to the given cv-algebra.
 histo :: (Functor f,DistProd f a f') => CVAlg f a f' -> Term f -> a

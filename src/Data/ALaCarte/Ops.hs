@@ -17,8 +17,6 @@
 
 module Data.ALaCarte.Ops where
 
-import Data.ALaCarte.Term
-
 import Data.Foldable
 import Data.Traversable
 
@@ -86,32 +84,44 @@ instance (f :<: g) => (:<:) f (h :+: g) where
     proj (Inr x) = proj x
     proj (Inl _) = Nothing
 
-
 -- Products
 
-infixr 7 :*:
+infixr 8 :*:
+
+data (f :*: g) a = f a :*: g a
+
+
+ffst :: (f :*: g) a -> f a
+ffst (x :*: _) = x
+
+fsnd :: (f :*: g) a -> g a
+fsnd (_ :*: x) = x
+
+-- Constant Products
+
+infixr 7 :&:
 
 {-| This data type adds a constant product to a signature.  -}
 
-data (f :*: a) e = f e :*: a
+data (f :&: a) e = f e :&: a
 
 
-instance (Functor f) => Functor (f :*: a) where
-    fmap f (v :*: c) = fmap f v :*: c
+instance (Functor f) => Functor (f :&: a) where
+    fmap f (v :&: c) = fmap f v :&: c
 
-instance (Foldable f) => Foldable (f :*: a) where
-    fold (v :*: _) = fold v
-    foldMap f (v :*: _) = foldMap f v
-    foldr f e (v :*: _) = foldr f e v
-    foldl f e (v :*: _) = foldl f e v
-    foldr1 f (v :*: _) = foldr1 f v
-    foldl1 f (v :*: _) = foldl1 f v
+instance (Foldable f) => Foldable (f :&: a) where
+    fold (v :&: _) = fold v
+    foldMap f (v :&: _) = foldMap f v
+    foldr f e (v :&: _) = foldr f e v
+    foldl f e (v :&: _) = foldl f e v
+    foldr1 f (v :&: _) = foldr1 f v
+    foldl1 f (v :&: _) = foldl1 f v
 
-instance (Traversable f) => Traversable (f :*: a) where
-    traverse f (v :*: c) = liftA (:*: c) (traverse f v)
-    sequenceA (v :*: c) = liftA (:*: c)(sequenceA v)
-    mapM f (v :*: c) = liftM (:*: c) (mapM f v)
-    sequence (v :*: c) = liftM (:*: c) (sequence v)
+instance (Traversable f) => Traversable (f :&: a) where
+    traverse f (v :&: c) = liftA (:&: c) (traverse f v)
+    sequenceA (v :&: c) = liftA (:&: c)(sequenceA v)
+    mapM f (v :&: c) = liftM (:&: c) (mapM f v)
+    sequence (v :&: c) = liftM (:&: c) (sequence v)
 
 {-| This class defines how to distribute a product over a sum of
 signatures. -}
@@ -127,33 +137,28 @@ class RemoveP s s' | s -> s'  where
     removeP :: s a -> s' a
 
 
-instance (RemoveP s s') => RemoveP (f :*: p :+: s) (f :+: s') where
-    removeP (Inl (v :*: _)) = Inl v
+instance (RemoveP s s') => RemoveP (f :&: p :+: s) (f :+: s') where
+    removeP (Inl (v :&: _)) = Inl v
     removeP (Inr v) = Inr $ removeP v
 
 
-instance RemoveP (f :*: p) f where
-    removeP (v :*: _) = v
+instance RemoveP (f :&: p) f where
+    removeP (v :&: _) = v
 
 
-instance DistProd f p (f :*: p) where
+instance DistProd f p (f :&: p) where
 
-    injectP c v = v :*: c
+    injectP c v = v :&: c
 
-    projectP (v :*: p) = (v,p)
-
-
-instance (DistProd s p s') => DistProd (f :+: s) p ((f :*: p) :+: s') where
+    projectP (v :&: p) = (v,p)
 
 
-    injectP c (Inl v) = Inl (v :*: c)
+instance (DistProd s p s') => DistProd (f :+: s) p ((f :&: p) :+: s') where
+
+
+    injectP c (Inl v) = Inl (v :&: c)
     injectP c (Inr v) = Inr $ injectP c v
 
-    projectP (Inl (v :*: p)) = (Inl v,p)
+    projectP (Inl (v :&: p)) = (Inl v,p)
     projectP (Inr v) = let (v',p) = projectP v
                        in  (Inr v',p)
-
--- | This function applies 'projectP' at the tip of the term.
-
-projectTip  :: (DistProd f a f') => Term f' -> (f (Term f'), a)
-projectTip (Term v) = projectP v

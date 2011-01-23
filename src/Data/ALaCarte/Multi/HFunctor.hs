@@ -21,36 +21,15 @@ module Data.ALaCarte.Multi.HFunctor
      HTraversable (..),
      (:->),
      (:=>),
-     (:&:)(..),
-     (:+:)(..),
-     hfst,
-     hsnd,
-     NatM
+     NatM,
+     NatC
      ) where
 
 import Data.Typeable
 
+
 infixr 0 :-> -- same precedence as function space operator ->
 infixr 0 :=> -- same precedence as function space operator ->
-
-infixr 6 :+:
-
-
--- |Data type defining coproducts.
-data (f :+: g) e = Inl (f e)
-                 | Inr (g e)
-
-infixr 1 :&:
-
-data (f :&: g) a = f a :&: g a
-
-
-hfst :: (f :&: g) a -> f a
-hfst (x :&: _) = x
-
-hsnd :: (f :&: g) a -> g a
-hsnd (_ :&: x) = x
-
 
 -- | This type represents natural transformations.
 type f :-> g = forall i . Typeable i => f i -> g i
@@ -61,6 +40,8 @@ type f :=> a = forall i . Typeable i => f i -> a
 
 
 type NatM m f g = forall i. Typeable i => f i -> m (g i)
+
+type NatC c = forall i. Typeable i => c i
 
 -- | This class represents higher-order functors (Johann, Ghani, POPL
 -- '08) which are endofunctors on the category of endofunctors.

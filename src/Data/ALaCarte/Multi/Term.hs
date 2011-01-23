@@ -25,8 +25,7 @@ module Data.ALaCarte.Multi.Term
      unTerm,
      toCxt,
      simpCxt,
-     (:.:)(..),
-     (:->)
+     (:.:)(..)
      ) where
 
 import Data.Typeable

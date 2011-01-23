@@ -32,11 +32,11 @@ instance (ArbitraryF f) => Arbitrary (Term f) where
     
     
 
-instance (ArbitraryF f, Arbitrary p) => ArbitraryF (f :*: p) where
+instance (ArbitraryF f, Arbitrary p) => ArbitraryF (f :&: p) where
     arbitraryF' = map addP arbitraryF'
-        where addP (i,gen) =  (i,(:*:) <$> gen <*> arbitrary)
-    arbitraryF = (:*:) <$> arbitraryF <*> arbitrary
-    shrinkF (v :*: p) = tail [v' :*: p'| v' <- v: shrinkF v, p' <- p : shrink p ]
+        where addP (i,gen) =  (i,(:&:) <$> gen <*> arbitrary)
+    arbitraryF = (:&:) <$> arbitraryF <*> arbitrary
+    shrinkF (v :&: p) = tail [v' :&: p'| v' <- v: shrinkF v, p' <- p : shrink p ]
 
 {-|
   This lifts instances of 'ArbitraryF' to instances of 'ArbitraryF' for 

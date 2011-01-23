@@ -18,6 +18,7 @@ module Data.ALaCarte.Multi.Algebra where
     
 import Data.ALaCarte.Multi.Term
 import Data.ALaCarte.Multi.HFunctor
+import Data.ALaCarte.Ops
 
 import Control.Monad
 
@@ -245,25 +246,25 @@ anaM f = run
 -- | This type represents r-algebras over functor @f@ and with domain
 -- @a@.
 
-type RAlg f a = f (Term f :&: a) :-> a
+type RAlg f a = f (Term f :*: a) :-> a
 
 -- | This function constructs a paramorphism from the given r-algebra
 para :: (HFunctor f) => RAlg f a -> Term f :-> a
-para f = hsnd . cata run
-    where run t = Term (hfmap hfst t) :&: f t
+para f = fsnd . cata run
+    where run t = Term (hfmap ffst t) :*: f t
 
 -- | This type represents monadic r-algebras over monad @m@ and
 -- functor @f@ and with domain @a@.
-type RAlgM m f a = NatM m (f (Term f :&: a)) a
+type RAlgM m f a = NatM m (f (Term f :*: a)) a
 
 -- | This function constructs a monadic paramorphism from the given
 -- monadic r-algebra
 paraM :: (HTraversable f, Monad m) => 
          RAlgM m f a -> NatM m(Term f)  a
-paraM f = liftM hsnd . cataM run
+paraM f = liftM fsnd . cataM run
     where run t = do
             a <- f t
-            return (Term (hfmap hfst t) :&: a)
+            return (Term (hfmap ffst t) :*: a)
 
 --------------------------------
 -- R-Coalgebras & Apomorphisms --
@@ -300,6 +301,14 @@ apoM f = run
           run' (Inl t) = return t
           run' (Inr a) = run a
 
+----------------------------------
+-- CV-Algebras & Histomorphisms --
+----------------------------------
+
+-- for this to work we need a more general version of :&&: which is of
+-- kind ((* -> *) -> * -> *) -> (* -> *) -> (* -> *) -> * -> *,
+-- i.e. one which takes a functor as second argument instead of a
+-- type.
 
 -----------------------------------
 -- CV-Coalgebras & Futumorphisms --
