@@ -24,11 +24,6 @@ import Control.Monad
 
 type Alg f e = f e :-> e
 
--- | The identity Functor.
-data I a = I {unI :: a}
-
--- | The parametrised constant functor.
-data K a b = K {unK :: a}
 
 
 freeAlgHom :: forall f h a b . (HFunctor f) =>
@@ -249,9 +244,10 @@ anaM f = run
 type RAlg f a = f (Term f :*: a) :-> a
 
 -- | This function constructs a paramorphism from the given r-algebra
-para :: (HFunctor f) => RAlg f a -> Term f :-> a
+para :: forall f a. (HFunctor f) => RAlg f a -> Term f :-> a
 para f = fsnd . cata run
-    where run t = Term (hfmap ffst t) :*: f t
+    where run :: Alg f  (Term f :*: a)
+          run t = Term (hfmap ffst t) :*: f t
 
 -- | This type represents monadic r-algebras over monad @m@ and
 -- functor @f@ and with domain @a@.
@@ -259,10 +255,11 @@ type RAlgM m f a = NatM m (f (Term f :*: a)) a
 
 -- | This function constructs a monadic paramorphism from the given
 -- monadic r-algebra
-paraM :: (HTraversable f, Monad m) => 
+paraM :: forall f m a. (HTraversable f, Monad m) => 
          RAlgM m f a -> NatM m(Term f)  a
 paraM f = liftM fsnd . cataM run
-    where run t = do
+    where run :: AlgM m f (Term f :*: a)
+          run t = do
             a <- f t
             return (Term (hfmap ffst t) :*: a)
 
@@ -280,6 +277,7 @@ apo :: forall f a . (HFunctor f) => RCoalg f a -> a :-> Term f
 apo f = run 
     where run :: a :-> Term f
           run = Term . hfmap run' . f
+          run' :: (Term f) :+: a :-> Term f
           run' (Inl t) = t
           run' (Inr a) = run a
 
@@ -298,6 +296,7 @@ apoM f = run
             t <- f a
             t' <- hmapM run' t
             return $ Term t'
+          run' :: NatM m ((Term f) :+: a)  (Term f)
           run' (Inl t) = return t
           run' (Inr a) = run a
 

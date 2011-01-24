@@ -28,7 +28,6 @@ module Data.ALaCarte.Multi.Term
      (:.:)(..)
      ) where
 
-import Data.Typeable
 import Data.ALaCarte.Multi.HFunctor
 
 -- | This data type represents contexts over a signature. Contexts are
@@ -70,8 +69,8 @@ instance (HFunctor f) => HFunctor (Cxt h f) where
     hfmap f (Term t) = Term (hfmap (hfmap f) t)
 
 
-simpCxt :: (HFunctor f, Typeable i) => f a i -> Context f a i
+simpCxt :: (HFunctor f) => f a i -> Context f a i
 simpCxt = Term . hfmap Hole
 
-toCxt :: (HFunctor f, Typeable i) => Term f i -> Context f a i
+toCxt :: (HFunctor f) => Term f i -> Context f a i
 toCxt (Term t) = Term $ hfmap toCxt t

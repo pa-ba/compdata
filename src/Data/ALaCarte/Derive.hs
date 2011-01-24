@@ -19,6 +19,9 @@ module Data.ALaCarte.Derive (
   module Data.ALaCarte.Derive.DeepSeq,
   module Data.ALaCarte.Derive.Foldable,
   module Data.ALaCarte.Derive.Traversable,
+  module Data.ALaCarte.Derive.HFunctor,
+  module Data.ALaCarte.Derive.HFoldable,
+  module Data.ALaCarte.Derive.HTraversable,
   module Control.DeepSeq,
   instanceFunctor,
   instanceNFData,
@@ -26,6 +29,9 @@ module Data.ALaCarte.Derive (
 
 
 import Control.DeepSeq
+import Data.ALaCarte.Derive.HFunctor
+import Data.ALaCarte.Derive.HFoldable
+import Data.ALaCarte.Derive.HTraversable
 import Data.ALaCarte.Derive.Foldable
 import Data.ALaCarte.Derive.Traversable
 import Data.ALaCarte.Derive.DeepSeq

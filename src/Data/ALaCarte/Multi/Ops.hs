@@ -19,6 +19,7 @@ module Data.ALaCarte.Multi.Ops where
 import Data.ALaCarte.Multi.HFunctor
 import Data.ALaCarte.Ops
 import Control.Monad
+import Control.Applicative
 
 
 infixr 5 :++:
@@ -33,12 +34,23 @@ instance (HFunctor f, HFunctor g) => HFunctor (f :++: g) where
     hfmap f (HInr v) = HInr $ hfmap f v
 
 instance (HFoldable f, HFoldable g) => HFoldable (f :++: g) where
+    hfold (HInl e) = hfold e
+    hfold (HInr e) = hfold e
+    hfoldMap f (HInl e) = hfoldMap f e
+    hfoldMap f (HInr e) = hfoldMap f e
     hfoldr f b (HInl e) = hfoldr f b e
     hfoldr f b (HInr e) = hfoldr f b e
     hfoldl f b (HInl e) = hfoldl f b e
     hfoldl f b (HInr e) = hfoldl f b e
 
+    hfoldr1 f (HInl e) = hfoldr1 f e
+    hfoldr1 f (HInr e) = hfoldr1 f e
+    hfoldl1 f (HInl e) = hfoldl1 f e
+    hfoldl1 f (HInr e) = hfoldl1 f e
+
 instance (HTraversable f, HTraversable g) => HTraversable (f :++: g) where
+    htraverse f (HInl e) = HInl <$> htraverse f e
+    htraverse f (HInr e) = HInr <$> htraverse f e
     hmapM f (HInl e) = HInl `liftM` hmapM f e
     hmapM f (HInr e) = HInr `liftM` hmapM f e
 
@@ -92,11 +104,16 @@ instance (HFunctor f) => HFunctor (f :&&: a) where
     hfmap f (v :&&: c) = hfmap f v :&&: c
 
 instance (HFoldable f) => HFoldable (f :&&: a) where
+    hfold (v :&&: _) = hfold v
+    hfoldMap f (v :&&: _) = hfoldMap f v
     hfoldr f e (v :&&: _) = hfoldr f e v
     hfoldl f e (v :&&: _) = hfoldl f e v
+    hfoldr1 f (v :&&: _) = hfoldr1 f v
+    hfoldl1 f (v :&&: _) = hfoldl1 f v
 
 
 instance (HTraversable f) => HTraversable (f :&&: a) where
+    htraverse f (v :&&: c) =  (:&&: c) <$> (htraverse f v)
     hmapM f (v :&&: c) = liftM (:&&: c) (hmapM f v)
 
 -- | This class defines how to distribute a product over a sum of

@@ -34,7 +34,8 @@ library
                         Data.ALaCarte.Derive.Ordering, Data.ALaCarte.Derive.Arbitrary,
                         Data.ALaCarte.Derive.Show, Data.ALaCarte.Derive.DeepSeq,
                         Data.ALaCarte.Derive.SmartConstructors, Data.ALaCarte.Derive.Foldable,
-                        Data.ALaCarte.Derive.Traversable
+                        Data.ALaCarte.Derive.Traversable, Data.ALaCarte.Derive.HFunctor,
+                        Data.ALaCarte.Derive.HFoldable, Data.ALaCarte.Derive.HTraversable
 
   Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq
   hs-source-dirs:	src

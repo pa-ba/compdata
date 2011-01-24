@@ -1,68 +1,54 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs, TemplateHaskell #-}
 
 module Data.ALaCarte.Multi.Example where
 
 import Data.ALaCarte.Multi.Term
 import Data.ALaCarte.Multi.HFunctor
 import Data.ALaCarte.Multi.Algebra
+import Data.ALaCarte.Derive
 import Data.Typeable
-
-import Control.Monad
 
 isInt :: Typeable a => a -> Bool
 isInt x = case cast x :: Maybe Int of
             Nothing -> False
             _ -> True
 
-data SigInt = ILit Int
-            | IAdd SigInt SigInt
-            | IIf SigBool SigInt SigInt
-
-data SigBool = BGt SigInt SigInt
+data Exp t where
+    ELit :: t -> Exp t
+    EAdd :: Exp Int -> Exp Int -> Exp Int
+    EIf :: Exp Bool -> Exp t -> Exp t -> Exp t
+    EGt :: Exp Int -> Exp Int -> Exp Bool
+    EAnd :: Exp Bool -> Exp Bool -> Exp Bool
+    ENeg :: Exp Bool -> Exp Bool
              
 
-data Sig e t where
-    Lit :: t -> Sig e t
-    Add :: e Int -> e Int -> Sig e Int
-    If :: e Bool -> e t -> e t -> Sig e t
+data Base e t where
+    Lit :: t -> Base e t
+    Add :: e Int -> e Int -> Base e Int
+    If :: e Bool -> e t -> e t -> Base e t
+    Gt :: e Int -> e Int -> Base e Bool
+    And :: e Bool -> e Bool -> Base e Bool
+    Neg :: e Bool -> Base e Bool
+    List :: [e t] -> Base e [t]
+    LList :: [[e t]] -> Base e [[t]]
 
-instance HFunctor Sig where
-    hfmap _ (Lit x) = Lit x
-    hfmap f (Add x y) = Add (f x) (f y)
-    hfmap f (If x y z) = If (f x) (f y) (f z)
-
-instance HFoldable Sig where
-    hfoldr _ e (Lit _) = e
-    hfoldr f e (Add x y) = x `f` (y `f` e)
-    hfoldr f e (If x y z) = x `f` (y `f` (z `f` e))
-
-    hfoldl _ e (Lit _) = e
-    hfoldl f e (Add x y) = (e `f` x) `f` y
-    hfoldl f e (If x y z) = ((e `f` x) `f` y) `f` z
-
-instance HTraversable Sig where
-    hmapM _ (Lit x) = return $ Lit x
-    hmapM f (Add x y) = liftM2 Add (f x) (f y)
-    hmapM f (If x y z) = liftM3 If (f x) (f y) (f z)
+$(derive [instanceHFunctor, instanceHFoldable, instanceHTraversable] [''Base])
 
 
-evalAlg :: Alg Sig I
+evalAlg :: Alg Base I
 evalAlg (Lit x) = I x
 evalAlg (Add (I x) (I y)) = I (x + y)
 evalAlg (If (I b) (I x) (I y)) = I $ if b then x else y
 
-countAlg :: Alg Sig (K Int)
-countAlg (Lit x)
-    | isInt x = K 1
-    | otherwise = K 0
-
+countAlg :: Alg Base (K Int)
+countAlg (Lit _) = K 1
 countAlg (Add (K x) (K y)) = K (x + y)
 countAlg (If (K x) (K y) (K z)) = K (x + y + z)
 
 
 
-eval :: Typeable t => Term Sig t -> t
+eval :: Typeable t => Term Base t -> t
 eval = unI . cata evalAlg
 
-count :: Term Sig Int -> Int
+count :: Term Base Int -> Int
 count = unK . cata countAlg
