@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, TypeOperators, FlexibleInstances, ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes, TypeOperators, FlexibleInstances, ScopedTypeVariables, GADTs, MultiParamTypeClasses, UndecidableInstances #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -23,7 +23,9 @@ module Data.ALaCarte.Multi.HFunctor
      (:=>),
      NatM,
      I (..),
-     K (..)
+     K (..),
+     kfoldr,
+     kfoldl
      ) where
 
 import Data.Monoid
@@ -35,6 +37,20 @@ data I a = I {unI :: a}
 
 -- | The parametrised constant functor.
 data K a b = K {unK :: a}
+
+
+instance Eq a => Eq (K a i) where
+    K x == K y = x == y
+    K x /= K y = x /= y
+
+instance Ord a => Ord (K a i) where
+    K x < K y = x < y
+    K x > K y = x > y
+    K x <= K y = x <= y
+    K x >= K y = x >= y
+    min (K x) (K y) = K $ min x y
+    max (K x) (K y) = K $ max x y
+    compare (K x) (K y) = compare x y
 
 
 infixr 0 :-> -- same precedence as function space operator ->
@@ -84,10 +100,11 @@ class HFunctor h => HFoldable h where
     hfoldl f z t = appEndo (getDual (hfoldMap (Dual . Endo . flip f) t)) z
 
 
-    hfoldr1 :: (a -> a -> a) -> h (K a) :=> a
+    hfoldr1 :: forall a. (a -> a -> a) -> h (K a) :=> a
     hfoldr1 f xs = fromMaybe (error "hfoldr1: empty structure")
                    (hfoldr mf Nothing xs)
-          where mf (K x) Nothing = Just x
+          where mf :: K a :=> Maybe a -> Maybe a
+                mf (K x) Nothing = Just x
                 mf (K x) (Just y) = Just (f x y)
 
     hfoldl1 :: forall a . (a -> a -> a) -> h (K a) :=> a
@@ -98,6 +115,13 @@ class HFunctor h => HFoldable h where
                 mf (Just x) (K y) = Just (f x y)
 
     
+kfoldr :: (HFoldable f) => (a -> b -> b) -> b -> f (K a) :=> b
+kfoldr f = hfoldr (\ (K x) y -> f x y)
+
+
+kfoldl :: (HFoldable f) => (b -> a -> b) -> b -> f (K a) :=> b
+kfoldl f = hfoldl (\ x (K y) -> f x y)
+
 
 class HFoldable t => HTraversable t where
 

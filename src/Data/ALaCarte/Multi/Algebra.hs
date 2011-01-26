@@ -22,9 +22,8 @@ import Data.ALaCarte.Ops
 
 import Control.Monad
 
+
 type Alg f e = f e :-> e
-
-
 
 freeAlgHom :: forall f h a b . (HFunctor f) =>
               Alg f b -> (a :-> b) -> Cxt h f a :-> b
@@ -46,6 +45,16 @@ cata' alg = freeAlgHom alg id
 
 applyCxt :: (HFunctor f) => Context f (Cxt h f a) :-> Cxt h f a
 applyCxt = cata' Term
+
+-- | This function lifts a many-sorted algebra to a monadic domain.
+liftMAlg :: forall m f. (Monad m, HTraversable f) =>
+            Alg f I -> Alg f m
+liftMAlg alg =  turn . liftM alg . hmapM run
+    where run :: m i -> m (I i)
+          run m = do x <- m
+                     return $ I x
+          turn x = do I y <- x
+                      return y
 
 type AlgM m f e = NatM m (f e) e
 

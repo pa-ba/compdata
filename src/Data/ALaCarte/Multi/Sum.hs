@@ -1,7 +1,19 @@
 {-# LANGUAGE TypeOperators, KindSignatures, GADTs,
 ScopedTypeVariables, IncoherentInstances, RankNTypes #-}
 
-module Data.ALaCarte.Multi.Sum where
+module Data.ALaCarte.Multi.Sum (
+  (:<<:)(..),
+  (:++:)(..),
+  project,
+  deepProject,
+  projectConst,
+  inject,
+  injectCxt,
+  injectConst,
+  liftCxt,
+  deepInject,
+  substHoles,
+   ) where
 
 import Data.ALaCarte.Multi.HFunctor
 import Data.ALaCarte.Multi.Ops
@@ -45,3 +57,9 @@ liftCxt g = simpCxt $ hinj g
 substHoles :: (HFunctor f, HFunctor g, f :<<: g)
            => (v :-> Cxt h g a) -> Cxt h' f v :-> Cxt h g a
 substHoles f c = injectCxt $ hfmap f c
+
+injectConst :: (HFunctor g, g :<<: f) => Const g :-> Cxt h f a
+injectConst = inject . hfmap (const undefined)
+
+projectConst :: (HFunctor g, g :<<: f) => NatM Maybe (Cxt h f a) (Const g)
+projectConst = fmap (hfmap (const (K ()))) . project

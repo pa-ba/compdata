@@ -22,6 +22,8 @@ module Data.ALaCarte.Multi.Term
      Context,
      Nothing,
      Term,
+     Const,
+     constTerm,
      unTerm,
      toCxt,
      simpCxt,
@@ -29,6 +31,15 @@ module Data.ALaCarte.Multi.Term
      ) where
 
 import Data.ALaCarte.Multi.HFunctor
+
+type Const (f :: (* -> *) -> * -> *) = f (K ())
+
+-- | This function converts a constant to a term. This assumes that
+-- the argument is indeed a constant, i.e. does not have a value for
+-- the argument type of the functor f.
+
+constTerm :: (HFunctor f) => Const f :-> Term f
+constTerm = Term . hfmap (const undefined)
 
 -- | This data type represents contexts over a signature. Contexts are
 -- terms containing zero or more holes. The first type parameter is
