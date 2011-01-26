@@ -24,6 +24,7 @@ module Data.ALaCarte.Multi.HFunctor
      NatM,
      I (..),
      K (..),
+     A (..),
      kfoldr,
      kfoldl
      ) where
@@ -38,6 +39,8 @@ data I a = I {unI :: a}
 -- | The parametrised constant functor.
 data K a b = K {unK :: a}
 
+
+data A f = forall i. A {any :: (f i)}
 
 instance Eq a => Eq (K a i) where
     K x == K y = x == y
