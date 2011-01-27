@@ -1,5 +1,6 @@
-{-# LANGUAGE TypeOperators, KindSignatures, MultiParamTypeClasses,
-  FunctionalDependencies, FlexibleInstances,UndecidableInstances #-}
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses, IncoherentInstances,
+             FlexibleInstances, FlexibleContexts, GADTs, TypeSynonymInstances,
+             ScopedTypeVariables, FunctionalDependencies, UndecidableInstances, KindSignatures #-}
 
 --------------------------------------------------------------------------------
 -- |

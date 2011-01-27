@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs #-}
+{-# LANGUAGE GADTs, ScopedTypeVariables #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -26,17 +26,19 @@ import Prelude hiding (foldl,mapM)
 
 -- | This function returns a list of all subterms of the given
 -- term. This function is similar to Uniplate's @universe@ function.
-subterms :: Foldable f => Term f -> [Term f]
+subterms :: forall f . Foldable f => Term f -> [Term f]
 subterms t = build (f t)
-    where f t cons nil = t `cons` foldl (\u s -> f s cons u) nil (unTerm t)
+    where f :: Term f -> (Term f -> b -> b) -> b -> b
+          f t cons nil = t `cons` foldl (\u s -> f s cons u) nil (unTerm t)
 -- universe t = t : foldl (\u s -> u ++ universe s) [] (unTerm t)
 
 
 -- | This function returns a list of all subterms of the given term
 -- that are constructed from a particular functor.
-subterms' :: (Foldable f, g :<: f) => Term f -> [g (Term f)]
+subterms' :: forall f g . (Foldable f, g :<: f) => Term f -> [g (Term f)]
 subterms' (Term t) = build (f t)
-    where f t cons nil = let rest = foldl (\u (Term s) -> f s cons u) nil t
+    where f :: f (Term f) -> (g (Term f) -> b -> b) -> b -> b
+          f t cons nil = let rest = foldl (\u (Term s) -> f s cons u) nil t
                          in case proj t of
                               Just t' -> t'`cons` rest
                               Nothing -> rest

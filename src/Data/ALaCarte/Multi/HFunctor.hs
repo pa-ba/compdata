@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, TypeOperators, FlexibleInstances, ScopedTypeVariables, GADTs, MultiParamTypeClasses, UndecidableInstances #-}
+{-# LANGUAGE RankNTypes, TypeOperators, FlexibleInstances, ScopedTypeVariables, GADTs, MultiParamTypeClasses, UndecidableInstances, IncoherentInstances #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -26,7 +26,8 @@ module Data.ALaCarte.Multi.HFunctor
      K (..),
      A (..),
      kfoldr,
-     kfoldl
+     kfoldl,
+     htoList
      ) where
 
 import Data.Monoid
@@ -40,7 +41,7 @@ data I a = I {unI :: a}
 data K a b = K {unK :: a}
 
 
-data A f = forall i. A {any :: (f i)}
+data A f = forall i. A {unA :: (f i)}
 
 instance Eq a => Eq (K a i) where
     K x == K y = x == y
@@ -117,6 +118,8 @@ class HFunctor h => HFoldable h where
                 mf Nothing (K y) = Just y
                 mf (Just x) (K y) = Just (f x y)
 
+htoList :: (HFoldable f) => f a :=> [A a]
+htoList = hfoldr (\ n l ->  A n : l) []
     
 kfoldr :: (HFoldable f) => (a -> b -> b) -> b -> f (K a) :=> b
 kfoldr f = hfoldr (\ (K x) y -> f x y)

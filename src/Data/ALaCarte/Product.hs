@@ -15,6 +15,7 @@
 
 module Data.ALaCarte.Product
     ( (:&:) (..),
+      (:*:) (..),
       DistProd (..),
       RemoveP (..),
       liftP,
@@ -31,7 +32,6 @@ import Data.ALaCarte.Ops
 import Data.ALaCarte.Algebra
 
 import Control.Monad
-
 
 
 

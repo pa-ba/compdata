@@ -72,7 +72,6 @@ $(derive
    instanceArbitraryF, smartConstructors]
   [''Value, ''Op, ''Sugar, ''ValueT])
 
-
 showBinOp :: String -> String -> String -> String
 showBinOp op x y = "("++ x ++ op ++ y ++ ")"
 

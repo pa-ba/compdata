@@ -28,14 +28,17 @@ library
                         Data.ALaCarte.Derive, Data.ALaCarte.Matching, Data.ALaCarte.Multi,
                         Data.ALaCarte.Multi.Term, Data.ALaCarte.Multi.Sum,
                         Data.ALaCarte.Multi.HFunctor, Data.ALaCarte.Multi.Algebra,
-                        Data.ALaCarte.Multi.Product
+                        Data.ALaCarte.Multi.Product, Data.ALaCarte.Multi.HShow,
+                        Data.ALaCarte.Multi.HEquality, Data.ALaCarte.Multi.Variables
 
   Other-Modules:        Data.ALaCarte.Derive.Utils, Data.ALaCarte.Derive.Equality,
                         Data.ALaCarte.Derive.Ordering, Data.ALaCarte.Derive.Arbitrary,
                         Data.ALaCarte.Derive.Show, Data.ALaCarte.Derive.DeepSeq,
                         Data.ALaCarte.Derive.SmartConstructors, Data.ALaCarte.Derive.Foldable,
                         Data.ALaCarte.Derive.Traversable, Data.ALaCarte.Derive.HFunctor,
-                        Data.ALaCarte.Derive.HFoldable, Data.ALaCarte.Derive.HTraversable
+                        Data.ALaCarte.Derive.HFoldable, Data.ALaCarte.Derive.HTraversable, 
+                        Data.ALaCarte.Derive.HEquality, Data.ALaCarte.Derive.HShow,
+                        Data.ALaCarte.Derive.SmartMConstructors
 
   Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq
   hs-source-dirs:	src

@@ -16,12 +16,15 @@ module Data.ALaCarte.Derive (
   module Data.ALaCarte.Derive.Equality,
   module Data.ALaCarte.Derive.Arbitrary,
   module Data.ALaCarte.Derive.SmartConstructors,
+  module Data.ALaCarte.Derive.SmartMConstructors,
   module Data.ALaCarte.Derive.DeepSeq,
   module Data.ALaCarte.Derive.Foldable,
   module Data.ALaCarte.Derive.Traversable,
   module Data.ALaCarte.Derive.HFunctor,
   module Data.ALaCarte.Derive.HFoldable,
   module Data.ALaCarte.Derive.HTraversable,
+  module Data.ALaCarte.Derive.HShow,
+  module Data.ALaCarte.Derive.HEquality,
   module Control.DeepSeq,
   instanceFunctor,
   instanceNFData,
@@ -29,6 +32,8 @@ module Data.ALaCarte.Derive (
 
 
 import Control.DeepSeq
+import Data.ALaCarte.Derive.HEquality
+import Data.ALaCarte.Derive.HShow
 import Data.ALaCarte.Derive.HFunctor
 import Data.ALaCarte.Derive.HFoldable
 import Data.ALaCarte.Derive.HTraversable
@@ -40,6 +45,7 @@ import Data.ALaCarte.Derive.Ordering
 import Data.ALaCarte.Derive.Equality
 import Data.ALaCarte.Derive.Arbitrary
 import Data.ALaCarte.Derive.SmartConstructors
+import Data.ALaCarte.Derive.SmartMConstructors
 
 import Language.Haskell.TH
 import Control.Monad

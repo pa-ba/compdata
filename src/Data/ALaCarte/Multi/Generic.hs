@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.ALaCarte.Generic
+-- Module      :  Data.ALaCarte.Multi.Generic
 -- Copyright   :  3gERP, 2011
 -- License     :  AllRightsReserved
 -- Maintainer  :  Patrick Bahr, Tom Hvitved

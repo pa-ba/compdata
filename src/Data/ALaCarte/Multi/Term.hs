@@ -1,5 +1,5 @@
 {-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes,
-  TypeOperators, ScopedTypeVariables #-}
+TypeOperators, ScopedTypeVariables, IncoherentInstances #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -62,6 +62,10 @@ type Context = Cxt Hole
 
 {-| Phantom type family used to define 'Term'.  -}
 data Nothing :: * -> *
+
+instance Show (Nothing i) where
+instance Eq (Nothing i) where
+instance Ord (Nothing i) where
 
 -- | A term is a context with no holes.
 type Term f = Cxt NoHole f Nothing
