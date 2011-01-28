@@ -40,6 +40,8 @@ data I a = I {unI :: a}
 -- | The parametrised constant functor.
 data K a b = K {unK :: a}
 
+instance Functor (K a) where
+    fmap _ (K x) = K x
 
 data A f = forall i. A {unA :: (f i)}
 

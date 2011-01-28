@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances,
-  OverlappingInstances, TypeOperators, KindSignatures, FlexibleContexts, ScopedTypeVariables #-}
+  OverlappingInstances, TypeOperators, KindSignatures, FlexibleContexts, ScopedTypeVariables, RankNTypes #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -24,11 +24,18 @@ import Data.Comp.Multi.HFunctor
 import Data.Set (Set)
 import qualified Data.Set as Set
 
-import Data.Map (Map)
+import Data.Maybe
 
-type CxtSubst h a f v i = Map v (Cxt h f a i)
 
-type Subst f v i = CxtSubst NoHole Nothing f v i
+-- type CxtSubst h a f v =  [A (v :*: (Cxt h f a))]
+
+-- type Subst f v = CxtSubst NoHole Nothing f v
+
+type GSubst v a = NatM Maybe (K v) a
+
+type CxtSubst h a f v =  GSubst v (Cxt h f a)
+
+type Subst f v = CxtSubst NoHole Nothing f v
 
 {-| This multiparameter class defines functors with variables. An
 instance @HasVar f v@ denotes that values over @f@ might contain
@@ -107,37 +114,37 @@ variables' c =  case isVar c of
                   Just v -> Set.singleton v
 
 
--- substAlg :: (HasVars f v) => (NatM Maybe v (Cxt h f a)) -> Alg f (Cxt h f a)
--- substAlg f t = fromMaybe (Term t) (isVar t >>= f)
 
--- {-| This function substitutes variables in a context according to a
--- partial mapping from variables to contexts.-}
+substAlg :: (HasVars f v) => CxtSubst h a f v -> Alg f (Cxt h f a)
+substAlg f t = fromMaybe (Term t) (isVar t >>= f . K)
+
+{-| This function substitutes variables in a context according to a
+partial mapping from variables to contexts.-}
+
+class SubstVars v t a where
+    substVars :: GSubst v t -> a :-> a
 
 
+applySubst :: SubstVars v t a => GSubst v t -> a :-> a
+applySubst = substVars
 
--- class SubstVars v t (a :: * -> *) where
---     substVars :: (v -> Maybe t) -> a :-> a
+instance (Ord v, HasVars f v, HFunctor f) => SubstVars v (Cxt h f a) (Cxt h f a) where
+    substVars f (Term v) = substAlg f $ hfmap (substVars f) v
+    substVars _ (Hole a) = Hole a
+-- have to use explicit GADT pattern matching!!
+-- subst f = freeAlgHom (substAlg f) Hole
 
-
--- applySubst :: (Ord v, SubstVars v t a) => Map v t -> a :-> a
--- applySubst subst = substVars f
---     where f v = Map.lookup v subst
-
--- instance (Ord v, HasVars f v, HFunctor f) => SubstVars v (Cxt h f a) (Cxt h f a) where
---     substVars f (Term v) = substAlg f $ fmap (substVars f) v
---     substVars _ (Hole a) = Hole a
--- -- have to use explicit GADT pattern matching!!
--- -- subst f = freeAlgHom (substAlg f) Hole
-
--- instance (SubstVars v t a, HFunctor f) => SubstVars v t (f a) where
---     substVars f = fmap (substVars f) 
+instance (SubstVars v t a, HFunctor f) => SubstVars v t (f a) where
+    substVars f = hfmap (substVars f) 
 
 
 
--- {-| This function composes two substitutions @s1@ and @s2@. That is,
--- applying the resulting substitution is equivalent to first applying
--- @s2@ and then @s1@. -}
+{-| This function composes two substitutions @s1@ and @s2@. That is,
+applying the resulting substitution is equivalent to first applying
+@s2@ and then @s1@. -}
 
--- compSubst :: (Ord v, HasVars f v, HFunctor f)
---           => CxtSubst h a f v -> CxtSubst h a f v -> CxtSubst h a f v
--- compSubst s1 s2 = fmap (applySubst s1) s2 `Map.union` s1
+compSubst :: (Ord v, HasVars f v, HFunctor f)
+          => CxtSubst h a f v -> CxtSubst h a f v -> CxtSubst h a f v
+compSubst s1 s2 v = case s2 v of
+                      Nothing -> s1 v
+                      Just t -> Just $ applySubst s1 t
