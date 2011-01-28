@@ -10,9 +10,9 @@
 
 module DataTypes.Transform where
 
-import Data.ALaCarte
+import Data.Comp
 import DataTypes.Standard
-import DataTypes.ALaCarte
+import DataTypes.Comp
 
 class TransSugar f where
     transSugarAlg :: Alg f PExpr

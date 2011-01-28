@@ -1,0 +1,63 @@
+--------------------------------------------------------------------------------
+-- |
+-- Module      :  Data.Comp.Derive
+-- Copyright   :  3gERP, 2010
+-- License     :  AllRightsReserved
+-- Maintainer  :  Tom Hvitved, Patrick Bahr, and Morten Ib Nielsen
+-- Stability   :  unknown
+-- Portability :  unknown
+--
+--
+--------------------------------------------------------------------------------
+
+module Data.Comp.Derive (
+  module Data.Comp.Derive.Show,
+  module Data.Comp.Derive.Ordering,
+  module Data.Comp.Derive.Equality,
+  module Data.Comp.Derive.Arbitrary,
+  module Data.Comp.Derive.SmartConstructors,
+  module Data.Comp.Derive.SmartMConstructors,
+  module Data.Comp.Derive.DeepSeq,
+  module Data.Comp.Derive.Foldable,
+  module Data.Comp.Derive.Traversable,
+  module Data.Comp.Derive.HFunctor,
+  module Data.Comp.Derive.HFoldable,
+  module Data.Comp.Derive.HTraversable,
+  module Data.Comp.Derive.HShow,
+  module Data.Comp.Derive.HEquality,
+  module Control.DeepSeq,
+  instanceFunctor,
+  instanceNFData,
+  derive ) where
+
+
+import Control.DeepSeq
+import Data.Comp.Derive.HEquality
+import Data.Comp.Derive.HShow
+import Data.Comp.Derive.HFunctor
+import Data.Comp.Derive.HFoldable
+import Data.Comp.Derive.HTraversable
+import Data.Comp.Derive.Foldable
+import Data.Comp.Derive.Traversable
+import Data.Comp.Derive.DeepSeq
+import Data.Comp.Derive.Show
+import Data.Comp.Derive.Ordering
+import Data.Comp.Derive.Equality
+import Data.Comp.Derive.Arbitrary
+import Data.Comp.Derive.SmartConstructors
+import Data.Comp.Derive.SmartMConstructors
+
+import Language.Haskell.TH
+import Control.Monad
+
+import qualified Data.DeriveTH as D
+import Data.Derive.All
+
+derive :: [Name -> Q [Dec]] -> [Name] -> Q [Dec]
+derive ders names = liftM concat $ sequence [der name | der <- ders, name <- names]
+
+instanceFunctor :: Name -> Q [Dec]
+instanceFunctor = D.derive makeFunctor
+
+instanceNFData :: Name -> Q [Dec]
+instanceNFData = D.derive makeNFData

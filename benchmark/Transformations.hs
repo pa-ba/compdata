@@ -1,7 +1,7 @@
 module Transformations where
 
 import DataTypes
-import Data.ALaCarte
+import Data.Comp
 
 
 toBaseExp :: Term Value -> BaseExp

@@ -1,5 +1,5 @@
 module Functions 
-    ( module Functions.ALaCarte,
+    ( module Functions.Comp,
       module Functions.Standard ) where
-import Functions.ALaCarte
+import Functions.Comp
 import Functions.Standard
