@@ -22,6 +22,7 @@ import Data.Traversable
 
 import Control.Applicative
 import Control.Monad hiding (sequence, mapM)
+import Control.Functor.Exponential
 
 import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
 
@@ -63,7 +64,9 @@ instance (Traversable f, Traversable g) => Traversable (f :+: g) where
     sequence (Inl e) = Inl `liftM` sequence e
     sequence (Inr e) = Inr `liftM` sequence e
 
-
+instance (ExpFunctor f, ExpFunctor g) => ExpFunctor (f :+: g) where
+    xmap f g (Inl e) = Inl (xmap f g e)
+    xmap f g (Inr e) = Inr (xmap f g e)
 
 -- |The subsumption relation.
 class sub :<: sup where
@@ -122,6 +125,9 @@ instance (Traversable f) => Traversable (f :&: a) where
     sequenceA (v :&: c) = liftA (:&: c)(sequenceA v)
     mapM f (v :&: c) = liftM (:&: c) (mapM f v)
     sequence (v :&: c) = liftM (:&: c) (sequence v)
+
+instance (ExpFunctor f) => ExpFunctor (f :&: a) where
+    xmap f g (v :&: c) = xmap f g v :&: c
 
 {-| This class defines how to distribute a product over a sum of
 signatures. -}

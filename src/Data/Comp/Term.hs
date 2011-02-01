@@ -23,16 +23,20 @@ module Data.Comp.Term
      Term,
      Const,
      unTerm,
-     toCxt,
      simpCxt,
+     toCxt,
+     toCxtExp,
      constTerm
      ) where
 
 import Control.Applicative hiding (Const)
 import Control.Monad hiding (mapM, sequence)
+import Control.Functor.Exponential
 
 import Data.Traversable
 import Data.Foldable
+
+import Unsafe.Coerce
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 
@@ -74,6 +78,12 @@ simpCxt = Term . fmap Hole
 toCxt :: (Functor f) => Term f -> Context f a
 toCxt (Term t) = Term $ fmap toCxt t
 
+{-| Cast a term over an exponential functor to a context over the same
+ exponential functor. Since 'f' is an exponential functor, we cannot actually
+ write the translation, so we resolve to using 'unsafeCoerce'. -}
+toCxtExp :: (ExpFunctor f) => Term f -> Context f a
+toCxtExp = unsafeCoerce
+
 {-| Phantom type used to define 'Term'.  -}
 
 data Nothing
@@ -102,7 +112,6 @@ unTerm (Term t) = t
 instance Functor f => Functor (Cxt h f) where
     fmap f (Hole v) = Hole (f v)
     fmap f (Term t) = Term (fmap (fmap f) t)
-
 
 instance (Foldable f) => Foldable (Cxt h f) where
     foldr op e (Hole a) = a `op` e

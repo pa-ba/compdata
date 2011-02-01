@@ -1,4 +1,5 @@
-{-# LANGUAGE GADTs, RankNTypes, ScopedTypeVariables, TypeOperators #-}
+{-# LANGUAGE GADTs, RankNTypes, ScopedTypeVariables, TypeOperators,
+  FlexibleContexts #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -19,6 +20,7 @@ module Data.Comp.Algebra (
       freeAlgHom,
       cata,
       cata',
+      cataExp,
       applyCxt,
       
       -- * Monadic Algebras & Catamorphisms
@@ -95,6 +97,7 @@ import Data.Comp.Term
 import Data.Comp.Ops
 import Data.Traversable
 import Control.Monad hiding (sequence, mapM)
+import Control.Functor.Exponential
 
 import Prelude hiding (sequence, mapM)
 
@@ -137,6 +140,14 @@ cata' f = freeAlgHom f id
 
 applyCxt :: (Functor f) => Context f (Cxt h f a) -> Cxt h f a
 applyCxt = cata' Term
+
+{-| Catamorphism for exponential functors. The intermediate 'cataFS' originates
+ from @http://comonad.com/reader/2008/rotten-bananas/@. -}
+cataExp :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
+cataExp f = cataFS . toCxtExp
+    where cataFS :: ExpFunctor f => (Context f a) -> a
+          cataFS (Term x) = f (xmap cataFS Hole x)
+          cataFS (Hole x) = x
 
 
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
