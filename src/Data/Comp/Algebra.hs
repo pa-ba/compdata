@@ -97,7 +97,7 @@ import Data.Comp.Term
 import Data.Comp.Ops
 import Data.Traversable
 import Control.Monad hiding (sequence, mapM)
-import Control.Functor.Exponential
+import Data.Comp.ExpFunctor
 
 import Prelude hiding (sequence, mapM)
 
@@ -144,7 +144,7 @@ applyCxt = cata' Term
 {-| Catamorphism for exponential functors. The intermediate 'cataFS' originates
  from @http://comonad.com/reader/2008/rotten-bananas/@. -}
 cataExp :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
-cataExp f = cataFS . toCxtExp
+cataExp f = cataFS . toCxt
     where cataFS :: ExpFunctor f => (Context f a) -> a
           cataFS (Term x) = f (xmap cataFS Hole x)
           cataFS (Hole x) = x
@@ -234,6 +234,7 @@ given context. -}
 
 applySigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
 applySigFun f = applyTermHom $ termHom $ f
+
 
 {-| This function composes two signature functions.  -}
 

@@ -22,7 +22,8 @@ import Data.Traversable
 
 import Control.Applicative
 import Control.Monad hiding (sequence, mapM)
-import Control.Functor.Exponential
+
+import Data.Comp.ExpFunctor
 
 import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
 

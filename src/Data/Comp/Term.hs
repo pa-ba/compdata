@@ -21,17 +21,16 @@ module Data.Comp.Term
      Context,
      Nothing,
      Term,
+     PTerm,
      Const,
      unTerm,
      simpCxt,
      toCxt,
-     toCxtExp,
      constTerm
      ) where
 
 import Control.Applicative hiding (Const)
 import Control.Monad hiding (mapM, sequence)
-import Control.Functor.Exponential
 
 import Data.Traversable
 import Data.Foldable
@@ -75,14 +74,12 @@ type Context = Cxt Hole
 simpCxt :: (Functor f) => f a -> Context f a
 simpCxt = Term . fmap Hole
 
-toCxt :: (Functor f) => Term f -> Context f a
-toCxt (Term t) = Term $ fmap toCxt t
 
 {-| Cast a term over an exponential functor to a context over the same
  exponential functor. Since 'f' is an exponential functor, we cannot actually
  write the translation, so we resolve to using 'unsafeCoerce'. -}
-toCxtExp :: (ExpFunctor f) => Term f -> Context f a
-toCxtExp = unsafeCoerce
+toCxt :: Term f -> Cxt h f a
+toCxt = unsafeCoerce
 
 {-| Phantom type used to define 'Term'.  -}
 
@@ -93,20 +90,19 @@ instance Ord Nothing where
 instance Show Nothing where
 
 
-type FTerm f a = Cxt NoHole f a
 
 {-| A term is a context with no holes.  -}
 
-type Term f = FTerm f Nothing
+type Term f = Cxt NoHole f Nothing
 
 -- | Polymorphic definition of a term. This formulation is more
 -- natural than 'Term', it leads to impredicative types in some cases,
 -- though.
-type PTerm f = forall a . FTerm f a
+type PTerm f = forall h a . Cxt h f a
 
 {-| This function unravels the given term at the topmost layer.  -}
 
-unTerm :: FTerm f a -> f (FTerm f a)
+unTerm :: Cxt NoHole f a -> f (Cxt NoHole f a)
 unTerm (Term t) = t
 
 instance Functor f => Functor (Cxt h f) where

@@ -30,7 +30,7 @@ library
                         Data.Comp.Multi.HFunctor, Data.Comp.Multi.Algebra,
                         Data.Comp.Multi.Product, Data.Comp.Multi.HShow,
                         Data.Comp.Multi.HEquality, Data.Comp.Multi.Variables,
-                        Data.Comp.Multi.Ops, Data.Comp.Ops
+                        Data.Comp.Multi.Ops, Data.Comp.Ops, Data.Comp.ExpFunctor
 
   Other-Modules:        Data.Comp.Derive.Utils, Data.Comp.Derive.Equality,
                         Data.Comp.Derive.Ordering, Data.Comp.Derive.Arbitrary,
@@ -41,7 +41,7 @@ library
                         Data.Comp.Derive.HEquality, Data.Comp.Derive.HShow,
                         Data.Comp.Derive.SmartMConstructors
 
-  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, category-extras >= 0.53.5
+  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq
   hs-source-dirs:	src
   ghc-options:          -W -O2
 
