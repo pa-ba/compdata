@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures #-}
+{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -82,13 +82,21 @@ instance Eq Nothing where
 instance Ord Nothing where
 instance Show Nothing where
 
+
+type FTerm f a = Cxt NoHole f a
+
 {-| A term is a context with no holes.  -}
 
-type Term f = Cxt NoHole f Nothing
+type Term f = FTerm f Nothing
+
+-- | Polymorphic definition of a term. This formulation is more
+-- natural than 'Term', it leads to impredicative types in some cases,
+-- though.
+type PTerm f = forall a . FTerm f a
 
 {-| This function unravels the given term at the topmost layer.  -}
 
-unTerm :: Term f -> f (Term f)
+unTerm :: FTerm f a -> f (FTerm f a)
 unTerm (Term t) = t
 
 instance Functor f => Functor (Cxt h f) where
