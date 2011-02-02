@@ -109,3 +109,37 @@ evalSugar2 (PImpl x y) = (\ x y -> SBool (not x || y)) (coerceBool2 $ evalSugar2
 
 desugarEval2 :: PExpr -> SExpr
 desugarEval2 = eval2 . desugar
+
+coerceHInt2 :: HSExpr -> Int
+coerceHInt2 (HSInt i) = i
+coerceHInt2 _ = undefined
+
+coerceHBool2 :: HSExpr -> Bool
+coerceHBool2 (HSBool b) = b
+coerceHBool2 _ = undefined
+
+coerceHPair2 :: HSExpr -> (HSExpr,HSExpr)
+coerceHPair2 (HSPair x y) = (x,y)
+coerceHPair2 _ = undefined
+
+coerceHLam2 :: HSExpr -> HExpr -> HSExpr
+coerceHLam2 (HSLam f) = f
+coerceHLam2 _ = undefined
+
+evalH2 :: HExpr -> HSExpr
+evalH2 (HInt i) = HSInt i
+evalH2 (HBool b) = HSBool b
+evalH2 (HPair x y) = HSPair (evalH2 x) (evalH2 y)
+evalH2 (HPlus x y) = (\ x y -> HSInt (x + y)) (coerceHInt2 $ evalH2 x) (coerceHInt2 $ evalH2 y)
+evalH2 (HMult x y) = (\ x y -> HSInt (x * y)) (coerceHInt2 $ evalH2 x) (coerceHInt2 $ evalH2 y)
+evalH2 (HIf b x y) = if coerceHBool2 $ evalH2 b then evalH2 x else evalH2 y
+evalH2 (HEq x y) = (\ x y -> HSBool (x == y)) (evalH2 x) (evalH2 y)
+evalH2 (HLt x y) = (\ x y -> HSBool (x < y)) (coerceHInt2 $ evalH2 x) (coerceHInt2 $ evalH2 y)
+evalH2 (HAnd x y) =(\ x y -> HSBool (x && y)) (coerceHBool2 $ evalH2 x) (coerceHBool2 $ evalH2 y)
+evalH2 (HNot x) = (HSBool . not)(coerceHBool2 $ evalH2 x)
+evalH2 (HProj p x) = select (coerceHPair2 $ evalH2 x)
+    where select (x,y) = case p of
+                           SProjLeft -> x
+                           SProjRight -> y
+evalH2 (HApp x y) = (coerceHLam2 $ evalH2 x) y
+evalH2 (HLam f) = HSLam $ evalH2 . f

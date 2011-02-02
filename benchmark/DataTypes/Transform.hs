@@ -11,6 +11,7 @@
 module DataTypes.Transform where
 
 import Data.Comp
+import Data.Comp.ExpFunctor
 import DataTypes.Standard
 import DataTypes.Comp
 
@@ -47,3 +48,36 @@ instance TransSugar Sugar where
     transSugarAlg (Gt x y) = PGt x y
     transSugarAlg (Or x y) = POr x y
     transSugarAlg (Impl x y) = PImpl x y
+
+class TransHOAS f where
+    transHOASAlg :: Alg f HExpr
+
+transHOAS :: (ExpFunctor f, TransHOAS f) => Term f -> HExpr
+transHOAS = cataExp transHOASAlg
+
+instance (TransHOAS f, TransHOAS g) => TransHOAS (f :+: g) where
+    transHOASAlg (Inl v) = transHOASAlg v
+    transHOASAlg (Inr v) = transHOASAlg v
+
+instance TransHOAS Value where
+    transHOASAlg (VInt i) = HInt i
+    transHOASAlg (VBool b) = HBool b
+    transHOASAlg (VPair x y) = HPair x y
+
+instance TransHOAS Op where
+    transHOASAlg (Plus x y) = HPlus x y
+    transHOASAlg (Mult x y) = HMult x y
+    transHOASAlg (If b x y) = HIf b x y
+    transHOASAlg (Lt x y) = HLt x y
+    transHOASAlg (And x y) = HAnd x y
+    transHOASAlg (Not x) = HNot x
+    transHOASAlg (Proj p x) = HProj (ptrans p) x
+        where ptrans ProjLeft = SProjLeft
+              ptrans ProjRight = SProjRight
+    transHOASAlg (Eq x y) = HEq x y
+
+instance TransHOAS Lam where
+    transHOASAlg (Lam f) = HLam f
+
+instance TransHOAS App where
+    transHOASAlg (App x y) = HApp x y

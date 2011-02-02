@@ -16,37 +16,46 @@ module DataTypes.Comp
 import DataTypes
 import Data.Comp.Derive
 import Data.Comp
+import Data.Comp.ExpFunctor
 import Data.Comp.Arbitrary ()
 import Data.Comp.Show
 import Data.Traversable
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
 
-
 import Control.Monad hiding (sequence_,mapM)
 import Prelude hiding (sequence_,mapM)
 
 -- base values
 
-type ValueExpr = Term Value
-type ExprSig = Value :+: Op
+type ValueSig = Value
+type ValueExpr = Term ValueSig
+type ExprSig = Value :+:Op
 type Expr = Term ExprSig
 type SugarSig = Value :+: Op :+: Sugar
 type SugarExpr = Term SugarSig
-type BaseType = Term ValueT
+type BaseTypeSig = ValueT
+type BaseType = Term BaseTypeSig
+
+type HOASValueSig = Value :+: Lam
+type HOASValueExpr = Term HOASValueSig
+type HOASExprSig = Value :+: Lam :+: App :+: Op
+type HOASExpr = Term HOASExprSig
+type HOASBaseTypeSig = ValueT :+: FunT
+type HOASBaseType = Term HOASBaseTypeSig
 
 data ValueT e = TInt
               | TBool
               | TPair e e
-          deriving (Eq)
+                deriving (Eq)
 
 data Value e = VInt Int
              | VBool Bool
              | VPair e e
-          deriving (Eq)
+               deriving (Eq)
 
 data Proj = ProjLeft | ProjRight
-          deriving (Eq)
+            deriving (Eq)
 
 data Op e = Plus e e
           | Mult e e
@@ -56,21 +65,52 @@ data Op e = Plus e e
           | And e e
           | Not e
           | Proj Proj e
-          deriving (Eq)
+            deriving (Eq)
 
 data Sugar e = Neg e
              | Minus e e
              | Gt e e
              | Or e e
              | Impl e e
-          deriving (Eq)
+               deriving (Eq)
+
+data FunT e = TFun e e
+              deriving (Eq)
+
+data Lam e = Lam (e -> e)
+
+data App e = App e e
+             deriving (Eq)
 
 $(derive [instanceNFData, instanceArbitrary] [''Proj])
 
 $(derive
   [instanceFunctor, instanceFoldable, instanceTraversable, instanceEqF, instanceNFDataF,
    instanceArbitraryF, smartConstructors]
-  [''Value, ''Op, ''Sugar, ''ValueT])
+  [''Value, ''Op, ''Sugar, ''ValueT, ''FunT, ''App])
+
+$(derive [smartConstructors] [''Lam])
+
+instance ExpFunctor Value where
+    xmap f _ = fmap f
+
+instance ExpFunctor Op where
+    xmap f _ = fmap f
+
+instance ExpFunctor Sugar where
+    xmap f _ = fmap f
+
+instance ExpFunctor App where
+    xmap f _ = fmap f
+
+instance ExpFunctor Lam where
+    xmap f g (Lam h) = Lam $ f . h . g
+
+instance EqF Lam where
+    eqF _ _ = False
+
+instance NFDataF Lam where
+    rnfF (Lam f) = f `seq` ()
 
 showBinOp :: String -> String -> String -> String
 showBinOp op x y = "("++ x ++ op ++ y ++ ")"
@@ -96,6 +136,15 @@ instance ShowF ValueT where
     showF TInt = "Int"
     showF TBool = "Bool"
     showF (TPair x y) = "(" ++ x ++ "," ++ y ++ ")"
+
+instance ShowF Lam where 
+    showF (Lam f) = "\\x. " ++ f "x"
+
+instance ShowF App where 
+    showF (App x y) = x ++ " " ++ y
+
+instance ShowF FunT where 
+    showF (TFun x y) = x ++ " -> " ++ y
 
 
 class GenTyped f where

@@ -22,12 +22,22 @@ aExpr = iIf ((iVInt 1 `iGt` (iVInt 2 `iMinus` iVInt 1))
 sExpr :: PExpr
 sExpr = transSugar aExpr
 
+aHOASExpr :: Int -> HOASExpr
+aHOASExpr x = (iLam $ \x -> x `iPlus` ((iLam $ \x -> x `iMult` x) `iApp` x))
+              `iApp`
+               ((iLam $ \x -> x `iMult` x)
+                `iApp`
+                (if x <= 0 then iVInt 2 else aHOASExpr (x - 1)))
+
+sHOASExpr :: HExpr
+sHOASExpr = transHOAS $ aHOASExpr 10
 
 main = do b1 <- genExprs 5
           b2 <- genExprs 10
           b3 <- genExprs 20
           let b0 = getBench (sExpr, aExpr, "hand-written")
-          defaultMain [b0,b1,b2,b3]
+          let b4 = getBench'' (sHOASExpr, aHOASExpr 10, "hand-written")
+          defaultMain [b0,b1,b2,b3,b4]
     where genExprs s = do
             rand <- getStdGen
             let ty = unGen arbitrary rand s
@@ -79,6 +89,12 @@ main = do b1 <- genExprs 5
                  bench "Standard.freeVars" (nf S.freeVars sExpr),
                  bench "Standard.freeVarsGen" (nf S.freeVarsGen sExpr),
                  bench "Standard.freeVarsGen" (nf S.freeVarsGen sExpr)]
+          getBench'' (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench''' (sExpr, aExpr,n)
+          getBench''' (sExpr,aExpr,n) = bgroup n
+                [
+                 bench "Comp.eval2" (nf (A.eval2 :: HOASExpr -> HOASValueExpr) aExpr),
+                 bench "Standard.evalH2" (nf S.evalH2 sExpr)
+                ]
 
           
 

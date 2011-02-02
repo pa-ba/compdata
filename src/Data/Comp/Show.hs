@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell #-}
+{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell, TypeSynonymInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Show
@@ -21,15 +21,12 @@ import Data.Comp.Product
 import Data.Comp.Algebra
 import Data.Comp.Derive
 
-
-instance (ShowF f) => ShowF (Cxt h f) where
+instance (Functor f, ShowF f) => ShowF (Cxt h f) where
     showF (Hole s) = s
     showF (Term t) = showF $ fmap showF t
 
-
-instance (ShowF f, Show a) => Show (Cxt h f a) where
+instance (Functor f, ShowF f, Show a) => Show (Cxt h f a) where
     show = freeAlgHom showF show
-
 
 instance (ShowF f, Show p) => ShowF (f :&: p) where
     showF (v :&: p) = showF v ++ " :&: " ++ show p

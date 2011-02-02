@@ -20,7 +20,7 @@ import Data.Comp.Derive.Utils
 import Language.Haskell.TH
 import Data.List
 
-class Functor f => ShowF f where
+class ShowF f where
     showF :: f String -> String
              
 showConstr :: String -> [String] -> String

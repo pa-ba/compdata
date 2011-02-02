@@ -62,6 +62,7 @@ module Data.Comp.Algebra (
       -- * Coalgebras & Anamorphisms
       Coalg,
       ana,
+      anaExp,
       CoalgM,
       anaM,
 
@@ -368,6 +369,12 @@ ana :: forall a f . Functor f
 ana f = run
     where run :: a -> Term f
           run t = Term $ fmap run (f t)
+
+{-| Anamorphism for exponential functors. -}
+anaExp :: forall a f . ExpFunctor f => Coalg f a -> a -> Term (f :&: a)
+anaExp f = run
+    where run :: a -> Term (f :&: a)
+          run t = Term $ (xmap run (snd . projectP . unTerm) (f t)) :&: t
 
 type CoalgM m f a = a -> m (f a)
 
