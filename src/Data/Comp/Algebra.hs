@@ -62,6 +62,7 @@ module Data.Comp.Algebra (
       -- * Coalgebras & Anamorphisms
       Coalg,
       ana,
+      ana',
       anaExp,
       CoalgM,
       anaM,
@@ -129,6 +130,11 @@ cata :: forall f a . (Functor f) =>
 cata f = run 
     where run :: Term f -> a
           run (Term t) = f (fmap run t)
+
+{-# INLINE [0] cata #-}
+
+-- Inline only in the final stage, in order for shortcut-fusion to
+-- work.
 
 {-| This function applies the given algebra recursively to each
 subcontext of the given context. -}
@@ -369,6 +375,28 @@ ana :: forall a f . Functor f
 ana f = run
     where run :: a -> Term f
           run t = Term $ fmap run (f t)
+
+-- | Shortcut fusion variant of anamorphisms.
+
+ana' :: forall a f . Functor f
+         => Coalg f a -> a -> Term f
+ana' f t = build $ run t
+    where run :: forall b . a -> Alg f b -> b
+          run t con = run' t where
+              run' :: a ->  b
+              run' t = con $ fmap run' (f t)
+
+build :: (forall a. Alg f a -> a) -> Term f
+build g = g Term
+
+{-# INLINE [1] build #-}
+-- only allow inlining in phase 1
+{-# RULES
+  "cata/build"  forall alg (g :: forall a . Alg f a -> a) .
+                cata alg (build g) = g alg
+ #-}
+-- 
+
 
 {-| Anamorphism for exponential functors. -}
 anaExp :: forall a f . ExpFunctor f => Coalg f a -> a -> Term (f :&: a)
