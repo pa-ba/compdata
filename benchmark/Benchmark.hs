@@ -44,52 +44,51 @@ aHOASExpr = aHOASExpr' 100
 sCBVHOASExpr :: CBVHExpr
 sCBVHOASExpr = transCBVHOAS aHOASExpr
 
-main = do b1 <- genExprs 5
-          b2 <- genExprs 10
-          b3 <- genExprs 20
-          let b0 = getBench (sExpr, aExpr, "hand-written")
-          let b4 = getBench'' (sCBVHOASExpr, aHOASExpr, "hand-written")
-          defaultMain [b0,b4,b1,b2,b3]
-    where genExprs s = do
-            rand <- getStdGen
-            let ty = unGen arbitrary rand s
-            putStr "size of the type term: "
-            print $ size ty
-            print $ ty
-            let aExpr = unGen (genTyped ty) rand s
-                sExpr = transSugar aExpr
-            putStr "size of the input term: "
-            print $ size aExpr
-            putStr "does it type check: "
-            print (A.desugarType aExpr == Right ty)
-            return $ getBench (sExpr,aExpr, "random (depth: " ++ show s ++ ", size: "++ show (size aExpr) ++ ")")
-          getBench (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench' (sExpr, aExpr,n)
-          getBench' (sExpr, aExpr,n) = bgroup n
-                [
-                 -- bench "Comp.desugar" (nf A.desugarExpr aExpr),
-                 -- bench "Standard.desugar" (nf S.desugar sExpr),
-                 -- bench "Comp.desugarType" (nf A.desugarType aExpr),
-                 -- bench "Comp.desugarType'" (nf A.desugarType' aExpr),
-                 -- bench "Standard.desugarType" (nf S.desugarType sExpr),
-                 -- bench "Comp.typeSugar" (nf A.typeSugar aExpr),
-                 -- bench "Standard.typeSugar" (nf S.typeSugar sExpr),
-                 -- bench "Comp.desugarType2" (nf A.desugarType2 aExpr),
-                 -- bench "Comp.desugarType2'" (nf A.desugarType2' aExpr),
-                 -- bench "Standard.desugarType2" (nf S.desugarType2 sExpr),
-                 -- bench "Comp.typeSugar2" (nf A.typeSugar2 aExpr),
-                 -- bench "Standard.typeSugar2" (nf S.typeSugar2 sExpr),
-                 -- bench "Comp.desugarEval" (nf A.desugarEval aExpr),
-                 -- bench "Comp.desugarEval'" (nf A.desugarEval' aExpr),
-                 -- bench "Standard.desugarEval" (nf S.desugarEval sExpr),
-                 -- bench "Comp.evalSugar" (nf A.evalSugar aExpr),
-                 -- bench "Comp.evalDirect" (nf A.evalDirectE aExpr),
-                 -- bench "Standard.evalSugar" (nf S.evalSugar sExpr),
-                 -- bench "Comp.desugarEval2" (nf A.desugarEval2 aExpr),
-                 -- bench "Comp.desugarEval2'" (nf A.desugarEval2' aExpr),
-                 -- bench "Standard.desugarEval2" (nf S.desugarEval2 sExpr),
-                 -- bench "Comp.evalSugar2" (nf A.evalSugar2 aExpr),
-                 -- bench "Comp.evalDirect2" (nf A.evalDirectE2 aExpr),
-                 -- bench "Standard.evalSugar2" (nf S.evalSugar2 sExpr),
+
+sfCoalg :: Coalg SugarSig Int
+sfCoalg 0 = inj $ VInt 1
+sfCoalg n = let n' = n-1 in inj $ Plus n' n'
+
+sfGen' :: Int -> SugarExpr
+sfGen'  = ana' sfCoalg
+
+sfGen :: Int -> SugarExpr
+sfGen  = ana sfCoalg
+
+shortcutFusion :: Benchmark
+shortcutFusion = bgroup "shortcut-fusion" [
+                  bench "eval without fusion" (nf (A.evalSugar2 . sfGen) depth),
+                  bench "eval with fusion" (nf (A.evalSugar2 . sfGen') depth)
+                  ]
+    where depth = 15
+
+standardBenchmarks :: (PExpr, SugarExpr, String) -> Benchmark
+standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (sExpr, aExpr,n)
+    where getBench (sExpr, aExpr,n) = bgroup n [
+                 bench "Comp.desugar" (nf A.desugarExpr aExpr),
+                 bench "Standard.desugar" (nf S.desugar sExpr),
+                 bench "Comp.desugarType" (nf A.desugarType aExpr),
+                 bench "Comp.desugarType'" (nf A.desugarType' aExpr),
+                 bench "Standard.desugarType" (nf S.desugarType sExpr),
+                 bench "Comp.typeSugar" (nf A.typeSugar aExpr),
+                 bench "Standard.typeSugar" (nf S.typeSugar sExpr),
+                 bench "Comp.desugarType2" (nf A.desugarType2 aExpr),
+                 bench "Comp.desugarType2'" (nf A.desugarType2' aExpr),
+                 bench "Standard.desugarType2" (nf S.desugarType2 sExpr),
+                 bench "Comp.typeSugar2" (nf A.typeSugar2 aExpr),
+                 bench "Standard.typeSugar2" (nf S.typeSugar2 sExpr),
+                 bench "Comp.desugarEval" (nf A.desugarEval aExpr),
+                 bench "Comp.desugarEval'" (nf A.desugarEval' aExpr),
+                 bench "Standard.desugarEval" (nf S.desugarEval sExpr),
+                 bench "Comp.evalSugar" (nf A.evalSugar aExpr),
+                 bench "Comp.evalDirect" (nf A.evalDirectE aExpr),
+                 bench "Standard.evalSugar" (nf S.evalSugar sExpr),
+                 bench "Comp.desugarEval2" (nf A.desugarEval2 aExpr),
+                 bench "Comp.desugarEval2'" (nf A.desugarEval2' aExpr),
+                 bench "Standard.desugarEval2" (nf S.desugarEval2 sExpr),
+                 bench "Comp.evalSugar2" (nf A.evalSugar2 aExpr),
+                 bench "Comp.evalDirect2" (nf A.evalDirectE2 aExpr),
+                 bench "Standard.evalSugar2" (nf S.evalSugar2 sExpr),
                  bench "Comp.contVar" (nf (A.contVar 10) aExpr),
                  bench "Comp.contVar'" (nf (A.contVar' 10) aExpr),
                  bench "Comp.contVarGen" (nf (A.contVarGen 10) aExpr),
@@ -101,18 +100,44 @@ main = do b1 <- genExprs 5
                  bench "Standard.freeVars" (nf S.freeVars sExpr),
                  bench "Standard.freeVarsGen" (nf S.freeVarsGen sExpr),
                  bench "Standard.freeVarsGen" (nf S.freeVarsGen sExpr)]
-          getBench'' (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench''' (sExpr, aExpr,n)
-          getBench''' (sExpr,aExpr,n) = bgroup n
+
+randStdBenchmarks :: Int -> IO Benchmark
+randStdBenchmarks s = do
+  rand <- getStdGen
+  let ty = unGen arbitrary rand s
+  putStr "size of the type term: "
+  print $ size ty
+  print $ ty
+  let aExpr = unGen (genTyped ty) rand s
+      sExpr = transSugar aExpr
+  putStr "size of the input term: "
+  print $ size aExpr
+  putStr "does it type check: "
+  print (A.desugarType aExpr == Right ty)
+  return $ standardBenchmarks (sExpr,aExpr, "random (depth: " ++ show s ++ ", size: "++ show (size aExpr) ++ ")")
+
+hoasBenchmaks :: Benchmark
+hoasBenchmaks = getBench (sCBVHOASExpr, aHOASExpr, "HOAS")
+    where getBench (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench' (sExpr, aExpr,n)
+          getBench' (sExpr,aExpr,n) = bgroup n
                 [
                  bench "Comp.eval2" (nf (A.eval2 :: HOASExpr -> HOASValueExpr) aExpr),
                  bench "Standard.evalCBVH2" (nf S.evalCBVH2 sExpr)
                 ]
+
+
+main = do b1 <- randStdBenchmarks 5
+          b2 <- randStdBenchmarks 10
+          b3 <- randStdBenchmarks 20
+          let b0 = standardBenchmarks (sExpr, aExpr, "hand-written")
+          let b4 = hoasBenchmaks
+          let b5 = shortcutFusion
+          defaultMain  [b0,b1,b2,b3,b4,b5]
 
           
 
 {-
 TODO 
  - benchmark generic functions (e.g. size, depth, breadth)
- - benchmark highly selective functions (e.g. freeVariables, substitution application)
 
 -}
