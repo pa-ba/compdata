@@ -62,53 +62,107 @@ data VHType = VHTInt
             | VHTFun VType VType
               deriving (Eq,Typeable,Data)
 
-data HExpr = HInt Int
-           | HBool Bool
-           | HPair HExpr HExpr
-           | HPlus HExpr HExpr
-           | HMult HExpr HExpr
-           | HIf HExpr HExpr HExpr
-           | HEq HExpr HExpr
-           | HLt HExpr HExpr
-           | HAnd HExpr HExpr
-           | HNot HExpr
-           | HProj SProj HExpr
-           | HApp HExpr HExpr
-           | HLam (HExpr -> HExpr)
+-- Call by name, HOAS
+data CBNHExpr = CBNHInt Int
+           | CBNHBool Bool
+           | CBNHPair CBNHExpr CBNHExpr
+           | CBNHPlus CBNHExpr CBNHExpr
+           | CBNHMult CBNHExpr CBNHExpr
+           | CBNHIf CBNHExpr CBNHExpr CBNHExpr
+           | CBNHEq CBNHExpr CBNHExpr
+           | CBNHLt CBNHExpr CBNHExpr
+           | CBNHAnd CBNHExpr CBNHExpr
+           | CBNHNot CBNHExpr
+           | CBNHProj SProj CBNHExpr
+           | CBNHApp CBNHExpr CBNHExpr
+           | CBNHLam (CBNHExpr -> CBNHExpr)
              deriving (Typeable,Data)
 
-data HSExpr = HSInt Int
-            | HSBool Bool
-            | HSPair HSExpr HSExpr
-            | HSLam (HExpr -> HSExpr) -- Nasty dependency with HExpr!
+data CBNHSExpr = CBNHSInt Int
+            | CBNHSBool Bool
+            | CBNHSPair CBNHSExpr CBNHSExpr
+            | CBNHSLam (CBNHExpr -> CBNHSExpr) -- Nasty dependency with CBNHExpr!
               deriving (Typeable,Data)
 
-instance NFData HExpr where
-    rnf (HInt n) = rnf n `seq` ()
-    rnf (HBool b) = rnf b `seq` ()
-    rnf (HPair e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
-    rnf (HPlus e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
-    rnf (HMult e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
-    rnf (HIf e1 e2 e3) = rnf e1 `seq` rnf e2 `seq` rnf e3 `seq` ()
-    rnf (HEq e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
-    rnf (HLt e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
-    rnf (HAnd e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
-    rnf (HNot e) = rnf e `seq` ()
-    rnf (HProj e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
-    rnf (HApp e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
-    rnf (HLam e) = e `seq` ()
+instance NFData CBNHExpr where
+    rnf (CBNHInt n) = rnf n `seq` ()
+    rnf (CBNHBool b) = rnf b `seq` ()
+    rnf (CBNHPair e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBNHPlus e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBNHMult e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBNHIf e1 e2 e3) = rnf e1 `seq` rnf e2 `seq` rnf e3 `seq` ()
+    rnf (CBNHEq e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBNHLt e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBNHAnd e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBNHNot e) = rnf e `seq` ()
+    rnf (CBNHProj e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBNHApp e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBNHLam e) = e `seq` ()
 
-instance NFData HSExpr where
-    rnf (HSInt n) = rnf n `seq` ()
-    rnf (HSBool b) = rnf b `seq` ()
-    rnf (HSPair e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
-    rnf (HSLam e) = e `seq` ()
+instance NFData CBNHSExpr where
+    rnf (CBNHSInt n) = rnf n `seq` ()
+    rnf (CBNHSBool b) = rnf b `seq` ()
+    rnf (CBNHSPair e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBNHSLam e) = e `seq` ()
 
-instance Eq HSExpr where
-    (==) (HSInt n1) (HSInt n2) = n1 == n2
-    (==) (HSBool b1) (HSBool b2) = b1 == b2
-    (==) (HSPair e1 e2) (HSPair e3 e4) = e1 == e3 && e2 == e4
+instance Eq CBNHSExpr where
+    (==) (CBNHSInt n1) (CBNHSInt n2) = n1 == n2
+    (==) (CBNHSBool b1) (CBNHSBool b2) = b1 == b2
+    (==) (CBNHSPair e1 e2) (CBNHSPair e3 e4) = e1 == e3 && e2 == e4
     (==) _ _ = False
+
+
+-- Call by value, HOAS
+data CBVHExpr = CBVHInt Int
+           | CBVHBool Bool
+           | CBVHPair CBVHExpr CBVHExpr
+           | CBVHPlus CBVHExpr CBVHExpr
+           | CBVHMult CBVHExpr CBVHExpr
+           | CBVHIf CBVHExpr CBVHExpr CBVHExpr
+           | CBVHEq CBVHExpr CBVHExpr
+           | CBVHLt CBVHExpr CBVHExpr
+           | CBVHAnd CBVHExpr CBVHExpr
+           | CBVHNot CBVHExpr
+           | CBVHProj SProj CBVHExpr
+           | CBVHApp CBVHExpr CBVHExpr
+           | CBVHLam (CBVHSExpr -> CBVHExpr) -- Nasty dependency with CBVHSExpr!
+           | CBVHVal CBVHSExpr -- Nasty dependency with CBVHSExpr!
+             deriving (Typeable,Data)
+
+data CBVHSExpr = CBVHSInt Int
+               | CBVHSBool Bool
+               | CBVHSPair CBVHSExpr CBVHSExpr
+               | CBVHSLam (CBVHSExpr -> CBVHSExpr)
+              deriving (Typeable,Data)
+
+instance NFData CBVHExpr where
+    rnf (CBVHInt n) = rnf n `seq` ()
+    rnf (CBVHBool b) = rnf b `seq` ()
+    rnf (CBVHPair e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBVHPlus e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBVHMult e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBVHIf e1 e2 e3) = rnf e1 `seq` rnf e2 `seq` rnf e3 `seq` ()
+    rnf (CBVHEq e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBVHLt e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBVHAnd e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBVHNot e) = rnf e `seq` ()
+    rnf (CBVHProj e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBVHApp e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBVHLam e) = e `seq` ()
+    rnf (CBVHVal e) = rnf e `seq` ()
+
+instance NFData CBVHSExpr where
+    rnf (CBVHSInt n) = rnf n `seq` ()
+    rnf (CBVHSBool b) = rnf b `seq` ()
+    rnf (CBVHSPair e1 e2) = rnf e1 `seq` rnf e2 `seq` ()
+    rnf (CBVHSLam e) = e `seq` ()
+
+instance Eq CBVHSExpr where
+    (==) (CBVHSInt n1) (CBVHSInt n2) = n1 == n2
+    (==) (CBVHSBool b1) (CBVHSBool b2) = b1 == b2
+    (==) (CBVHSPair e1 e2) (CBVHSPair e3 e4) = e1 == e3 && e2 == e4
+    (==) _ _ = False
+
 
 showBinOp :: String -> String -> String -> String
 showBinOp op x y = "("++ x ++ op ++ y ++ ")"
