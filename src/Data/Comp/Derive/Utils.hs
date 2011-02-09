@@ -17,6 +17,8 @@ module Data.Comp.Derive.Utils where
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Control.Monad
+import Language.Haskell.TH.ExpandSyns
+
 {-|
   This is the @Q@-lifted version of 'abstractNewtypeQ.
 -}
@@ -44,6 +46,13 @@ normalCon (ForallC _ _ constr) = normalCon constr
 
 normalCon' :: Con -> (Name,[Type])
 normalCon' = fmap (map snd) . normalCon 
+
+-- | Same as normalCon' but expands type synonyms.
+normalConExp :: Con -> Q (Name,[Type])
+normalConExp c = do 
+  let (n,ts) = normalCon' c
+  ts' <- mapM expandSyns ts
+  return (n, ts')
 
 {-|
   This function provides the name and the arity of the given data constructor.

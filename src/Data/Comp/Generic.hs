@@ -19,6 +19,7 @@ module Data.Comp.Generic where
 import Data.Comp.Term
 import Data.Comp.Sum
 import Data.Foldable
+import Data.Maybe
 import Data.Traversable
 import GHC.Exts
 import Control.Monad hiding (mapM)
@@ -32,6 +33,11 @@ subterms t = build (f t)
           f t cons nil = t `cons` foldl (\u s -> f s cons u) nil (unTerm t)
 -- universe t = t : foldl (\u s -> u ++ universe s) [] (unTerm t)
 
+subs :: Foldable f => Term f -> [Term f]
+subs = query (:[]) (++)
+
+subs' :: (Foldable f, g :<: f) => Term f -> [g (Term f)]
+subs' = catMaybes . map project . subs
 
 -- | This function returns a list of all subterms of the given term
 -- that are constructed from a particular functor.
@@ -51,12 +57,24 @@ transform f = run
     where run = f . Term . fmap run . unTerm
 -- transform f  = f . Term . fmap (transform f) . unTerm
 
+transform' :: (Functor f) => (Term f -> Maybe (Term f)) -> Term f -> Term f
+transform' f = transform f' where
+    f' t = fromMaybe t (f t)
+
 
 -- | Monadic version of 'transform'.
 transformM :: (Traversable f, Monad m) =>
              (Term f -> m (Term f)) -> Term f -> m (Term f)
 transformM  f = run 
     where run t = f =<< (liftM Term $ mapM run $ unTerm t)
+
+query :: Foldable f => (Term f -> r) -> (r -> r -> r) -> Term f -> r
+query q c = run 
+    where run i@(Term t) = foldl (\s x -> s `c` run x) (q i) t
+-- query q c i@(Term t) = foldl (\s x -> s `c` query q c x) (q i) t
+
+gsize :: Foldable f => Term f -> Int
+gsize = query (const 1) (+)
 
 -- | This function computes the generic size of the given term,
 -- i.e. the its number of subterm occurrences.

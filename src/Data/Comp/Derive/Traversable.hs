@@ -40,7 +40,7 @@ instanceTraversable fname = do
       argNames = (map (VarT . tyVarBndrName) (init args))
       complType = foldl AppT (ConT name) argNames
       classType = AppT (ConT ''Traversable) complType
-  constrs' <- P.mapM (mkPatAndVars . isFarg fArg . normalCon') constrs
+  constrs' <- P.mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   traverseDecl <- funD 'traverse (map traverseClause constrs')
   sequenceADecl <- funD 'sequenceA (map sequenceAClause constrs')
   mapMDecl <- funD 'mapM (map mapMClause constrs')

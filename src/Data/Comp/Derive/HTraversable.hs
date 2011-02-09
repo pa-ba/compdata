@@ -42,7 +42,7 @@ instanceHTraversable fname = do
       argNames = (map (VarT . tyVarBndrName) (init args'))
       complType = foldl AppT (ConT name) argNames
       classType = AppT (ConT ''HTraversable) complType
-  constrs' <- P.mapM (mkPatAndVars . isFarg fArg . normalCon') constrs
+  constrs' <- P.mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   traverseDecl <- funD 'htraverse (map traverseClause constrs')
   mapMDecl <- funD 'hmapM (map mapMClause constrs')
   return $ [InstanceD [] classType [traverseDecl, mapMDecl]]

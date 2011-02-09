@@ -58,9 +58,10 @@ instanceHEqF fname = do
       complType = foldl AppT (ConT name) argNames
       preCond = map (ClassP ''Eq . (: [])) argNames
       classType = AppT (ConT ''HEqF) complType
-  eqFDecl <- funD 'heqF  (eqFClauses ftyp constrs)
+  constrs' <- mapM normalConExp constrs
+  eqFDecl <- funD 'heqF  (eqFClauses ftyp constrs constrs')
   return $ [InstanceD preCond classType [eqFDecl]]
-      where eqFClauses ftyp constrs = map (genEqClause ftyp . normalCon') constrs
+      where eqFClauses ftyp constrs constrs' = map (genEqClause ftyp) constrs'
                                    ++ (defEqClause constrs)
             filterFarg fArg ty x = (fArg == ty, x)
             defEqClause constrs

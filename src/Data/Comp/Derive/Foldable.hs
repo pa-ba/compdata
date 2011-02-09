@@ -18,6 +18,7 @@ module Data.Comp.Derive.Foldable
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH
 import Data.Foldable
+import Control.Monad
 import Data.Monoid
 import Data.Maybe
 import qualified Prelude as P (foldl,foldr,foldl1,foldr1)
@@ -39,7 +40,7 @@ instanceFoldable fname = do
       argNames = (map (VarT . tyVarBndrName) (init args))
       complType = foldl AppT (ConT name) argNames
       classType = AppT (ConT ''Foldable) complType
-  constrs' <- mapM (mkPatAndVars . isFarg fArg . normalCon') constrs
+  constrs' <- mapM (mkPatAndVars  . isFarg fArg <=< normalConExp) constrs
   foldDecl <- funD 'fold (map foldClause constrs')
   foldMapDecl <- funD 'foldMap (map foldMapClause constrs')
   foldlDecl <- funD 'foldl (map foldlClause constrs')

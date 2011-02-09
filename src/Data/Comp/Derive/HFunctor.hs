@@ -21,6 +21,7 @@ import Language.Haskell.TH
 import qualified Prelude as P (mapM)
 import Prelude hiding (mapM)
 import Data.Maybe
+import Control.Monad
 
 iter 0 _ e = e
 iter n f e = iter (n-1) f (f `appE` e)
@@ -34,7 +35,7 @@ instanceHFunctor fname = do
       argNames = (map (VarT . tyVarBndrName) (init args'))
       complType = foldl AppT (ConT name) argNames
       classType = AppT (ConT ''HFunctor) complType
-  constrs' <- P.mapM (mkPatAndVars . isFarg fArg . normalCon') constrs
+  constrs' <- P.mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   hfmapDecl <- funD 'hfmap (map hfmapClause constrs')
   return $ [InstanceD [] classType [hfmapDecl]]
       where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)

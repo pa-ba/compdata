@@ -36,9 +36,10 @@ instanceShowF fname = do
       complType = foldl AppT (ConT name) argNames
       preCond = map (ClassP ''Show . (: [])) argNames
       classType = AppT (ConT ''ShowF) complType
-  showFDecl <- funD 'showF (showFClauses fArg constrs)
+  constrs' <- mapM normalConExp constrs
+  showFDecl <- funD 'showF (showFClauses fArg constrs')
   return $ [InstanceD preCond classType [showFDecl]]
-      where showFClauses fArg constrs = map (genShowFClause fArg .normalCon') constrs
+      where showFClauses fArg constrs = map (genShowFClause fArg) constrs
             filterFarg fArg ty x = (fArg == ty, varE x)
             mkShow (isFArg, var)
                 | isFArg = var

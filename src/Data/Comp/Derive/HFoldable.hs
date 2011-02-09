@@ -23,6 +23,7 @@ import Data.Monoid
 import Data.Maybe
 import qualified Prelude as P (foldl,foldr,foldl1)
 import Prelude hiding  (foldl,foldr,foldl1)
+import Control.Monad
 
 
 iter 0 _ e = e
@@ -48,7 +49,7 @@ instanceHFoldable fname = do
       argNames = (map (VarT . tyVarBndrName) (init args'))
       complType = P.foldl AppT (ConT name) argNames
       classType = AppT (ConT ''HFoldable) complType
-  constrs' <- mapM (mkPatAndVars . isFarg fArg . normalCon') constrs
+  constrs' <- mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   foldDecl <- funD 'hfold (map foldClause constrs')
   foldMapDecl <- funD 'hfoldMap (map foldMapClause constrs')
   foldlDecl <- funD 'hfoldl (map foldlClause constrs')
