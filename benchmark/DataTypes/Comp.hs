@@ -85,26 +85,11 @@ data App e = App e e
 $(derive [instanceNFData, instanceArbitrary] [''Proj])
 
 $(derive
-  [instanceFunctor, instanceFoldable, instanceTraversable, instanceEqF, instanceNFDataF,
+  [instanceFunctor, instanceExpFunctor, instanceFoldable, instanceTraversable, instanceEqF, instanceNFDataF,
    instanceArbitraryF, smartConstructors]
   [''Value, ''Op, ''Sugar, ''ValueT, ''FunT, ''App])
 
-$(derive [smartConstructors] [''Lam])
-
-instance ExpFunctor Value where
-    xmap f _ = fmap f
-
-instance ExpFunctor Op where
-    xmap f _ = fmap f
-
-instance ExpFunctor Sugar where
-    xmap f _ = fmap f
-
-instance ExpFunctor App where
-    xmap f _ = fmap f
-
-instance ExpFunctor Lam where
-    xmap f g (Lam h) = Lam $ f . h . g
+$(derive [instanceExpFunctor, smartConstructors] [''Lam])
 
 instance EqF Lam where
     eqF _ _ = False

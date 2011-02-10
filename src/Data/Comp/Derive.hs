@@ -25,6 +25,7 @@ module Data.Comp.Derive (
   module Data.Comp.Derive.HTraversable,
   module Data.Comp.Derive.HShow,
   module Data.Comp.Derive.HEquality,
+  module Data.Comp.Derive.ExpFunctor,
   module Control.DeepSeq,
   instanceFunctor,
   instanceNFData,
@@ -46,6 +47,7 @@ import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Arbitrary
 import Data.Comp.Derive.SmartConstructors
 import Data.Comp.Derive.SmartMConstructors
+import Data.Comp.Derive.ExpFunctor
 
 import Language.Haskell.TH
 import Control.Monad
