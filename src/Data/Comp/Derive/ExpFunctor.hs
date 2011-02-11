@@ -40,8 +40,8 @@ instanceExpFunctor fname = do
   return $ [InstanceD [] classType [xmapDecl]]
       where xmapClause :: Name -> (Name,[Type]) -> ClauseQ
             xmapClause fArg (constr, args) = do
-              fn <- newName "f"
-              gn <- newName "g"
+              fn <- newName "_f"
+              gn <- newName "_g"
               varNs <- newNames (length args) "x"
               let f = varE fn
               let g = varE gn
