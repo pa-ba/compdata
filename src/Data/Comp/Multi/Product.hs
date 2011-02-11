@@ -50,7 +50,7 @@ liftP f v = f (hremoveP v)
 
 constP :: (HDistProd f p g, HFunctor f, HFunctor g) 
        => p -> Cxt h f a :-> Cxt h g a
-constP c = applySigFun (hinjectP c)
+constP c = appSigFun (hinjectP c)
 
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
@@ -66,7 +66,7 @@ functor whith products. -}
 
 stripP :: (HFunctor f, HRemoveP g f, HFunctor g)
        => Cxt h g a :-> Cxt h f a
-stripP = applySigFun hremoveP
+stripP = appSigFun hremoveP
 
 
 productTermHom :: (HDistProd f p f', HDistProd g p g', HFunctor g, HFunctor g') 

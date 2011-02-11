@@ -63,7 +63,7 @@ project (Term t) = proj t
 
 -- |Project a sub term recursively from a term.
 deepProject :: (Traversable f, Functor g, g :<: f) => Cxt h f a -> Maybe (Cxt h g a)
-deepProject = applySigFunM proj
+deepProject = appSigFunM proj
 
 -- |Project a sub term recursively from a term, but where the subterm
 -- signature is required to be traversable.
@@ -82,7 +82,7 @@ proj2 x = case proj x of
 
 -- |Project a binary sub term recursively from a term.
 deepProject2 :: (Traversable f, Functor g1, Functor g2, g1 :<: f, g2 :<: f) => Cxt h f a -> Maybe (Cxt h (g1 :+: g2) a)
-deepProject2 = applySigFunM proj2
+deepProject2 = appSigFunM proj2
 
 -- |Project a ternary term from a term.
 proj3 :: forall f g1 g2 g3 a. (g1 :<: f, g2 :<: f, g3 :<: f) => f a
@@ -97,7 +97,7 @@ proj3 x = case proj x of
 deepProject3 :: (Traversable f, Functor g1, Functor g2, Functor g3,
                  g1 :<: f, g2 :<: f, g3 :<: f) => Cxt h f a
              -> Maybe (Cxt h (g1 :+: g2 :+: g3) a)
-deepProject3 = applySigFunM proj3
+deepProject3 = appSigFunM proj3
 
 -- |Inject a term into a compound term.
 inject :: (g :<: f) => g (Cxt h f a) -> Cxt h f a
@@ -134,7 +134,7 @@ liftCxt g = simpCxt $ inj g
 {-| Deep injection function.  -}
 
 deepInject  :: (Functor g, Functor f, g :<: f) => Cxt h g a -> Cxt h f a
-deepInject = applySigFun inj
+deepInject = appSigFun inj
 
 {-| This is a variant of 'inj' for binary sum signatures.  -}
 
@@ -150,7 +150,7 @@ inject2 = Term . inj2
 -- |A recursive version of 'inj2'.
 deepInject2 :: (Functor f1, Functor f2, Functor g, f1 :<: g, f2 :<: g)
             => Cxt h (f1 :+: f2) a -> Cxt h g a
-deepInject2 = applySigFun inj2
+deepInject2 = appSigFun inj2
 
 {-| This is a variant of 'inj' for ternary sum signatures.  -}
 
@@ -166,7 +166,7 @@ inject3 = Term . inj3
 -- |A recursive version of 'inj3'.
 deepInject3 :: (Functor f1, Functor f2, Functor f3, Functor g, f1 :<: g, f2 :<: g, f3 :<: g)
             => Cxt h (f1 :+: f2 :+: f3) a -> Cxt h g a
-deepInject3 =  applySigFun inj3
+deepInject3 =  appSigFun inj3
 
 
 {-| This function applies the given context with hole type @a@ to a

@@ -125,8 +125,8 @@ class SubstVars v t a where
     substVars :: GSubst v t -> a :-> a
 
 
-applySubst :: SubstVars v t a => GSubst v t -> a :-> a
-applySubst = substVars
+appSubst :: SubstVars v t a => GSubst v t -> a :-> a
+appSubst = substVars
 
 instance (Ord v, HasVars f v, HFunctor f) => SubstVars v (Cxt h f a) (Cxt h f a) where
     substVars f (Term v) = substAlg f $ hfmap (substVars f) v
@@ -147,4 +147,4 @@ compSubst :: (Ord v, HasVars f v, HFunctor f)
           => CxtSubst h a f v -> CxtSubst h a f v -> CxtSubst h a f v
 compSubst s1 s2 v = case s2 v of
                       Nothing -> s1 v
-                      Just t -> Just $ applySubst s1 t
+                      Just t -> Just $ appSubst s1 t

@@ -71,20 +71,20 @@ matchRules trs t = listToMaybe $ catMaybes $ map (`matchRule` t) trs
 given term (resp. context in general). If successful, the function
 returns the result term of the rewrite step; otherwise @Nothing@. -}
 
-applyRule :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
+appRule :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
           => Rule f f v -> Step (Cxt h f a)
-applyRule rule t = do 
+appRule rule t = do 
   (res, subst) <- matchRule rule t
   return $ substHoles' res subst
 
 {-| This function tries to apply one of the rules in the given TRS at
 the root of the given term (resp. context in general) by trying each
-rule one by one using 'applyRule' until one rule is applicable. If no
+rule one by one using 'appRule' until one rule is applicable. If no
 rule is applicable @Nothing@ is returned. -}
 
-applyTRS :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
+appTRS :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
          => TRS f f v -> Step (Cxt h f a)
-applyTRS trs t = listToMaybe $ catMaybes $ map (`applyRule` t) trs
+appTRS trs t = listToMaybe $ catMaybes $ map (`appRule` t) trs
 
 
 {-| This is an auxiliary function that turns function @f@ of type @(t
@@ -92,7 +92,7 @@ applyTRS trs t = listToMaybe $ catMaybes $ map (`applyRule` t) trs
 evaluates to @(y,True)@ if @f x@ evaluates to @Just y@, and to
 @(x,False)@ if $f x@ evaluates to @Nothing@. This function is useful
 to change the output of functions that apply rules such as
-'applyTRS'-}
+'appTRS'-}
 
 bStep :: Step t -> BStep t
 bStep f t = case f t of
@@ -107,7 +107,7 @@ parTopStep :: (Ord v, EqF f, Eq a, Foldable f, Functor f)
            => TRS f f v -> Step (Cxt h f a)
 parTopStep _ Hole{} = Nothing
 parTopStep trs c@(Term t) = tTop `mplus` tBelow'
-    where tTop = applyTRS trs c
+    where tTop = appTRS trs c
           tBelow = fmap (bStep $ parTopStep trs) t
           tAny = any snd tBelow
           tBelow'

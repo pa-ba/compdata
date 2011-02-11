@@ -28,7 +28,7 @@ project (Term t) = hproj t
 -- |Project a sub term recursively from a term.
 deepProject :: (HTraversable f, HFunctor g, g :<<: f)
             => NatM Maybe (Cxt h f a) (Cxt h g a)
-deepProject = applySigFunM hproj
+deepProject = appSigFunM hproj
 
 
 -- |Inject a term into a compound term.
@@ -39,7 +39,7 @@ inject = Term . hinj
 
 deepInject  :: (HFunctor g, HFunctor f, g :<<: f)
             => Cxt h g a :-> Cxt h f a
-deepInject = applySigFun hinj
+deepInject = appSigFun hinj
 
 -- | This function injects a whole context into another context.
 

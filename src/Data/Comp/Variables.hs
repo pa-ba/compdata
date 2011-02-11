@@ -23,7 +23,7 @@ module Data.Comp.Variables (
   variableList,
   variables',
   substVars,
-  applySubst,
+  appSubst,
   compSubst) where
 
 import Data.Comp.Term
@@ -130,8 +130,8 @@ class SubstVars v t a where
     substVars :: (v -> Maybe t) -> a -> a
 
 
-applySubst :: (Ord v, SubstVars v t a) => Map v t -> a -> a
-applySubst subst = substVars f
+appSubst :: (Ord v, SubstVars v t a) => Map v t -> a -> a
+appSubst subst = substVars f
     where f v = Map.lookup v subst
 
 instance (Ord v, HasVars f v, Functor f) => SubstVars v (Cxt h f a) (Cxt h f a) where
@@ -151,4 +151,4 @@ applying the resulting substitution is equivalent to first applying
 
 compSubst :: (Ord v, HasVars f v, Functor f)
           => CxtSubst h a f v -> CxtSubst h a f v -> CxtSubst h a f v
-compSubst s1 s2 = fmap (applySubst s1) s2 `Map.union` s1
+compSubst s1 s2 = fmap (appSubst s1) s2 `Map.union` s1

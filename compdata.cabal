@@ -39,6 +39,7 @@ library
                         Data.Comp.Derive.Traversable, Data.Comp.Derive.HFunctor,
                         Data.Comp.Derive.HFoldable, Data.Comp.Derive.HTraversable, 
                         Data.Comp.Derive.HEquality, Data.Comp.Derive.HShow,
+                        Data.Comp.Derive.ExpFunctor,
                         Data.Comp.Derive.SmartMConstructors
 
   Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns

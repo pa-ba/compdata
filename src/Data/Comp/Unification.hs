@@ -50,9 +50,9 @@ failedOccursCheck v t = throwError $ FailedOccursCheck v t
 headSymbolMismatch :: (MonadError (UnifError f v) m) => Term f -> Term f -> m a
 headSymbolMismatch f g = throwError $ HeadSymbolMismatch f g
 
-applySubstEq :: (Ord v,  HasVars f v, Functor f) =>
+appSubstEq :: (Ord v,  HasVars f v, Functor f) =>
      Subst f v -> Equation f -> Equation f
-applySubstEq s (t1,t2) = (applySubst s t1,applySubst s t2)
+appSubstEq s (t1,t2) = (appSubst s t1,appSubst s t2)
 
 
 {-| This function returns the most general unifier of the given
@@ -84,9 +84,9 @@ putEqs eqs = modify addEqs
     where addEqs s = s {usEqs = eqs ++ usEqs s}
 
 putBinding :: (Monad m, Ord v, HasVars f v, Functor f) => (v, Term f) -> UnifyM f v m ()
-putBinding bind = modify applySubst
+putBinding bind = modify appSubst
     where binds = Map.fromList [bind]
-          applySubst s = s { usEqs = map (applySubstEq binds) (usEqs s),
+          appSubst s = s { usEqs = map (appSubstEq binds) (usEqs s),
                              usSubst = compSubst binds (usSubst s)}
 
 

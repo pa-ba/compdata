@@ -20,8 +20,8 @@ module Data.Comp.Algebra (
       freeAlgHom,
       cata,
       cata',
-      cataExp,
-      applyCxt,
+      cataE,
+      appCxt,
       
       -- * Monadic Algebras & Catamorphisms
       AlgM,
@@ -34,9 +34,9 @@ module Data.Comp.Algebra (
       CxtFun,
       SigFun,
       TermHom,
-      applyTermHom,
+      appTermHom,
       compTermHom,
-      applySigFun,
+      appSigFun,
       compSigFun,
       termHom,
       compAlg,
@@ -49,11 +49,11 @@ module Data.Comp.Algebra (
       TermHomM',
       sigFunM,
       termHom',
-      applyTermHomM,
+      appTermHomM,
       termHomM,
       termHomM',
-      applySigFunM,
-      applySigFunM',
+      appSigFunM,
+      appSigFunM',
       compTermHomM,
       compSigFunM,
       compAlgM,
@@ -145,13 +145,13 @@ cata' f = freeAlgHom f id
 
 {-| This function applies a whole context into another context. -}
 
-applyCxt :: (Functor f) => Context f (Cxt h f a) -> Cxt h f a
-applyCxt = cata' Term
+appCxt :: (Functor f) => Context f (Cxt h f a) -> Cxt h f a
+appCxt = cata' Term
 
 {-| Catamorphism for exponential functors. The intermediate 'cataFS' originates
  from @http://comonad.com/reader/2008/rotten-bananas/@. -}
-cataExp :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
-cataExp f = cataFS . toCxt
+cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
+cataE f = cataFS . toCxt
     where cataFS :: ExpFunctor f => (Context f a) -> a
           cataFS (Term x) = f (xmap cataFS Hole x)
           cataFS (Hole x) = x
@@ -212,12 +212,12 @@ type TermHom f g = SigFun f (Context g)
 {-| This function applies the given term homomorphism to a
 term/context. -}
 
-applyTermHom :: (Functor f, Functor g) => TermHom f g -> CxtFun f g
+appTermHom :: (Functor f, Functor g) => TermHom f g -> CxtFun f g
 -- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b)) -> Cxt h f b -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
-applyTermHom _ (Hole b) = Hole b
-applyTermHom f (Term t) = applyCxt . f . fmap (applyTermHom f) $ t
+appTermHom _ (Hole b) = Hole b
+appTermHom f (Term t) = appCxt . f . fmap (appTermHom f) $ t
 
 {-| This function composes two term algebras
 -}
@@ -227,7 +227,7 @@ compTermHom :: (Functor g, Functor h) => TermHom g h -> TermHom f g -> TermHom f
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b))
 -- -> (a -> Cxt h f b) -> a -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
-compTermHom f g = applyTermHom f . g
+compTermHom f g = appTermHom f . g
 
 
 {-| This function composes a term algebra with an algebra. -}
@@ -239,8 +239,8 @@ compAlg alg talg = cata' alg . talg
 {-| This function applies a signature function to the
 given context. -}
 
-applySigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
-applySigFun f = applyTermHom $ termHom $ f
+appSigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
+appSigFun f = appTermHom $ termHom $ f
 
 
 {-| This function composes two signature functions.  -}
@@ -302,12 +302,12 @@ termHomM f = sigFunM $ termHom f
 
 {-| This function applies the given monadic term homomorphism to the
 given term/context. -}
-applyTermHomM :: forall f g m . (Traversable f, Functor g, Monad m)
+appTermHomM :: forall f g m . (Traversable f, Functor g, Monad m)
          => TermHomM m f g -> CxtFunM m f g
-applyTermHomM f = run
+appTermHomM f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole b) = return $ Hole b
-          run (Term t) = liftM applyCxt . (>>= f) . mapM run $ t
+          run (Term t) = liftM appCxt . (>>= f) . mapM run $ t
 
 {-| This function constructs the unique monadic homomorphism from the
 initial term algebra to the given term algebra. -}
@@ -317,21 +317,21 @@ termHomM' :: forall f g m . (Traversable f, Functor g, Monad m)
 termHomM' f = run 
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole b) = return $ Hole b
-          run (Term t) = liftM applyCxt . f . fmap run $ t
+          run (Term t) = liftM appCxt . f . fmap run $ t
 
 
 {-| This function applies the given monadic signature function to the
 given context -}
 
-applySigFunM :: (Traversable f, Functor g, Monad m) => SigFunM m f g -> CxtFunM m f g
-applySigFunM f = applyTermHomM $ termHom' $ f
+appSigFunM :: (Traversable f, Functor g, Monad m) => SigFunM m f g -> CxtFunM m f g
+appSigFunM f = appTermHomM $ termHom' $ f
 
 {-| This function applies the given monadic signature function to the
 given context -}
 
-applySigFunM' :: forall f g m . (Traversable f, Functor g, Monad m)
+appSigFunM' :: forall f g m . (Traversable f, Functor g, Monad m)
               => SigFunM' m f g -> CxtFunM m f g
-applySigFunM' f = run 
+appSigFunM' f = run 
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole b) = return $ Hole b
           run (Term t) = liftM Term . f . fmap run $ t
@@ -340,7 +340,7 @@ applySigFunM' f = run
 
 compTermHomM :: (Traversable g, Functor h, Monad m)
             => TermHomM m g h -> TermHomM m f g -> TermHomM m f h
-compTermHomM f g a = g a >>= applyTermHomM f
+compTermHomM f g a = g a >>= appTermHomM f
 
 
 {-| This function composes a monadic term algebra with a monadic algebra -}

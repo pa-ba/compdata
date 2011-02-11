@@ -56,7 +56,7 @@ liftP' f v = let (v',p) = projectP v
 functor whith products. -}
 
 stripP :: (Functor f, RemoveP g f, Functor g) => Cxt h g a -> Cxt h f a
-stripP = applySigFun removeP
+stripP = appSigFun removeP
 
 
 productTermHom :: (DistProd f p f', DistProd g p g', Functor g, Functor g') 
@@ -70,7 +70,7 @@ with the given value (of type a). -}
 
 constP :: (DistProd f p g, Functor f, Functor g) 
        => p -> Cxt h f a -> Cxt h g a
-constP c = applySigFun (injectP c)
+constP c = appSigFun (injectP c)
 
 
 {-| This function is similar to 'project' but applies to signatures
