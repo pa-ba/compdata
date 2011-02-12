@@ -2,9 +2,9 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.HEquality
--- Copyright   :  3gERP, 2010
--- License     :  AllRightsReserved
--- Maintainer  :  Patrick Bahr, Tom Hvitved
+-- Copyright   :  (c) Patrick Bahr, 2011
+-- License     :  BSD3
+-- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  unknown
 -- Portability :  unknown
 --

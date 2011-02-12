@@ -3,9 +3,9 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Product
--- Copyright   :  3gERP, 2011
--- License     :  AllRightsReserved
--- Maintainer  :  Tom Hvitved and Patrick Bahr
+-- Copyright   :  (c) 2011 Patrick Bahr
+-- License     :  BSD3
+-- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  unknown
 -- Portability :  unknown
 --

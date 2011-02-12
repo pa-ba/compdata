@@ -3,9 +3,9 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.SmartMConstructors
--- Copyright   :  3gERP, 2011
--- License     :  AllRightsReserved
--- Maintainer  :  Patrick Bahr, Tom Hvitved
+-- Copyright   :  (c) 2011 Patrick Bahr
+-- License     :  BSD3
+-- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  unknown
 -- Portability :  unknown
 --

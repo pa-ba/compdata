@@ -1,9 +1,9 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive
--- Copyright   :  3gERP, 2010
--- License     :  AllRightsReserved
--- Maintainer  :  Tom Hvitved, Patrick Bahr, and Morten Ib Nielsen
+-- Copyright   :  (c) 2010-2011 Patrick Bahr
+-- License     :  BSD3
+-- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  unknown
 -- Portability :  unknown
 --

@@ -3,9 +3,9 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Generic
--- Copyright   :  3gERP, 2011
--- License     :  AllRightsReserved
--- Maintainer  :  Patrick Bahr, Tom Hvitved
+-- Copyright   :  (c) 2011 Patrick Bahr
+-- License     :  BSD3
+-- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  unknown
 -- Portability :  unknown
 --
@@ -22,6 +22,8 @@ import Data.Comp.Multi.HFunctor
 import GHC.Exts
 import Control.Monad
 import Prelude
+
+import Data.Maybe
 
 -- | This function returns a list of all subterms of the given
 -- term. This function is similar to Uniplate's @universe@ function.
@@ -55,6 +57,18 @@ transformM :: forall f m . (HTraversable f, Monad m) =>
 transformM  f = run 
     where run :: NatM m (Term f) (Term f)
           run t = f =<< (liftM Term $ hmapM run $ unTerm t)
+
+query :: HFoldable f => (Term f :=>  r) -> (r -> r -> r) -> Term f :=> r
+-- query q c = run 
+--     where run i@(Term t) = foldl (\s x -> s `c` run x) (q i) t
+query q c i@(Term t) = hfoldl (\s x -> s `c` query q c x) (q i) t
+
+subs :: HFoldable f => Term f  :=> [A (Term f)]
+subs = query (\x-> [A x]) (++)
+
+subs' :: (HFoldable f, g :<<: f) => Term f :=> [A (g (Term f))]
+subs' = catMaybes . map pr . subs
+        where pr (A v) = fmap A (project v)
 
 -- | This function computes the generic size of the given term,
 -- i.e. the its number of subterm occurrences.

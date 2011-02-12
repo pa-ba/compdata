@@ -1,9 +1,9 @@
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp
--- Copyright   :  3gERP, 2011
--- License     :  AllRightsReserved
--- Maintainer  :  Tom Hvitved, Patrick Bahr, and Morten Ib Nielsen
+-- Module      :  Data.Comp.Multi
+-- Copyright   :  (c) 2011 Patrick Bahr
+-- License     :  BSD3
+-- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  unknown
 -- Portability :  unknown
 --

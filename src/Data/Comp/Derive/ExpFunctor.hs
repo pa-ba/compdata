@@ -2,9 +2,9 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.ExpFunctor
--- Copyright   :  3gERP, 2010
--- License     :  AllRightsReserved
--- Maintainer  :  Tom Hvitved, Patrick Bahr, and Morten Ib Nielsen
+-- Copyright   :  (c) 2011 Tom Hvitved
+-- License     :  BSD3
+-- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  unknown
 -- Portability :  unknown
 --

@@ -3,9 +3,9 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Generic
--- Copyright   :  3gERP, 2010
--- License     :  AllRightsReserved
--- Maintainer  :  Tom Hvitved, Patrick Bahr, and Morten Ib Nielsen
+-- Copyright   :  (c) 2011 Patrick Bahr
+-- License     :  BSD3
+-- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  unknown
 -- Portability :  unknown
 --
@@ -33,11 +33,6 @@ subterms t = build (f t)
           f t cons nil = t `cons` foldl (\u s -> f s cons u) nil (unTerm t)
 -- universe t = t : foldl (\u s -> u ++ universe s) [] (unTerm t)
 
-subs :: Foldable f => Term f -> [Term f]
-subs = query (:[]) (++)
-
-subs' :: (Foldable f, g :<: f) => Term f -> [g (Term f)]
-subs' = catMaybes . map project . subs
 
 -- | This function returns a list of all subterms of the given term
 -- that are constructed from a particular functor.

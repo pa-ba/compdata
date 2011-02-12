@@ -1,6 +1,19 @@
 {-# LANGUAGE TypeOperators, KindSignatures, GADTs,
 ScopedTypeVariables, IncoherentInstances, RankNTypes #-}
 
+--------------------------------------------------------------------------------
+-- |
+-- Module      :  Data.Comp.Multi.Sum
+-- Copyright   :  (c) 2011 Patrick Bahr
+-- License     :  BSD3
+-- Maintainer  :  Patrick Bahr <paba@diku.dk>
+-- Stability   :  unknown
+-- Portability :  unknown
+--
+-- This module defines sums on signatures.
+--
+--------------------------------------------------------------------------------
+
 module Data.Comp.Multi.Sum (
   (:<<:)(..),
   (:++:)(..),

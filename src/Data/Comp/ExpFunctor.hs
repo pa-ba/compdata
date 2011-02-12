@@ -4,11 +4,11 @@
 -- Copyright 	: 2008 Edward Kmett
 -- License	: BSD
 --
--- Maintainer	: Tom Hvitved, Patrick Bahr
+-- Maintainer	: Tom Hvitved <hvitved@diku.dk>
 -- Stability	: unknown
 -- Portability	: unknown
 --
--- Exponential functors, see <http://comonad.com/reader/2008/rotten-bananas/>
+-- Exponential functors, see <http://comonad.com/reader/2008/rotten-bananas/>.
 -------------------------------------------------------------------------------------------
 
 module Data.Comp.ExpFunctor
