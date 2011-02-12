@@ -5,8 +5,8 @@
 -- Copyright   :  (c) Patrick Bahr, 2011
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
--- Stability   :  unknown
--- Portability :  unknown
+-- Stability   :  experimental
+-- Portability :  non-portable (GHC Extensions)
 --
 -- The equality algebra (equality on terms).
 --

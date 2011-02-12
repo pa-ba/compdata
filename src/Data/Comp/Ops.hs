@@ -8,8 +8,8 @@
 -- Copyright   :  (c) 2010-2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
--- Stability   :  unknown
--- Portability :  unknown
+-- Stability   :  experimental
+-- Portability :  non-portable (GHC Extensions)
 --
 -- This module provides operators on functors.
 --

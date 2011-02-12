@@ -5,8 +5,8 @@
 -- Copyright   :  (c) 2011 Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
--- Stability   :  unknown
--- Portability :  unknown
+-- Stability   :  experimental
+-- Portability :  non-portable (GHC Extensions)
 --
 --
 --------------------------------------------------------------------------------

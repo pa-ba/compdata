@@ -6,8 +6,8 @@
 -- Copyright   :  (c) 2010-2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
--- Stability   :  unknown
--- Portability :  unknown
+-- Stability   :  experimental
+-- Portability :  non-portable (GHC Extensions)
 --
 -- This module defines term rewriting systems (TRSs) using data types
 -- a la carte.
