@@ -31,7 +31,6 @@ data Value e t where
     VBool :: Bool -> Value e Bool
     VPair :: e s -> e t -> Value e (s,t)
 
-
 data Op e t where
     Plus :: e Int -> e Int -> Op e Int
     Mult :: e Int -> e Int -> Op e Int

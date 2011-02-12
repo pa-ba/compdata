@@ -140,7 +140,7 @@ class ExpFunctor e => Eval2 e v where
     eval2Alg :: e (Term v) -> Term v
 
 eval2 :: (ExpFunctor e, Eval2 e v) => Term e -> Term v
-eval2 = cataExp eval2Alg
+eval2 = cataE eval2Alg
 
 instance (Eval2 f v, Eval2 g v) => Eval2 (f :+: g) v where
     eval2Alg (Inl v) = eval2Alg v

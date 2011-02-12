@@ -16,7 +16,6 @@ module DataTypes.Comp
 import DataTypes
 import Data.Comp.Derive
 import Data.Comp
-import Data.Comp.ExpFunctor
 import Data.Comp.Arbitrary ()
 import Data.Comp.Show
 import Data.Traversable

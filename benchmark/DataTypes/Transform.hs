@@ -53,7 +53,7 @@ class TransCBNHOAS f where
     transCBNHOASAlg :: Alg f CBNHExpr
 
 transCBNHOAS :: (ExpFunctor f, TransCBNHOAS f) => Term f -> CBNHExpr
-transCBNHOAS = cataExp transCBNHOASAlg
+transCBNHOAS = cataE transCBNHOASAlg
 
 instance (TransCBNHOAS f, TransCBNHOAS g) => TransCBNHOAS (f :+: g) where
     transCBNHOASAlg (Inl v) = transCBNHOASAlg v
@@ -87,7 +87,7 @@ class TransCBVHOAS f where
     transCBVHOASAlg :: Alg f CBVHExpr
 
 transCBVHOAS :: (ExpFunctor f, TransCBVHOAS f) => Term f -> CBVHExpr
-transCBVHOAS = cataExp transCBVHOASAlg
+transCBVHOAS = cataE transCBVHOASAlg
 
 instance (TransCBVHOAS f, TransCBVHOAS g) => TransCBVHOAS (f :+: g) where
     transCBVHOASAlg (Inl v) = transCBVHOASAlg v

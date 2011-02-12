@@ -66,6 +66,7 @@ standardBenchmarks :: (PExpr, SugarExpr, String) -> Benchmark
 standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (sExpr, aExpr,n)
     where getBench (sExpr, aExpr,n) = bgroup n [
                  bench "Comp.desugar" (nf A.desugarExpr aExpr),
+                 bench "Comp.desugarAlg" (nf A.desugarExpr2 aExpr),
                  bench "Standard.desugar" (nf S.desugar sExpr),
                  bench "Comp.desugarType" (nf A.desugarType aExpr),
                  bench "Comp.desugarType'" (nf A.desugarType' aExpr),
@@ -98,7 +99,6 @@ standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (
                  bench "Comp.freeVars'" (nf A.freeVars' aExpr),
                  bench "Comp.freeVarsGen" (nf A.freeVarsGen aExpr),
                  bench "Standard.freeVars" (nf S.freeVars sExpr),
-                 bench "Standard.freeVarsGen" (nf S.freeVarsGen sExpr),
                  bench "Standard.freeVarsGen" (nf S.freeVarsGen sExpr)]
 
 randStdBenchmarks :: Int -> IO Benchmark
@@ -131,8 +131,7 @@ main = do b1 <- randStdBenchmarks 5
           b3 <- randStdBenchmarks 20
           let b0 = standardBenchmarks (sExpr, aExpr, "hand-written")
           let b4 = hoasBenchmaks
-          let b5 = shortcutFusion
-          defaultMain  [b0,b1,b2,b3,b4,b5]
+          defaultMain [b0,b1,b2,b3,b4]
 
           
 
