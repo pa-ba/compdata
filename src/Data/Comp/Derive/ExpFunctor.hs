@@ -87,8 +87,6 @@ instanceExpFunctor fname = do
                           error "unexpected top-level ArrowT"
                       ListT ->
                           error "unexpected top-level ListT"
-                      AppT (ConT _) tp' ->
-                          [|fmap|] `appE` xmapArg fArg tp' f g
                       AppT (AppT ArrowT tp1) tp2 -> do
                           -- Note that f and g are swapped in the contravariant
                           -- type tp1
@@ -101,9 +99,7 @@ instanceExpFunctor fname = do
                                        (Just $ infixE (Just $ varE xn)
                                                       [|(.)|]
                                                       (Just ftp1)))
-                      AppT ListT tp' ->
-                          [|map|] `appE` xmapArg fArg tp' f g
+                      AppT _ tp' ->
+                          [|fmap|] `appE` xmapArg fArg tp' f g
                       SigT tp' _ ->
                           xmapArg fArg tp' f g
-                      _ ->
-                          error $ "unsupported type " ++ show tp
