@@ -113,7 +113,7 @@ randStdBenchmarks s = do
   putStr "size of the input term: "
   print $ size aExpr
   putStr "does it type check: "
-   print (A.desugarType aExpr == Right ty)
+  print (A.desugarType aExpr == Right ty)
   return $ standardBenchmarks (sExpr,aExpr, "random (depth: " ++ show s ++ ", size: "++ show (size aExpr) ++ ")")
 
 hoasBenchmaks :: Benchmark
@@ -121,7 +121,7 @@ hoasBenchmaks = getBench (sCBVHOASExpr, aHOASExpr, "HOAS")
     where getBench (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench' (sExpr, aExpr,n)
           getBench' (sExpr,aExpr,n) = bgroup n
                 [
-                 bench "Comp.eval2" (nf (A.eval2 :: HOASExpr -> HOASValueExpr) aExpr),
+                 bench "Comp.eval2" (nf (A.eval2E :: HOASExpr -> HOASValueExpr) aExpr),
                  bench "Standard.evalCBVH2" (nf S.evalCBVH2 sExpr)
                 ]
 
