@@ -1,0 +1,1 @@
+#!./dist/build/benchmark/benchmark --summary=results.csv

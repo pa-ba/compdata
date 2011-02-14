@@ -123,7 +123,7 @@ initial algebra @Term f@ to the given algebra of type @f a -> a@. -}
 
 cata :: forall f a . (Functor f) =>
           Alg f a -> Term f -> a 
-{-# INLINE [1] cata #-}
+{-# NOINLINE [1] cata #-}
 -- cata f = freeAlgHom f undefined
 -- the above definition is safe since terms do not contain holes
 --
@@ -148,7 +148,7 @@ appCxt = cata' Term
 {-| Catamorphism for exponential functors. The intermediate 'cataFS' originates
  from @http://comonad.com/reader/2008/rotten-bananas/@. -}
 cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
-{-# INLINE [1] cataE #-}
+{-# NOINLINE [1] cataE #-}
 cataE f = cataFS . toCxt
     where cataFS :: ExpFunctor f => (Context f a) -> a
           cataFS (Term x) = f (xmap cataFS Hole x)
@@ -181,7 +181,7 @@ freeAlgHomM algm var = run
 {-| This is a monadic version of 'cata'.  -}
 
 cataM :: forall f m a. (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
-{-# INLINE [1] cataM #-}
+{-# NOINLINE [1] cataM #-}
 -- cataM = cata . algM
 cataM algm = run
     where run :: Term f -> m a
@@ -206,7 +206,7 @@ each subcontext of the given context. -}
 
 cataM' :: forall h f a m . (Traversable f, Monad m)
             => AlgM m f a -> Cxt h f a -> m a
-{-# INLINE [1] cataM' #-}
+{-# NOINLINE [1] cataM' #-}
 -- cataM' f = freeAlgHom (\x -> sequence x >>= f) return
 cataM' f = run
     where run :: Cxt h f a -> m a
@@ -232,7 +232,7 @@ type TermHom f g = SigFun f (Context g)
 term/context. -}
 
 appTermHom :: (Functor f, Functor g) => TermHom f g -> CxtFun f g
-{-# INLINE [1] appTermHom #-}
+{-# NOINLINE [1] appTermHom #-}
 -- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b)) -> Cxt h f b -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
@@ -341,7 +341,7 @@ termHomM f = sigFunM $ termHom f
 given term/context. -}
 appTermHomM :: forall f g m . (Traversable f, Functor g, Monad m)
          => TermHomM m f g -> CxtFunM m f g
-{-# INLINE [1] appTermHomM #-}
+{-# NOINLINE [1] appTermHomM #-}
 appTermHomM f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole b) = return $ Hole b

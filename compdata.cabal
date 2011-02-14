@@ -58,7 +58,7 @@ Executable benchmark
   Main-is:		Benchmark.hs
   Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns
   hs-source-dirs:	src benchmark
-  ghc-options:          -O2
+  ghc-options:          -W -O2
   cpp-options:          -DNO_RULES
   if !flag(benchmark)
     buildable:     False
