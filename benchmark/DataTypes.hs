@@ -1,12 +1,14 @@
-{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE TypeSynonymInstances, CPP #-}
 
 module DataTypes where
 
 type Err = Either String
 
--- instance Monad Err where
---     return = Right
---     e >>= f = case e of 
---                 Left m -> Left m
---                 Right x -> f x
---     fail  = Left
+#if __GLASGOW_HASKELL__ < 700
+instance Monad Err where
+    return = Right
+    e >>= f = case e of 
+                Left m -> Left m
+                Right x -> f x
+    fail  = Left
+#endif

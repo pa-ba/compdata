@@ -84,8 +84,8 @@ data App e = App e e
 $(derive [instanceNFData, instanceArbitrary] [''Proj])
 
 $(derive
-  [instanceFunctor, instanceExpFunctor, instanceFoldable, instanceTraversable, instanceEqF, instanceNFDataF,
-   instanceArbitraryF, smartConstructors]
+  [instanceFunctor, instanceExpFunctor, instanceFoldable, instanceTraversable,
+   instanceEqF, instanceNFDataF, instanceArbitraryF, smartConstructors]
   [''Value, ''Op, ''Sugar, ''ValueT, ''FunT, ''App])
 
 $(derive [instanceExpFunctor, smartConstructors] [''Lam])

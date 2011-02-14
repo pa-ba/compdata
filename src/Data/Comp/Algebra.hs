@@ -1,5 +1,5 @@
 {-# LANGUAGE GADTs, RankNTypes, ScopedTypeVariables, TypeOperators,
-  FlexibleContexts #-}
+  FlexibleContexts, CPP #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -123,6 +123,7 @@ initial algebra @Term f@ to the given algebra of type @f a -> a@. -}
 
 cata :: forall f a . (Functor f) =>
           Alg f a -> Term f -> a 
+{-# INLINE [1] cata #-}
 -- cata f = freeAlgHom f undefined
 -- the above definition is safe since terms do not contain holes
 --
@@ -131,10 +132,6 @@ cata f = run
     where run :: Term f -> a
           run (Term t) = f (fmap run t)
 
-{-# INLINE [0] cata #-}
-
--- Inline only in the final stage, in order for shortcut-fusion to
--- work.
 
 {-| This function applies the given algebra recursively to each
 subcontext of the given context. -}
@@ -151,11 +148,18 @@ appCxt = cata' Term
 {-| Catamorphism for exponential functors. The intermediate 'cataFS' originates
  from @http://comonad.com/reader/2008/rotten-bananas/@. -}
 cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
+{-# INLINE [1] cataE #-}
 cataE f = cataFS . toCxt
     where cataFS :: ExpFunctor f => (Context f a) -> a
           cataFS (Term x) = f (xmap cataFS Hole x)
           cataFS (Hole x) = x
 
+#ifndef NO_RULES
+{-# RULES 
+  "cataE/cata" forall (a :: Alg f d) (x :: Functor f => Term f) .
+    cataE a x = cata a x
+    #-}
+#endif
 
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
 the return type is monadic.  -}
@@ -177,10 +181,24 @@ freeAlgHomM algm var = run
 {-| This is a monadic version of 'cata'.  -}
 
 cataM :: forall f m a. (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
+{-# INLINE [1] cataM #-}
 -- cataM = cata . algM
 cataM algm = run
     where run :: Term f -> m a
           run (Term x) = mapM run x >>= algm
+
+#ifndef NO_RULES
+{-# RULES 
+  "cataM/appTermHomM" forall (a :: AlgM m g d) (h :: TermHomM m f g) x.
+     appTermHomM h x >>= cataM a = cataM (compAlgM a h) x;
+
+  "cataM/appTermHom" forall (a :: AlgM m g d) (h :: TermHom f g) (x :: Traversable f => Term f).
+     cataM a (appTermHom h x) = cataM (compAlgM' a h) x;
+
+  "appTermHomM/appTermHomM" forall (a :: TermHomM m g h) (h :: TermHomM m f g) x.
+    appTermHomM h x >>= appTermHomM a = appTermHomM (compTermHomM a h) x;
+ #-}
+#endif
 
 
 {-| This function applies the given monadic algebra recursively to
@@ -188,6 +206,7 @@ each subcontext of the given context. -}
 
 cataM' :: forall h f a m . (Traversable f, Monad m)
             => AlgM m f a -> Cxt h f a -> m a
+{-# INLINE [1] cataM' #-}
 -- cataM' f = freeAlgHom (\x -> sequence x >>= f) return
 cataM' f = run
     where run :: Cxt h f a -> m a
@@ -213,11 +232,15 @@ type TermHom f g = SigFun f (Context g)
 term/context. -}
 
 appTermHom :: (Functor f, Functor g) => TermHom f g -> CxtFun f g
+{-# INLINE [1] appTermHom #-}
 -- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b)) -> Cxt h f b -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
 appTermHom _ (Hole b) = Hole b
 appTermHom f (Term t) = appCxt . f . fmap (appTermHom f) $ t
+
+
+
 
 {-| This function composes two term algebras
 -}
@@ -228,6 +251,20 @@ compTermHom :: (Functor g, Functor h) => TermHom g h -> TermHom f g -> TermHom f
 -- -> (a -> Cxt h f b) -> a -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
 compTermHom f g = appTermHom f . g
+
+#ifndef NO_RULES
+{-# RULES
+  "cata/appTermHom" forall (a :: Alg g d) (h :: TermHom f g) x.
+    cata a (appTermHom h x) = cata (compAlg a h) x;
+
+  "appTermHom/appTermHom" forall (a :: TermHom g h) (h :: TermHom f g) x.
+    appTermHom a (appTermHom h x) = appTermHom (compTermHom a h) x;
+
+  "cataE/appTermHom" forall (a :: Alg g d) (h :: TermHom f g) (x :: ExpFunctor f => Term f) .
+    cataE a (appTermHom h x) = cataE (compAlg a h) x
+ #-}
+#endif
+
 
 
 {-| This function composes a term algebra with an algebra. -}
@@ -304,6 +341,7 @@ termHomM f = sigFunM $ termHom f
 given term/context. -}
 appTermHomM :: forall f g m . (Traversable f, Functor g, Monad m)
          => TermHomM m f g -> CxtFunM m f g
+{-# INLINE [1] appTermHomM #-}
 appTermHomM f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole b) = return $ Hole b
@@ -387,15 +425,13 @@ ana' f t = build $ run t
               run' t = con $ fmap run' (f t)
 
 build :: (forall a. Alg f a -> a) -> Term f
+{-# INLINE [1] build #-}
 build g = g Term
 
-{-# INLINE [1] build #-}
--- only allow inlining in phase 1
 {-# RULES
   "cata/build"  forall alg (g :: forall a . Alg f a -> a) .
                 cata alg (build g) = g alg
  #-}
--- 
 
 
 {-| Anamorphism for exponential functors. -}

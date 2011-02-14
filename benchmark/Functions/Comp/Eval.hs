@@ -139,8 +139,11 @@ instance (Monad m) => EvalDir Sugar m where
 class ExpFunctor e => Eval2 e v where
     eval2Alg :: e (Term v) -> Term v
 
-eval2 :: (ExpFunctor e, Eval2 e v) => Term e -> Term v
-eval2 = cataE eval2Alg
+eval2 :: (Functor e, Eval2 e v) => Term e -> Term v
+eval2 = cata eval2Alg
+
+eval2E :: (ExpFunctor e, Eval2 e v) => Term e -> Term v
+eval2E = cataE eval2Alg
 
 instance (Eval2 f v, Eval2 g v) => Eval2 (f :+: g) v where
     eval2Alg (Inl v) = eval2Alg v
@@ -268,13 +271,20 @@ desugarEvalAlg = evalAlg  `compAlgM'` (desugarAlg :: TermHom SugarSig ExprSig)
 
 
 desugarEval' :: SugarExpr -> Err ValueExpr
-desugarEval' e = cataM desugarEvalAlg e
+desugarEval' = cataM desugarEvalAlg
 
 desugarEval2 :: SugarExpr -> ValueExpr
 desugarEval2 = eval2 . (desugar :: SugarExpr -> Expr)
 
+desugarEval2E :: SugarExpr -> ValueExpr
+desugarEval2E = eval2E . (desugar :: SugarExpr -> Expr)
+
+
 evalSugar2 :: SugarExpr -> ValueExpr
 evalSugar2 = eval2
+
+evalSugar2E :: SugarExpr -> ValueExpr
+evalSugar2E = eval2E
 
 
 desugarEval2Alg  :: Alg SugarSig ValueExpr
@@ -282,4 +292,7 @@ desugarEval2Alg = eval2Alg  `compAlg` (desugarAlg :: TermHom SugarSig ExprSig)
 
 
 desugarEval2' :: SugarExpr -> ValueExpr
-desugarEval2' e = cata desugarEval2Alg e
+desugarEval2' = cata desugarEval2Alg
+
+desugarEval2E' :: SugarExpr -> ValueExpr
+desugarEval2E' = cataE desugarEval2Alg

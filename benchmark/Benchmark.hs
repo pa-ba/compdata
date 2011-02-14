@@ -113,7 +113,7 @@ randStdBenchmarks s = do
   putStr "size of the input term: "
   print $ size aExpr
   putStr "does it type check: "
-  print (A.desugarType aExpr == Right ty)
+   print (A.desugarType aExpr == Right ty)
   return $ standardBenchmarks (sExpr,aExpr, "random (depth: " ++ show s ++ ", size: "++ show (size aExpr) ++ ")")
 
 hoasBenchmaks :: Benchmark
