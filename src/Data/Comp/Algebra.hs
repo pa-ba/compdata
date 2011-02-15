@@ -22,6 +22,7 @@ module Data.Comp.Algebra (
       cata',
       cataE,
       appCxt,
+      appCxtE,
       
       -- * Monadic Algebras & Catamorphisms
       AlgM,
@@ -35,6 +36,7 @@ module Data.Comp.Algebra (
       SigFun,
       TermHom,
       appTermHom,
+      appTermHomE,
       compTermHom,
       appSigFun,
       compSigFun,
@@ -145,6 +147,7 @@ cata' f = freeAlgHom f id
 appCxt :: (Functor f) => Context f (Cxt h f a) -> Cxt h f a
 appCxt = cata' Term
 
+
 {-| Catamorphism for exponential functors. The intermediate 'cataFS' originates
  from @http://comonad.com/reader/2008/rotten-bananas/@. -}
 cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
@@ -154,12 +157,20 @@ cataE f = cataFS . toCxt
           cataFS (Term x) = f (xmap cataFS Hole x)
           cataFS (Hole x) = x
 
-#ifndef NO_RULES
-{-# RULES 
-  "cataE/cata" forall (a :: Alg f d) (x :: Functor f => Term f) .
-    cataE a x = cata a x
-    #-}
-#endif
+
+-- | Variant of 'appCxt' for contexts over 'ExpFunctor' signatures.
+
+appCxtE :: (ExpFunctor f) => Context f (Cxt h f a) -> Cxt h f a
+appCxtE (Term x) = Term (xmap appCxtE Hole x)
+appCxtE (Hole x) = x
+
+-- | Variant of 'appTermHom' for term homomorphisms from and to
+-- 'ExpFunctor' signatures.
+appTermHomE :: (ExpFunctor f, ExpFunctor g) => TermHom f g -> Term f -> Term g
+appTermHomE f = cataFS . toCxt
+    where cataFS (Term x) = appCxtE $ f (xmap cataFS Hole x)
+          cataFS (Hole x) = x
+
 
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
 the return type is monadic.  -}
@@ -192,7 +203,7 @@ cataM algm = run
   "cataM/appTermHomM" forall (a :: AlgM m g d) (h :: TermHomM m f g) x.
      appTermHomM h x >>= cataM a = cataM (compAlgM a h) x;
 
-  "cataM/appTermHom" forall (a :: AlgM m g d) (h :: TermHom f g) (x :: Traversable f => Term f).
+  "cataM/appTermHom" forall (a :: AlgM m g d) (h :: TermHom f g) x.
      cataM a (appTermHom h x) = cataM (compAlgM' a h) x;
 
   "appTermHomM/appTermHomM" forall (a :: TermHomM m g h) (h :: TermHomM m f g) x.
@@ -231,11 +242,15 @@ type TermHom f g = SigFun f (Context g)
 {-| This function applies the given term homomorphism to a
 term/context. -}
 
-appTermHom :: (Functor f, Functor g) => TermHom f g -> CxtFun f g
+appTermHom :: (Traversable f, Functor g) => TermHom f g -> CxtFun f g
 {-# NOINLINE [1] appTermHom #-}
 -- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b)) -> Cxt h f b -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
+
+-- Constraint Traversable f is not essential and can be replaced by
+-- Functor f. It is, however, needed for the shortcut-fusion rules to
+-- work.
 appTermHom _ (Hole b) = Hole b
 appTermHom f (Term t) = appCxt . f . fmap (appTermHom f) $ t
 
@@ -245,11 +260,16 @@ appTermHom f (Term t) = appCxt . f . fmap (appTermHom f) $ t
 {-| This function composes two term algebras
 -}
 
-compTermHom :: (Functor g, Functor h) => TermHom g h -> TermHom f g -> TermHom f h
+compTermHom :: (Traversable g, Functor h) => TermHom g h -> TermHom f g -> TermHom f h
 -- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b))
 -- -> (a -> Cxt h f b) -> a -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
+
+
+-- Constraint Traversable f is not essential and can be replaced by
+-- Functor f. It is, however, needed for the shortcut-fusion rules to
+-- work.
 compTermHom f g = appTermHom f . g
 
 #ifndef NO_RULES
@@ -276,7 +296,10 @@ compAlg alg talg = cata' alg . talg
 {-| This function applies a signature function to the
 given context. -}
 
-appSigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
+appSigFun :: (Traversable f, Functor g) => SigFun f g -> CxtFun f g
+-- Constraint Traversable f is not essential and can be replaced by
+-- Functor f. It is, however, needed for the shortcut-fusion rules to
+-- work.
 appSigFun f = appTermHom $ termHom $ f
 
 
