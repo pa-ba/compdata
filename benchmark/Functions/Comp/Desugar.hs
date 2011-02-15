@@ -12,10 +12,11 @@ module Functions.Comp.Desugar where
 
 import DataTypes.Comp
 import Data.Comp
+import Data.Traversable
 
 -- de-sugar
 
-class (Functor e, Functor f) => Desugar f e where
+class (Functor e, Traversable f) => Desugar f e where
     desugarAlg :: TermHom f e
     desugarAlg = desugarAlg' . fmap Hole
     desugarAlg' :: Alg f (Context e a)

@@ -239,20 +239,26 @@ type SigFun f g = forall a. f a -> g a
 
 type TermHom f g = SigFun f (Context g)
 
-{-| This function applies the given term homomorphism to a
-term/context. -}
+
 
 appTermHom :: (Traversable f, Functor g) => TermHom f g -> CxtFun f g
-{-# NOINLINE [1] appTermHom #-}
--- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
--- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b)) -> Cxt h f b -> Cxt h g b
--- would achieve the same. The given type is chosen for clarity.
-
+{-# NOINLINE [1] appTermHom' #-}
 -- Constraint Traversable f is not essential and can be replaced by
 -- Functor f. It is, however, needed for the shortcut-fusion rules to
 -- work.
-appTermHom _ (Hole b) = Hole b
-appTermHom f (Term t) = appCxt . f . fmap (appTermHom f) $ t
+appTermHom = appTermHom'
+
+{-| This function applies the given term homomorphism to a
+term/context. -}
+
+appTermHom' :: (Functor f, Functor g) => TermHom f g -> CxtFun f g
+
+-- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
+-- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b)) -> Cxt h f b -> Cxt h g b
+-- would achieve the same. The given type is chosen for clarity.
+appTermHom' f = run where
+    run (Hole b) = Hole b
+    run (Term t) = appCxt . f . fmap run $ t
 
 
 
@@ -260,17 +266,12 @@ appTermHom f (Term t) = appCxt . f . fmap (appTermHom f) $ t
 {-| This function composes two term algebras
 -}
 
-compTermHom :: (Traversable g, Functor h) => TermHom g h -> TermHom f g -> TermHom f h
+compTermHom :: (Functor g, Functor h) => TermHom g h -> TermHom f g -> TermHom f h
 -- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b))
 -- -> (a -> Cxt h f b) -> a -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
-
-
--- Constraint Traversable f is not essential and can be replaced by
--- Functor f. It is, however, needed for the shortcut-fusion rules to
--- work.
-compTermHom f g = appTermHom f . g
+compTermHom f g = appTermHom' f . g
 
 #ifndef NO_RULES
 {-# RULES
@@ -296,11 +297,8 @@ compAlg alg talg = cata' alg . talg
 {-| This function applies a signature function to the
 given context. -}
 
-appSigFun :: (Traversable f, Functor g) => SigFun f g -> CxtFun f g
--- Constraint Traversable f is not essential and can be replaced by
--- Functor f. It is, however, needed for the shortcut-fusion rules to
--- work.
-appSigFun f = appTermHom $ termHom $ f
+appSigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
+appSigFun f = appTermHom' $ termHom $ f
 
 
 {-| This function composes two signature functions.  -}
