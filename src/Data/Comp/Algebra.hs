@@ -166,9 +166,11 @@ appCxtE (Hole x) = x
 
 -- | Variant of 'appTermHom' for term homomorphisms from and to
 -- 'ExpFunctor' signatures.
-appTermHomE :: (ExpFunctor f, ExpFunctor g) => TermHom f g -> Term f -> Term g
+appTermHomE :: forall f g . (ExpFunctor f, ExpFunctor g) => TermHom f g
+            -> Term f -> Term g
 appTermHomE f = cataFS . toCxt
-    where cataFS (Term x) = appCxtE $ f (xmap cataFS Hole x)
+    where cataFS :: Context f (Term g) -> Term g
+          cataFS (Term x) = appCxtE $ f (xmap cataFS Hole x)
           cataFS (Hole x) = x
 
 
@@ -251,12 +253,13 @@ appTermHom = appTermHom'
 {-| This function applies the given term homomorphism to a
 term/context. -}
 
-appTermHom' :: (Functor f, Functor g) => TermHom f g -> CxtFun f g
+appTermHom' :: forall f g . (Functor f, Functor g) => TermHom f g -> CxtFun f g
 
 -- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b)) -> Cxt h f b -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
 appTermHom' f = run where
+    run :: CxtFun f g
     run (Hole b) = Hole b
     run (Term t) = appCxt . f . fmap run $ t
 
