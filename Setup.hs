@@ -4,7 +4,8 @@ import Distribution.PackageDescription
 import System.Cmd
 import System.FilePath
 import System.Directory
-import System.IO.Error
+import Control.Exception
+import System.IO.Error (isDoesNotExistError)
 
 
 main = defaultMainWithHooks hooks
