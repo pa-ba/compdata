@@ -20,9 +20,7 @@ module Data.Comp.Algebra (
       freeAlgHom,
       cata,
       cata',
-      cataE,
       appCxt,
-      appCxtE,
       
       -- * Monadic Algebras & Catamorphisms
       AlgM,
@@ -36,7 +34,6 @@ module Data.Comp.Algebra (
       SigFun,
       TermHom,
       appTermHom,
-      appTermHomE,
       compTermHom,
       appSigFun,
       compSigFun,
@@ -93,7 +90,13 @@ module Data.Comp.Algebra (
       CVCoalg,
       futu,
       CVCoalgM,
-      futuM
+      futuM,
+
+      -- * Exponential Functors
+
+      appTermHomE,
+      cataE,
+      appCxtE,
       
     ) where
 
@@ -148,31 +151,6 @@ appCxt :: (Functor f) => Context f (Cxt h f a) -> Cxt h f a
 appCxt = cata' Term
 
 
-{-| Catamorphism for exponential functors. The intermediate 'cataFS' originates
- from @http://comonad.com/reader/2008/rotten-bananas/@. -}
-cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
-{-# NOINLINE [1] cataE #-}
-cataE f = cataFS . toCxt
-    where cataFS :: ExpFunctor f => (Context f a) -> a
-          cataFS (Term x) = f (xmap cataFS Hole x)
-          cataFS (Hole x) = x
-
-
--- | Variant of 'appCxt' for contexts over 'ExpFunctor' signatures.
-
-appCxtE :: (ExpFunctor f) => Context f (Cxt h f a) -> Cxt h f a
-appCxtE (Term x) = Term (xmap appCxtE Hole x)
-appCxtE (Hole x) = x
-
--- | Variant of 'appTermHom' for term homomorphisms from and to
--- 'ExpFunctor' signatures.
-appTermHomE :: forall f g . (ExpFunctor f, ExpFunctor g) => TermHom f g
-            -> Term f -> Term g
-appTermHomE f = cataFS . toCxt
-    where cataFS :: Context f (Term g) -> Term g
-          cataFS (Term x) = appCxtE $ f (xmap cataFS Hole x)
-          cataFS (Hole x) = x
-
 
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
 the return type is monadic.  -}
@@ -200,18 +178,7 @@ cataM algm = run
     where run :: Term f -> m a
           run (Term x) = mapM run x >>= algm
 
-#ifndef NO_RULES
-{-# RULES 
-  "cataM/appTermHomM" forall (a :: AlgM m g d) (h :: TermHomM m f g) x.
-     appTermHomM h x >>= cataM a = cataM (compAlgM a h) x;
 
-  "cataM/appTermHom" forall (a :: AlgM m g d) (h :: TermHom f g) x.
-     cataM a (appTermHom h x) = cataM (compAlgM' a h) x;
-
-  "appTermHomM/appTermHomM" forall (a :: TermHomM m g h) (h :: TermHomM m f g) x.
-    appTermHomM h x >>= appTermHomM a = appTermHomM (compTermHomM a h) x;
- #-}
-#endif
 
 
 {-| This function applies the given monadic algebra recursively to
@@ -244,7 +211,7 @@ type TermHom f g = SigFun f (Context g)
 
 
 appTermHom :: (Traversable f, Functor g) => TermHom f g -> CxtFun f g
-{-# NOINLINE [1] appTermHom' #-}
+{-# INLINE [1] appTermHom #-}
 -- Constraint Traversable f is not essential and can be replaced by
 -- Functor f. It is, however, needed for the shortcut-fusion rules to
 -- work.
@@ -254,7 +221,7 @@ appTermHom = appTermHom'
 term/context. -}
 
 appTermHom' :: forall f g . (Functor f, Functor g) => TermHom f g -> CxtFun f g
-
+{-# NOINLINE [1] appTermHom' #-}
 -- Note: The rank 2 type polymorphism is not necessary. Alternatively, also the type
 -- (Functor f, Functor g) => (f (Cxt h g b) -> Context g (Cxt h g b)) -> Cxt h f b -> Cxt h g b
 -- would achieve the same. The given type is chosen for clarity.
@@ -276,18 +243,7 @@ compTermHom :: (Functor g, Functor h) => TermHom g h -> TermHom f g -> TermHom f
 -- would achieve the same. The given type is chosen for clarity.
 compTermHom f g = appTermHom' f . g
 
-#ifndef NO_RULES
-{-# RULES
-  "cata/appTermHom" forall (a :: Alg g d) (h :: TermHom f g) x.
-    cata a (appTermHom h x) = cata (compAlg a h) x;
 
-  "appTermHom/appTermHom" forall (a :: TermHom g h) (h :: TermHom f g) x.
-    appTermHom a (appTermHom h x) = appTermHom (compTermHom a h) x;
-
-  "cataE/appTermHom" forall (a :: Alg g d) (h :: TermHom f g) (x :: ExpFunctor f => Term f) .
-    cataE a (appTermHom h x) = cataE (compAlg a h) x
- #-}
-#endif
 
 
 
@@ -452,11 +408,6 @@ build :: (forall a. Alg f a -> a) -> Term f
 {-# INLINE [1] build #-}
 build g = g Term
 
-{-# RULES
-  "cata/build"  forall alg (g :: forall a . Alg f a -> a) .
-                cata alg (build g) = g alg
- #-}
-
 
 {-| Anamorphism for exponential functors. -}
 anaExp :: forall a f . ExpFunctor f => Coalg f a -> a -> Term (f :&: a)
@@ -617,3 +568,67 @@ futuM coa = anaM run . Hole
     where run :: CoalgM m f (Context f a)
           run (Hole a) = coa a
           run (Term v) = return v
+
+
+--------------------------
+-- Exponential Functors --
+--------------------------
+
+{-| Catamorphism for exponential functors. The intermediate 'cataFS' originates
+ from @http://comonad.com/reader/2008/rotten-bananas/@. -}
+cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
+{-# NOINLINE [1] cataE #-}
+cataE f = cataFS . toCxt
+    where cataFS :: ExpFunctor f => (Context f a) -> a
+          cataFS (Term x) = f (xmap cataFS Hole x)
+          cataFS (Hole x) = x
+
+
+-- | Variant of 'appCxt' for contexts over 'ExpFunctor' signatures.
+
+appCxtE :: (ExpFunctor f) => Context f (Cxt h f a) -> Cxt h f a
+appCxtE (Term x) = Term (xmap appCxtE Hole x)
+appCxtE (Hole x) = x
+
+-- | Variant of 'appTermHom' for term homomorphisms from and to
+-- 'ExpFunctor' signatures.
+appTermHomE :: forall f g . (ExpFunctor f, ExpFunctor g) => TermHom f g
+            -> Term f -> Term g
+appTermHomE f = cataFS . toCxt
+    where cataFS :: Context f (Term g) -> Term g
+          cataFS (Term x) = appCxtE $ f (xmap cataFS Hole x)
+          cataFS (Hole x) = x
+
+
+-------------------
+-- rewrite rules --
+-------------------
+
+#ifndef NO_RULES
+{-# RULES
+  "cata/appTermHom" forall (a :: Alg g d) (h :: TermHom f g) x.
+    cata a (appTermHom h x) = cata (compAlg a h) x;
+
+  "appTermHom/appTermHom" forall (a :: TermHom g h) (h :: TermHom f g) x.
+    appTermHom a (appTermHom h x) = appTermHom (compTermHom a h) x;
+
+  "cataE/appTermHom" forall (a :: Alg g d) (h :: TermHom f g) (x :: ExpFunctor f => Term f) .
+    cataE a (appTermHom h x) = cataE (compAlg a h) x
+ #-}
+
+{-# RULES 
+  "cataM/appTermHomM" forall (a :: AlgM m g d) (h :: TermHomM m f g) x.
+     appTermHomM h x >>= cataM a = cataM (compAlgM a h) x;
+
+  "cataM/appTermHom" forall (a :: AlgM m g d) (h :: TermHom f g) x.
+     cataM a (appTermHom h x) = cataM (compAlgM' a h) x;
+
+  "appTermHomM/appTermHomM" forall (a :: TermHomM m g h) (h :: TermHomM m f g) x.
+    appTermHomM h x >>= appTermHomM a = appTermHomM (compTermHomM a h) x;
+ #-}
+
+{-# RULES
+  "cata/build"  forall alg (g :: forall a . Alg f a -> a) .
+                cata alg (build g) = g alg
+ #-}
+#endif
