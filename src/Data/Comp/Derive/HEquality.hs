@@ -8,7 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- The equality algebra (equality on terms).
+-- Automatically derive instances of @HEqF@.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Derive.HEquality

@@ -8,7 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- The equality algebra (equality on terms).
+-- Automatically derive instances of @EqF@.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Derive.Equality
@@ -21,9 +21,8 @@ import Data.Comp.Derive.Utils
 import Language.Haskell.TH hiding (Cxt, match)
 
 
-{-|
-  Functor type class that provides an 'Eq' instance for the corresponding
-  term type class.
+{-| Equality for signatures. An instance @Eq f@ gives rise to an instance
+  @Eq (Term f)@, i.e. equality for terms over @f@.
 -}
 class EqF f where
 

@@ -9,6 +9,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
+-- Automatically derive smart constructors.
 --
 --------------------------------------------------------------------------------
 

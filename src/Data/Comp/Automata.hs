@@ -1,5 +1,4 @@
 {-# LANGUAGE RankNTypes #-}
-
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata
@@ -9,7 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines tree automata based on data types a la carte.
+-- This module defines tree automata based on compositional data types.
 --
 --------------------------------------------------------------------------------
 

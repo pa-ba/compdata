@@ -8,7 +8,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- The equality algebra (equality on terms).
+-- This module defines equality for signatures, which lifts to equality for
+-- terms and contexts.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Equality

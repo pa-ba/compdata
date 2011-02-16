@@ -45,7 +45,7 @@ type Rule f g v = (Context f v, Context g v)
 
 
 {-| This type represents term rewriting systems (TRSs) from signature
-@f@ to signature @g@ over variables of type @v@.-}
+@f@ to signature @g@ over variables of type @v@. -}
 
 type TRS f g v = [Rule f g v]
 
@@ -87,12 +87,12 @@ appTRS :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
 appTRS trs t = listToMaybe $ mapMaybe (`appRule` t) trs
 
 
-{-| This is an auxiliary function that turns function @f@ of type @(t
--> Maybe t)@ into functions @f'@ of type @t -> (t,Bool)@. @f' x@
+{-| This is an auxiliary function that turns function @f@ of type
+  @(t -> Maybe t)@ into functions @f'@ of type @t -> (t,Bool)@. @f' x@
 evaluates to @(y,True)@ if @f x@ evaluates to @Just y@, and to
 @(x,False)@ if $f x@ evaluates to @Nothing@. This function is useful
 to change the output of functions that apply rules such as
-'appTRS'-}
+'appTRS'. -}
 
 bStep :: Step t -> BStep t
 bStep f t = case f t of

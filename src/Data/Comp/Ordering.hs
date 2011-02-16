@@ -8,7 +8,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- The ordering algebra (orderings on terms).
+-- This module defines ordering of signatures, which lifts to ordering of
+-- terms and contexts.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Ordering

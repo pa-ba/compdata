@@ -1,5 +1,4 @@
 {-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes #-}
-
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Term
@@ -40,11 +39,12 @@ import Unsafe.Coerce
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 
 
+{-|  -}
 type Const f = f ()
 
 {-| This function converts a constant to a term. This assumes that the
 argument is indeed a constant, i.e. does not have a value for the
-argument type of the functor f. -}
+argument type of the functor @f@. -}
 
 constTerm :: (Functor f) => Const f -> Term f
 constTerm = Term . fmap (const undefined)
@@ -71,14 +71,13 @@ data NoHole
 
 type Context = Cxt Hole
 
+{-| Convert a functorial value into a context.  -}
 simpCxt :: (Functor f) => f a -> Context f a
 {-# INLINE simpCxt #-}
 simpCxt = Term . fmap Hole
 
 
-{-| Cast a term over an exponential functor to a context over the same
- exponential functor. Since 'f' is an exponential functor, we cannot actually
- write the translation, so we resolve to using 'unsafeCoerce'. -}
+{-| Cast a term over a signature to a context over the same signature. -}
 toCxt :: Term f -> Cxt h f a
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce

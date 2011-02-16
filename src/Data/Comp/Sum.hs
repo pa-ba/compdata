@@ -18,6 +18,7 @@
 module Data.Comp.Sum (
   (:<:)(..),
   (:+:)(..),
+  -- * Projections for Signatures and Terms
   proj2,
   proj3,
   project,
@@ -29,6 +30,7 @@ module Data.Comp.Sum (
   deepProject',
   deepProject2',
   deepProject3',
+  -- * Injections for Signatures and Terms
   inj2,
   inj3,
   inject,
@@ -40,6 +42,7 @@ module Data.Comp.Sum (
   deepInjectE,
   deepInjectE2,
   deepInjectE3,
+  -- * Injections and Projections for Constants
   injectConst,
   injectConst2,
   injectConst3,
@@ -79,32 +82,32 @@ proj3 x = case proj x of
                    Just (y :: g2 a) -> Just $ inj y
                    _ -> liftM inj (proj x :: Maybe (g3 a))
 
--- |Project a sub term from a compound term.
+-- |Project the outermost layer of a term to a sub signature.
 project :: (g :<: f) => Cxt h f a -> Maybe (g (Cxt h f a))
 project (Hole _) = Nothing
 project (Term t) = proj t
 
--- |Project a binary sub term from a compound term.
+-- |Project the outermost layer of a term to a binary sub signature.
 project2 :: (g1 :<: f, g2 :<: f) => Cxt h f a -> Maybe ((g1 :+: g2) (Cxt h f a))
 project2 (Hole _) = Nothing
 project2 (Term t) = proj2 t
 
--- |Project a ternary sub term from a compound term.
+-- |Project the outermost layer of a term to a ternary sub signature.
 project3 :: (g1 :<: f, g2 :<: f, g3 :<: f) => Cxt h f a
          -> Maybe ((g1 :+: g2 :+: g3) (Cxt h f a))
 project3 (Hole _) = Nothing
 project3 (Term t) = proj3 t
 
--- |Project a sub term recursively from a term.
+-- |Project a term to a term over a sub signature.
 deepProject :: (Traversable f, Functor g, g :<: f) => Cxt h f a
             -> Maybe (Cxt h g a)
 deepProject = appSigFunM proj
 
--- |Project a binary sub term recursively from a term.
+-- |Project a term to a term over a binary sub signature.
 deepProject2 :: (Traversable f, Functor g1, Functor g2, g1 :<: f, g2 :<: f) => Cxt h f a -> Maybe (Cxt h (g1 :+: g2) a)
 deepProject2 = appSigFunM proj2
 
--- |Project a ternary sub term recursively from a term.
+-- |Project a term to a term over a ternary sub signature.
 deepProject3 :: (Traversable f, Functor g1, Functor g2, Functor g3,
                  g1 :<: f, g2 :<: f, g3 :<: f) => Cxt h f a
              -> Maybe (Cxt h (g1 :+: g2 :+: g3) a)
@@ -150,28 +153,28 @@ inj3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) a -> g a
 inj3 (Inl x) = inj x
 inj3 (Inr y) = inj2 y
 
--- |Inject a term into a compound term.
+-- |Inject a term where the outermost layer is a sub signature.
 inject :: (g :<: f) => g (Cxt h f a) -> Cxt h f a
 inject = Term . inj
 
--- |Inject a term into a binary compound term.
+-- |Inject a term where the outermost layer is a binary sub signature.
 inject2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) (Cxt h g a) -> Cxt h g a
 inject2 = Term . inj2
 
--- |Inject a term into a ternary compound term.
+-- |Inject a term where the outermost layer is a ternary sub signature.
 inject3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) (Cxt h g a) -> Cxt h g a
 inject3 = Term . inj3
 
--- |A recursive version of 'inj'.
+-- |Inject a term over a sub signature to a term over larger signature.
 deepInject  :: (Functor g, Functor f, g :<: f) => Cxt h g a -> Cxt h f a
 deepInject = appSigFun inj
 
--- |A recursive version of 'inj2'.
+-- |Inject a term over a binary sub signature to a term over larger signature.
 deepInject2 :: (Functor f1, Functor f2, Functor g, f1 :<: g, f2 :<: g)
             => Cxt h (f1 :+: f2) a -> Cxt h g a
 deepInject2 = appSigFun inj2
 
--- |A recursive version of 'inj3'.
+-- |Inject a term over a ternary signature to a term over larger signature.
 deepInject3 :: (Functor f1, Functor f2, Functor f3, Functor g,
                 f1 :<: g, f2 :<: g, f3 :<: g)
             => Cxt h (f1 :+: f2 :+: f3) a -> Cxt h g a

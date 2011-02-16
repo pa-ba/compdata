@@ -1,7 +1,7 @@
 Name:			compdata
 Version:		0.1
 Synopsis:            	Compositional Data Types
-Description:		Wouter Swierstra's Functional Pearl: /Data types a la carte/.
+Description:		Compositional Data Types. An extension of Wouter Swierstra's Functional Pearl: /Data types a la carte/.
 Category:            	Data
 License:		BSD3
 License-file:		LICENSE

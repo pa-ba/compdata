@@ -8,6 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
+-- Automatically derive instances of @HShowF@.
 --
 --------------------------------------------------------------------------------
 
