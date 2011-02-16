@@ -110,74 +110,40 @@ evalSugar2 (PImpl x y) = (\ x y -> SBool (not x || y)) (coerceBool2 $ evalSugar2
 desugarEval2 :: PExpr -> SExpr
 desugarEval2 = eval2 . desugar
 
-coerceCBNHInt2 :: CBNHSExpr -> Int
-coerceCBNHInt2 (CBNHSInt i) = i
-coerceCBNHInt2 _ = undefined
 
-coerceCBNHBool2 :: CBNHSExpr -> Bool
-coerceCBNHBool2 (CBNHSBool b) = b
-coerceCBNHBool2 _ = undefined
 
-coerceCBNHPair2 :: CBNHSExpr -> (CBNHSExpr,CBNHSExpr)
-coerceCBNHPair2 (CBNHSPair x y) = (x,y)
-coerceCBNHPair2 _ = undefined
 
-coerceCBNHLam2 :: CBNHSExpr -> CBNHExpr -> CBNHSExpr
-coerceCBNHLam2 (CBNHSLam f) = f
-coerceCBNHLam2 _ = undefined
+coerceHOASInt2 :: HOASSExpr -> Int
+coerceHOASInt2 (HOASSInt i) = i
+coerceHOASInt2 _ = undefined
 
-evalCBNH2 :: CBNHExpr -> CBNHSExpr
-evalCBNH2 (CBNHInt i) = CBNHSInt i
-evalCBNH2 (CBNHBool b) = CBNHSBool b
-evalCBNH2 (CBNHPair x y) = CBNHSPair (evalCBNH2 x) (evalCBNH2 y)
-evalCBNH2 (CBNHPlus x y) = (\ x y -> CBNHSInt (x + y)) (coerceCBNHInt2 $ evalCBNH2 x) (coerceCBNHInt2 $ evalCBNH2 y)
-evalCBNH2 (CBNHMult x y) = (\ x y -> CBNHSInt (x * y)) (coerceCBNHInt2 $ evalCBNH2 x) (coerceCBNHInt2 $ evalCBNH2 y)
-evalCBNH2 (CBNHIf b x y) = if coerceCBNHBool2 $ evalCBNH2 b then evalCBNH2 x else evalCBNH2 y
-evalCBNH2 (CBNHEq x y) = (\ x y -> CBNHSBool (x == y)) (evalCBNH2 x) (evalCBNH2 y)
-evalCBNH2 (CBNHLt x y) = (\ x y -> CBNHSBool (x < y)) (coerceCBNHInt2 $ evalCBNH2 x) (coerceCBNHInt2 $ evalCBNH2 y)
-evalCBNH2 (CBNHAnd x y) =(\ x y -> CBNHSBool (x && y)) (coerceCBNHBool2 $ evalCBNH2 x) (coerceCBNHBool2 $ evalCBNH2 y)
-evalCBNH2 (CBNHNot x) = (CBNHSBool . not)(coerceCBNHBool2 $ evalCBNH2 x)
-evalCBNH2 (CBNHProj p x) = select (coerceCBNHPair2 $ evalCBNH2 x)
+coerceHOASBool2 :: HOASSExpr -> Bool
+coerceHOASBool2 (HOASSBool b) = b
+coerceHOASBool2 _ = undefined
+
+coerceHOASPair2 :: HOASSExpr -> (HOASSExpr,HOASSExpr)
+coerceHOASPair2 (HOASSPair x y) = (x,y)
+coerceHOASPair2 _ = undefined
+
+coerceHOASLam2 :: HOASSExpr -> HOASSExpr -> HOASSExpr
+coerceHOASLam2 (HOASSLam f) = f
+coerceHOASLam2 _ = undefined
+
+evalHOAS :: HOASExpr -> HOASSExpr
+evalHOAS (HOASInt i) = HOASSInt i
+evalHOAS (HOASBool b) = HOASSBool b
+evalHOAS (HOASPair x y) = HOASSPair (evalHOAS x) (evalHOAS y)
+evalHOAS (HOASPlus x y) = (\ x y -> HOASSInt (x + y)) (coerceHOASInt2 $ evalHOAS x) (coerceHOASInt2 $ evalHOAS y)
+evalHOAS (HOASMult x y) = (\ x y -> HOASSInt (x * y)) (coerceHOASInt2 $ evalHOAS x) (coerceHOASInt2 $ evalHOAS y)
+evalHOAS (HOASIf b x y) = if coerceHOASBool2 $ evalHOAS b then evalHOAS x else evalHOAS y
+evalHOAS (HOASEq x y) = (\ x y -> HOASSBool (x == y)) (evalHOAS x) (evalHOAS y)
+evalHOAS (HOASLt x y) = (\ x y -> HOASSBool (x < y)) (coerceHOASInt2 $ evalHOAS x) (coerceHOASInt2 $ evalHOAS y)
+evalHOAS (HOASAnd x y) =(\ x y -> HOASSBool (x && y)) (coerceHOASBool2 $ evalHOAS x) (coerceHOASBool2 $ evalHOAS y)
+evalHOAS (HOASNot x) = (HOASSBool . not)(coerceHOASBool2 $ evalHOAS x)
+evalHOAS (HOASProj p x) = select (coerceHOASPair2 $ evalHOAS x)
     where select (x,y) = case p of
                            SProjLeft -> x
                            SProjRight -> y
-evalCBNH2 (CBNHApp x y) = (coerceCBNHLam2 $ evalCBNH2 x) y
-evalCBNH2 (CBNHLam f) = CBNHSLam $ evalCBNH2 . f
-
-
-
-
-coerceCBVHInt2 :: CBVHSExpr -> Int
-coerceCBVHInt2 (CBVHSInt i) = i
-coerceCBVHInt2 _ = undefined
-
-coerceCBVHBool2 :: CBVHSExpr -> Bool
-coerceCBVHBool2 (CBVHSBool b) = b
-coerceCBVHBool2 _ = undefined
-
-coerceCBVHPair2 :: CBVHSExpr -> (CBVHSExpr,CBVHSExpr)
-coerceCBVHPair2 (CBVHSPair x y) = (x,y)
-coerceCBVHPair2 _ = undefined
-
-coerceCBVHLam2 :: CBVHSExpr -> CBVHSExpr -> CBVHSExpr
-coerceCBVHLam2 (CBVHSLam f) = f
-coerceCBVHLam2 _ = undefined
-
-evalCBVH2 :: CBVHExpr -> CBVHSExpr
-evalCBVH2 (CBVHInt i) = CBVHSInt i
-evalCBVH2 (CBVHBool b) = CBVHSBool b
-evalCBVH2 (CBVHPair x y) = CBVHSPair (evalCBVH2 x) (evalCBVH2 y)
-evalCBVH2 (CBVHPlus x y) = (\ x y -> CBVHSInt (x + y)) (coerceCBVHInt2 $ evalCBVH2 x) (coerceCBVHInt2 $ evalCBVH2 y)
-evalCBVH2 (CBVHMult x y) = (\ x y -> CBVHSInt (x * y)) (coerceCBVHInt2 $ evalCBVH2 x) (coerceCBVHInt2 $ evalCBVH2 y)
-evalCBVH2 (CBVHIf b x y) = if coerceCBVHBool2 $ evalCBVH2 b then evalCBVH2 x else evalCBVH2 y
-evalCBVH2 (CBVHEq x y) = (\ x y -> CBVHSBool (x == y)) (evalCBVH2 x) (evalCBVH2 y)
-evalCBVH2 (CBVHLt x y) = (\ x y -> CBVHSBool (x < y)) (coerceCBVHInt2 $ evalCBVH2 x) (coerceCBVHInt2 $ evalCBVH2 y)
-evalCBVH2 (CBVHAnd x y) =(\ x y -> CBVHSBool (x && y)) (coerceCBVHBool2 $ evalCBVH2 x) (coerceCBVHBool2 $ evalCBVH2 y)
-evalCBVH2 (CBVHNot x) = (CBVHSBool . not)(coerceCBVHBool2 $ evalCBVH2 x)
-evalCBVH2 (CBVHProj p x) = select (coerceCBVHPair2 $ evalCBVH2 x)
-    where select (x,y) = case p of
-                           SProjLeft -> x
-                           SProjRight -> y
-evalCBVH2 (CBVHApp x y) = (coerceCBVHLam2 $ evalCBVH2 x) (evalCBVH2 y)
-evalCBVH2 (CBVHLam f) = CBVHSLam $ evalCBVH2 . f
-evalCBVH2 (CBVHVal v) = v
+evalHOAS (HOASApp x y) = (coerceHOASLam2 $ evalHOAS x) (evalHOAS y)
+evalHOAS (HOASLam f) = HOASSLam $ evalHOAS . f
+evalHOAS (HOASVal v) = v

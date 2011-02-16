@@ -12,7 +12,7 @@ module DataTypes.Transform where
 
 import Data.Comp
 import Data.Comp.ExpFunctor
-import DataTypes.Standard
+import DataTypes.Standard as S
 import DataTypes.Comp
 
 class TransSugar f where
@@ -49,69 +49,35 @@ instance TransSugar Sugar where
     transSugarAlg (Or x y) = POr x y
     transSugarAlg (Impl x y) = PImpl x y
 
-class TransCBNHOAS f where
-    transCBNHOASAlg :: Alg f CBNHExpr
+class TransHOAS f where
+    transHOASAlg :: Alg f S.HOASExpr
 
-transCBNHOAS :: (ExpFunctor f, TransCBNHOAS f) => Term f -> CBNHExpr
-transCBNHOAS = cataE transCBNHOASAlg
+transHOAS :: (ExpFunctor f, TransHOAS f) => Term f -> S.HOASExpr
+transHOAS = cataE transHOASAlg
 
-instance (TransCBNHOAS f, TransCBNHOAS g) => TransCBNHOAS (f :+: g) where
-    transCBNHOASAlg (Inl v) = transCBNHOASAlg v
-    transCBNHOASAlg (Inr v) = transCBNHOASAlg v
+instance (TransHOAS f, TransHOAS g) => TransHOAS (f :+: g) where
+    transHOASAlg (Inl v) = transHOASAlg v
+    transHOASAlg (Inr v) = transHOASAlg v
 
-instance TransCBNHOAS Value where
-    transCBNHOASAlg (VInt i) = CBNHInt i
-    transCBNHOASAlg (VBool b) = CBNHBool b
-    transCBNHOASAlg (VPair x y) = CBNHPair x y
+instance TransHOAS Value where
+    transHOASAlg (VInt i) = HOASInt i
+    transHOASAlg (VBool b) = HOASBool b
+    transHOASAlg (VPair x y) = HOASPair x y
 
-instance TransCBNHOAS Op where
-    transCBNHOASAlg (Plus x y) = CBNHPlus x y
-    transCBNHOASAlg (Mult x y) = CBNHMult x y
-    transCBNHOASAlg (If b x y) = CBNHIf b x y
-    transCBNHOASAlg (Lt x y) = CBNHLt x y
-    transCBNHOASAlg (And x y) = CBNHAnd x y
-    transCBNHOASAlg (Not x) = CBNHNot x
-    transCBNHOASAlg (Proj p x) = CBNHProj (ptrans p) x
+instance TransHOAS Op where
+    transHOASAlg (Plus x y) = HOASPlus x y
+    transHOASAlg (Mult x y) = HOASMult x y
+    transHOASAlg (If b x y) = HOASIf b x y
+    transHOASAlg (Lt x y) = HOASLt x y
+    transHOASAlg (And x y) = HOASAnd x y
+    transHOASAlg (Not x) = HOASNot x
+    transHOASAlg (Proj p x) = HOASProj (ptrans p) x
         where ptrans ProjLeft = SProjLeft
               ptrans ProjRight = SProjRight
-    transCBNHOASAlg (Eq x y) = CBNHEq x y
+    transHOASAlg (Eq x y) = HOASEq x y
 
-instance TransCBNHOAS Lam where
-    transCBNHOASAlg (Lam f) = CBNHLam f
+instance TransHOAS Lam where
+    transHOASAlg (Lam f) = HOASLam $ f . HOASVal
 
-instance TransCBNHOAS App where
-    transCBNHOASAlg (App x y) = CBNHApp x y
-
-
-class TransCBVHOAS f where
-    transCBVHOASAlg :: Alg f CBVHExpr
-
-transCBVHOAS :: (ExpFunctor f, TransCBVHOAS f) => Term f -> CBVHExpr
-transCBVHOAS = cataE transCBVHOASAlg
-
-instance (TransCBVHOAS f, TransCBVHOAS g) => TransCBVHOAS (f :+: g) where
-    transCBVHOASAlg (Inl v) = transCBVHOASAlg v
-    transCBVHOASAlg (Inr v) = transCBVHOASAlg v
-
-instance TransCBVHOAS Value where
-    transCBVHOASAlg (VInt i) = CBVHInt i
-    transCBVHOASAlg (VBool b) = CBVHBool b
-    transCBVHOASAlg (VPair x y) = CBVHPair x y
-
-instance TransCBVHOAS Op where
-    transCBVHOASAlg (Plus x y) = CBVHPlus x y
-    transCBVHOASAlg (Mult x y) = CBVHMult x y
-    transCBVHOASAlg (If b x y) = CBVHIf b x y
-    transCBVHOASAlg (Lt x y) = CBVHLt x y
-    transCBVHOASAlg (And x y) = CBVHAnd x y
-    transCBVHOASAlg (Not x) = CBVHNot x
-    transCBVHOASAlg (Proj p x) = CBVHProj (ptrans p) x
-        where ptrans ProjLeft = SProjLeft
-              ptrans ProjRight = SProjRight
-    transCBVHOASAlg (Eq x y) = CBVHEq x y
-
-instance TransCBVHOAS Lam where
-    transCBVHOASAlg (Lam f) = CBVHLam $ f . CBVHVal
-
-instance TransCBVHOAS App where
-    transCBVHOASAlg (App x y) = CBVHApp x y
+instance TransHOAS App where
+    transHOASAlg (App x y) = HOASApp x y

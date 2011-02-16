@@ -3,8 +3,8 @@ module Main where
 import Criterion.Main
 import qualified Functions.Comp as A
 import qualified Functions.Standard as S
-import DataTypes.Comp
-import DataTypes.Standard
+import DataTypes.Comp as DC
+import DataTypes.Standard as DS
 import DataTypes.Transform
 import Data.Comp
 import Data.Comp.DeepSeq ()
@@ -22,28 +22,15 @@ aExpr = iIf ((iVInt 1 `iGt` (iVInt 2 `iMinus` iVInt 1))
 sExpr :: PExpr
 sExpr = transSugar aExpr
 
-aHOASExpr' :: Int -> HOASExpr
-aHOASExpr' x = (iLam $ \x -> x `iPlus` ((iLam $ \x -> x `iMult` x) `iApp` x))
+aHOASExpr :: Int -> DC.HOASExpr
+aHOASExpr n = (iLam $ \x -> x `iPlus` ((iLam $ \x -> x `iMult` x) `iApp` x))
+              `iApp`
+              ((iLam $ \x -> x `iMult` x)
                `iApp`
-               ((iLam $ \x -> x `iMult` x)
-                `iApp`
-                (if x <= 0 then iVInt 2 else aHOASExpr' (x - 1)))
+               (if n <= 0 then iVInt 2 else aHOASExpr (n - 1)))
 
-{-aHOASExpr' :: HOASExpr -> Int -> HOASExpr
-aHOASExpr' x n = if n <= 0 then
-                     x
-                 else
-                     (iLam $ \y -> aHOASExpr' (y `iPlus` y) (n-1)) `iApp` x-}
-
-aHOASExpr :: HOASExpr
-aHOASExpr = aHOASExpr' 100
-
---sCBNHOASExpr :: CBNHExpr
---sCBNHOASExpr = transCBNHOAS aHOASExpr
-
-sCBVHOASExpr :: CBVHExpr
-sCBVHOASExpr = transCBVHOAS aHOASExpr
-
+sHOASExpr :: Int -> DS.HOASExpr
+sHOASExpr = transHOAS . aHOASExpr
 
 sfCoalg :: Coalg SugarSig Int
 sfCoalg 0 = inj $ VInt 1
@@ -116,22 +103,22 @@ randStdBenchmarks s = do
   print (A.desugarType aExpr == Right ty)
   return $ standardBenchmarks (sExpr,aExpr, "random (depth: " ++ show s ++ ", size: "++ show (size aExpr) ++ ")")
 
-hoasBenchmaks :: Benchmark
-hoasBenchmaks = getBench (sCBVHOASExpr, aHOASExpr, "HOAS")
-    where getBench (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench' (sExpr, aExpr,n)
-          getBench' (sExpr,aExpr,n) = bgroup n
-                [
-                 bench "Comp.eval2" (nf (A.eval2E :: HOASExpr -> HOASValueExpr) aExpr),
-                 bench "Standard.evalCBVH2" (nf S.evalCBVH2 sExpr)
-                ]
-
+hoasBenchmaks :: Int -> Benchmark
+hoasBenchmaks s = bgroup ("HOAS (depth: " ++ show s ++ ")") $ getBench s
+    where getBench size =
+              let sExpr' = sHOASExpr size
+                  aExpr' = aHOASExpr size in
+              rnf aExpr' `seq` rnf sExpr' `seq`
+              [bench "Comp.eval2E" 
+                     (nf (A.eval2E :: DC.HOASExpr -> HOASValueExpr) aExpr'),
+               bench "Standard.evalHOAS" (nf S.evalHOAS sExpr')]
 
 main = do b1 <- randStdBenchmarks 5
           b2 <- randStdBenchmarks 10
           b3 <- randStdBenchmarks 20
           let b0 = standardBenchmarks (sExpr, aExpr, "hand-written")
-          let b4 = hoasBenchmaks
-          defaultMain [b0,b1,b2,b3,b4]
+          let b4 = map hoasBenchmaks [1,10,100,1000,10000]
+          defaultMain $ [b0,b1,b2,b3] ++ b4
 
           
 
