@@ -72,6 +72,7 @@ data NoHole
 type Context = Cxt Hole
 
 simpCxt :: (Functor f) => f a -> Context f a
+{-# INLINE simpCxt #-}
 simpCxt = Term . fmap Hole
 
 
@@ -79,6 +80,7 @@ simpCxt = Term . fmap Hole
  exponential functor. Since 'f' is an exponential functor, we cannot actually
  write the translation, so we resolve to using 'unsafeCoerce'. -}
 toCxt :: Term f -> Cxt h f a
+{-# INLINE toCxt #-}
 toCxt = unsafeCoerce
 
 {-| Phantom type used to define 'Term'.  -}
@@ -99,11 +101,6 @@ type Term f = Cxt NoHole f Nothing
 -- natural than 'Term', it leads to impredicative types in some cases,
 -- though.
 type PTerm f = forall h a . Cxt h f a
-
-{-| This function unravels the given term at the topmost layer.  -}
-
-unTerm :: Cxt NoHole f a -> f (Cxt NoHole f a)
-unTerm (Term t) = t
 
 instance Functor f => Functor (Cxt h f) where
     fmap f (Hole v) = Hole (f v)
@@ -136,3 +133,11 @@ instance (Traversable f) => Traversable (Cxt h f) where
 
     sequence (Hole a) = liftM Hole $ a
     sequence (Term t) = liftM Term $ mapM sequence t
+
+
+
+{-| This function unravels the given term at the topmost layer.  -}
+
+unTerm :: Cxt NoHole f a -> f (Cxt NoHole f a)
+{-# INLINE unTerm #-}
+unTerm (Term t) = t

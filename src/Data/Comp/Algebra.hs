@@ -39,6 +39,8 @@ module Data.Comp.Algebra (
       compSigFun,
       termHom,
       compAlg,
+      compCoalg,
+      compCVCoalg,
 
       -- * Monadic Term Homomorphisms
       CxtFunM,
@@ -89,6 +91,8 @@ module Data.Comp.Algebra (
       -- * CV-Coalgebras & Futumorphisms
       CVCoalg,
       futu,
+      CVCoalg',
+      futu',
       CVCoalgM,
       futuM,
 
@@ -110,7 +114,7 @@ import Prelude hiding (sequence, mapM)
 
 
 
-{-| This type represents an algebra over a functor @f@ and domain
+{-| This type represents an algebra over a functor @f@ and carrier
 @a@. -}
 
 type Alg f a = f a -> a
@@ -119,8 +123,8 @@ freeAlgHom :: forall f h a b . (Functor f) =>
               Alg f b -> (a -> b) -> Cxt h f a -> b
 freeAlgHom f g = run
     where run :: Cxt h f a -> b
-          run (Hole v) = g v
-          run (Term c) = f $ fmap run c
+          run (Hole x) = g x
+          run (Term t) = f (fmap run t)
 
 {-| This function folds the given term using the given fold
 function. This is the unique homomorphism @Term f -> a@ from the
@@ -135,20 +139,23 @@ cata :: forall f a . (Functor f) =>
 -- a direct implementation:
 cata f = run 
     where run :: Term f -> a
-          run (Term t) = f (fmap run t)
+          run  = f . fmap run . unTerm
 
 
 {-| This function applies the given algebra recursively to each
 subcontext of the given context. -}
 
 cata' :: (Functor f) => Alg f a -> Cxt h f a -> a
+{-# INLINE cata' #-}
 cata' f = freeAlgHom f id
 
 
 {-| This function applies a whole context into another context. -}
 
 appCxt :: (Functor f) => Context f (Cxt h f a) -> Cxt h f a
-appCxt = cata' Term
+-- appCxt = cata' Term
+appCxt (Hole x) = x
+appCxt (Term t) = Term (fmap appCxt t)
 
 
 
@@ -167,7 +174,7 @@ freeAlgHomM :: forall h f a m b. (Traversable f, Monad m) =>
 freeAlgHomM algm var = run
     where run :: Cxt h f a -> m b
           run (Hole x) = var x
-          run (Term x) = mapM run x >>= algm
+          run (Term t) = algm =<< mapM run t
 
 {-| This is a monadic version of 'cata'.  -}
 
@@ -176,7 +183,7 @@ cataM :: forall f m a. (Traversable f, Monad m) => AlgM m f a -> Term f -> m a
 -- cataM = cata . algM
 cataM algm = run
     where run :: Term f -> m a
-          run (Term x) = mapM run x >>= algm
+          run = algm <=< mapM run . unTerm
 
 
 
@@ -191,7 +198,7 @@ cataM' :: forall h f a m . (Traversable f, Monad m)
 cataM' f = run
     where run :: Cxt h f a -> m a
           run (Hole x) = return x
-          run (Term x) = mapM run x >>= f
+          run (Term t) = f =<< mapM run t
 
 
 {-| This type represents context function. -}
@@ -204,9 +211,10 @@ specification.-}
 type SigFun f g = forall a. f a -> g a
 
 
-{-| This type represents a term algebra. -}
+{-| This type represents a term homomorphism. -}
 
 type TermHom f g = SigFun f (Context g)
+
 
 
 
@@ -227,8 +235,8 @@ appTermHom' :: forall f g . (Functor f, Functor g) => TermHom f g -> CxtFun f g
 -- would achieve the same. The given type is chosen for clarity.
 appTermHom' f = run where
     run :: CxtFun f g
-    run (Hole b) = Hole b
-    run (Term t) = appCxt . f . fmap run $ t
+    run (Hole x) = Hole x
+    run (Term t) = appCxt (f (fmap run t))
 
 
 
@@ -251,6 +259,13 @@ compTermHom f g = appTermHom' f . g
 
 compAlg :: (Functor g) => Alg g a -> TermHom f g -> Alg f a
 compAlg alg talg = cata' alg . talg
+
+compCoalg :: TermHom f g -> Coalg f a -> CVCoalg' g a
+compCoalg hom coa = hom . coa
+
+compCVCoalg :: (Functor f, Functor g)
+  => TermHom f g -> CVCoalg' f a -> CVCoalg' g a
+compCVCoalg hom coa = appTermHom' hom . coa
 
 
 {-| This function applies a signature function to the
@@ -324,8 +339,8 @@ appTermHomM :: forall f g m . (Traversable f, Functor g, Monad m)
 {-# NOINLINE [1] appTermHomM #-}
 appTermHomM f = run
     where run :: Cxt h f a -> m (Cxt h g a)
-          run (Hole b) = return $ Hole b
-          run (Term t) = liftM appCxt . (>>= f) . mapM run $ t
+          run (Hole x) = return (Hole x)
+          run (Term t) = liftM appCxt (f =<< mapM run t)
 
 {-| This function constructs the unique monadic homomorphism from the
 initial term algebra to the given term algebra. -}
@@ -334,8 +349,8 @@ termHomM' :: forall f g m . (Traversable f, Functor g, Monad m)
           => TermHomM' m f g -> CxtFunM m f g
 termHomM' f = run 
     where run :: Cxt h f a -> m (Cxt h g a)
-          run (Hole b) = return $ Hole b
-          run (Term t) = liftM appCxt . f . fmap run $ t
+          run (Hole x) = return (Hole x)
+          run (Term t) = liftM appCxt (f (fmap run t))
 
 
 {-| This function applies the given monadic signature function to the
@@ -351,20 +366,20 @@ appSigFunM' :: forall f g m . (Traversable f, Functor g, Monad m)
               => SigFunM' m f g -> CxtFunM m f g
 appSigFunM' f = run 
     where run :: Cxt h f a -> m (Cxt h g a)
-          run (Hole b) = return $ Hole b
-          run (Term t) = liftM Term . f . fmap run $ t
+          run (Hole x) = return (Hole x)
+          run (Term t) = liftM Term (f (fmap run t))
 
 {-| This function composes two monadic term algebras. -}
 
 compTermHomM :: (Traversable g, Functor h, Monad m)
             => TermHomM m g h -> TermHomM m f g -> TermHomM m f h
-compTermHomM f g a = g a >>= appTermHomM f
+compTermHomM f g =  appTermHomM f <=< g
 
 
 {-| This function composes a monadic term algebra with a monadic algebra -}
 
 compAlgM :: (Traversable g, Monad m) => AlgM m g a -> TermHomM m f g -> AlgM m f a
-compAlgM alg talg c = cataM' alg =<< talg c
+compAlgM alg talg = cataM' alg <=< talg
 
 {-| This function composes a monadic term algebra with a monadic algebra -}
 
@@ -433,7 +448,7 @@ anaM f = run
 -- R-Algebras & Paramorphisms --
 --------------------------------
 
--- | This type represents r-algebras over functor @f@ and with domain
+-- | This type represents r-algebras over functor @f@ and with carrier
 -- @a@.
 type RAlg f a = f (Term f, a) -> a
 
@@ -443,7 +458,7 @@ para f = snd . cata run
     where run t = (Term $ fmap fst t, f t)
 
 -- | This type represents monadic r-algebras over monad @m@ and
--- functor @f@ and with domain @a@.
+-- functor @f@ and with carrier @a@.
 type RAlgM m f a = f (Term f, a) -> m a
 
 -- | This function constructs a monadic paramorphism from the given
@@ -460,7 +475,7 @@ paraM f = liftM snd . cataM run
 --------------------------------
 
 -- | This type represents r-coalgebras over functor @f@ and with
--- domain @a@.
+-- carrier @a@.
 type RCoalg f a = a -> f (Either (Term f) a)
 
 -- | This function constructs an apomorphism from the given
@@ -477,7 +492,7 @@ apo f = run
 --           run (Right a) = f a
 
 -- | This type represents monadic r-coalgebras over monad @m@ and
--- functor @f@ with domain @a@.
+-- functor @f@ with carrier @a@.
 
 type RCoalgM m f a = a -> m (f (Either (Term f) a))
 
@@ -504,7 +519,7 @@ apoM f = run
 -- CV-Algebras & Histomorphisms --
 ----------------------------------
 
--- | This type represents cv-algebras over functor @f@ and with domain
+-- | This type represents cv-algebras over functor @f@ and with carrier
 -- @a@.
 
 type CVAlg f a f' = f (Term f') -> a
@@ -522,7 +537,7 @@ histo alg  = snd . projectTip . cata run
     where run v = Term $ injectP (alg v) v
 
 -- | This type represents monadic cv-algebras over monad @m@ and
--- functor @f@, and with domain @a@.
+-- functor @f@, and with carrier @a@.
 type CVAlgM m f a f' = f (Term f') -> m a
 
 
@@ -538,8 +553,7 @@ histoM alg  = liftM (snd . projectTip) . cataM run
 -- CV-Coalgebras & Futumorphisms --
 -----------------------------------
 
-
--- | This type represents cv-coalgebras over functor @f@ and with domain
+-- | This type represents cv-coalgebras over functor @f@ and with carrier
 -- @a@.
 
 type CVCoalg f a = a -> f (Context f a)
@@ -551,12 +565,12 @@ type CVCoalg f a = a -> f (Context f a)
 futu :: forall f a . Functor f => CVCoalg f a -> a -> Term f
 futu coa = ana run . Hole
     where run :: Coalg f (Context f a)
-          run (Hole a) = coa a
-          run (Term v) = v
+          run (Hole x) = coa x
+          run (Term t) = t
 
 
 -- | This type represents monadic cv-coalgebras over monad @m@ and
--- functor @f@, and with domain @a@.
+-- functor @f@, and with carrier @a@.
 
 type CVCoalgM m f a = a -> m (f (Context f a))
 
@@ -566,9 +580,23 @@ futuM :: forall f a m . (Traversable f, Monad m) =>
          CVCoalgM m f a -> a -> m (Term f)
 futuM coa = anaM run . Hole
     where run :: CoalgM m f (Context f a)
-          run (Hole a) = coa a
-          run (Term v) = return v
+          run (Hole x) = coa x
+          run (Term t) = return t
 
+
+
+-- | This type represents generalised cv-coalgebras over functor @f@
+-- and with carrier @a@.
+
+type CVCoalg' f a = a -> Context f a
+
+-- | This function constructs the unique futumorphism from the given
+-- generalised cv-coalgebra to the term algebra.
+
+futu' :: forall f a . Functor f => CVCoalg' f a -> a -> Term f
+futu' coa = run
+    where run :: a -> Term f
+          run x = appCxt $ fmap run (coa x)
 
 --------------------------
 -- Exponential Functors --
@@ -580,15 +608,15 @@ cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
 {-# NOINLINE [1] cataE #-}
 cataE f = cataFS . toCxt
     where cataFS :: ExpFunctor f => (Context f a) -> a
-          cataFS (Term x) = f (xmap cataFS Hole x)
           cataFS (Hole x) = x
+          cataFS (Term t) = f (xmap cataFS Hole t)
 
 
 -- | Variant of 'appCxt' for contexts over 'ExpFunctor' signatures.
 
 appCxtE :: (ExpFunctor f) => Context f (Cxt h f a) -> Cxt h f a
-appCxtE (Term x) = Term (xmap appCxtE Hole x)
 appCxtE (Hole x) = x
+appCxtE (Term t)  = Term (xmap appCxtE Hole t)
 
 -- | Variant of 'appTermHom' for term homomorphisms from and to
 -- 'ExpFunctor' signatures.
@@ -596,8 +624,8 @@ appTermHomE :: forall f g . (ExpFunctor f, ExpFunctor g) => TermHom f g
             -> Term f -> Term g
 appTermHomE f = cataFS . toCxt
     where cataFS :: Context f (Term g) -> Term g
-          cataFS (Term x) = appCxtE $ f (xmap cataFS Hole x)
           cataFS (Hole x) = x
+          cataFS (Term t) = appCxtE (f (xmap cataFS Hole t))
 
 
 -------------------
