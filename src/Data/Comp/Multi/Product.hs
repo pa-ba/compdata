@@ -1,5 +1,5 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FunctionalDependencies,
-             FlexibleInstances, UndecidableInstances, RankNTypes, GADTs #-}
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses,
+  FlexibleInstances, UndecidableInstances, RankNTypes, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Product

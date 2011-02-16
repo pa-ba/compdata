@@ -42,7 +42,7 @@ instance @HasVar f v@ denotes that values over @f@ might contain
 variables of type @v@. -}
 
 class HasVars (f  :: (* -> *) -> * -> *) v where
-    isVar :: (f a) :=> Maybe v
+    isVar :: f a :=> Maybe v
     isVar _ = Nothing
 
 instance (HasVars f v, HasVars g v) => HasVars (f :++: g) v where

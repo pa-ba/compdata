@@ -36,8 +36,8 @@ instanceNFDataF fname = do
       classType = AppT (ConT ''NFDataF) complType
   constrs' <- mapM normalConExp constrs
   rnfFDecl <- funD 'rnfF (rnfFClauses fArg constrs')
-  return $ [InstanceD preCond classType [rnfFDecl]]
-      where rnfFClauses fArg constrs = map (genRnfFClause fArg) constrs
+  return [InstanceD preCond classType [rnfFDecl]]
+      where rnfFClauses fArg = map (genRnfFClause fArg)
             filterFarg excl x
                 | excl = Nothing
                 | otherwise = Just $ varE x

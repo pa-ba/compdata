@@ -44,9 +44,9 @@ instanceEqF fname = do
       preCond = map (ClassP ''Eq . (: [])) argNames
       classType = AppT (ConT ''EqF) complType
   eqFDecl <- funD 'eqF  (eqFClauses constrs)
-  return $ [InstanceD preCond classType [eqFDecl]]
+  return [InstanceD preCond classType [eqFDecl]]
       where eqFClauses constrs = map (genEqClause.abstractConType) constrs
-                                   ++ (defEqClause constrs)
+                                   ++ defEqClause constrs
             filterFarg fArg ty x = (fArg == ty, x)
             defEqClause constrs
                 | length constrs  < 2 = []

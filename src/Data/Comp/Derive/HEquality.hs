@@ -60,9 +60,9 @@ instanceHEqF fname = do
       classType = AppT (ConT ''HEqF) complType
   constrs' <- mapM normalConExp constrs
   eqFDecl <- funD 'heqF  (eqFClauses ftyp constrs constrs')
-  return $ [InstanceD preCond classType [eqFDecl]]
+  return [InstanceD preCond classType [eqFDecl]]
       where eqFClauses ftyp constrs constrs' = map (genEqClause ftyp) constrs'
-                                   ++ (defEqClause constrs)
+                                   ++ defEqClause constrs
             filterFarg fArg ty x = (fArg == ty, x)
             defEqClause constrs
                 | length constrs  < 2 = []

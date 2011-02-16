@@ -18,14 +18,13 @@ module Data.Comp.Derive.Show
 
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH
-import Data.List
 
 class ShowF f where
     showF :: f String -> String
              
 showConstr :: String -> [String] -> String
 showConstr con [] = con
-showConstr con args = "(" ++ con ++ " " ++ concat (intersperse " " args) ++ ")"
+showConstr con args = "(" ++ con ++ " " ++ unwords args ++ ")"
 
 
 instanceShowF :: Name -> Q [Dec]
@@ -38,8 +37,8 @@ instanceShowF fname = do
       classType = AppT (ConT ''ShowF) complType
   constrs' <- mapM normalConExp constrs
   showFDecl <- funD 'showF (showFClauses fArg constrs')
-  return $ [InstanceD preCond classType [showFDecl]]
-      where showFClauses fArg constrs = map (genShowFClause fArg) constrs
+  return [InstanceD preCond classType [showFDecl]]
+      where showFClauses fArg = map (genShowFClause fArg)
             filterFarg fArg ty x = (fArg == ty, varE x)
             mkShow (isFArg, var)
                 | isFArg = var

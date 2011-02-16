@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell, FlexibleContexts,
+{-# LANGUAGE TypeOperators, GADTs, FlexibleContexts,
   ScopedTypeVariables, UndecidableInstances, FlexibleInstances #-}
 --------------------------------------------------------------------------------
 -- |
@@ -39,7 +39,7 @@ instance (KShow f) => Show (f i) where
     show = unK . kshow
 
 instance (HShowF f, Show p) => HShowF (f :&&: p) where
-    hshowF (v :&&: p) =  K $ (unK $ hshowF v) ++ " :&&: " ++ show p
+    hshowF (v :&&: p) =  K $ unK (hshowF v) ++ " :&&: " ++ show p
 
 instance (HShowF f, HShowF g) => HShowF (f :++: g) where
     hshowF (HInl f) = hshowF f

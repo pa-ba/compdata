@@ -113,7 +113,7 @@ instance (Foldable f) => Foldable (Cxt h f) where
 
     foldl op e (Hole a) = e `op` a
     foldl op e (Term t) = foldl op' e t
-        where op' a c = foldl op a c
+        where op' = foldl op
 
     fold (Hole a) = a
     fold (Term t) = foldMap fold t
@@ -131,7 +131,7 @@ instance (Traversable f) => Traversable (Cxt h f) where
     mapM f (Hole a) = liftM Hole $ f a
     mapM f (Term t) = liftM Term $ mapM (mapM f) t
 
-    sequence (Hole a) = liftM Hole $ a
+    sequence (Hole a) = liftM Hole a
     sequence (Term t) = liftM Term $ mapM sequence t
 
 

@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell, FlexibleInstances #-}
+{-# LANGUAGE TypeOperators, GADTs, FlexibleInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.HEquality

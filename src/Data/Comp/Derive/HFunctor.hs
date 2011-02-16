@@ -37,19 +37,19 @@ instanceHFunctor fname = do
       classType = AppT (ConT ''HFunctor) complType
   constrs' <- P.mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   hfmapDecl <- funD 'hfmap (map hfmapClause constrs')
-  return $ [InstanceD [] classType [hfmapDecl]]
+  return [InstanceD [] classType [hfmapDecl]]
       where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
             mkCPat constr varNs = ConP constr $ map mkPat varNs
-            mkPat x = VarP x
+            mkPat = VarP
             mkPatAndVars (constr, args) =
                 do varNs <- newNames (length args) "x"
                    return (conE constr, mkCPat constr varNs,
-                           (\ f g -> filterVars args varNs (\ d x -> f d (varE x)) (g . varE)),
-                           any (not . null) args, map varE varNs, catMaybes $ filterVars args varNs (\d x -> Just (d, x)) (const Nothing))
+                           \ f g -> filterVars args varNs (\ d x -> f d (varE x)) (g . varE),
+                           any (not . null) args, map varE varNs, catMaybes $ filterVars args varNs (curry Just) (const Nothing))
             hfmapClause (con, pat,vars',hasFargs,_,_) =
                 do fn <- newName "f"
                    let f = varE fn

@@ -65,7 +65,7 @@ matchRule (lhs,rhs) t = do
 
 matchRules :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
            => TRS f g v -> Cxt h f a -> Maybe (Context g v, Map v (Cxt h f a))
-matchRules trs t = listToMaybe $ catMaybes $ map (`matchRule` t) trs
+matchRules trs t = listToMaybe $ mapMaybe (`matchRule` t) trs
 
 {-| This function tries to apply the given rule at the root of the
 given term (resp. context in general). If successful, the function
@@ -84,7 +84,7 @@ rule is applicable @Nothing@ is returned. -}
 
 appTRS :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
          => TRS f f v -> Step (Cxt h f a)
-appTRS trs t = listToMaybe $ catMaybes $ map (`appRule` t) trs
+appTRS trs t = listToMaybe $ mapMaybe (`appRule` t) trs
 
 
 {-| This is an auxiliary function that turns function @f@ of type @(t

@@ -59,7 +59,7 @@ liftMAlg alg =  turn . liftM alg . hmapM run
 type AlgM m f e = NatM m (f e) e
 
 freeAlgHomM :: forall f m h a b. (HTraversable f, Monad m) =>
-               AlgM m f b -> (NatM m a b) -> NatM m (Cxt h f a)  b
+               AlgM m f b -> NatM m a b -> NatM m (Cxt h f a)  b
 freeAlgHomM algm var = run
     where run :: NatM m (Cxt h f a) b
           run (Hole x) = var x
@@ -122,7 +122,7 @@ compAlg alg talg = cata' alg . talg
 -- | This function applies a signature function to the given context.
 
 appSigFun :: (HFunctor f, HFunctor g) => SigFun f g -> CxtFun f g
-appSigFun f = appTermHom $ termHom $ f
+appSigFun f = appTermHom $ termHom f
 
 
 -- | This function composes two signature functions.
@@ -188,7 +188,7 @@ appTermHomM f = run
 
 appSigFunM :: (HTraversable f, HFunctor g, Monad m) =>
                 SigFunM m f g -> CxtFunM m f g
-appSigFunM f = appTermHomM $ termHom' $ f
+appSigFunM f = appTermHomM $ termHom' f
 
 -- | This function composes two monadic term algebras.
 
@@ -278,7 +278,7 @@ paraM f = liftM fsnd . cataM run
 
 -- | This type represents r-coalgebras over functor @f@ and with
 -- domain @a@.
-type RCoalg f a = a :-> f ((Term f) :+: a)
+type RCoalg f a = a :-> f (Term f :+: a)
 
 -- | This function constructs an apomorphism from the given
 -- r-coalgebra.
@@ -286,14 +286,14 @@ apo :: forall f a . (HFunctor f) => RCoalg f a -> a :-> Term f
 apo f = run 
     where run :: a :-> Term f
           run = Term . hfmap run' . f
-          run' :: (Term f) :+: a :-> Term f
+          run' :: Term f :+: a :-> Term f
           run' (Inl t) = t
           run' (Inr a) = run a
 
 -- | This type represents monadic r-coalgebras over monad @m@ and
 -- functor @f@ with domain @a@.
 
-type RCoalgM m f a = NatM m a (f ((Term f) :+: a))
+type RCoalgM m f a = NatM m a (f (Term f :+: a))
 
 -- | This function constructs a monadic apomorphism from the given
 -- monadic r-coalgebra.
@@ -305,7 +305,7 @@ apoM f = run
             t <- f a
             t' <- hmapM run' t
             return $ Term t'
-          run' :: NatM m ((Term f) :+: a)  (Term f)
+          run' :: NatM m (Term f :+: a)  (Term f)
           run' (Inl t) = return t
           run' (Inr a) = run a
 

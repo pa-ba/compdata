@@ -48,7 +48,7 @@ instanceOrdF fname = do
       preCond = map (ClassP ''Ord . (: [])) argNames
       classType = AppT (ConT ''OrdF) complType
   eqAlgDecl <- funD 'compareF  (compareFClauses constrs)
-  return $ [InstanceD preCond classType [eqAlgDecl]]
+  return [InstanceD preCond classType [eqAlgDecl]]
       where compareFClauses [] = []
             compareFClauses constrs = 
                 let constrs' = map abstractConType constrs `zip` [1..]

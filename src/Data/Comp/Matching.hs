@@ -72,5 +72,5 @@ matches a term with variables against a context.  -}
 
 matchTerm :: (Ord v, EqF f, Eq (Cxt h f a) , Functor f, Foldable f, HasVars f v)
           => Term f -> Cxt h f a -> Maybe (CxtSubst h a f v)
-matchTerm t c = matchCxt (varsToHoles t) c
+matchTerm t = matchCxt (varsToHoles t)
 

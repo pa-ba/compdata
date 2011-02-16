@@ -61,7 +61,7 @@ transform' f = transform f' where
 transformM :: (Traversable f, Monad m) =>
              (Term f -> m (Term f)) -> Term f -> m (Term f)
 transformM  f = run 
-    where run t = f =<< (liftM Term $ mapM run $ unTerm t)
+    where run t = f =<< liftM Term (mapM run $ unTerm t)
 
 query :: Foldable f => (Term f -> r) -> (r -> r -> r) -> Term f -> r
 query q c = run 

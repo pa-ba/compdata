@@ -1,6 +1,5 @@
-{-# LANGUAGE TypeOperators, KindSignatures, GADTs,
-ScopedTypeVariables, IncoherentInstances, RankNTypes #-}
-
+{-# LANGUAGE TypeOperators, GADTs, ScopedTypeVariables, IncoherentInstances,
+  RankNTypes #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Sum

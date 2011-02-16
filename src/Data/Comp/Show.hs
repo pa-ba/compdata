@@ -35,4 +35,4 @@ instance (ShowF f, ShowF g) => ShowF (f :+: g) where
     showF (Inl f) = showF f
     showF (Inr g) = showF g
 
-$(derive [instanceShowF] $ [''Maybe, ''[], ''(,)])
+$(derive [instanceShowF] [''Maybe, ''[], ''(,)])

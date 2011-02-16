@@ -43,7 +43,7 @@ data K a b = K {unK :: a}
 instance Functor (K a) where
     fmap _ (K x) = K x
 
-data A f = forall i. A {unA :: (f i)}
+data A f = forall i. A {unA :: f i}
 
 instance Eq a => Eq (K a i) where
     K x == K y = x == y
@@ -116,7 +116,7 @@ class HFunctor h => HFoldable h where
     hfoldl1 :: forall a . (a -> a -> a) -> h (K a) :=> a
     hfoldl1 f xs = fromMaybe (error "hfoldl1: empty structure")
                    (hfoldl mf Nothing xs)
-          where mf :: Maybe a -> (K a) :=> Maybe a
+          where mf :: Maybe a -> K a :=> Maybe a
                 mf Nothing (K y) = Just y
                 mf (Just x) (K y) = Just (f x y)
 

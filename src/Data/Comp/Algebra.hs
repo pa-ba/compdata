@@ -272,7 +272,7 @@ compCVCoalg hom coa = appTermHom' hom . coa
 given context. -}
 
 appSigFun :: (Functor f, Functor g) => SigFun f g -> CxtFun f g
-appSigFun f = appTermHom' $ termHom $ f
+appSigFun f = appTermHom' $ termHom f
 
 
 {-| This function composes two signature functions.  -}
@@ -357,7 +357,7 @@ termHomM' f = run
 given context -}
 
 appSigFunM :: (Traversable f, Functor g, Monad m) => SigFunM m f g -> CxtFunM m f g
-appSigFunM f = appTermHomM $ termHom' $ f
+appSigFunM f = appTermHomM $ termHom' f
 
 {-| This function applies the given monadic signature function to the
 given context -}
@@ -428,7 +428,7 @@ build g = g Term
 anaExp :: forall a f . ExpFunctor f => Coalg f a -> a -> Term (f :&: a)
 anaExp f = run
     where run :: a -> Term (f :&: a)
-          run t = Term $ (xmap run (snd . projectP . unTerm) (f t)) :&: t
+          run t = Term $ xmap run (snd . projectP . unTerm) (f t) :&: t
 
 type CoalgM m f a = a -> m (f a)
 
@@ -607,7 +607,7 @@ futu' coa = run
 cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
 {-# NOINLINE [1] cataE #-}
 cataE f = cataFS . toCxt
-    where cataFS :: ExpFunctor f => (Context f a) -> a
+    where cataFS :: ExpFunctor f => Context f a -> a
           cataFS (Hole x) = x
           cataFS (Term t) = f (xmap cataFS Hole t)
 

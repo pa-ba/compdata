@@ -36,4 +36,4 @@ instance (NFDataF f, NFDataF g) => NFDataF (f:+:g) where
 instance NFData Nothing where
 
 
-$(derive [instanceNFDataF] $ [''Maybe, ''[], ''(,)])
+$(derive [instanceNFDataF] [''Maybe, ''[], ''(,)])

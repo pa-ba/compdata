@@ -47,7 +47,7 @@ instanceFoldable fname = do
   foldrDecl <- funD 'foldr (map foldrClause constrs')
   foldl1Decl <- funD 'foldl1 (map foldl1Clause constrs')
   foldr1Decl <- funD 'foldr1 (map foldr1Clause constrs')
-  return $ [InstanceD [] classType [foldDecl,foldMapDecl,foldlDecl,foldrDecl,foldl1Decl,foldr1Decl]]
+  return [InstanceD [] classType [foldDecl,foldMapDecl,foldlDecl,foldrDecl,foldl1Decl,foldr1Decl]]
       where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
             filterVar [] _ = Nothing
             filterVar [d] x =Just (d, varE x)
@@ -74,7 +74,7 @@ instanceFoldable fname = do
                    body <- case vars of
                              [] -> [|mempty|]
                              (_:_) -> P.foldl1 (\ x y -> [|$x `mappend` $y|]) $ 
-                                      map (\ (d,z) -> iter' (max (d-1) 0) [|fold|] ((f' d) `appE` z)) vars
+                                      map (\ (d,z) -> iter' (max (d-1) 0) [|fold|] (f' d `appE` z)) vars
                    return $ Clause [fp, pat] (NormalB body) []
             foldlClause (pat,vars) =
                 do fn <- newName "f"

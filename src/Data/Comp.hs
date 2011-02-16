@@ -7,8 +7,9 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines the infrastructure necessary to use Wouter Swierstra's
--- Functional Pearl: /Data types a la carte/.
+-- This module defines the infrastructure necessary to use
+-- /Compositional Data Types/. Compositional Data Types is an extension of
+-- Wouter Swierstra's Functional Pearl: /Data types a la carte/.
 --
 --------------------------------------------------------------------------------
 module Data.Comp(
