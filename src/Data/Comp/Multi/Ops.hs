@@ -11,7 +11,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module provides operators on higher-order functors.
+-- This module provides operators on higher-order functors. All definitions are
+-- generalised versions of those in "Data.Comp.Ops".
 --
 --------------------------------------------------------------------------------
 
@@ -96,7 +97,7 @@ infixr 7 :&&:
 -- 
 -- @data (f :&&: a) (g ::  * -> *) e = f g e :&&: a e@
 -- 
--- This is too general, however, for example for 'productTermHom'.
+-- This is too general, however, for example for 'productHTermHom'.
 
 data (f :&&: a) (g ::  * -> *) e = f g e :&&: a
 

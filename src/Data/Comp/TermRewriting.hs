@@ -1,5 +1,4 @@
 {-# LANGUAGE RankNTypes, GADTs #-}
-
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.TermRewriting
@@ -9,8 +8,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines term rewriting systems (TRSs) using data types
--- a la carte.
+-- This module defines term rewriting systems (TRSs) using compositional data
+-- types.
 --
 --------------------------------------------------------------------------------
 
@@ -89,10 +88,9 @@ appTRS trs t = listToMaybe $ mapMaybe (`appRule` t) trs
 
 {-| This is an auxiliary function that turns function @f@ of type
   @(t -> Maybe t)@ into functions @f'@ of type @t -> (t,Bool)@. @f' x@
-evaluates to @(y,True)@ if @f x@ evaluates to @Just y@, and to
-@(x,False)@ if $f x@ evaluates to @Nothing@. This function is useful
-to change the output of functions that apply rules such as
-'appTRS'. -}
+  evaluates to @(y,True)@ if @f x@ evaluates to @Just y@, and to
+  @(x,False)@ if @f x@ evaluates to @Nothing@. This function is useful
+  to change the output of functions that apply rules such as 'appTRS'. -}
 
 bStep :: Step t -> BStep t
 bStep f t = case f t of

@@ -10,7 +10,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines an abstraction notion of a variable in a term.
+-- This module defines an abstraction notion of a variable in a term. All
+-- definitions are generalised versions of those in "Data.Comp.Variables".
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Multi.Variables  where
@@ -27,15 +28,15 @@ import qualified Data.Set as Set
 import Data.Maybe
 
 
--- type CxtSubst h a f v =  [A (v :*: (Cxt h f a))]
+-- type HCxtSubst h a f v =  [A (v :*: (HCxt h f a))]
 
--- type Subst f v = CxtSubst NoHole Nothing f v
+-- type Subst f v = HCxtSubst HNoHole HNothing f v
 
 type GSubst v a = NatM Maybe (K v) a
 
-type CxtSubst h a f v =  GSubst v (Cxt h f a)
+type HCxtSubst h a f v =  GSubst v (HCxt h f a)
 
-type Subst f v = CxtSubst NoHole Nothing f v
+type Subst f v = HCxtSubst HNoHole HNothing f v
 
 {-| This multiparameter class defines functors with variables. An
 instance @HasVar f v@ denotes that values over @f@ might contain
@@ -49,18 +50,18 @@ instance (HasVars f v, HasVars g v) => HasVars (f :++: g) v where
     isVar (HInl v) = isVar v
     isVar (HInr v) = isVar v
 
-instance HasVars f v => HasVars (Cxt h f) v where
-    isVar (Term t) = isVar t
+instance HasVars f v => HasVars (HCxt h f) v where
+    isVar (HTerm t) = isVar t
     isVar _ = Nothing
 
-varsToHoles :: forall f v. (HFunctor f, HasVars f v) => Term f :-> Context f (K v)
-varsToHoles = cata alg
-    where alg :: Alg f (Context f (K v))
+varsToHHoles :: forall f v. (HFunctor f, HasVars f v) => HTerm f :-> HContext f (K v)
+varsToHHoles = hcata alg
+    where alg :: HAlg f (HContext f (K v))
           alg t = case isVar t of 
-                    Just v -> Hole $ K v
-                    Nothing -> Term t
+                    Just v -> HHole $ K v
+                    Nothing -> HTerm t
 
-containsVarAlg :: (Eq v, HasVars f v, HFoldable f) => v -> Alg f (K Bool)
+containsVarAlg :: (Eq v, HasVars f v, HFoldable f) => v -> HAlg f (K Bool)
 containsVarAlg v t = K $ local || kfoldl (||) False t 
     where local = case isVar t of
                     Just v' -> v == v'
@@ -70,12 +71,12 @@ containsVarAlg v t = K $ local || kfoldl (||) False t
 context. -}
 
 containsVar :: (Eq v, HasVars f v, HFoldable f, HFunctor f)
-            => v -> Cxt h f a :=> Bool
-containsVar v = unK . freeAlgHom (containsVarAlg v) (const $ K False)
+            => v -> HCxt h f a :=> Bool
+containsVar v = unK . hfree (containsVarAlg v) (const $ K False)
 
 
 variableListAlg :: (HasVars f v, HFoldable f)
-            => Alg f (K [v])
+            => HAlg f (K [v])
 variableListAlg t = K $ kfoldl (++) local t
     where local = case isVar t of
                     Just v -> [v]
@@ -85,13 +86,13 @@ variableListAlg t = K $ kfoldl (++) local t
 context. -}
 
 variableList :: (HasVars f v, HFoldable f, HFunctor f)
-            => Cxt h f a :=> [v]
-variableList = unK . freeAlgHom variableListAlg (const $ K [])
+            => HCxt h f a :=> [v]
+variableList = unK . hfree variableListAlg (const $ K [])
 
 
 
 variablesAlg :: (Ord v, HasVars f v, HFoldable f)
-            => Alg f (K (Set v))
+            => HAlg f (K (Set v))
 variablesAlg t = K $ kfoldl Set.union local t
     where local = case isVar t of
                     Just v -> Set.singleton v
@@ -101,22 +102,22 @@ variablesAlg t = K $ kfoldl Set.union local t
 context. -}
 
 variables :: (Ord v, HasVars f v, HFoldable f, HFunctor f)
-            => Cxt h f a :=> Set v
-variables = unK . freeAlgHom variablesAlg (const $ K Set.empty)
+            => HCxt h f a :=> Set v
+variables = unK . hfree variablesAlg (const $ K Set.empty)
 
 {-| This function computes the set of variables occurring in a
 context. -}
 
 variables' :: (Ord v, HasVars f v, HFoldable f, HFunctor f)
-            => Const f :=> Set v
+            => HConst f :=> Set v
 variables' c =  case isVar c of
                   Nothing -> Set.empty
                   Just v -> Set.singleton v
 
 
 
-substAlg :: (HasVars f v) => CxtSubst h a f v -> Alg f (Cxt h f a)
-substAlg f t = fromMaybe (Term t) (isVar t >>= f . K)
+substAlg :: (HasVars f v) => HCxtSubst h a f v -> HAlg f (HCxt h f a)
+substAlg f t = fromMaybe (HTerm t) (isVar t >>= f . K)
 
 {-| This function substitutes variables in a context according to a
 partial mapping from variables to contexts.-}
@@ -128,11 +129,11 @@ class SubstVars v t a where
 appSubst :: SubstVars v t a => GSubst v t -> a :-> a
 appSubst = substVars
 
-instance (Ord v, HasVars f v, HFunctor f) => SubstVars v (Cxt h f a) (Cxt h f a) where
-    substVars f (Term v) = substAlg f $ hfmap (substVars f) v
-    substVars _ (Hole a) = Hole a
+instance (Ord v, HasVars f v, HFunctor f) => SubstVars v (HCxt h f a) (HCxt h f a) where
+    substVars f (HTerm v) = substAlg f $ hfmap (substVars f) v
+    substVars _ (HHole a) = HHole a
 -- have to use explicit GADT pattern matching!!
--- subst f = freeAlgHom (substAlg f) Hole
+-- subst f = hfree (substAlg f) HHole
 
 instance (SubstVars v t a, HFunctor f) => SubstVars v t (f a) where
     substVars f = hfmap (substVars f) 
@@ -144,7 +145,7 @@ applying the resulting substitution is equivalent to first applying
 @s2@ and then @s1@. -}
 
 compSubst :: (Ord v, HasVars f v, HFunctor f)
-          => CxtSubst h a f v -> CxtSubst h a f v -> CxtSubst h a f v
+          => HCxtSubst h a f v -> HCxtSubst h a f v -> HCxtSubst h a f v
 compSubst s1 s2 v = case s2 v of
                       Nothing -> s1 v
                       Just t -> Just $ appSubst s1 t

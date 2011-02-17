@@ -1,5 +1,5 @@
-{-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances, OverlappingInstances, TypeOperators #-}
-
+{-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances,
+  OverlappingInstances, TypeOperators #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Variables
@@ -9,8 +9,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines an abstraction notion of a variable in an a la
--- carte term.
+-- This module defines an abstraction notion of a variable in compositional
+-- data type.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Variables (

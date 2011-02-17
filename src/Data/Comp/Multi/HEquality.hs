@@ -8,7 +8,9 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- The equality algebra (equality on terms).
+-- This module defines equality for (higher-order) signatures, which lifts to
+-- equality for (higher-order) terms and contexts. All definitions are
+-- generalised versions of those in "Data.Comp.Equality".
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Multi.HEquality
@@ -39,16 +41,16 @@ instance (HEqF f, HEqF g) => HEqF (f :++: g) where
   From an 'EqF' functor an 'Eq' instance of the corresponding
   term type can be derived.
 -}
-instance (HEqF f) => HEqF (Cxt h f) where
+instance (HEqF f) => HEqF (HCxt h f) where
 
-    heqF (Term e1) (Term e2) = e1 `heqF` e2
-    heqF (Hole h1) (Hole h2) = h1 `keq` h2
+    heqF (HTerm e1) (HTerm e2) = e1 `heqF` e2
+    heqF (HHole h1) (HHole h2) = h1 `keq` h2
     heqF _ _ = False
 
-instance (HEqF f, KEq a)  => KEq (Cxt h f a) where
+instance (HEqF f, KEq a)  => KEq (HCxt h f a) where
     keq = heqF
 
-instance KEq Nothing where
+instance KEq HNothing where
     keq _ = undefined
 
 

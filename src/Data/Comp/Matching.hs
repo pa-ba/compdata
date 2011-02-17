@@ -47,8 +47,8 @@ matchCxt' Term {} Hole {} = Nothing
 
 {-| This function takes a context @c@ as the first argument and tries
 to match it against the term @t@ (or in general a context with holes
-in @a@). The context @c@ matches the term @t@ if there is a /matching
-substitution/ @s@ that maps holes to terms (resp. contexts in general)
+in @a@). The context @c@ matches the term @t@ if there is a
+/matching substitution/ @s@ that maps holes to terms (resp. contexts in general)
 such that if the holes in the context @c@ are replaced according to
 the substitution @s@, the term @t@ is obtained. Note that the context
 @c@ might be non-linear, i.e. has multiple holes that are

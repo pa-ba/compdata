@@ -24,7 +24,7 @@ import Data.Comp.Multi.Algebra
 import Language.Haskell.TH
 
 class HShowF f where
-    hshowF :: Alg f (K String)
+    hshowF :: HAlg f (K String)
     hshowF = K . hshowF'
     hshowF' :: f (K String) :=> String
     hshowF' = unK . hshowF
