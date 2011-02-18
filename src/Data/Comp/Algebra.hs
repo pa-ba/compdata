@@ -68,14 +68,12 @@ module Data.Comp.Algebra (
       anaM,
 
       -- * Paramorphisms
-
       RAlg,
       para,
       RAlgM,
       paraM,
 
       -- * Apomorphisms
-
       RCoalg,
       apo,
       RCoalgM,
@@ -96,7 +94,6 @@ module Data.Comp.Algebra (
       futuM,
 
       -- * Exponential Functors
-
       appTermHomE,
       cataE,
       anaE,

@@ -19,6 +19,7 @@
 module Data.Comp.Multi.Ops where
 
 import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HExpFunctor
 import Data.Comp.Ops
 import Control.Monad
 import Control.Applicative
@@ -55,6 +56,10 @@ instance (HTraversable f, HTraversable g) => HTraversable (f :++: g) where
     htraverse f (HInr e) = HInr <$> htraverse f e
     hmapM f (HInl e) = HInl `liftM` hmapM f e
     hmapM f (HInr e) = HInr `liftM` hmapM f e
+
+instance (HExpFunctor f, HExpFunctor g) => HExpFunctor (f :++: g) where
+    hxmap f g (HInl v) = HInl $ hxmap f g v
+    hxmap f g (HInr v) = HInr $ hxmap f g v
 
 -- |The subsumption relation.
 class (sub :: (* -> *) -> * -> *) :<<: sup where

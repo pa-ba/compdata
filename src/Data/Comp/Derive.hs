@@ -58,6 +58,8 @@ module Data.Comp.Derive
      module Data.Comp.Derive.HFoldable,
      -- ** HTraversable
      module Data.Comp.Derive.HTraversable,
+     -- ** HExpFunctor
+     module Data.Comp.Derive.HExpFunctor,
      -- ** Smart Constructors
      module Data.Comp.Derive.SmartMConstructors
     ) where
@@ -78,6 +80,7 @@ import Data.Comp.Derive.Arbitrary
 import Data.Comp.Derive.SmartConstructors
 import Data.Comp.Derive.SmartMConstructors
 import Data.Comp.Derive.ExpFunctor
+import Data.Comp.Derive.HExpFunctor
 
 import Language.Haskell.TH
 import Control.Monad

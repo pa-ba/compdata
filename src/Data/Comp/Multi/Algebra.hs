@@ -1,5 +1,4 @@
 {-# LANGUAGE GADTs, RankNTypes, TypeOperators, ScopedTypeVariables #-}
-
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Algebra
@@ -15,10 +14,96 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Algebra where
-    
+module Data.Comp.Multi.Algebra (
+      -- * Algebras & Catamorphisms
+      HAlg,
+      hfree,
+      hcata,
+      hcata',
+      appHCxt,
+      
+      -- * Monadic Algebras & Catamorphisms
+      HAlgM,
+--      halgM,
+      hfreeM,
+      hcataM,
+      hcataM',
+
+      -- * Term Homomorphisms
+      HCxtFun,
+      HSigFun,
+      HTermHom,
+      appHTermHom,
+      compHTermHom,
+      appHSigFun,
+      compHSigFun,
+      htermHom,
+      compHAlg,
+--      compHCoalg,
+--      compHCVCoalg,
+
+      -- * Monadic Term Homomorphisms
+      HCxtFunM,
+      HSigFunM,
+      HTermHomM,
+--      HSigFunM',
+--      HTermHomM',
+      hsigFunM,
+--      htermHom',
+      appHTermHomM,
+      htermHomM,
+--      htermHomM',
+      appHSigFunM,
+--      appHSigFunM',
+      compHTermHomM,
+      compHSigFunM,
+      compHAlgM,
+      compHAlgM',
+
+      -- * Coalgebras & Anamorphisms
+      HCoalg,
+      hana,
+--      hana',
+      HCoalgM,
+      hanaM,
+
+      -- * Paramorphisms
+      HRAlg,
+      hpara,
+      HRAlgM,
+      hparaM,
+
+      -- * Apomorphisms
+      HRCoalg,
+      hapo,
+      HRCoalgM,
+      hapoM,
+
+      -- * CV-Algebras & Histomorphisms
+--      HCVAlg,
+--      hhisto,
+--      HCVAlgM,
+--      hhistoM,
+
+      -- * CV-Coalgebras & Futumorphisms
+      HCVCoalg,
+      hfutu,
+--      HCVCoalg',
+--      hfutu',
+      HCVCoalgM,
+      hfutuM,
+
+      -- * Exponential Functors
+      appHTermHomE,
+      hcataE,
+--      hanaE,
+      appHCxtE
+    ) where
+
+
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HExpFunctor
 import Data.Comp.Ops
 
 import Control.Monad
@@ -351,3 +436,36 @@ hfutuM coa = hanaM run . HHole
     where run :: HCoalgM m f (HContext f a)
           run (HHole a) = coa a
           run (HTerm v) = return v
+
+
+--------------------------
+-- Exponential Functors --
+--------------------------
+
+{-| Catamorphism for higher-order exponential functors. -}
+hcataE :: forall f a . HExpFunctor f => HAlg f a -> HTerm f :-> a
+hcataE f = cataFS . toHCxt
+    where cataFS :: HExpFunctor f => HContext f a :-> a
+          cataFS (HHole x) = x
+          cataFS (HTerm t) = f (hxmap cataFS HHole t)
+
+
+{-{-| Anamorphism for higher-order exponential functors. -}
+hanaE :: forall a f . HExpFunctor f => HCoalg f a -> a :-> HTerm (f :&: a)
+hanaE f = run
+    where run :: a :-> HTerm (f :&: a)
+          run t = HTerm $ hxmap run (snd . hprojectP . unHTerm) (f t) :&: t-}
+
+-- | Variant of 'appHCxt' for contexts over 'HExpFunctor' signatures.
+appHCxtE :: (HExpFunctor f) => HContext f (HCxt h f a) :-> HCxt h f a
+appHCxtE (HHole x) = x
+appHCxtE (HTerm t)  = HTerm (hxmap appHCxtE HHole t)
+
+-- | Variant of 'appHTermHom' for term homomorphisms from and to
+-- 'HExpFunctor' signatures.
+appHTermHomE :: forall f g . (HExpFunctor f, HExpFunctor g) => HTermHom f g
+             -> HTerm f :-> HTerm g
+appHTermHomE f = cataFS . toHCxt
+    where cataFS :: HContext f (HTerm g) :-> HTerm g
+          cataFS (HHole x) = x
+          cataFS (HTerm t) = appHCxtE (f (hxmap cataFS HHole t))

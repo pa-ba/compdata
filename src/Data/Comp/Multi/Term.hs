@@ -31,6 +31,7 @@ module Data.Comp.Multi.Term
      ) where
 
 import Data.Comp.Multi.HFunctor
+import Unsafe.Coerce
 
 type HConst (f :: (* -> *) -> * -> *) = f (K ())
 
@@ -87,5 +88,7 @@ instance (HFunctor f) => HFunctor (HCxt h f) where
 simpHCxt :: (HFunctor f) => f a i -> HContext f a i
 simpHCxt = HTerm . hfmap HHole
 
-toHCxt :: (HFunctor f) => HTerm f i -> HContext f a i
-toHCxt (HTerm t) = HTerm $ hfmap toHCxt t
+toHCxt :: HTerm f i -> HContext f a i
+toHCxt = unsafeCoerce
+--toHCxt :: (HFunctor f) => HTerm f i -> HContext f a i
+--toHCxt (HTerm t) = HTerm $ hfmap toHCxt t
