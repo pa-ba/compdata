@@ -85,12 +85,6 @@ instanceExpFunctor fname = do
                           if a == fArg then f else [|id|]
                       ConT _ ->
                           [|id|]
-                      TupleT _ ->
-                          error "unexpected top-level TupleT"
-                      ArrowT ->
-                          error "unexpected top-level ArrowT"
-                      ListT ->
-                          error "unexpected top-level ListT"
                       AppT (AppT ArrowT tp1) tp2 -> do
                           -- Note that f and g are swapped in the contravariant
                           -- type tp1
@@ -107,3 +101,5 @@ instanceExpFunctor fname = do
                           [|fmap|] `appE` xmapArg fArg tp' f g
                       SigT tp' _ ->
                           xmapArg fArg tp' f g
+                      _ ->
+                          error $ "unsopported type: " ++ show tp

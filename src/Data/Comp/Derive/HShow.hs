@@ -54,9 +54,9 @@ instanceHShowF fname = do
   showFDecl <- funD 'hshowF (showFClauses fArg constrs')
   return [InstanceD preCond classType [showFDecl]]
       where showFClauses fArg = map (genShowFClause fArg)
-            filterFarg fArg ty x = (fArg == ty, varE x)
+            filterFarg fArg ty x = (containsType ty fArg, varE x)
             mkShow (isFArg, var)
-                | isFArg = var
+                | isFArg = [|unK $var|]
                 | otherwise = [| show $var |]
             genShowFClause fArg (constr, args) = do 
               let n = length args
@@ -65,5 +65,5 @@ instanceHShowF fname = do
                   allVars = zipWith (filterFarg fArg) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr
-              body <- [|showConstr conName $shows|]
+              body <- [|K $ showConstr conName $shows|]
               return $ Clause [pat] (NormalB body) []
