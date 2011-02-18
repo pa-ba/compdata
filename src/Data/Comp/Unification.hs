@@ -1,5 +1,4 @@
 {-# LANGUAGE FlexibleContexts #-}
-
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Unification
@@ -9,8 +8,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module implements a simple unification algorithm using data
--- types a la carte.
+-- This module implements a simple unification algorithm using compositional
+-- data types.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Unification where

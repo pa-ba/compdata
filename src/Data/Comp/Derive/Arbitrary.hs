@@ -8,6 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
+-- Automatically derive instances of @ArbitraryF@.
 --
 --------------------------------------------------------------------------------
 
@@ -56,7 +57,7 @@ instanceArbitraryF dt = do
       classType = AppT (ConT ''ArbitraryF) complType
   arbitraryDecl <- generateArbitraryFDecl constrs
   shrinkDecl <- generateShrinkFDecl constrs
-  return $ [InstanceD preCond classType [arbitraryDecl, shrinkDecl]]
+  return [InstanceD preCond classType [arbitraryDecl, shrinkDecl]]
 
 {-|
   This function generates a declaration of the method 'arbitrary' for the given

@@ -8,6 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
+-- Automatically derive instances of @ExpFunctor@.
 --
 --------------------------------------------------------------------------------
 
@@ -37,7 +38,7 @@ instanceExpFunctor fname = do
   -- constrs' = [(X,[a]), (Y,[a,b]), (Z,[b -> b])]
   constrs' :: [(Name,[Type])] <- mapM normalConExp constrs
   xmapDecl <- funD 'xmap (map (xmapClause fArg) constrs')
-  return $ [InstanceD [] classType [xmapDecl]]
+  return [InstanceD [] classType [xmapDecl]]
       where xmapClause :: Name -> (Name,[Type]) -> ClauseQ
             xmapClause fArg (constr, args) = do
               fn <- newName "_f"
@@ -56,7 +57,7 @@ instanceExpFunctor fname = do
                 acc
             xmapArgs fArg f g ((x,tp):tps) acc =
                 xmapArgs fArg f g tps (acc `appE`
-                                       (xmapArg fArg tp f g `appE` (varE x)))
+                                       (xmapArg fArg tp f g `appE` varE x))
             -- Given the name of the functor variable, a type, and the two
             -- arguments to xmap, return the expression that should be applied
             -- to the parameter of the given type.

@@ -1,5 +1,5 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FunctionalDependencies,
-             FlexibleInstances, UndecidableInstances, RankNTypes, GADTs #-}
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses,
+  FlexibleInstances, UndecidableInstances, RankNTypes, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Product
@@ -9,7 +9,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines products on signatures.
+-- This module defines products on signatures. All definitions are
+-- generalised versions of those in "Data.Comp.Product".
 --
 --------------------------------------------------------------------------------
 
@@ -21,7 +22,7 @@ module Data.Comp.Multi.Product
       constP,
       liftP',
       stripP,
-      productTermHom,
+      productHTermHom,
       project'
     )where
 
@@ -49,15 +50,15 @@ liftP f v = f (hremoveP v)
 -- given value (of type a).
 
 constP :: (HDistProd f p g, HFunctor f, HFunctor g) 
-       => p -> Cxt h f a :-> Cxt h g a
-constP c = appSigFun (hinjectP c)
+       => p -> HCxt h f a :-> HCxt h g a
+constP c = appHSigFun (hinjectP c)
 
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
 -- same functor but with an additional product.
 
 liftP' :: (HDistProd s' p s, HFunctor s, HFunctor s')
-       => (s' a :-> Cxt h s' a) -> s a :-> Cxt h s a
+       => (s' a :-> HCxt h s' a) -> s a :-> HCxt h s a
 liftP' f v = let (v' :&: p) = hprojectP v
              in constP p (f v')
     
@@ -65,13 +66,13 @@ liftP' f v = let (v' :&: p) = hprojectP v
 functor whith products. -}
 
 stripP :: (HFunctor f, HRemoveP g f, HFunctor g)
-       => Cxt h g a :-> Cxt h f a
-stripP = appSigFun hremoveP
+       => HCxt h g a :-> HCxt h f a
+stripP = appHSigFun hremoveP
 
 
-productTermHom :: (HDistProd f p f', HDistProd g p g', HFunctor g, HFunctor g') 
-               => TermHom f g -> TermHom f' g'
-productTermHom alg f' = constP p (alg f)
+productHTermHom :: (HDistProd f p f', HDistProd g p g', HFunctor g, HFunctor g') 
+               => HTermHom f g -> HTermHom f' g'
+productHTermHom alg f' = constP p (alg f)
     where (f :&: p) = hprojectP f'
 
 
@@ -82,5 +83,5 @@ productTermHom alg f' = constP p (alg f)
 -- with a product which is then ignored.
 
 -- project' :: (HRemoveP s s',s :<<: f) =>
---      NatM Maybe (Cxt h f a) (s' (Cxt h f a))
+--      NatM Maybe (HCxt h f a) (s' (HCxt h f a))
 project' v = liftM hremoveP $ project v

@@ -1,5 +1,4 @@
 {-# LANGUAGE RankNTypes, GADTs #-}
-
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.TermRewriting
@@ -9,8 +8,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines term rewriting systems (TRSs) using data types
--- a la carte.
+-- This module defines term rewriting systems (TRSs) using compositional data
+-- types.
 --
 --------------------------------------------------------------------------------
 
@@ -45,7 +44,7 @@ type Rule f g v = (Context f v, Context g v)
 
 
 {-| This type represents term rewriting systems (TRSs) from signature
-@f@ to signature @g@ over variables of type @v@.-}
+@f@ to signature @g@ over variables of type @v@. -}
 
 type TRS f g v = [Rule f g v]
 
@@ -65,7 +64,7 @@ matchRule (lhs,rhs) t = do
 
 matchRules :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
            => TRS f g v -> Cxt h f a -> Maybe (Context g v, Map v (Cxt h f a))
-matchRules trs t = listToMaybe $ catMaybes $ map (`matchRule` t) trs
+matchRules trs t = listToMaybe $ mapMaybe (`matchRule` t) trs
 
 {-| This function tries to apply the given rule at the root of the
 given term (resp. context in general). If successful, the function
@@ -84,15 +83,14 @@ rule is applicable @Nothing@ is returned. -}
 
 appTRS :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
          => TRS f f v -> Step (Cxt h f a)
-appTRS trs t = listToMaybe $ catMaybes $ map (`appRule` t) trs
+appTRS trs t = listToMaybe $ mapMaybe (`appRule` t) trs
 
 
-{-| This is an auxiliary function that turns function @f@ of type @(t
--> Maybe t)@ into functions @f'@ of type @t -> (t,Bool)@. @f' x@
-evaluates to @(y,True)@ if @f x@ evaluates to @Just y@, and to
-@(x,False)@ if $f x@ evaluates to @Nothing@. This function is useful
-to change the output of functions that apply rules such as
-'appTRS'-}
+{-| This is an auxiliary function that turns function @f@ of type
+  @(t -> Maybe t)@ into functions @f'@ of type @t -> (t,Bool)@. @f' x@
+  evaluates to @(y,True)@ if @f x@ evaluates to @Just y@, and to
+  @(x,False)@ if @f x@ evaluates to @Nothing@. This function is useful
+  to change the output of functions that apply rules such as 'appTRS'. -}
 
 bStep :: Step t -> BStep t
 bStep f t = case f t of

@@ -1,5 +1,5 @@
-{-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances, OverlappingInstances, TypeOperators #-}
-
+{-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances,
+  OverlappingInstances, TypeOperators #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Variables
@@ -9,8 +9,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines an abstraction notion of a variable in an a la
--- carte term.
+-- This module defines an abstraction notion of a variable in compositional
+-- data type.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Variables (
@@ -78,7 +78,7 @@ context. -}
 
 containsVar :: (Eq v, HasVars f v, Foldable f, Functor f)
             => v -> Cxt h f a -> Bool
-containsVar v = freeAlgHom (containsVarAlg v) (const False)
+containsVar v = free (containsVarAlg v) (const False)
 
 variablesAlg :: (Ord v, HasVars f v, Foldable f)
             => Alg f (Set v)
@@ -99,14 +99,14 @@ context. -}
 
 variableList :: (Ord v, HasVars f v, Foldable f, Functor f)
             => Cxt h f a -> [v]
-variableList = freeAlgHom variableListAlg (const [])
+variableList = free variableListAlg (const [])
 
 {-| This function computes the set of variables occurring in a
 context. -}
 
 variables :: (Ord v, HasVars f v, Foldable f, Functor f)
             => Cxt h f a -> Set v
-variables = freeAlgHom variablesAlg (const Set.empty)
+variables = free variablesAlg (const Set.empty)
 
 {-| This function computes the set of variables occurring in a
 context. -}
@@ -138,7 +138,7 @@ instance (Ord v, HasVars f v, Functor f) => SubstVars v (Cxt h f a) (Cxt h f a) 
     substVars f (Term v) = substAlg f $ fmap (substVars f) v
     substVars _ (Hole a) = Hole a
 -- have to use explicit GADT pattern matching!!
--- subst f = freeAlgHom (substAlg f) Hole
+-- subst f = free (substAlg f) Hole
 
 instance (SubstVars v t a, Functor f) => SubstVars v t (f a) where
     substVars f = fmap (substVars f) 

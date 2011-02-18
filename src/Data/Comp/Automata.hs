@@ -1,5 +1,4 @@
 {-# LANGUAGE RankNTypes #-}
-
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata
@@ -9,7 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines tree automata based on data types a la carte.
+-- This module defines tree automata based on compositional data types.
 --
 --------------------------------------------------------------------------------
 
@@ -142,7 +141,7 @@ data NUTT f g q = NUTT {
 NUTT and returns a list containing all accepted results. -}
 
 nutt :: (Traversable f, Functor g) => NUTT f g q -> Term f -> [Term g]
-nutt NUTT{nuttTrans = trans, nuttAccept = accept} = catMaybes . map accept' . runNUTTTrans trans
+nutt NUTT{nuttTrans = trans, nuttAccept = accept} = mapMaybe accept' . runNUTTTrans trans
     where accept' (q,res)
               | accept q = Just res
               | otherwise = Nothing

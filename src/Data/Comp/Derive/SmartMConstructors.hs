@@ -9,6 +9,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
+-- Automatically derive smart constructors for mutually recursive types.
 --
 --------------------------------------------------------------------------------
 
@@ -17,7 +18,7 @@ module Data.Comp.Derive.SmartMConstructors
 
 
 
-import Language.Haskell.TH hiding (Cxt)
+import Language.Haskell.TH
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Term
@@ -54,7 +55,7 @@ smartMConstructors fname = do
                     i = varT ivar
                     ftype = foldl appT (conT tname) (map varT targs')
                     constr = classP ''(:<<:) [ftype, f]
-                    typ = foldl appT (conT ''Cxt) [h, f, a, i]
+                    typ = foldl appT (conT ''HCxt) [h, f, a, i]
                     typeSig = forallT (map PlainTV vars) (sequence [constr]) typ
                 sigD sname typeSig
               genSig _ _ _ _ = []

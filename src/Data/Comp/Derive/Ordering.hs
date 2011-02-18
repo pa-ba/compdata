@@ -8,7 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- The ordering algebra (orderings on terms).
+-- Automatically derive instances of @OrdF@.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Derive.Ordering
@@ -24,9 +24,8 @@ import Data.Maybe
 import Data.List
 import Language.Haskell.TH hiding (Cxt)
 
-{-|
-  Functor type class that provides an 'Eq' instance for the corresponding
-  term type class.
+{-| Ordering for signatures. An instance @Ord f@ gives rise to an instance
+  @Ord (Term f)@, i.e. ordering of terms over @f@.
 -}
 class EqF f => OrdF f where
     compareF :: Ord a => f a -> f a -> Ordering
@@ -48,7 +47,7 @@ instanceOrdF fname = do
       preCond = map (ClassP ''Ord . (: [])) argNames
       classType = AppT (ConT ''OrdF) complType
   eqAlgDecl <- funD 'compareF  (compareFClauses constrs)
-  return $ [InstanceD preCond classType [eqAlgDecl]]
+  return [InstanceD preCond classType [eqAlgDecl]]
       where compareFClauses [] = []
             compareFClauses constrs = 
                 let constrs' = map abstractConType constrs `zip` [1..]

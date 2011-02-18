@@ -8,6 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
+-- Automatically derive instances of @HShowF@.
 --
 --------------------------------------------------------------------------------
 
@@ -21,10 +22,9 @@ import Data.Comp.Derive.Utils
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Algebra
 import Language.Haskell.TH
-import Data.List
 
 class HShowF f where
-    hshowF :: Alg f (K String)
+    hshowF :: HAlg f (K String)
     hshowF = K . hshowF'
     hshowF' :: f (K String) :=> String
     hshowF' = unK . hshowF
@@ -34,7 +34,7 @@ class KShow a where
 
 showConstr :: String -> [String] -> String
 showConstr con [] = con
-showConstr con args = "(" ++ con ++ " " ++ concat (intersperse " " args) ++ ")"
+showConstr con args = "(" ++ con ++ " " ++ unwords args ++ ")"
 
 
 instanceHShowF :: Name -> Q [Dec]
@@ -48,8 +48,8 @@ instanceHShowF fname = do
       classType = AppT (ConT ''HShowF) complType
   constrs' <- mapM normalConExp constrs
   showFDecl <- funD 'hshowF (showFClauses fArg constrs')
-  return $ [InstanceD preCond classType [showFDecl]]
-      where showFClauses fArg constrs = map (genShowFClause fArg) constrs
+  return [InstanceD preCond classType [showFDecl]]
+      where showFClauses fArg = map (genShowFClause fArg)
             filterFarg fArg ty x = (fArg == ty, varE x)
             mkShow (isFArg, var)
                 | isFArg = var

@@ -33,7 +33,7 @@ import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
 infixr 6 :+:
 
 
--- |Data type defining coproducts.
+-- |Formal sum of signatures (functors).
 data (f :+: g) e = Inl (f e)
                  | Inr (g e)
 
@@ -69,7 +69,11 @@ instance (ExpFunctor f, ExpFunctor g) => ExpFunctor (f :+: g) where
     xmap f g (Inl e) = Inl (xmap f g e)
     xmap f g (Inr e) = Inr (xmap f g e)
 
--- |The subsumption relation.
+-- | Signature containment relation for automatic injections. The left-hand must
+-- be an atomic signature, where as the right-hand side must have a list-like
+-- structure. Examples include @f :<: f :+: g@ and @g :<: f :+: (g :+: h)@,
+-- non-examples include @f :+: g :<: f :+: (g :+: h)@ and
+-- @f :<: (f :+: g) :+: h@.
 class sub :<: sup where
   inj :: sub a -> sup a
   proj :: sup a -> Maybe (sub a)
@@ -92,6 +96,7 @@ instance (f :<: g) => (:<:) f (h :+: g) where
 
 infixr 8 :*:
 
+-- |Formal product of signatures (functors).
 data (f :*: g) a = f a :*: g a
 
 
@@ -134,15 +139,15 @@ instance (ExpFunctor f) => ExpFunctor (f :&: a) where
 signatures. -}
 
 class DistProd s p s' | s' -> s, s' -> p where
-        
-    {-| This function injects a product a value over a signature. -}
+    {-| Inject a product value over a signature. -}
     injectP :: p -> s a -> s' a
+    {-| Project a product value from a signature. -}
     projectP :: s' a -> (s a, p)
 
 
 class RemoveP s s' | s -> s'  where
+    {-| Remove products from a signature. -}
     removeP :: s a -> s' a
-
 
 instance (RemoveP s s') => RemoveP (f :&: p :+: s) (f :+: s') where
     removeP (Inl (v :&: _)) = Inl v

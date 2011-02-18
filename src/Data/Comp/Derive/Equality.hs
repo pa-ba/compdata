@@ -8,7 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- The equality algebra (equality on terms).
+-- Automatically derive instances of @EqF@.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Derive.Equality
@@ -21,9 +21,8 @@ import Data.Comp.Derive.Utils
 import Language.Haskell.TH hiding (Cxt, match)
 
 
-{-|
-  Functor type class that provides an 'Eq' instance for the corresponding
-  term type class.
+{-| Equality for signatures. An instance @Eq f@ gives rise to an instance
+  @Eq (Term f)@, i.e. equality for terms over @f@.
 -}
 class EqF f where
 
@@ -44,9 +43,9 @@ instanceEqF fname = do
       preCond = map (ClassP ''Eq . (: [])) argNames
       classType = AppT (ConT ''EqF) complType
   eqFDecl <- funD 'eqF  (eqFClauses constrs)
-  return $ [InstanceD preCond classType [eqFDecl]]
+  return [InstanceD preCond classType [eqFDecl]]
       where eqFClauses constrs = map (genEqClause.abstractConType) constrs
-                                   ++ (defEqClause constrs)
+                                   ++ defEqClause constrs
             filterFarg fArg ty x = (fArg == ty, x)
             defEqClause constrs
                 | length constrs  < 2 = []

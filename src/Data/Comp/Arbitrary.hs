@@ -8,6 +8,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
+-- This module defines generation of arbitrary values for signatures, which
+-- lifts to generating arbitrary terms.
 --
 --------------------------------------------------------------------------------
 

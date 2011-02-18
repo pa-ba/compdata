@@ -8,6 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
+-- Automatically derive instances of @HTraversable@.
 --
 --------------------------------------------------------------------------------
 
@@ -45,19 +46,19 @@ instanceHTraversable fname = do
   constrs' <- P.mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   traverseDecl <- funD 'htraverse (map traverseClause constrs')
   mapMDecl <- funD 'hmapM (map mapMClause constrs')
-  return $ [InstanceD [] classType [traverseDecl, mapMDecl]]
+  return [InstanceD [] classType [traverseDecl, mapMDecl]]
       where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
             mkCPat constr varNs = ConP constr $ map mkPat varNs
-            mkPat x = VarP x
+            mkPat = VarP
             mkPatAndVars (constr, args) =
                 do varNs <- newNames (length args) "x"
                    return (conE constr, mkCPat constr varNs,
-                           (\ f g -> filterVars args varNs (\ d x -> f d (varE x)) (g . varE)),
-                           any (not . null) args, map varE varNs, catMaybes $ filterVars args varNs (\d x -> Just (d, x)) (const Nothing))
+                           \f g -> filterVars args varNs (\ d x -> f d (varE x)) (g . varE),
+                           any (not . null) args, map varE varNs, catMaybes $ filterVars args varNs (curry Just) (const Nothing))
             traverseClause (con, pat,vars',hasFargs,_,_) =
                 do fn <- newName "f"
                    let f = varE fn
