@@ -18,9 +18,6 @@ import Data.Traversable
 
 class (Functor e, Traversable f) => Desugar f e where
     desugarAlg :: TermHom f e
-    desugarAlg = desugarAlg' . fmap Hole
-    desugarAlg' :: Alg f (Context e a)
-    desugarAlg' x = appCxt $ desugarAlg x
 
 desugarExpr :: SugarExpr -> Expr
 desugarExpr = desugar
@@ -40,11 +37,11 @@ instance (Op :<: v, Functor v) => Desugar Op v where
     desugarAlg = liftCxt
 
 instance (Op :<: v, Value :<: v, Functor v) => Desugar Sugar v where
-    desugarAlg' (Neg x) =  iVInt (-1) `iMult` x
-    desugarAlg' (Minus x y) =  x `iPlus` ((iVInt (-1)) `iMult` y)
-    desugarAlg' (Gt x y) =  y `iLt` x
-    desugarAlg' (Or x y) = iNot (iNot x `iAnd` iNot y)
-    desugarAlg' (Impl x y) = iNot (x `iAnd` iNot y)
+    desugarAlg (Neg x) =  iVInt (-1) `iMult` (Hole x)
+    desugarAlg (Minus x y) =  (Hole x) `iPlus` ((iVInt (-1)) `iMult` (Hole y))
+    desugarAlg (Gt x y) =  (Hole y) `iLt` (Hole x)
+    desugarAlg (Or x y) = iNot (iNot (Hole x) `iAnd` iNot (Hole y))
+    desugarAlg (Impl x y) = iNot ((Hole x) `iAnd` iNot (Hole y))
 
 
 -- standard algebraic approach

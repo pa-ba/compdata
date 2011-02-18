@@ -20,13 +20,13 @@ class (HFunctor e, HFunctor f) => Desugar f e where
     desugarAlg :: TermHom f e
     desugarAlg = desugarAlg' . hfmap Hole
     desugarAlg' :: Alg f (Context e a)
-    desugarAlg' x = applyCxt $ desugarAlg x
+    desugarAlg' x = appCxt $ desugarAlg x
 
 desugarExpr :: SugarExpr :-> Expr
 desugarExpr = desugar
 
 desugar :: Desugar f e => Term f :-> Term e
-desugar = applyTermHom desugarAlg
+desugar = appTermHom desugarAlg
 
 instance (Desugar f e, Desugar g e) => Desugar (g :++: f) e where
     desugarAlg (HInl v) = desugarAlg v
