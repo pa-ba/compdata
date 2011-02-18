@@ -12,9 +12,9 @@
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Derive.Ordering
-    ( OrdF(..),
-      compList,
-      instanceOrdF
+    (
+     OrdF(..),
+     instanceOrdF
     ) where
 
 import Data.Comp.Derive.Equality
@@ -24,9 +24,8 @@ import Data.Maybe
 import Data.List
 import Language.Haskell.TH hiding (Cxt)
 
-{-| Ordering for signatures. An instance @Ord f@ gives rise to an instance
-  @Ord (Term f)@, i.e. ordering of terms over @f@.
--}
+{-| Signature ordering. An instance @OrdF f@ gives rise to an instance
+  @Ord (Term f)@. -}
 class EqF f => OrdF f where
     compareF :: Ord a => f a -> f a -> Ordering
 
@@ -34,11 +33,8 @@ class EqF f => OrdF f where
 compList :: [Ordering] -> Ordering
 compList = fromMaybe EQ . find (/= EQ)
 
-
-{-| This function generates an instance declaration of class
-'OrdF' for a type constructor of any first-order kind taking at
-least one argument. -}
-
+{-| Derive an instance of 'OrdF' for a type constructor of any first-order kind
+  taking at least one argument. -}
 instanceOrdF :: Name -> Q [Dec]
 instanceOrdF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname

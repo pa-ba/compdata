@@ -21,20 +21,14 @@ import Data.Comp.Derive.Utils
 import Language.Haskell.TH hiding (Cxt, match)
 
 
-{-| Equality for signatures. An instance @Eq f@ gives rise to an instance
-  @Eq (Term f)@, i.e. equality for terms over @f@.
--}
+{-| Signature equality. An instance @EqF f@ gives rise to an instance
+  @Eq (Term f)@. -}
 class EqF f where
 
     eqF :: Eq a => f a -> f a -> Bool
 
-                             
-
-{-| This function generates an instance declaration of class 'EqF' for
-a type constructor of any first-order kind taking at least one
-argument. The implementation is not capable of deriving instances for
-recursive data types. -}
-
+{-| Derive an instance of 'EqF' for a type constructor of any first-order kind
+  taking at least one argument. -}
 instanceEqF :: Name -> Q [Dec]
 instanceEqF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname

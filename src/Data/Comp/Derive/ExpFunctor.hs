@@ -13,14 +13,17 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.ExpFunctor
-    ( ExpFunctor,
-      instanceExpFunctor
+    (
+     ExpFunctor,
+     instanceExpFunctor
     ) where
 
 import Data.Comp.ExpFunctor
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH
 
+{-| Derive an instance of 'ExpFunctor' for a type constructor of any first-order
+  kind taking at least one argument. -}
 instanceExpFunctor :: Name -> Q [Dec]
 instanceExpFunctor fname = do
   -- Comments below apply to the example where name = T, args = [a,b], and

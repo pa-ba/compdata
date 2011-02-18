@@ -13,8 +13,8 @@
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Ordering
-    ( OrdF(..),
-      compList
+    (
+     OrdF(..)
     ) where
 
 import Data.Comp.Term

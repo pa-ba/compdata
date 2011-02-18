@@ -13,8 +13,10 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.Traversable
-    ( instanceTraversable
-    )where
+    (
+     Traversable,
+     instanceTraversable
+    ) where
 
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH
@@ -34,6 +36,8 @@ iter' n f e = run n f e
           run m f e = let f' = iter (m-1) [|fmap|] f
                         in run (m-1) f (f' `appE` e)
 
+{-| Derive an instance of 'Traversable' for a type constructor of any
+  first-order kind taking at least one argument. -}
 instanceTraversable :: Name -> Q [Dec]
 instanceTraversable fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname

@@ -13,8 +13,10 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.HFunctor
-    ( instanceHFunctor
-    )where
+    (
+     HFunctor,
+     instanceHFunctor
+    ) where
 
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.HFunctor
@@ -27,7 +29,8 @@ import Control.Monad
 iter 0 _ e = e
 iter n f e = iter (n-1) f (f `appE` e)
 
-
+{-| Derive an instance of 'HFunctor' for a type constructor of any higher-order
+  kind taking at least two arguments. -}
 instanceHFunctor :: Name -> Q [Dec]
 instanceHFunctor fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname

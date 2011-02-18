@@ -13,8 +13,10 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.Foldable
-    ( instanceFoldable
-    )where
+    (
+     Foldable,
+     instanceFoldable
+    ) where
 
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH
@@ -34,6 +36,8 @@ iter' n f e = run n f e
           run m f e = let f' = iter (m-1) [|fmap|] f
                         in run (m-1) f (f' `appE` e)
 
+{-| Derive an instance of 'Foldable' for a type constructor of any first-order
+  kind taking at least one argument. -}
 instanceFoldable :: Name -> Q [Dec]
 instanceFoldable fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname

@@ -16,8 +16,6 @@
 module Data.Comp.Derive.SmartMConstructors 
     (smartMConstructors) where
 
-
-
 import Language.Haskell.TH
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Sum
@@ -25,7 +23,9 @@ import Data.Comp.Multi.Term
 
 import Control.Monad
 
-
+{-| Derive smart constructors for a type constructor of any higher-order kind
+ taking at least two arguments. The smart constructors are similar to the
+ ordinary constructors, but an 'hinject' is automatically inserted. -}
 smartMConstructors :: Name -> Q [Dec]
 smartMConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
@@ -40,7 +40,7 @@ smartMConstructors fname = do
                     vars = map varE varNs
                     val = foldl appE (conE name) vars
                     sig = genSig targs tname sname args
-                    function = [funD sname [clause pats (normalB [|inject $val|]) []]]
+                    function = [funD sname [clause pats (normalB [|hinject $val|]) []]]
                 sequence $ sig ++ function
               genSig targs tname sname 0 = (:[]) $ do
                 fvar <- newName "f"

@@ -26,10 +26,8 @@ import Language.Haskell.TH hiding (Cxt, match)
 class KEq f where
     keq :: f i -> f j -> Bool
 
-{-|
-  Functor type class that provides an 'Eq' instance for the corresponding
-  term type class.
--}
+{-| Signature equality. An instance @HEqF f@ gives rise to an instance
+  @KEq (HTerm f)@. -}
 class HEqF f where
 
     heqF :: KEq g => f g i -> f g j -> Bool
@@ -44,11 +42,8 @@ instance Eq a => KEq (K a) where
 instance KEq a => Eq (A a) where
      A x == A y = x `keq`  y
 
-{-| This function generates an instance declaration of class 'EqF' for
-a type constructor of any first-order kind taking at least one
-argument. The implementation is not capable of deriving instances for
-recursive data types. -}
-
+{-| Derive an instance of 'HEqF' for a type constructor of any higher-order
+  kind taking at least two arguments. -}
 instanceHEqF :: Name -> Q [Dec]
 instanceHEqF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname

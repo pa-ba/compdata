@@ -13,11 +13,11 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.Arbitrary
-    ( ArbitraryF(..),
-      instanceArbitraryF,
-      instanceArbitrary,
-      Arbitrary(..),
-      choose
+    (
+     ArbitraryF(..),
+     instanceArbitraryF,
+     Arbitrary(..),
+     instanceArbitrary
     )where
 
 import Test.QuickCheck
@@ -25,15 +25,12 @@ import Data.Comp.Derive.Utils
 import Language.Haskell.TH
 import Data.DeriveTH
 
+{-| Derive an instance of 'Arbitrary' for a type constructor. -}
 instanceArbitrary :: Name -> Q [Dec]
 instanceArbitrary = derive makeArbitrary
 
-
-{-|
-  This class should be instantiated by functors @f@ such that @Term f@
-  becomes an instance of 'Arbitrary'
--}
-
+{-| Signature arbitration. An instance @ArbitraryF f@ gives rise to an instance
+  @Arbitrary (Term f)@. -}
 class ArbitraryF f where
     arbitraryF' :: Arbitrary v => [(Int,Gen (f v))]
     arbitraryF' = [(1,arbitraryF)]
@@ -42,12 +39,10 @@ class ArbitraryF f where
     shrinkF :: Arbitrary v => f v -> [f v]
     shrinkF _ = []
 
-
-{-| This template function generates an instance declaration of the
-given data type name for the class 'ArbitraryF'. It is necessary that
-all types that are used by the data type definition are themselves
-instances of 'Arbitrary'.  -}
-
+{-| Derive an instance of 'ArbitraryF' for a type constructor of any
+  first-order kind taking at least one argument. It is necessary that
+  all types that are used by the data type definition are themselves
+  instances of 'Arbitrary'. -}
 instanceArbitraryF :: Name -> Q [Dec]
 instanceArbitraryF dt = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify dt

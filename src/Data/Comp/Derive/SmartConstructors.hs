@@ -25,7 +25,9 @@ import Data.Comp.Term
 
 import Control.Monad
 
-
+{-| Derive smart constructors for a type constructor of any first-order kind
+ taking at least one argument. The smart constructors are similar to the
+ ordinary constructors, but an 'inject' is automatically inserted. -}
 smartConstructors :: Name -> Q [Dec]
 smartConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname

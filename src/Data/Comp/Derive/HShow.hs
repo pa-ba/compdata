@@ -13,9 +13,10 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.HShow
-    ( HShowF(..),
-      KShow(..),
-      instanceHShowF
+    (
+     HShowF(..),
+     KShow(..),
+     instanceHShowF
     ) where
 
 import Data.Comp.Derive.Utils
@@ -23,12 +24,14 @@ import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Algebra
 import Language.Haskell.TH
 
+{-| Signature printing. An instance @HShowF f@ gives rise to an instance
+  @KShow (HTerm f)@. -}
 class HShowF f where
     hshowF :: HAlg f (K String)
     hshowF = K . hshowF'
     hshowF' :: f (K String) :=> String
     hshowF' = unK . hshowF
-             
+
 class KShow a where
     kshow :: a i -> K String i
 
@@ -36,7 +39,8 @@ showConstr :: String -> [String] -> String
 showConstr con [] = con
 showConstr con args = "(" ++ con ++ " " ++ unwords args ++ ")"
 
-
+{-| Derive an instance of 'HShowF' for a type constructor of any higher-order
+  kind taking at least two arguments. -}
 instanceHShowF :: Name -> Q [Dec]
 instanceHShowF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname

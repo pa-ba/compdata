@@ -13,13 +13,16 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.Show
-    ( ShowF(..),
-      instanceShowF
+    (
+     ShowF(..),
+     instanceShowF
     ) where
 
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH
 
+{-| Signature printing. An instance @ShowF f@ gives rise to an instance
+  @Show (Term f)@. -}
 class ShowF f where
     showF :: f String -> String
              
@@ -27,7 +30,8 @@ showConstr :: String -> [String] -> String
 showConstr con [] = con
 showConstr con args = "(" ++ con ++ " " ++ unwords args ++ ")"
 
-
+{-| Derive an instance of 'ShowF' for a type constructor of any first-order kind
+  taking at least one argument. -}
 instanceShowF :: Name -> Q [Dec]
 instanceShowF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname

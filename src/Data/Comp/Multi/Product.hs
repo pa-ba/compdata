@@ -23,7 +23,7 @@ module Data.Comp.Multi.Product
       liftP',
       stripP,
       productHTermHom,
-      project'
+      hproject'
     )where
 
 import Data.Comp.Multi.Term
@@ -79,9 +79,9 @@ productHTermHom alg f' = constP p (alg f)
 
 
 
--- | This function is similar to 'project' but applies to signatures
+-- | This function is similar to 'hproject' but applies to signatures
 -- with a product which is then ignored.
 
--- project' :: (HRemoveP s s',s :<<: f) =>
+-- hproject' :: (HRemoveP s s',s :<<: f) =>
 --      NatM Maybe (HCxt h f a) (s' (HCxt h f a))
-project' v = liftM hremoveP $ project v
+hproject' v = liftM hremoveP $ hproject v

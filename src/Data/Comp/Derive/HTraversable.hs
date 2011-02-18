@@ -13,8 +13,10 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.HTraversable
-    ( instanceHTraversable
-    )where
+    (
+     HTraversable,
+     instanceHTraversable
+    ) where
 
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.HFunctor
@@ -35,6 +37,8 @@ iter' n f e = run n f e
           run m f e = let f' = iter (m-1) [|fmap|] f
                         in run (m-1) f (f' `appE` e)
 
+{-| Derive an instance of 'HTraversable' for a type constructor of any
+  higher-order kind taking at least two arguments. -}
 instanceHTraversable :: Name -> Q [Dec]
 instanceHTraversable fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname

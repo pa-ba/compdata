@@ -13,8 +13,9 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.DeepSeq
-    ( NFDataF(..),
-      instanceNFDataF
+    (
+     NFDataF(..),
+     instanceNFDataF
     ) where
 
 
@@ -23,10 +24,13 @@ import Data.Comp.Derive.Utils
 import Language.Haskell.TH
 import Data.Maybe
 
-
+{-| Signature normal form. An instance @NFDataF f@ gives rise to an instance
+  @NFData (Term f)@. -}
 class NFDataF f where
     rnfF :: NFData a => f a -> ()
 
+{-| Derive an instance of 'NFDataF' for a type constructor of any first-order
+  kind taking at least one argument. -}
 instanceNFDataF :: Name -> Q [Dec]
 instanceNFDataF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
