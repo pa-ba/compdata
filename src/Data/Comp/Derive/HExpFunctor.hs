@@ -54,27 +54,23 @@ instanceHExpFunctor fname = do
             hxmapArgs fArg f g ((x,tp):tps) acc =
                 hxmapArgs fArg f g tps (acc `appE`
                                        (hxmapArg fArg tp f g `appE` varE x))
-            -- Given the name of the functor variable, a type, and the two
-            -- arguments to xmap, return the expression that should be applied
-            -- to the parameter of the given type.
-            -- Example: xmapArg b (b -> b) f g yields the expression
-            -- [|\x -> f . x . g|]
             hxmapArg :: Name -> Type -> ExpQ -> ExpQ -> ExpQ
             hxmapArg fArg tp f g =
-                -- No need to descend into tp if it does not contain the functor
-                -- type variable
+                -- No need to descend into tp if it does not contain the 
+                -- higher-order functor type variable
                 if not $ containsType tp (VarT fArg) then
                     [|id|]
                 else
                     case tp of
                       ForallT vars _ tp' ->
-                          -- Check if the functor variable has been rebound
+                          -- Check if the variable has been rebound
                           if any ((==) fArg . tyVarBndrName) vars then
                               [|id|]
                           else
                               hxmapArg fArg tp' f g
-                      VarT a ->
-                          -- Apply f if we have reached the functor variable
+                      (AppT (VarT a) _) ->
+                          -- Apply f if we have reached the higher-order functor
+                          -- variable
                           if a == fArg then f else [|id|]
                       ConT _ ->
                           [|id|]
