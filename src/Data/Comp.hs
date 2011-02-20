@@ -114,7 +114,6 @@ extensions are needed in order to run the example: @TemplateHaskell@,
 
 > import Data.Comp
 > import Data.Comp.Derive
-> import Data.Traversable (Traversable)
 > import Control.Monad (liftM)
 > 
 > -- Signature for values and operators

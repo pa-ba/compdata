@@ -1,4 +1,5 @@
-{-# LANGUAGE GADTs, RankNTypes, TypeOperators, ScopedTypeVariables #-}
+{-# LANGUAGE GADTs, RankNTypes, TypeOperators, ScopedTypeVariables, 
+  FlexibleContexts #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Algebra

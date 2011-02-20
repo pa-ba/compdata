@@ -27,7 +27,8 @@ library
                         Data.Comp.Decompose, Data.Comp.Unification,
                         Data.Comp.Derive, Data.Comp.Matching, Data.Comp.Multi,
                         Data.Comp.Multi.Term, Data.Comp.Multi.Sum,
-                        Data.Comp.Multi.HFunctor, Data.Comp.Multi.Algebra,
+                        Data.Comp.Multi.HFunctor, Data.Comp.Multi.HExpFunctor,
+                        Data.Comp.Multi.Algebra,
                         Data.Comp.Multi.Product, Data.Comp.Multi.HShow,
                         Data.Comp.Multi.HEquality, Data.Comp.Multi.Variables,
                         Data.Comp.Multi.Ops, Data.Comp.Ops, Data.Comp.ExpFunctor
@@ -37,9 +38,10 @@ library
                         Data.Comp.Derive.Show, Data.Comp.Derive.DeepSeq,
                         Data.Comp.Derive.SmartConstructors, Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable, Data.Comp.Derive.HFunctor,
-                        Data.Comp.Derive.HFoldable, Data.Comp.Derive.HTraversable, 
+                        Data.Comp.Derive.HFoldable, Data.Comp.Derive.HTraversable,
                         Data.Comp.Derive.HEquality, Data.Comp.Derive.HShow,
-                        Data.Comp.Derive.ExpFunctor,
+                        Data.Comp.Derive.ExpFunctor, Data.Comp.Derive.HExpFunctor,
+
                         Data.Comp.Derive.SmartMConstructors
 
   Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns
