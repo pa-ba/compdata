@@ -527,15 +527,15 @@ cataE f = cataFS . toCxt
           cataFS (Term t) = f (xmap cataFS Hole t)
 
 {-| Anamorphism for exponential functors. -}
-anaE :: forall a f . ExpFunctor f => Coalg f a -> a -> Term (f :&: a)
-anaE f = run
-    where run :: a -> Term (f :&: a)
-          run t = Term $ xmap run (snd . projectP . unTerm) (f t) :&: t
+anaE :: forall a f . ExpFunctor f => Coalg f a -> a -> Term f
+anaE f = cataE (Term . removeP) . anaFS
+    where anaFS :: a -> Term (f :&: a)
+          anaFS t = Term $ xmap anaFS (snd . projectP . unTerm) (f t) :&: t
 
 -- | Variant of 'appCxt' for contexts over 'ExpFunctor' signatures.
 appCxtE :: (ExpFunctor f) => Context f (Cxt h f a) -> Cxt h f a
 appCxtE (Hole x) = x
-appCxtE (Term t)  = Term (xmap appCxtE Hole t)
+appCxtE (Term t) = Term (xmap appCxtE Hole t)
 
 -- | Variant of 'appTermHom' for term homomorphisms from and to
 -- 'ExpFunctor' signatures.
