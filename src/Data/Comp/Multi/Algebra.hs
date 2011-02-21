@@ -68,19 +68,20 @@ module Data.Comp.Multi.Algebra (
       HCoalgM,
       hanaM,
 
-      -- * Paramorphisms
+      -- * R-Algebras & Paramorphisms
       HRAlg,
       hpara,
       HRAlgM,
       hparaM,
 
-      -- * Apomorphisms
+      -- * R-Coalgebras & Apomorphisms
       HRCoalg,
       hapo,
       HRCoalgM,
       hapoM,
 
       -- * CV-Algebras & Histomorphisms
+      -- $l1
 --      HCVAlg,
 --      hhisto,
 --      HCVAlgM,
@@ -398,8 +399,8 @@ hapoM f = run
 -- CV-Algebras & Histomorphisms --
 ----------------------------------
 
--- for this to work we need a more general version of :&&: which is of
--- kind ((* -> *) -> * -> *) -> (* -> *) -> (* -> *) -> * -> *,
+-- $l1 For this to work we need a more general version of @:&&:@ which is of
+-- kind @((* -> *) -> * -> *) -> (* -> *) -> (* -> *) -> * -> *@,
 -- i.e. one which takes a functor as second argument instead of a
 -- type.
 

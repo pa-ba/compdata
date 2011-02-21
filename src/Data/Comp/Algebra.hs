@@ -67,13 +67,13 @@ module Data.Comp.Algebra (
       CoalgM,
       anaM,
 
-      -- * Paramorphisms
+      -- * R-Algebras & Paramorphisms
       RAlg,
       para,
       RAlgM,
       paraM,
 
-      -- * Apomorphisms
+      -- * R-Coalgebras & Apomorphisms
       RCoalg,
       apo,
       RCoalgM,

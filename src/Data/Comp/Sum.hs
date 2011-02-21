@@ -15,43 +15,47 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Sum (
-  (:<:)(..),
-  (:+:)(..),
-  -- * Projections for Signatures and Terms
-  proj2,
-  proj3,
-  project,
-  project2,
-  project3,
-  deepProject,
-  deepProject2,
-  deepProject3,
-  deepProject',
-  deepProject2',
-  deepProject3',
-  -- * Injections for Signatures and Terms
-  inj2,
-  inj3,
-  inject,
-  inject2,
-  inject3,
-  deepInject,
-  deepInject2,
-  deepInject3,
-  deepInjectE,
-  deepInjectE2,
-  deepInjectE3,
-  -- * Injections and Projections for Constants
-  injectConst,
-  injectConst2,
-  injectConst3,
-  projectConst,
-  injectCxt,
-  liftCxt,
-  substHoles,
-  substHoles'
-   ) where
+module Data.Comp.Sum
+    (
+     (:<:)(..),
+     (:+:)(..),
+
+     -- * Projections for Signatures and Terms
+     proj2,
+     proj3,
+     project,
+     project2,
+     project3,
+     deepProject,
+     deepProject2,
+     deepProject3,
+     deepProject',
+     deepProject2',
+     deepProject3',
+
+     -- * Injections for Signatures and Terms
+     inj2,
+     inj3,
+     inject,
+     inject2,
+     inject3,
+     deepInject,
+     deepInject2,
+     deepInject3,
+     deepInjectE,
+     deepInjectE2,
+     deepInjectE3,
+
+     -- * Injections and Projections for Constants
+     injectConst,
+     injectConst2,
+     injectConst3,
+     projectConst,
+     injectCxt,
+     liftCxt,
+     substHoles,
+     substHoles'
+    ) where
 
 import Data.Comp.Term
 import Data.Comp.Algebra
