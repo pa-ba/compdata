@@ -31,7 +31,7 @@ import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Ops
 import Data.Comp.Ops
 import Data.Comp.Multi.Algebra
-import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Functor
 
 import Control.Monad
 

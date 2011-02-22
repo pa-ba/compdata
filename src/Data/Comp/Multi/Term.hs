@@ -26,11 +26,10 @@ module Data.Comp.Multi.Term
      constHTerm,
      unHTerm,
      toHCxt,
-     simpHCxt,
-     (:.:)(..)
+     simpHCxt
      ) where
 
-import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Functor
 import Unsafe.Coerce
 
 type HConst (f :: (* -> *) -> * -> *) = f (K ())
@@ -74,11 +73,6 @@ type HTerm f = HCxt HNoHole f HNothing
 -- | This function unravels the given term at the topmost layer.
 unHTerm :: HTerm f t -> f (HTerm f) t
 unHTerm (HTerm t) = t
-
-infixl 5 :.:
-
--- | This data type denotes the composition of two functor families.
-data (f :.: g) e t = Comp f (g e) t
 
 instance (HFunctor f) => HFunctor (HCxt h f) where
     hfmap f (HHole x) = HHole (f x)

@@ -18,8 +18,10 @@
 
 module Data.Comp.Multi.Ops where
 
-import Data.Comp.Multi.HFunctor
-import Data.Comp.Multi.HExpFunctor
+import Data.Comp.Multi.Functor
+import Data.Comp.Multi.Foldable
+import Data.Comp.Multi.Traversable
+import Data.Comp.Multi.ExpFunctor
 import Data.Comp.Ops
 import Control.Monad
 import Control.Applicative

@@ -27,22 +27,26 @@ library
                         Data.Comp.Decompose, Data.Comp.Unification,
                         Data.Comp.Derive, Data.Comp.Matching, Data.Comp.Multi,
                         Data.Comp.Multi.Term, Data.Comp.Multi.Sum,
-                        Data.Comp.Multi.HFunctor, Data.Comp.Multi.HExpFunctor,
+                        Data.Comp.Multi.Functor, Data.Comp.Multi.ExpFunctor,
+                        Data.Comp.Multi.Foldable, Data.Comp.Multi.Traversable,
                         Data.Comp.Multi.Algebra,
-                        Data.Comp.Multi.Product, Data.Comp.Multi.HShow,
-                        Data.Comp.Multi.HEquality, Data.Comp.Multi.Variables,
+                        Data.Comp.Multi.Product, Data.Comp.Multi.Show,
+                        Data.Comp.Multi.Equality, Data.Comp.Multi.Variables,
                         Data.Comp.Multi.Ops, Data.Comp.Ops, Data.Comp.ExpFunctor
 
   Other-Modules:        Data.Comp.Derive.Utils, Data.Comp.Derive.Equality,
                         Data.Comp.Derive.Ordering, Data.Comp.Derive.Arbitrary,
                         Data.Comp.Derive.Show, Data.Comp.Derive.DeepSeq,
-                        Data.Comp.Derive.SmartConstructors, Data.Comp.Derive.Foldable,
-                        Data.Comp.Derive.Traversable, Data.Comp.Derive.HFunctor,
-                        Data.Comp.Derive.HFoldable, Data.Comp.Derive.HTraversable,
-                        Data.Comp.Derive.HEquality, Data.Comp.Derive.HShow,
-                        Data.Comp.Derive.ExpFunctor, Data.Comp.Derive.HExpFunctor,
-
-                        Data.Comp.Derive.SmartMConstructors
+                        Data.Comp.Derive.SmartConstructors,
+                        Data.Comp.Derive.Foldable, Data.Comp.Derive.ExpFunctor,
+                        Data.Comp.Derive.Traversable,
+                        Data.Comp.Derive.Multi.Functor,
+                        Data.Comp.Derive.Multi.Foldable,
+                        Data.Comp.Derive.Multi.Traversable,
+                        Data.Comp.Derive.Multi.Equality,
+                        Data.Comp.Derive.Multi.Show,
+                        Data.Comp.Derive.Multi.ExpFunctor,
+                        Data.Comp.Derive.Multi.SmartConstructors
 
   Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns
   hs-source-dirs:	src

@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, FlexibleInstances, IncoherentInstances #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Derive.HEquality
+-- Module      :  Data.Comp.Derive.Multi.Equality
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -11,7 +11,7 @@
 -- Automatically derive instances of @HEqF@.
 --
 --------------------------------------------------------------------------------
-module Data.Comp.Derive.HEquality
+module Data.Comp.Derive.Multi.Equality
     (
      HEqF(..),
      KEq(..),
@@ -19,7 +19,7 @@ module Data.Comp.Derive.HEquality
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Functor
 import Language.Haskell.TH hiding (Cxt, match)
 
 

@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, ScopedTypeVariables #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Derive.HExpFunctor
+-- Module      :  Data.Comp.Derive.Multi.ExpFunctor
 -- Copyright   :  (c) 2011 Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
@@ -12,13 +12,13 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Derive.HExpFunctor
+module Data.Comp.Derive.Multi.ExpFunctor
     (
      HExpFunctor,
      instanceHExpFunctor
     ) where
 
-import Data.Comp.Multi.HExpFunctor
+import Data.Comp.Multi.ExpFunctor
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH
 

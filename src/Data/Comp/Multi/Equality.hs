@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeOperators, GADTs, FlexibleInstances #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Multi.HEquality
+-- Module      :  Data.Comp.Multi.Equality
 -- Copyright   :  (c) Patrick Bahr, 2011
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -13,7 +13,7 @@
 -- generalised versions of those in "Data.Comp.Equality".
 --
 --------------------------------------------------------------------------------
-module Data.Comp.Multi.HEquality
+module Data.Comp.Multi.Equality
     (
      HEqF(..),
      KEq(..),
@@ -24,9 +24,8 @@ import Data.Comp.Multi.Term
 import Data.Comp.Multi.Sum
 import Data.Comp.Derive
 
-import Data.Comp.Multi.HFunctor
-
-
+import Data.Comp.Multi.Functor
+import Data.Comp.Multi.Foldable
 
 {-|
   'EqF' is propagated through sums.
