@@ -4,7 +4,7 @@ Synopsis:            	Compositional Data Types
 Description:
 
   Based on Wouter Swierstra's Functional Pearl /Data types à la carte/
-  (Journal of Functional Programming, 18(4):423-436,2008),
+  (Journal of Functional Programming, 18(4):423-436, 2008),
   this package provides a framework for defining recursive
   data types in a compositional manner. The fundamental idea of
   compositional data types is to separate the signature of a data type
@@ -147,13 +147,13 @@ library
                         Data.Comp.Derive.Multi.ExpFunctor,
                         Data.Comp.Derive.Multi.SmartConstructors
 
-  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns
   hs-source-dirs:	src
-  ghc-options:          -W -O2
+  ghc-options:          -W
 
 Executable test
   Main-is:		Data_Test.hs
-  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq
   hs-source-dirs:	src testsuite/tests
   ghc-options:          -fhpc
   if !flag(test)
@@ -161,7 +161,7 @@ Executable test
 
 Executable benchmark
   Main-is:		Benchmark.hs
-  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns
   hs-source-dirs:	src benchmark
   ghc-options:          -W -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
