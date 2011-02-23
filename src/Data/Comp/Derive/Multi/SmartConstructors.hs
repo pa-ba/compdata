@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Derive.SmartMConstructors
+-- Module      :  Data.Comp.Derive.Multi.SmartConstructors
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -13,8 +13,8 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Derive.SmartMConstructors 
-    (smartMConstructors) where
+module Data.Comp.Derive.Multi.SmartConstructors 
+    (smartHConstructors) where
 
 import Language.Haskell.TH
 import Data.Comp.Derive.Utils
@@ -26,8 +26,8 @@ import Control.Monad
 {-| Derive smart constructors for a type constructor of any higher-order kind
  taking at least two arguments. The smart constructors are similar to the
  ordinary constructors, but an 'hinject' is automatically inserted. -}
-smartMConstructors :: Name -> Q [Dec]
-smartMConstructors fname = do
+smartHConstructors :: Name -> Q [Dec]
+smartHConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
     let cons = map abstractConType constrs
     liftM concat $ mapM (genSmartConstr (map tyVarBndrName targs) tname) cons

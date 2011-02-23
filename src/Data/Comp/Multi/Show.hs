@@ -2,7 +2,7 @@
   ScopedTypeVariables, UndecidableInstances, FlexibleInstances #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Multi.HShow
+-- Module      :  Data.Comp.Multi.Show
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -15,7 +15,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.HShow
+module Data.Comp.Multi.Show
     ( HShowF(..)
     ) where
 
@@ -23,7 +23,7 @@ import Data.Comp.Multi.Term
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Product
 import Data.Comp.Multi.Algebra
-import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Functor
 import Data.Comp.Derive
 
 instance KShow HNothing where

@@ -49,38 +49,38 @@ module Data.Comp.Derive
      -- signatures for generalised compositional data types.
 
      -- ** HShowF
-     module Data.Comp.Derive.HShow,
+     module Data.Comp.Derive.Multi.Show,
      -- ** HEqF
-     module Data.Comp.Derive.HEquality,
+     module Data.Comp.Derive.Multi.Equality,
      -- ** HFunctor
-     module Data.Comp.Derive.HFunctor,
+     module Data.Comp.Derive.Multi.Functor,
      -- ** HFoldable
-     module Data.Comp.Derive.HFoldable,
+     module Data.Comp.Derive.Multi.Foldable,
      -- ** HTraversable
-     module Data.Comp.Derive.HTraversable,
+     module Data.Comp.Derive.Multi.Traversable,
      -- ** HExpFunctor
-     module Data.Comp.Derive.HExpFunctor,
+     module Data.Comp.Derive.Multi.ExpFunctor,
      -- ** Smart Constructors
-     module Data.Comp.Derive.SmartMConstructors
+     module Data.Comp.Derive.Multi.SmartConstructors
     ) where
 
 import Control.DeepSeq (NFData(..))
-import Data.Comp.Derive.HEquality
-import Data.Comp.Derive.HShow
-import Data.Comp.Derive.HFunctor
-import Data.Comp.Derive.HFoldable
-import Data.Comp.Derive.HTraversable
 import Data.Comp.Derive.Foldable
 import Data.Comp.Derive.Traversable
+import Data.Comp.Derive.ExpFunctor
 import Data.Comp.Derive.DeepSeq
 import Data.Comp.Derive.Show
 import Data.Comp.Derive.Ordering
 import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Arbitrary
 import Data.Comp.Derive.SmartConstructors
-import Data.Comp.Derive.SmartMConstructors
-import Data.Comp.Derive.ExpFunctor
-import Data.Comp.Derive.HExpFunctor
+import Data.Comp.Derive.Multi.Equality
+import Data.Comp.Derive.Multi.Show
+import Data.Comp.Derive.Multi.Functor
+import Data.Comp.Derive.Multi.Foldable
+import Data.Comp.Derive.Multi.Traversable
+import Data.Comp.Derive.Multi.ExpFunctor
+import Data.Comp.Derive.Multi.SmartConstructors
 
 import Language.Haskell.TH
 import Control.Monad

@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeOperators, RankNTypes #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Multi.HExpFunctor
+-- Module      :  Data.Comp.Multi.ExpFunctor
 -- Copyright   :  (c) 2011 Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
@@ -12,12 +12,12 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.HExpFunctor
+module Data.Comp.Multi.ExpFunctor
     (
       HExpFunctor(..)
     ) where
 
-import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Functor
 
 {-| Higher-order exponential functors are higher-order functors that may be both covariant (as ordinary higher-order functors) and contravariant. -}
 class HExpFunctor f where

@@ -105,8 +105,9 @@ module Data.Comp.Multi.Algebra (
 
 
 import Data.Comp.Multi.Term
-import Data.Comp.Multi.HFunctor
-import Data.Comp.Multi.HExpFunctor
+import Data.Comp.Multi.Functor
+import Data.Comp.Multi.Traversable
+import Data.Comp.Multi.ExpFunctor
 import Data.Comp.Ops
 
 import Control.Monad
