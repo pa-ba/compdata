@@ -49,7 +49,8 @@ an evaluation function mapping expressions to values.
 The following language extensions are
 needed in order to run the example: @TemplateHaskell@, @TypeOperators@,
 @MultiParamTypeClasses@, @FlexibleInstances@, @FlexibleContexts@,
-@UndecidableInstances@, and @GADTs@. 
+@UndecidableInstances@, and @GADTs@. Moreover, in order to derive instances for
+GADTs, version 7 of GHC is needed.
 
 > import Data.Comp.Multi
 > import Data.Comp.Multi.HShow ()
@@ -67,7 +68,7 @@ needed in order to run the example: @TemplateHaskell@, @TypeOperators@,
 > -- Signature for the simple expression language
 > type Sig = Op :++: Value
 > 
-> -- Derive boilerplate code using Template Haskell
+> -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHShowF, smartMConstructors] 
 >          [''Value, ''Op])
 > 
@@ -111,7 +112,8 @@ monadic evaluation function mapping expressions to values.
 The following language
 extensions are needed in order to run the example: @TemplateHaskell@,
 @TypeOperators@, @MultiParamTypeClasses@, @FlexibleInstances@,
-@FlexibleContexts@, @UndecidableInstances@, and @GADTs@.
+@FlexibleContexts@, @UndecidableInstances@, and @GADTs@.  Moreover, in order to
+derive instances for GADTs, version 7 of GHC is needed.
 
 > import Data.Comp.Multi
 > import Data.Comp.Multi.HShow ()
@@ -130,7 +132,7 @@ extensions are needed in order to run the example: @TemplateHaskell@,
 > -- Signature for the simple expression language
 > type Sig = Op :++: Value
 > 
-> -- Derive boilerplate code using Template Haskell
+> -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
 >           instanceHEqF, instanceHShowF, smartMConstructors]
 >          [''Value, ''Op])
@@ -180,7 +182,8 @@ exemplified via a desugaring term homomorphism and an evaluation algebra.
 
 The following language extensions are needed in order to run the example:
 @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
-@FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@, and @GADTs@.
+@FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@, and @GADTs@. 
+Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 
 > import Data.Comp.Multi
 > import Data.Comp.Multi.HShow ()
@@ -210,7 +213,7 @@ The following language extensions are needed in order to run the example:
 > type Sig' = Sugar :++: Op :++: Value
 > type SigP' = Sugar :&&: Pos :++: Op :&&: Pos :++: Value :&&: Pos
 > 
-> -- Derive boilerplate code using Template Haskell
+> -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
 >           instanceHEqF, instanceHShowF, smartMConstructors]
 >          [''Value, ''Op, ''Sugar])
@@ -279,6 +282,7 @@ source position information.
 The following language extensions are needed in order to run the example:
 @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
 @FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@, and @GADTs@.
+ Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 
 > import Data.Comp.Multi
 > import Data.Comp.Multi.HShow ()
@@ -308,7 +312,7 @@ The following language extensions are needed in order to run the example:
 > type Sig' = Sugar :++: Op :++: Value
 > type SigP' = Sugar :&&: Pos :++: Op :&&: Pos :++: Value :&&: Pos
 > 
-> -- Derive boilerplate code using Template Haskell
+> -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
 >           instanceHEqF, instanceHShowF, smartMConstructors]
 >          [''Value, ''Op, ''Sugar])
@@ -382,6 +386,7 @@ with generalised compositional data types.
 The following language extensions are needed in order to run the example:
 @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
 @FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@, and @GADTs@.
+Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 
 > import Data.Comp.Multi
 > import Data.Comp.Derive
@@ -404,7 +409,7 @@ The following language extensions are needed in order to run the example:
 > -- Signature for expressions
 > type Sig = App :++: Op :++: Val
 > 
-> -- Derive boilerplate code using Template Haskell
+> -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHExpFunctor, smartMConstructors] 
 >          [''Value, ''Op, ''Lam, ''App])
 > 

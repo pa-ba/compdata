@@ -3,23 +3,24 @@ Version:		0.1
 Synopsis:            	Compositional Data Types
 Description:
 
-  Based on Wouter Swierstra's Functional Pearl /Data types à la carte/,
+  Based on Wouter Swierstra's Functional Pearl /Data types à la carte/
+  (Journal of Functional Programming, 18(4):423-436,2008),
   this package provides a framework for defining recursive
-  data types in a compositional manner. Fundamental idea of
+  data types in a compositional manner. The fundamental idea of
   compositional data types is to separate the signature of a data type
-  from the fixed point construction that constructs its recursive
+  from the fixed point construction that produces its recursive
   structure. By allowing to compose and decompose signatures,
   /compositional data types/ enable to combine data types in a flexible
   way. The key point of Wouter Swierstra's original work is to define
   functions on /compositional data types/ in a compositional manner as
   well by leveraging Haskell's type class machinery.
   .
-  Building on this foundation, this library provides additional
-  extensions and (run-time) optimisations which makes /compositional data types/
-  applicable for practical applications. In particular, it
+  Building on that foundation, this library provides additional
+  extensions and (run-time) optimisations which makes compositional data types
+  usable for practical implementations. In particular, it
   provides an excellent framework for manipulating and analysing
-  abstract syntax trees in a type safe manner. Thus, it is perfectly
-  suited for compiler construction, especially, in an environment
+  abstract syntax trees in a type-safe manner. Thus, it is perfectly
+  suited for programming language implementations, especially, in an environment
   consisting of a family of tightly interwoven /domain-specific languages/.
   .
   In concrete terms, this package provides the following features:
@@ -35,19 +36,19 @@ Description:
   *  Support for monadic computations via monadic variants of all
      recursion schemes.
   .
-  *  Support for convenient programming over compositional data types
+  *  Support of a succinct programming style over compositional data types
      via generic programming combinators that allow various forms of
      generic transformations and generic queries.
   .
   *  Generalisation of compositional data types (terms) to
      compositional data types \"with holes\" (contexts). This allows
-     flexible reuse of a wide variety of catamorphisms as well as
-     efficient composition of them.
+     flexible reuse of a wide variety of catamorphisms (called
+     /term homomorphisms/) as well as an efficient composition of them.
   .
-  *  Operations on signatures to, for example, add and remove
+  *  Operations on signatures, for example, to add and remove
      annotations of abstract syntax trees. This includes combinators to
      propagate annotations fully automatically through certain
-     catamorphisms.
+     term homomorphisms.
   .
   *  Optimisation of the implementation of recursion schemes. This
      includes /short-cut fusion/ style optimisation rules which yield a
