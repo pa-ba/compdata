@@ -14,12 +14,12 @@ module Multi.DataTypes.Comp where
 import Data.Comp.Derive
 import Data.Comp.Multi
 
-type ValueExpr = Term Value
+type ValueExpr = HTerm Value
 type ExprSig = Value :++: Op
-type Expr = Term ExprSig
+type Expr = HTerm ExprSig
 type SugarSig = Value :++: Op :++: Sugar
-type SugarExpr = Term SugarSig
-type BaseType = Term ValueT
+type SugarExpr = HTerm SugarSig
+type BaseType = HTerm ValueT
 
 data ValueT e t = TInt
                 | TBool
@@ -50,7 +50,7 @@ data Sugar e t where
     Impl :: e Bool -> e Bool -> Sugar e Bool
 
 $(derive
-  [instanceHFunctor, instanceHFoldable, instanceHTraversable, instanceHEqF, smartMConstructors]
+  [instanceHFunctor, instanceHFoldable, instanceHTraversable, instanceHEqF, smartHConstructors]
   [''ValueT, ''Value, ''Op, ''Sugar])
 
 
