@@ -125,7 +125,7 @@ library
 
 Executable test
   Main-is:		Data_Test.hs
-  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns
+  Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq
   hs-source-dirs:	src testsuite/tests
   ghc-options:          -fhpc
   if !flag(test)
@@ -136,6 +136,7 @@ Executable benchmark
   Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns
   hs-source-dirs:	src benchmark
   ghc-options:          -W -O2
+  -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
   if !flag(benchmark)
     buildable:     False

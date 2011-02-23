@@ -1,10 +1,10 @@
-module Data.ALaCarte.Equality_Test where
+module Data.Comp.Equality_Test where
 
 
-import Data.ALaCarte
-import Data.ALaCarte.Equality
-import Data.ALaCarte.Arbitrary
-import Data.ALaCarte.Show
+import Data.Comp
+import Data.Comp.Equality
+import Data.Comp.Arbitrary
+import Data.Comp.Show
 
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2

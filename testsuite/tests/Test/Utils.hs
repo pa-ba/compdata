@@ -2,8 +2,8 @@
 
 module Test.Utils where
 
-import Data.ALaCarte
-import Data.ALaCarte.Derive
+import Data.Comp
+import Data.Comp.Derive
 
 import Data.Foldable
 
@@ -29,10 +29,10 @@ type Sig2 = [] :+: Pair Int
 type Sig = Maybe :+: Tree Int :+: [] :+: Pair Int
 
 
-type SigP = Maybe :*: Int :+: Tree Int :*: Int :+: [] :*: Int :+: Pair Int :*: Int
+type SigP = Maybe :&: Int :+: Tree Int :&: Int :+: [] :&: Int :+: Pair Int :&: Int
 
-instance EqF f => EqF (f :*: Int) where
-    eqF (x :*: i) (y :*: j) = x `eqF` y && i == j
+instance EqF f => EqF (f :&: Int) where
+    eqF (x :&: i) (y :&: j) = x `eqF` y && i == j
 
 instance Show (a -> b) where
     show _ = "<function>"

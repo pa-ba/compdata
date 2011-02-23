@@ -1,7 +1,7 @@
 module Main where
 
 import Test.Framework
-import qualified Data.ALaCarte_Test
+import qualified Data.Comp_Test
 
 --------------------------------------------------------------------------------
 -- Test Suits
@@ -10,7 +10,7 @@ import qualified Data.ALaCarte_Test
 main = defaultMain [tests]
 
 tests = testGroup "Data" [
-         Data.ALaCarte_Test.tests
+         Data.Comp_Test.tests
        ]
 
 --------------------------------------------------------------------------------

@@ -1,17 +1,17 @@
-module Data.ALaCarte_Test where
+module Data.Comp_Test where
 
 
-import Data.ALaCarte
-import Data.ALaCarte.Equality
-import Data.ALaCarte.Arbitrary ()
-import Data.ALaCarte.Show ()
+import Data.Comp
+import Data.Comp.Equality
+import Data.Comp.Arbitrary ()
+import Data.Comp.Show ()
 
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
 import Test.QuickCheck
 import Test.Utils
 
-import qualified Data.ALaCarte.Equality_Test
+import qualified Data.Comp.Equality_Test
 
 
 --------------------------------------------------------------------------------
@@ -20,8 +20,8 @@ import qualified Data.ALaCarte.Equality_Test
 
 main = defaultMain [tests]
 
-tests = testGroup "ALaCarte" [
-         Data.ALaCarte.Equality_Test.tests
+tests = testGroup "Comp" [
+         Data.Comp.Equality_Test.tests
         ]
 
 --------------------------------------------------------------------------------
