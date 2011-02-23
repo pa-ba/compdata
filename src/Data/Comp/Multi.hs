@@ -53,7 +53,7 @@ needed in order to run the example: @TemplateHaskell@, @TypeOperators@,
 GADTs, version 7 of GHC is needed.
 
 > import Data.Comp.Multi
-> import Data.Comp.Multi.HShow ()
+> import Data.Comp.Multi.Show ()
 > import Data.Comp.Derive
 > 
 > -- Signature for values and operators
@@ -69,7 +69,7 @@ GADTs, version 7 of GHC is needed.
 > type Sig = Op :++: Value
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-> $(derive [instanceHFunctor, instanceHShowF, smartMConstructors] 
+> $(derive [instanceHFunctor, instanceHShowF, smartHConstructors] 
 >          [''Value, ''Op])
 > 
 > -- Term evaluation algebra
@@ -116,7 +116,7 @@ extensions are needed in order to run the example: @TemplateHaskell@,
 derive instances for GADTs, version 7 of GHC is needed.
 
 > import Data.Comp.Multi
-> import Data.Comp.Multi.HShow ()
+> import Data.Comp.Multi.Show ()
 > import Data.Comp.Derive
 > import Control.Monad (liftM)
 > 
@@ -134,7 +134,7 @@ derive instances for GADTs, version 7 of GHC is needed.
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
->           instanceHEqF, instanceHShowF, smartMConstructors]
+>           instanceHEqF, instanceHShowF, smartHConstructors]
 >          [''Value, ''Op])
 > 
 > -- Monadic term evaluation algebra
@@ -186,7 +186,7 @@ The following language extensions are needed in order to run the example:
 Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 
 > import Data.Comp.Multi
-> import Data.Comp.Multi.HShow ()
+> import Data.Comp.Multi.Show ()
 > import Data.Comp.Derive
 > 
 > -- Signature for values, operators, and syntactic sugar
@@ -215,7 +215,7 @@ Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
->           instanceHEqF, instanceHShowF, smartMConstructors]
+>           instanceHEqF, instanceHShowF, smartHConstructors]
 >          [''Value, ''Op, ''Sugar])
 > 
 > -- Term homomorphism for desugaring of terms
@@ -285,7 +285,7 @@ The following language extensions are needed in order to run the example:
  Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 
 > import Data.Comp.Multi
-> import Data.Comp.Multi.HShow ()
+> import Data.Comp.Multi.Show ()
 > import Data.Comp.Derive
 > 
 > -- Signature for values, operators, and syntactic sugar
@@ -314,7 +314,7 @@ The following language extensions are needed in order to run the example:
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
->           instanceHEqF, instanceHShowF, smartMConstructors]
+>           instanceHEqF, instanceHShowF, smartHConstructors]
 >          [''Value, ''Op, ''Sugar])
 > 
 > -- Term homomorphism for desugaring of terms
@@ -410,7 +410,7 @@ Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 > type Sig = App :++: Op :++: Val
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-> $(derive [instanceHExpFunctor, smartMConstructors] 
+> $(derive [instanceHExpFunctor, smartHConstructors] 
 >          [''Value, ''Op, ''Lam, ''App])
 > 
 > -- Term evaluation algebra
