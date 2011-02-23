@@ -1,7 +1,75 @@
 Name:			compdata
 Version:		0.1
 Synopsis:            	Compositional Data Types
-Description:		Compositional Data Types. An extension of Wouter Swierstra's Functional Pearl: /Data types a la carte/.
+Description:
+
+  Based on Wouter Swierstra's Functional Pearl /Data types à la carte/,
+  this package provides a framework for defining recursive
+  data types in a compositional manner. Fundamental idea of
+  compositional data types is to separate the signature of a data type
+  from the fixed point construction that constructs its recursive
+  structure. By allowing to compose and decompose signatures,
+  /compositional data types/ enable to combine data types in a flexible
+  way. The key point of Wouter Swierstra's original work is to define
+  functions on /compositional data types/ in a compositional manner as
+  well by leveraging Haskell's type class machinery.
+  .
+  Building on this foundation, this library provides additional
+  extensions and (run-time) optimisations which makes /compositional data types/
+  applicable for practical applications. In particular, it
+  provides an excellent framework for manipulating and analysing
+  abstract syntax trees in a type safe manner. Thus, it is perfectly
+  suited for compiler construction, especially, in an environment
+  consisting of a family of tightly interwoven /domain-specific languages/.
+  .
+  In concrete terms, this package provides the following features:
+  .
+  *  Compositional data types in the style of Wouter Swierstra's
+     Functional Pearl /Data types à la carte/.
+  .
+  *  Modular definition of function on compositional data types through
+     catamorphisms and anamorphisms as well as more structured
+     recursion schemes such as primitive recursion  and co-recursion,
+     and course-of-value iteration and co-iteration.
+  .
+  *  Support for monadic computations via monadic variants of all
+     recursion schemes.
+  .
+  *  Support for convenient programming over compositional data types
+     via generic programming combinators that allow various forms of
+     generic transformations and generic queries.
+  .
+  *  Generalisation of compositional data types (terms) to
+     compositional data types \"with holes\" (contexts). This allows
+     flexible reuse of a wide variety of catamorphisms as well as
+     efficient composition of them.
+  .
+  *  Operations on signatures to, for example, add and remove
+     annotations of abstract syntax trees. This includes combinators to
+     propagate annotations fully automatically through certain
+     catamorphisms.
+  .
+  *  Optimisation of the implementation of recursion schemes. This
+     includes /short-cut fusion/ style optimisation rules which yield a
+     performance boost of up to factor six.
+  .
+  *  Efficient implementation of catamorphisms on non-polynomial
+     signatures that contain function types. This allows to represent
+     /higher-order abstract syntax/ with compositional data types.
+  .
+  *  Automatic derivation of instances of all relevant type classes for
+     using compositional data types via /Template Haskell/. This includes
+     instances of 'Prelude.Eq', 'Prelude.Ord' and 'Prelude.Show' that are
+     derived via instances for functorial variants of them. Additionally,
+     also /smart constructors/, which allow to easily construct inhabitants
+     of compositional data types, are automatically generated.
+  .
+  *  /Mutually recursive data types/. All of the above is also lifted to
+     families of mutually recursive data types.
+  .
+  For examples illustrating the use of compositional data types, consult
+  "Data.Comp" resp. "Data.Comp.Multi" for mutually recursive data types.
+
 Category:            	Data
 License:		BSD3
 License-file:		LICENSE

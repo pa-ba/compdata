@@ -29,6 +29,7 @@ module Data.Comp.Multi.Algebra (
       hfreeM,
       hcataM,
       hcataM',
+      liftMHAlg,
 
       -- * Term Homomorphisms
       HCxtFun,
