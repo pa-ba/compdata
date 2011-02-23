@@ -71,13 +71,42 @@ Description:
   For examples illustrating the use of compositional data types, consult
   "Data.Comp" resp. "Data.Comp.Multi" for mutually recursive data types.
 
-Category:            	Data
+Category:            	Generics
 License:		BSD3
 License-file:		LICENSE
 Author:			Patrick Bahr, Tom Hvitved
 Maintainer:		paba@diku.dk
 Build-Type:		Custom
 Cabal-Version:          >=1.8.0.6
+
+extra-source-files:
+  -- test files
+  testsuite/tests/Data_Test.hs,
+  testsuite/tests/Data/Comp_Test.hs,
+  testsuite/tests/Data/Comp/Equality_Test.hs,
+  testsuite/tests/Test/Utils.hs
+  -- benchmark files
+  benchmark/Benchmark.hs
+  benchmark/DataTypes.hs
+  benchmark/Functions.hs
+  benchmark/DataTypes/Comp.hs
+  benchmark/DataTypes/Transform.hs
+  benchmark/DataTypes/Standard.hs
+  benchmark/Multi/DataTypes/Comp.hs
+  benchmark/Multi/Functions/Comp/Eval.hs
+  benchmark/Multi/Functions/Comp/Desugar.hs
+  benchmark/Transformations.hs
+  benchmark/Functions/Comp.hs
+  benchmark/Functions/Comp/Eval.hs
+  benchmark/Functions/Comp/Desugar.hs
+  benchmark/Functions/Comp/FreeVars.hs
+  benchmark/Functions/Comp/Inference.hs
+  benchmark/Functions/Standard/Eval.hs
+  benchmark/Functions/Standard/Desugar.hs
+  benchmark/Functions/Standard/FreeVars.hs
+  benchmark/Functions/Standard/Inference.hs
+  benchmark/Functions/Standard.hs
+
 
 flag test
   description: Build test executable.
@@ -86,6 +115,7 @@ flag test
 flag benchmark
   description: Build benchmark executable.
   default:     False
+
 
 library
   Exposed-Modules:      Data.Comp, Data.Comp.Product, Data.Comp.Sum,
@@ -120,8 +150,6 @@ library
   Build-Depends:	base >= 4, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns
   hs-source-dirs:	src
   ghc-options:          -W -O2
-  if flag(benchmark)
-    buildable:     False
 
 Executable test
   Main-is:		Data_Test.hs
