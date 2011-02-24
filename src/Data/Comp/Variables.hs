@@ -68,18 +68,19 @@ instance HasVars f v => HasVars (Cxt h f) v where
 
 -- |Convert variables to holes, except those that are bound.
 varsToHoles :: (Functor f, HasVars f v, Eq v) => Term f -> Context f v
-varsToHoles (Term t) = run [] t
-    where run vars t =
+varsToHoles t = cata alg t []
+    where alg :: (Functor f, HasVars f v, Eq v) => Alg f ([v] -> Context f v)
+          alg t vars =
               let vars' = vars ++ bindsVars t in
               case isVar t of
                 Just v ->
                     -- Check for capture-avoidance
                     if v `elem` vars' then
-                        Term $ fmap (run vars' . unTerm) t
+                        Term $ fmap (\x -> x vars') t
                     else
                         Hole v
                 Nothing ->
-                    Term $ fmap (run vars' . unTerm) t
+                    Term $ fmap (\x -> x vars') t
 
 -- |Algebra for checking whether a variable is contained in a term, except those
 -- that are bound.
