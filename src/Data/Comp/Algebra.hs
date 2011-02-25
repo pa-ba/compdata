@@ -108,6 +108,8 @@ import Data.Comp.ExpFunctor
 
 import Prelude hiding (sequence, mapM)
 
+import Unsafe.Coerce
+
 
 
 {-| This type represents an algebra over a functor @f@ and carrier
@@ -517,11 +519,20 @@ futu' coa = run
 -- Exponential Functors --
 --------------------------
 
-{-| Catamorphism for exponential functors. The intermediate 'cataFS' originates
- from <http://comonad.com/reader/2008/rotten-bananas/>. -}
+-- | This variant of 'toCxt' should only be used for terms that use
+-- function types parametrically.
+toCxt' :: ExpFunctor f => Term f -> Cxt h f a
+{-# INLINE toCxt' #-}
+toCxt' = unsafeCoerce
+
+-- | Catamorphism for exponential functors. The intermediate 'cataFS'
+-- originates from
+-- <http://comonad.com/reader/2008/rotten-bananas/>. Using this
+-- function is only save on terms containing parametric function
+-- types!
 cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
 {-# NOINLINE [1] cataE #-}
-cataE f = cataFS . toCxt
+cataE f = cataFS . toCxt'
     where cataFS :: ExpFunctor f => Context f a -> a
           cataFS (Hole x) = x
           cataFS (Term t) = f (xmap cataFS Hole t)
@@ -541,7 +552,7 @@ appCxtE (Term t) = Term (xmap appCxtE Hole t)
 -- 'ExpFunctor' signatures.
 appTermHomE :: forall f g . (ExpFunctor f, ExpFunctor g) => TermHom f g
             -> Term f -> Term g
-appTermHomE f = cataFS . toCxt
+appTermHomE f = cataFS . toCxt'
     where cataFS :: Context f (Term g) -> Term g
           cataFS (Hole x) = x
           cataFS (Term t) = appCxtE (f (xmap cataFS Hole t))

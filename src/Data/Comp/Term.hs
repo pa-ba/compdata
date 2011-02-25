@@ -78,9 +78,11 @@ simpCxt = Term . fmap Hole
 
 
 {-| Cast a term over a signature to a context over the same signature. -}
-toCxt :: Term f -> Cxt h f a
+toCxt :: (Functor f) => Term f -> Cxt h f a
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
+-- The use of 'unsafeCoerce' is safe. Alternatively, 'toCxt' could
+-- have been implemented as @toCxt (Term t) = Term (fmap toCxt t)@
 
 {-| Phantom type used to define 'Term'.  -}
 
