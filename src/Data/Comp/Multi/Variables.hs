@@ -146,13 +146,19 @@ instance (Ord v, HasVars f v, HFunctor f) => SubstVars v (HCxt h f a) (HCxt h f 
     -- have to use explicit GADT pattern matching!!
     -- subst f = hfree (substAlg f) HHole
     substVars _ (HHole a) = HHole a
-    substVars f (HTerm v) = let f' = res (bindsVars v) f in
-                            substAlg f' $ hfmap (substVars f') v
+    substVars f (HTerm v) = substAlg f v
         where  substAlg :: (HasVars f v) => HCxtSubst h a f v
                         -> HAlg f (HCxt h f a)
                substAlg f t = fromMaybe (HTerm t) (isVar t >>= f . K)
-               res :: Eq v => [v] -> GSubst v t -> GSubst v t
-               res vars f x = if unK x `elem` vars then Nothing else f x
+    -- The code below does not work with GHC 7
+    -- substVars _ (HHole a) = HHole a
+    -- substVars f (HTerm v) = let f' = res (bindsVars v) f in
+    --                         substAlg f' $ hfmap (substVars f') v
+    --     where  substAlg :: (HasVars f v) => HCxtSubst h a f v
+    --                     -> HAlg f (HCxt h f a)
+    --            substAlg f t = fromMaybe (HTerm t) (isVar t >>= f . K)
+    --            res :: Eq v => [v] -> GSubst v t -> GSubst v t
+    --            res vars f x = if unK x `elem` vars then Nothing else f x
 
 instance (SubstVars v t a, HFunctor f) => SubstVars v t (f a) where
     substVars f = hfmap (substVars f) 
