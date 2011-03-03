@@ -52,28 +52,28 @@ shortcutFusion = bgroup "shortcut-fusion" [
 standardBenchmarks :: (PExpr, SugarExpr, String) -> Benchmark
 standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (sExpr, aExpr,n)
     where getBench (sExpr, aExpr,n) = bgroup n [
-                 bench "Comp.desugar" (nf A.desugarExpr aExpr),
-                 bench "Comp.desugarAlg" (nf A.desugarExpr2 aExpr),
-                 bench "Standard.desugar" (nf S.desugar sExpr),
-                 bench "Comp.desugarType" (nf A.desugarType aExpr),
-                 bench "Comp.desugarType'" (nf A.desugarType' aExpr),
-                 bench "Standard.desugarType" (nf S.desugarType sExpr),
+                 bench "Comp.desug" (nf A.desugExpr aExpr),
+                 bench "Comp.desugAlg" (nf A.desugExpr2 aExpr),
+                 bench "Standard.desug" (nf S.desug sExpr),
+                 bench "Comp.desugType" (nf A.desugType aExpr),
+                 bench "Comp.desugType'" (nf A.desugType' aExpr),
+                 bench "Standard.desugType" (nf S.desugType sExpr),
                  bench "Comp.typeSugar" (nf A.typeSugar aExpr),
                  bench "Standard.typeSugar" (nf S.typeSugar sExpr),
-                 bench "Comp.desugarType2" (nf A.desugarType2 aExpr),
-                 bench "Comp.desugarType2'" (nf A.desugarType2' aExpr),
-                 bench "Standard.desugarType2" (nf S.desugarType2 sExpr),
+                 bench "Comp.desugType2" (nf A.desugType2 aExpr),
+                 bench "Comp.desugType2'" (nf A.desugType2' aExpr),
+                 bench "Standard.desugType2" (nf S.desugType2 sExpr),
                  bench "Comp.typeSugar2" (nf A.typeSugar2 aExpr),
                  bench "Standard.typeSugar2" (nf S.typeSugar2 sExpr),
-                 bench "Comp.desugarEval" (nf A.desugarEval aExpr),
-                 bench "Comp.desugarEval'" (nf A.desugarEval' aExpr),
-                 bench "Standard.desugarEval" (nf S.desugarEval sExpr),
+                 bench "Comp.desugEval" (nf A.desugEval aExpr),
+                 bench "Comp.desugEval'" (nf A.desugEval' aExpr),
+                 bench "Standard.desugEval" (nf S.desugEval sExpr),
                  bench "Comp.evalSugar" (nf A.evalSugar aExpr),
                  bench "Comp.evalDirect" (nf A.evalDirectE aExpr),
                  bench "Standard.evalSugar" (nf S.evalSugar sExpr),
-                 bench "Comp.desugarEval2" (nf A.desugarEval2 aExpr),
-                 bench "Comp.desugarEval2'" (nf A.desugarEval2' aExpr),
-                 bench "Standard.desugarEval2" (nf S.desugarEval2 sExpr),
+                 bench "Comp.desugEval2" (nf A.desugEval2 aExpr),
+                 bench "Comp.desugEval2'" (nf A.desugEval2' aExpr),
+                 bench "Standard.desugEval2" (nf S.desugEval2 sExpr),
                  bench "Comp.evalSugar2" (nf A.evalSugar2 aExpr),
                  bench "Comp.evalDirect2" (nf A.evalDirectE2 aExpr),
                  bench "Standard.evalSugar2" (nf S.evalSugar2 sExpr),
@@ -100,7 +100,7 @@ randStdBenchmarks s = do
   putStr "size of the input term: "
   print $ size aExpr
   putStr "does it type check: "
-  print (A.desugarType aExpr == Right ty)
+  print (A.desugType aExpr == Right ty)
   return $ standardBenchmarks (sExpr,aExpr, "random (depth: " ++ show s ++ ", size: "++ show (size aExpr) ++ ")")
 
 hoasBenchmaks :: Int -> Benchmark

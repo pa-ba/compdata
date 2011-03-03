@@ -112,7 +112,7 @@ generateGenDecl genName constrs
 generateShrinkFDecl :: [Con] -> Q Dec
 generateShrinkFDecl constrs
     = let clauses = map (generateClause.abstractConType) constrs
-      in funD 'shrink clauses
+      in funD 'shrinkF clauses
   where generateClause (constr, n)
             = do varNs <- newNames n "x"
                  resVarNs <- newNames n "x'"

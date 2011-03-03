@@ -69,17 +69,17 @@ instance (ValueT :<: t, EqF t, Monad m) => InferType Sugar t m where
     inferTypeAlg (Or x y) = checkOp [TBool,TBool] TBool [x ,y]
     inferTypeAlg (Impl x y) = checkOp [TBool,TBool] TBool [x ,y]
 
-desugarType :: SugarExpr -> Err BaseType
-desugarType = inferType . (desugar :: SugarExpr -> Expr)
+desugType :: SugarExpr -> Err BaseType
+desugType = inferType . (desug :: SugarExpr -> Expr)
 
 typeSugar :: SugarExpr -> Err BaseType
 typeSugar = inferType
 
-desugarTypeAlg  :: AlgM Err SugarSig BaseType
-desugarTypeAlg = inferTypeAlg  `compAlgM'` (desugarAlg :: TermHom SugarSig ExprSig)
+desugTypeAlg  :: AlgM Err SugarSig BaseType
+desugTypeAlg = inferTypeAlg  `compAlgM'` (desugAlg :: TermHom SugarSig ExprSig)
 
-desugarType' :: SugarExpr -> Err BaseType
-desugarType' e = cataM desugarTypeAlg e
+desugType' :: SugarExpr -> Err BaseType
+desugType' e = cataM desugTypeAlg e
 
 -- pure type inference
 
@@ -138,14 +138,14 @@ instance (ValueT :<: t, EqF t) => InferType2 Sugar t where
     inferTypeAlg2 (Or x y) = checkOp2 [TBool,TBool] TBool [x ,y]
     inferTypeAlg2 (Impl x y) = checkOp2 [TBool,TBool] TBool [x ,y]
 
-desugarType2 :: SugarExpr -> BaseType
-desugarType2 = inferType2 . (desugar :: SugarExpr -> Expr)
+desugType2 :: SugarExpr -> BaseType
+desugType2 = inferType2 . (desug :: SugarExpr -> Expr)
 
 typeSugar2 :: SugarExpr -> BaseType
 typeSugar2 = inferType2
 
-desugarTypeAlg2  :: Alg SugarSig BaseType
-desugarTypeAlg2 = inferTypeAlg2  `compAlg` (desugarAlg :: TermHom SugarSig ExprSig)
+desugTypeAlg2  :: Alg SugarSig BaseType
+desugTypeAlg2 = inferTypeAlg2  `compAlg` (desugAlg :: TermHom SugarSig ExprSig)
 
-desugarType2' :: SugarExpr -> Err BaseType
-desugarType2' e = cataM desugarTypeAlg e
+desugType2' :: SugarExpr -> Err BaseType
+desugType2' e = cataM desugTypeAlg e

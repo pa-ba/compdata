@@ -16,59 +16,59 @@ import Data.Traversable
 
 -- de-sugar
 
-class (Functor e, Traversable f) => Desugar f e where
-    desugarAlg :: TermHom f e
+class (Functor e, Traversable f) => Desug f e where
+    desugAlg :: TermHom f e
 
-desugarExpr :: SugarExpr -> Expr
-desugarExpr = desugar
+desugExpr :: SugarExpr -> Expr
+desugExpr = desug
 
-desugar :: Desugar f e => Term f -> Term e
-{-# INLINE desugar #-}
-desugar = appTermHom desugarAlg
+desug :: Desug f e => Term f -> Term e
+{-# INLINE desug #-}
+desug = appTermHom desugAlg
 
-instance (Desugar f e, Desugar g e) => Desugar (g :+: f) e where
-    desugarAlg (Inl v) = desugarAlg v
-    desugarAlg (Inr v) = desugarAlg v
+instance (Desug f e, Desug g e) => Desug (g :+: f) e where
+    desugAlg (Inl v) = desugAlg v
+    desugAlg (Inr v) = desugAlg v
 
-instance (Value :<: v, Functor v) => Desugar Value v where
-    desugarAlg = liftCxt
+instance (Value :<: v, Functor v) => Desug Value v where
+    desugAlg = liftCxt
 
-instance (Op :<: v, Functor v) => Desugar Op v where
-    desugarAlg = liftCxt
+instance (Op :<: v, Functor v) => Desug Op v where
+    desugAlg = liftCxt
 
-instance (Op :<: v, Value :<: v, Functor v) => Desugar Sugar v where
-    desugarAlg (Neg x) =  iVInt (-1) `iMult` (Hole x)
-    desugarAlg (Minus x y) =  (Hole x) `iPlus` ((iVInt (-1)) `iMult` (Hole y))
-    desugarAlg (Gt x y) =  (Hole y) `iLt` (Hole x)
-    desugarAlg (Or x y) = iNot (iNot (Hole x) `iAnd` iNot (Hole y))
-    desugarAlg (Impl x y) = iNot ((Hole x) `iAnd` iNot (Hole y))
+instance (Op :<: v, Value :<: v, Functor v) => Desug Sugar v where
+    desugAlg (Neg x) =  iVInt (-1) `iMult` (Hole x)
+    desugAlg (Minus x y) =  (Hole x) `iPlus` ((iVInt (-1)) `iMult` (Hole y))
+    desugAlg (Gt x y) =  (Hole y) `iLt` (Hole x)
+    desugAlg (Or x y) = iNot (iNot (Hole x) `iAnd` iNot (Hole y))
+    desugAlg (Impl x y) = iNot ((Hole x) `iAnd` iNot (Hole y))
 
 
 -- standard algebraic approach
 
-class Desugar2 f g where
-    desugarAlg2 :: Alg f (Term g)
+class Desug2 f g where
+    desugAlg2 :: Alg f (Term g)
 
-desugarExpr2 :: SugarExpr -> Expr
-desugarExpr2 = desugar2
+desugExpr2 :: SugarExpr -> Expr
+desugExpr2 = desug2
 
-desugar2 :: (Functor f, Desugar2 f g) => Term f -> Term g
-desugar2 = cata desugarAlg2
+desug2 :: (Functor f, Desug2 f g) => Term f -> Term g
+desug2 = cata desugAlg2
 
-instance (Desugar2 f e, Desugar2 g e) => Desugar2 (f :+: g) e where
-    desugarAlg2 (Inl v) = desugarAlg2 v
-    desugarAlg2 (Inr v) = desugarAlg2 v
+instance (Desug2 f e, Desug2 g e) => Desug2 (f :+: g) e where
+    desugAlg2 (Inl v) = desugAlg2 v
+    desugAlg2 (Inr v) = desugAlg2 v
 
-instance (Value :<: v) => Desugar2 Value v where
-    desugarAlg2 = inject
+instance (Value :<: v) => Desug2 Value v where
+    desugAlg2 = inject
 
-instance (Op :<: v) => Desugar2 Op v where
-    desugarAlg2 = inject
+instance (Op :<: v) => Desug2 Op v where
+    desugAlg2 = inject
 
-instance (Op :<: v, Value :<: v, Functor v) => Desugar2 Sugar v where
-    desugarAlg2 (Neg x) =  iVInt (-1) `iMult` x
-    desugarAlg2 (Minus x y) =  x `iPlus` ((iVInt (-1)) `iMult` y)
-    desugarAlg2 (Gt x y) =  y `iLt` x
-    desugarAlg2 (Or x y) = iNot (iNot x `iAnd` iNot y)
-    desugarAlg2 (Impl x y) = iNot (x `iAnd` iNot y)
+instance (Op :<: v, Value :<: v, Functor v) => Desug2 Sugar v where
+    desugAlg2 (Neg x) =  iVInt (-1) `iMult` x
+    desugAlg2 (Minus x y) =  x `iPlus` ((iVInt (-1)) `iMult` y)
+    desugAlg2 (Gt x y) =  y `iLt` x
+    desugAlg2 (Or x y) = iNot (iNot x `iAnd` iNot y)
+    desugAlg2 (Impl x y) = iNot (x `iAnd` iNot y)
 

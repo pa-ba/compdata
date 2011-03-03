@@ -75,8 +75,8 @@ typeSugar (PGt x y) = checkOpP [VTInt,VTInt] VTBool [x,y]
 typeSugar (POr x y) = checkOpP [VTBool,VTBool] VTBool [x,y]
 typeSugar (PImpl x y) = checkOpP [VTBool,VTBool] VTBool [x,y]
 
-desugarType :: PExpr -> Err VType
-desugarType = inferType . desugar
+desugType :: PExpr -> Err VType
+desugType = inferType . desug
 
 -- non-monadic
 
@@ -149,5 +149,5 @@ typeSugar2 (PGt x y) = checkOpP2 [VTInt,VTInt] VTBool [x,y]
 typeSugar2 (POr x y) = checkOpP2 [VTBool,VTBool] VTBool [x,y]
 typeSugar2 (PImpl x y) = checkOpP2 [VTBool,VTBool] VTBool [x,y]
 
-desugarType2 :: PExpr -> VType
-desugarType2 = inferType2 . desugar
+desugType2 :: PExpr -> VType
+desugType2 = inferType2 . desug

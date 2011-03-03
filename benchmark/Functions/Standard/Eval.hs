@@ -53,8 +53,8 @@ evalSugar (PGt x y) = liftM2 (\ x y -> SBool (x > y)) (evalSugar x >>= coerceInt
 evalSugar (POr x y) = liftM2 (\ x y -> SBool (x || y)) (evalSugar x >>= coerceBool) (evalSugar y >>= coerceBool)
 evalSugar (PImpl x y) = liftM2 (\ x y -> SBool (not x || y)) (evalSugar x >>= coerceBool) (evalSugar y >>= coerceBool)
 
-desugarEval :: PExpr -> Err SExpr
-desugarEval = eval . desugar
+desugEval :: PExpr -> Err SExpr
+desugEval = eval . desug
 
 
 coerceInt2 :: SExpr -> Int
@@ -107,8 +107,8 @@ evalSugar2 (PGt x y) = (\ x y -> SBool (x > y)) (coerceInt2 $ evalSugar2 x) (coe
 evalSugar2 (POr x y) = (\ x y -> SBool (x || y)) (coerceBool2 $ evalSugar2 x) (coerceBool2 $ evalSugar2 y)
 evalSugar2 (PImpl x y) = (\ x y -> SBool (not x || y)) (coerceBool2 $ evalSugar2 x) (coerceBool2 $ evalSugar2 y)
 
-desugarEval2 :: PExpr -> SExpr
-desugarEval2 = eval2 . desugar
+desugEval2 :: PExpr -> SExpr
+desugEval2 = eval2 . desug
 
 
 

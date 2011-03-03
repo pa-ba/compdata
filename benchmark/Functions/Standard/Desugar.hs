@@ -4,20 +4,20 @@ import DataTypes.Standard
 
 -- de-sugar
 
-desugar :: PExpr -> OExpr
-desugar (PInt i) = OInt i
-desugar (PBool b) = OBool b
-desugar (PPair x y) = OPair (desugar x) (desugar y)
-desugar (PPlus x y) = OPlus (desugar x) (desugar y)
-desugar (PMult x y) = OMult (desugar x) (desugar y)
-desugar (PIf b x y) = OIf (desugar b) (desugar x) (desugar y)
-desugar (PEq x y) = OEq (desugar x) (desugar y)
-desugar (PLt x y) = OLt (desugar x) (desugar y)
-desugar (PAnd x y) = OAnd (desugar x) (desugar y)
-desugar (PNot x) = ONot (desugar x)
-desugar (PProj p x) = OProj p (desugar x)
-desugar (PNeg x) = OInt (-1) `OMult` (desugar x)
-desugar (PMinus x y) = (desugar x) `OPlus` ((OInt (-1)) `OMult` (desugar y))
-desugar (PGt x y) = (desugar y) `OLt` (desugar x)
-desugar (POr x y) = ONot (ONot (desugar x) `OAnd` ONot (desugar y))
-desugar (PImpl x y) = ONot ((desugar x) `OAnd` ONot (desugar y))
+desug :: PExpr -> OExpr
+desug (PInt i) = OInt i
+desug (PBool b) = OBool b
+desug (PPair x y) = OPair (desug x) (desug y)
+desug (PPlus x y) = OPlus (desug x) (desug y)
+desug (PMult x y) = OMult (desug x) (desug y)
+desug (PIf b x y) = OIf (desug b) (desug x) (desug y)
+desug (PEq x y) = OEq (desug x) (desug y)
+desug (PLt x y) = OLt (desug x) (desug y)
+desug (PAnd x y) = OAnd (desug x) (desug y)
+desug (PNot x) = ONot (desug x)
+desug (PProj p x) = OProj p (desug x)
+desug (PNeg x) = OInt (-1) `OMult` (desug x)
+desug (PMinus x y) = (desug x) `OPlus` ((OInt (-1)) `OMult` (desug y))
+desug (PGt x y) = (desug y) `OLt` (desug x)
+desug (POr x y) = ONot (ONot (desug x) `OAnd` ONot (desug y))
+desug (PImpl x y) = ONot ((desug x) `OAnd` ONot (desug y))

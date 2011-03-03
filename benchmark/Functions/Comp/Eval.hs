@@ -259,25 +259,25 @@ instance EvalDir2 Sugar where
 
 -- desugar
 
-desugarEval :: SugarExpr -> Err ValueExpr
-desugarEval = eval . (desugar :: SugarExpr -> Expr)
+desugEval :: SugarExpr -> Err ValueExpr
+desugEval = eval . (desug :: SugarExpr -> Expr)
 
 
 evalSugar :: SugarExpr -> Err ValueExpr
 evalSugar = eval
 
-desugarEvalAlg  :: AlgM Err SugarSig ValueExpr
-desugarEvalAlg = evalAlg  `compAlgM'` (desugarAlg :: TermHom SugarSig ExprSig)
+desugEvalAlg  :: AlgM Err SugarSig ValueExpr
+desugEvalAlg = evalAlg  `compAlgM'` (desugAlg :: TermHom SugarSig ExprSig)
 
 
-desugarEval' :: SugarExpr -> Err ValueExpr
-desugarEval' = cataM desugarEvalAlg
+desugEval' :: SugarExpr -> Err ValueExpr
+desugEval' = cataM desugEvalAlg
 
-desugarEval2 :: SugarExpr -> ValueExpr
-desugarEval2 = eval2 . (desugar :: SugarExpr -> Expr)
+desugEval2 :: SugarExpr -> ValueExpr
+desugEval2 = eval2 . (desug :: SugarExpr -> Expr)
 
-desugarEval2E :: SugarExpr -> ValueExpr
-desugarEval2E = eval2E . (desugar :: SugarExpr -> Expr)
+desugEval2E :: SugarExpr -> ValueExpr
+desugEval2E = eval2E . (desug :: SugarExpr -> Expr)
 
 
 evalSugar2 :: SugarExpr -> ValueExpr
@@ -287,12 +287,12 @@ evalSugar2E :: SugarExpr -> ValueExpr
 evalSugar2E = eval2E
 
 
-desugarEval2Alg  :: Alg SugarSig ValueExpr
-desugarEval2Alg = eval2Alg  `compAlg` (desugarAlg :: TermHom SugarSig ExprSig)
+desugEval2Alg  :: Alg SugarSig ValueExpr
+desugEval2Alg = eval2Alg  `compAlg` (desugAlg :: TermHom SugarSig ExprSig)
 
 
-desugarEval2' :: SugarExpr -> ValueExpr
-desugarEval2' = cata desugarEval2Alg
+desugEval2' :: SugarExpr -> ValueExpr
+desugEval2' = cata desugEval2Alg
 
-desugarEval2E' :: SugarExpr -> ValueExpr
-desugarEval2E' = cataE desugarEval2Alg
+desugEval2E' :: SugarExpr -> ValueExpr
+desugEval2E' = cataE desugEval2Alg
