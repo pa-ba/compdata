@@ -34,8 +34,6 @@ import Control.Monad hiding (mapM, sequence)
 import Data.Traversable
 import Data.Foldable
 
-import Unsafe.Coerce
-
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 
 
@@ -80,9 +78,7 @@ simpCxt = Term . fmap Hole
 {-| Cast a term over a signature to a context over the same signature. -}
 toCxt :: (Functor f) => Term f -> Cxt h f a
 {-# INLINE toCxt #-}
-toCxt = unsafeCoerce
--- The use of 'unsafeCoerce' is safe. Alternatively, 'toCxt' could
--- have been implemented as @toCxt (Term t) = Term (fmap toCxt t)@
+toCxt = Term . (fmap toCxt) . unTerm
 
 {-| Phantom type used to define 'Term'.  -}
 
