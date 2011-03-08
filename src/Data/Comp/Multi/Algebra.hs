@@ -448,13 +448,13 @@ hfutuM coa = hanaM run . HHole
 
 -- | This variant of 'toHCxt' should only be used for terms that use
 -- function types parametrically.
-toHCxt' :: HExpFunctor f => HTerm f :-> HCxt h f a
-{-# INLINE toHCxt' #-}
-toHCxt' = unsafeCoerce
+toHCxtE :: HExpFunctor f => HTerm f :-> HCxt h f a
+{-# INLINE toHCxtE #-}
+toHCxtE = unsafeCoerce
 
 {-| Catamorphism for higher-order exponential functors. -}
 hcataE :: forall f a . HExpFunctor f => HAlg f a -> HTerm f :-> a
-hcataE f = cataFS . toHCxt'
+hcataE f = cataFS . toHCxtE
     where cataFS :: HExpFunctor f => HContext f a :-> a
           cataFS (HHole x) = x
           cataFS (HTerm t) = f (hxmap cataFS HHole t)
@@ -475,7 +475,7 @@ appHCxtE (HTerm t)  = HTerm (hxmap appHCxtE HHole t)
 -- 'HExpFunctor' signatures.
 appHTermHomE :: forall f g . (HExpFunctor f, HExpFunctor g) => HTermHom f g
              -> HTerm f :-> HTerm g
-appHTermHomE f = cataFS . toHCxt'
+appHTermHomE f = cataFS . toHCxtE
     where cataFS :: HContext f (HTerm g) :-> HTerm g
           cataFS (HHole x) = x
           cataFS (HTerm t) = appHCxtE (f (hxmap cataFS HHole t))

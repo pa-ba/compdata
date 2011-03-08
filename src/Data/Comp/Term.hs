@@ -70,13 +70,13 @@ data NoHole
 type Context = Cxt Hole
 
 {-| Convert a functorial value into a context.  -}
-simpCxt :: (Functor f) => f a -> Context f a
+simpCxt :: Functor f => f a -> Context f a
 {-# INLINE simpCxt #-}
 simpCxt = Term . fmap Hole
 
 
 {-| Cast a term over a signature to a context over the same signature. -}
-toCxt :: (Functor f) => Term f -> Cxt h f a
+toCxt :: Functor f => Term f -> Cxt h f a
 {-# INLINE toCxt #-}
 toCxt = Term . (fmap toCxt) . unTerm
 

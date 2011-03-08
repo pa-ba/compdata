@@ -521,18 +521,17 @@ futu' coa = run
 
 -- | This variant of 'toCxt' should only be used for terms that use
 -- function types parametrically.
-toCxt' :: ExpFunctor f => Term f -> Cxt h f a
-{-# INLINE toCxt' #-}
-toCxt' = unsafeCoerce
+toCxtE :: ExpFunctor f => Term f -> Cxt h f a
+{-# INLINE toCxtE #-}
+toCxtE = unsafeCoerce
 
 -- | Catamorphism for exponential functors. The intermediate 'cataFS'
 -- originates from
 -- <http://comonad.com/reader/2008/rotten-bananas/>. Using this
--- function is only save on terms containing parametric function
--- types!
+-- function is only safe on terms containing parametric function types!
 cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
 {-# NOINLINE [1] cataE #-}
-cataE f = cataFS . toCxt'
+cataE f = cataFS . toCxtE
     where cataFS :: ExpFunctor f => Context f a -> a
           cataFS (Hole x) = x
           cataFS (Term t) = f (xmap cataFS Hole t)
@@ -544,15 +543,16 @@ anaE f = cataE (Term . removeP) . anaFS
           anaFS t = Term $ xmap anaFS (snd . projectP . unTerm) (f t) :&: t
 
 -- | Variant of 'appCxt' for contexts over 'ExpFunctor' signatures.
-appCxtE :: (ExpFunctor f) => Context f (Cxt h f a) -> Cxt h f a
+appCxtE :: ExpFunctor f => Context f (Cxt h f a) -> Cxt h f a
 appCxtE (Hole x) = x
 appCxtE (Term t) = Term (xmap appCxtE Hole t)
 
--- | Variant of 'appTermHom' for term homomorphisms from and to
--- 'ExpFunctor' signatures.
+-- | Variant of 'appTermHom' for term homomorphisms from and to 'ExpFunctor'
+-- signatures. Using this function is only safe on terms containing parametric
+-- function types!
 appTermHomE :: forall f g . (ExpFunctor f, ExpFunctor g) => TermHom f g
             -> Term f -> Term g
-appTermHomE f = cataFS . toCxt'
+appTermHomE f = cataFS . toCxtE
     where cataFS :: Context f (Term g) -> Term g
           cataFS (Hole x) = x
           cataFS (Term t) = appCxtE (f (xmap cataFS Hole t))
