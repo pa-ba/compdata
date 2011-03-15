@@ -16,7 +16,7 @@
 module Data.Comp.Derive.Multi.SmartConstructors 
     (smartHConstructors) where
 
-import Language.Haskell.TH
+import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Term
@@ -25,7 +25,7 @@ import Control.Monad
 
 {-| Derive smart constructors for a type constructor of any higher-order kind
  taking at least two arguments. The smart constructors are similar to the
- ordinary constructors, but an 'hinject' is automatically inserted. -}
+ ordinary constructors, but an 'inject' is automatically inserted. -}
 smartHConstructors :: Name -> Q [Dec]
 smartHConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
@@ -40,7 +40,7 @@ smartHConstructors fname = do
                     vars = map varE varNs
                     val = foldl appE (conE name) vars
                     sig = genSig targs tname sname args
-                    function = [funD sname [clause pats (normalB [|hinject $val|]) []]]
+                    function = [funD sname [clause pats (normalB [|inject $val|]) []]]
                 sequence $ sig ++ function
               genSig targs tname sname 0 = (:[]) $ do
                 fvar <- newName "f"
@@ -54,8 +54,8 @@ smartHConstructors fname = do
                     a = varT avar
                     i = varT ivar
                     ftype = foldl appT (conT tname) (map varT targs')
-                    constr = classP ''(:<<:) [ftype, f]
-                    typ = foldl appT (conT ''HCxt) [h, f, a, i]
+                    constr = classP ''(:<:) [ftype, f]
+                    typ = foldl appT (conT ''Cxt) [h, f, a, i]
                     typeSig = forallT (map PlainTV vars) (sequence [constr]) typ
                 sigD sname typeSig
               genSig _ _ _ _ = []

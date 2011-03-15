@@ -23,8 +23,6 @@ import Data.Traversable
 import Control.Applicative
 import Control.Monad hiding (sequence, mapM)
 
-import Data.Comp.ExpFunctor
-
 import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
 
 
@@ -64,10 +62,6 @@ instance (Traversable f, Traversable g) => Traversable (f :+: g) where
     mapM f (Inr e) = Inr `liftM` mapM f e
     sequence (Inl e) = Inl `liftM` sequence e
     sequence (Inr e) = Inr `liftM` sequence e
-
-instance (ExpFunctor f, ExpFunctor g) => ExpFunctor (f :+: g) where
-    xmap f g (Inl e) = Inl (xmap f g e)
-    xmap f g (Inr e) = Inr (xmap f g e)
 
 -- | Signature containment relation for automatic injections. The left-hand must
 -- be an atomic signature, where as the right-hand side must have a list-like
@@ -131,9 +125,6 @@ instance (Traversable f) => Traversable (f :&: a) where
     sequenceA (v :&: c) = liftA (:&: c)(sequenceA v)
     mapM f (v :&: c) = liftM (:&: c) (mapM f v)
     sequence (v :&: c) = liftM (:&: c) (sequence v)
-
-instance (ExpFunctor f) => ExpFunctor (f :&: a) where
-    xmap f g (v :&: c) = xmap f g v :&: c
 
 {-| This class defines how to distribute a product over a sum of
 signatures. -}

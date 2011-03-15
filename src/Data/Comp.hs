@@ -27,8 +27,6 @@ module Data.Comp(
   -- ** Lifting Term Homomorphisms to Products
   -- $ex4
 
-  -- ** Higher-Order Abstract Syntax
-  -- $ex5
     module Data.Comp.Term
   , module Data.Comp.Algebra
   , module Data.Comp.Sum

@@ -31,25 +31,25 @@ import Data.Comp.Multi.Foldable
   'EqF' is propagated through sums.
 -}
 
-instance (HEqF f, HEqF g) => HEqF (f :++: g) where
-    heqF (HInl x) (HInl y) = heqF x y
-    heqF (HInr x) (HInr y) = heqF x y
+instance (HEqF f, HEqF g) => HEqF (f :+: g) where
+    heqF (Inl x) (Inl y) = heqF x y
+    heqF (Inr x) (Inr y) = heqF x y
     heqF _ _ = False
 
 {-|
   From an 'EqF' functor an 'Eq' instance of the corresponding
   term type can be derived.
 -}
-instance (HEqF f) => HEqF (HCxt h f) where
+instance (HEqF f) => HEqF (Cxt h f) where
 
-    heqF (HTerm e1) (HTerm e2) = e1 `heqF` e2
-    heqF (HHole h1) (HHole h2) = h1 `keq` h2
+    heqF (Term e1) (Term e2) = e1 `heqF` e2
+    heqF (Hole h1) (Hole h2) = h1 `keq` h2
     heqF _ _ = False
 
-instance (HEqF f, KEq a)  => KEq (HCxt h f a) where
+instance (HEqF f, KEq a)  => KEq (Cxt h f a) where
     keq = heqF
 
-instance KEq HNothing where
+instance KEq Nothing where
     keq _ = undefined
 
 

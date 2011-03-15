@@ -16,184 +16,165 @@
 
 module Data.Comp.Multi.Sum
     (
-     (:<<:)(..),
-     (:++:)(..),
+     (:<:)(..),
+     (:+:)(..),
 
      -- * Projections for Signatures and Terms
-     hproj2,
-     hproj3,
-     hproject,
-     hproject2,
-     hproject3,
-     deepHProject,
-     deepHProject2,
-     deepHProject3,
---     deepHProject',
---     deepHProject2',
---     deepHProject3',
+     proj2,
+     proj3,
+     project,
+     project2,
+     project3,
+     deepProject,
+     deepProject2,
+     deepProject3,
+--     deepProject',
+--     deepProject2',
+--     deepProject3',
 
      -- * Injections for Signatures and Terms
-     hinj2,
-     hinj3,
-     hinject,
-     hinject2,
-     hinject3,
-     deepHInject,
-     deepHInject2,
-     deepHInject3,
-     deepHInjectE,
-     deepHInjectE2,
-     deepHInjectE3,
+     inj2,
+     inj3,
+     inject,
+     inject2,
+     inject3,
+     deepInject,
+     deepInject2,
+     deepInject3,
 
      -- * Injections and Projections for Constants
-     hinjectHConst,
-     hinjectHConst2,
-     hinjectHConst3,
-     hprojectHConst,
-     hinjectHCxt,
-     liftHCxt,
-     substHHoles,
---     substHHoles'
+     injectConst,
+     injectConst2,
+     injectConst3,
+     projectConst,
+     injectCxt,
+     liftCxt,
+     substHoles,
+--     substHoles'
     ) where
 
 import Data.Comp.Multi.Functor
 import Data.Comp.Multi.Traversable
-import Data.Comp.Multi.ExpFunctor
 import Data.Comp.Multi.Ops
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Algebra
 import Control.Monad (liftM)
 
-{-| A variant of 'hproj' for binary sum signatures.  -}
-hproj2 :: forall f g1 g2 a i. (g1 :<<: f, g2 :<<: f) =>
-          f a i -> Maybe (((g1 :++: g2) a) i)
-hproj2 x = case hproj x of
-             Just (y :: g1 a i) -> Just $ hinj y
-             _ -> liftM hinj (hproj x :: Maybe (g2 a i))
+{-| A variant of 'proj' for binary sum signatures.  -}
+proj2 :: forall f g1 g2 a i. (g1 :<: f, g2 :<: f) =>
+          f a i -> Maybe (((g1 :+: g2) a) i)
+proj2 x = case proj x of
+             Just (y :: g1 a i) -> Just $ inj y
+             _ -> liftM inj (proj x :: Maybe (g2 a i))
 
-{-| A variant of 'hproj' for ternary sum signatures.  -}
-hproj3 :: forall f g1 g2 g3 a i. (g1 :<<: f, g2 :<<: f, g3 :<<: f) =>
-          f a i -> Maybe (((g1 :++: g2 :++: g3) a) i)
-hproj3 x = case hproj x of
-             Just (y :: g1 a i) -> Just $ hinj y
-             _ -> case hproj x of
-                    Just (y :: g2 a i) -> Just $ hinj y
-                    _ -> liftM hinj (hproj x :: Maybe (g3 a i))
+{-| A variant of 'proj' for ternary sum signatures.  -}
+proj3 :: forall f g1 g2 g3 a i. (g1 :<: f, g2 :<: f, g3 :<: f) =>
+          f a i -> Maybe (((g1 :+: g2 :+: g3) a) i)
+proj3 x = case proj x of
+             Just (y :: g1 a i) -> Just $ inj y
+             _ -> case proj x of
+                    Just (y :: g2 a i) -> Just $ inj y
+                    _ -> liftM inj (proj x :: Maybe (g3 a i))
 
 -- |Project the outermost layer of a term to a sub signature.
-hproject :: (g :<<: f) => NatM Maybe (HCxt h f a)  (g (HCxt h f a))
-hproject (HHole _) = Nothing
-hproject (HTerm t) = hproj t
+project :: (g :<: f) => NatM Maybe (Cxt h f a)  (g (Cxt h f a))
+project (Hole _) = Nothing
+project (Term t) = proj t
 
 -- |Project the outermost layer of a term to a binary sub signature.
-hproject2 :: (g1 :<<: f, g2 :<<: f) =>
-             NatM Maybe (HCxt h f a) ((g1 :++: g2) (HCxt h f a))
-hproject2 (HHole _) = Nothing
-hproject2 (HTerm t) = hproj2 t
+project2 :: (g1 :<: f, g2 :<: f) =>
+             NatM Maybe (Cxt h f a) ((g1 :+: g2) (Cxt h f a))
+project2 (Hole _) = Nothing
+project2 (Term t) = proj2 t
 
 -- |Project the outermost layer of a term to a ternary sub signature.
-hproject3 :: (g1 :<<: f, g2 :<<: f, g3 :<<: f) =>
-             NatM Maybe (HCxt h f a) ((g1 :++: g2 :++: g3) (HCxt h f a))
-hproject3 (HHole _) = Nothing
-hproject3 (HTerm t) = hproj3 t
+project3 :: (g1 :<: f, g2 :<: f, g3 :<: f) =>
+             NatM Maybe (Cxt h f a) ((g1 :+: g2 :+: g3) (Cxt h f a))
+project3 (Hole _) = Nothing
+project3 (Term t) = proj3 t
 
 -- |Project a term to a term over a sub signature.
-deepHProject :: (HTraversable f, HFunctor g, g :<<: f)
-             => NatM Maybe (HCxt h f a) (HCxt h g a)
-deepHProject = appHSigFunM hproj
+deepProject :: (HTraversable f, HFunctor g, g :<: f)
+             => NatM Maybe (Cxt h f a) (Cxt h g a)
+deepProject = appSigFunM proj
 
 -- |Project a term to a term over a binary sub signature.
-deepHProject2 :: (HTraversable f, HFunctor g1, HFunctor g2,
-                  g1 :<<: f, g2 :<<: f)
-              => NatM Maybe (HCxt h f a) (HCxt h (g1 :++: g2) a)
-deepHProject2 = appHSigFunM hproj2
+deepProject2 :: (HTraversable f, HFunctor g1, HFunctor g2,
+                  g1 :<: f, g2 :<: f)
+              => NatM Maybe (Cxt h f a) (Cxt h (g1 :+: g2) a)
+deepProject2 = appSigFunM proj2
 
 -- |Project a term to a term over a ternary sub signature.
-deepHProject3 :: (HTraversable f, HFunctor g1, HFunctor g2, HFunctor g3,
-                  g1 :<<: f, g2 :<<: f, g3 :<<: f)
-              => NatM Maybe (HCxt h f a) (HCxt h (g1 :++: g2 :++: g3) a)
-deepHProject3 = appHSigFunM hproj3
+deepProject3 :: (HTraversable f, HFunctor g1, HFunctor g2, HFunctor g3,
+                  g1 :<: f, g2 :<: f, g3 :<: f)
+              => NatM Maybe (Cxt h f a) (Cxt h (g1 :+: g2 :+: g3) a)
+deepProject3 = appSigFunM proj3
 
-{-| A variant of 'hinj' for binary sum signatures.  -}
-hinj2 :: (f1 :<<: g, f2 :<<: g) => (f1 :++: f2) a :-> g a
-hinj2 (HInl x) = hinj x
-hinj2 (HInr y) = hinj y
+{-| A variant of 'inj' for binary sum signatures.  -}
+inj2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) a :-> g a
+inj2 (Inl x) = inj x
+inj2 (Inr y) = inj y
 
-{-| A variant of 'hinj' for ternary sum signatures.  -}
-hinj3 :: (f1 :<<: g, f2 :<<: g, f3 :<<: g) => (f1 :++: f2 :++: f3) a :-> g a
-hinj3 (HInl x) = hinj x
-hinj3 (HInr y) = hinj2 y
+{-| A variant of 'inj' for ternary sum signatures.  -}
+inj3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) a :-> g a
+inj3 (Inl x) = inj x
+inj3 (Inr y) = inj2 y
 
 -- |Inject a term where the outermost layer is a sub signature.
-hinject :: (g :<<: f) => g (HCxt h f a) :-> HCxt h f a
-hinject = HTerm . hinj
+inject :: (g :<: f) => g (Cxt h f a) :-> Cxt h f a
+inject = Term . inj
 
 -- |Inject a term where the outermost layer is a binary sub signature.
-hinject2 :: (f1 :<<: g, f2 :<<: g) => (f1 :++: f2) (HCxt h g a) :-> HCxt h g a
-hinject2 = HTerm . hinj2
+inject2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) (Cxt h g a) :-> Cxt h g a
+inject2 = Term . inj2
 
 -- |Inject a term where the outermost layer is a ternary sub signature.
-hinject3 :: (f1 :<<: g, f2 :<<: g, f3 :<<: g)
-         => (f1 :++: f2 :++: f3) (HCxt h g a) :-> HCxt h g a
-hinject3 = HTerm . hinj3
+inject3 :: (f1 :<: g, f2 :<: g, f3 :<: g)
+         => (f1 :+: f2 :+: f3) (Cxt h g a) :-> Cxt h g a
+inject3 = Term . inj3
 
 -- |Inject a term over a sub signature to a term over larger signature.
-deepHInject :: (HFunctor g, HFunctor f, g :<<: f) => HCxt h g a :-> HCxt h f a
-deepHInject = appHSigFun hinj
+deepInject :: (HFunctor g, HFunctor f, g :<: f) => Cxt h g a :-> Cxt h f a
+deepInject = appSigFun inj
 
 -- |Inject a term over a binary sub signature to a term over larger signature.
-deepHInject2 :: (HFunctor f1, HFunctor f2, HFunctor g, f1 :<<: g, f2 :<<: g)
-             => HCxt h (f1 :++: f2) a :-> HCxt h g a
-deepHInject2 = appHSigFun hinj2
+deepInject2 :: (HFunctor f1, HFunctor f2, HFunctor g, f1 :<: g, f2 :<: g)
+             => Cxt h (f1 :+: f2) a :-> Cxt h g a
+deepInject2 = appSigFun inj2
 
 -- |Inject a term over a ternary sub signature to a term over larger signature.
-deepHInject3 :: (HFunctor f1, HFunctor f2, HFunctor f3, HFunctor g,
-                 f1 :<<: g, f2 :<<: g, f3 :<<: g)
-             => HCxt h (f1 :++: f2 :++: f3) a :-> HCxt h g a
-deepHInject3 = appHSigFun hinj3
-
-{-| A variant of 'deepHInject' for exponential signatures. -}
-deepHInjectE :: (HExpFunctor g, g :<<: f) => HTerm g :-> HTerm f
-deepHInjectE = hcataE hinject
-
-{-| A variant of 'deepHInject2' for exponential signatures. -}
-deepHInjectE2 :: (HExpFunctor g1, HExpFunctor g2, g1 :<<: f, g2 :<<: f) =>
-                 HTerm (g1 :++: g2) :-> HTerm f
-deepHInjectE2 = hcataE hinject2
-
-{-| A variant of 'deepHInject3' for exponential signatures. -}
-deepHInjectE3 :: (HExpFunctor g1, HExpFunctor g2, HExpFunctor g3,
-                  g1 :<<: f, g2 :<<: f, g3 :<<: f) =>
-                 HTerm (g1 :++: g2 :++: g3) :-> HTerm f
-deepHInjectE3 = hcataE hinject3
+deepInject3 :: (HFunctor f1, HFunctor f2, HFunctor f3, HFunctor g,
+                 f1 :<: g, f2 :<: g, f3 :<: g)
+             => Cxt h (f1 :+: f2 :+: f3) a :-> Cxt h g a
+deepInject3 = appSigFun inj3
 
 -- | This function injects a whole context into another context.
-hinjectHCxt :: (HFunctor g, g :<<: f) => HCxt h' g (HCxt h f a) :-> HCxt h f a
-hinjectHCxt = hcata' hinject
+injectCxt :: (HFunctor g, g :<: f) => Cxt h' g (Cxt h f a) :-> Cxt h f a
+injectCxt = cata' inject
 
 -- | This function lifts the given functor to a context.
-liftHCxt :: (HFunctor f, g :<<: f) => g a :-> HContext f a
-liftHCxt g = simpHCxt $ hinj g
+liftCxt :: (HFunctor f, g :<: f) => g a :-> Context f a
+liftCxt g = simpCxt $ inj g
 
 -- | This function applies the given context with hole type @a@ to a
 -- family @f@ of contexts (possibly terms) indexed by @a@. That is,
 -- each hole @h@ is replaced by the context @f h@.
 
-substHHoles :: (HFunctor f, HFunctor g, f :<<: g)
-           => (v :-> HCxt h g a) -> HCxt h' f v :-> HCxt h g a
-substHHoles f c = hinjectHCxt $ hfmap f c
+substHoles :: (HFunctor f, HFunctor g, f :<: g)
+           => (v :-> Cxt h g a) -> Cxt h' f v :-> Cxt h g a
+substHoles f c = injectCxt $ hfmap f c
 
-hinjectHConst :: (HFunctor g, g :<<: f) => HConst g :-> HCxt h f a
-hinjectHConst = hinject . hfmap (const undefined)
+injectConst :: (HFunctor g, g :<: f) => Const g :-> Cxt h f a
+injectConst = inject . hfmap (const undefined)
 
-hinjectHConst2 :: (HFunctor f1, HFunctor f2, HFunctor g, f1 :<<: g, f2 :<<: g)
-               => HConst (f1 :++: f2) :-> HCxt h g a
-hinjectHConst2 = hinject2 . hfmap (const undefined)
+injectConst2 :: (HFunctor f1, HFunctor f2, HFunctor g, f1 :<: g, f2 :<: g)
+               => Const (f1 :+: f2) :-> Cxt h g a
+injectConst2 = inject2 . hfmap (const undefined)
 
-hinjectHConst3 :: (HFunctor f1, HFunctor f2, HFunctor f3, HFunctor g,
-                   f1 :<<: g, f2 :<<: g, f3 :<<: g)
-               => HConst (f1 :++: f2 :++: f3) :-> HCxt h g a
-hinjectHConst3 = hinject3 . hfmap (const undefined)
+injectConst3 :: (HFunctor f1, HFunctor f2, HFunctor f3, HFunctor g,
+                   f1 :<: g, f2 :<: g, f3 :<: g)
+               => Const (f1 :+: f2 :+: f3) :-> Cxt h g a
+injectConst3 = inject3 . hfmap (const undefined)
 
-hprojectHConst :: (HFunctor g, g :<<: f) => NatM Maybe (HCxt h f a) (HConst g)
-hprojectHConst = fmap (hfmap (const (K ()))) . hproject
+projectConst :: (HFunctor g, g :<: f) => NatM Maybe (Cxt h f a) (Const g)
+projectConst = fmap (hfmap (const (K ()))) . project

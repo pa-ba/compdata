@@ -19,9 +19,9 @@ module Data.Comp.Multi.Variables
     (
      HasVars(..),
      GSubst,
-     HCxtSubst,
+     CxtSubst,
      Subst,
-     varsToHHoles,
+     varsToHoles,
      containsVar,
      variables,
      variableList,
@@ -41,15 +41,15 @@ import qualified Data.Set as Set
 import Data.Maybe
 
 
--- type HCxtSubst h a f v =  [A (v :*: (HCxt h f a))]
+-- type CxtSubst h a f v =  [A (v :*: (Cxt h f a))]
 
--- type Subst f v = HCxtSubst HNoHole HNothing f v
+-- type Subst f v = CxtSubst NoHole Nothing f v
 
 type GSubst v a = NatM Maybe (K v) a
 
-type HCxtSubst h a f v =  GSubst v (HCxt h f a)
+type CxtSubst h a f v =  GSubst v (Cxt h f a)
 
-type Subst f v = HCxtSubst HNoHole HNothing f v
+type Subst f v = CxtSubst NoHole Nothing f v
 
 {-| This multiparameter class defines functors with variables. An instance
   @HasVar f v@ denotes that values over @f@ might contain and bind variables of
@@ -60,39 +60,39 @@ class HasVars (f  :: (* -> *) -> * -> *) v where
     bindsVars :: f a :=> [v]
     bindsVars _ = []
 
-instance (HasVars f v, HasVars g v) => HasVars (f :++: g) v where
-    isVar (HInl v) = isVar v
-    isVar (HInr v) = isVar v
-    bindsVars (HInl v) = bindsVars v
-    bindsVars (HInr v) = bindsVars v
+instance (HasVars f v, HasVars g v) => HasVars (f :+: g) v where
+    isVar (Inl v) = isVar v
+    isVar (Inr v) = isVar v
+    bindsVars (Inl v) = bindsVars v
+    bindsVars (Inr v) = bindsVars v
 
-instance HasVars f v => HasVars (HCxt h f) v where
-    isVar (HTerm t) = isVar t
+instance HasVars f v => HasVars (Cxt h f) v where
+    isVar (Term t) = isVar t
     isVar _ = Nothing
-    bindsVars (HTerm t) = bindsVars t
+    bindsVars (Term t) = bindsVars t
     bindsVars _ = []
 
 -- Auxiliary data type, used only to define varsToHoles
 data C a b i = C{ unC :: a -> b i }
 
-varsToHHoles :: forall f v. (HFunctor f, HasVars f v, Eq v) =>
-                HTerm f :-> HContext f (K v)
-varsToHHoles t = unC (hcata alg t) []
+varsToHoles :: forall f v. (HFunctor f, HasVars f v, Eq v) =>
+                Term f :-> Context f (K v)
+varsToHoles t = unC (cata alg t) []
     where alg :: (HFunctor f, HasVars f v, Eq v) =>
-                 HAlg f (C [v] (HContext f (K v)))
+                 Alg f (C [v] (Context f (K v)))
           alg t = C $ \vars ->
               let vars' = vars ++ bindsVars t in
               case isVar t of
                 Just v ->
                     -- Check for capture-avoidance
                     if v `elem` vars' then
-                        HTerm $ hfmap (\x -> unC x vars') t
+                        Term $ hfmap (\x -> unC x vars') t
                     else
-                        HHole $ K v
+                        Hole $ K v
                 Nothing ->
-                    HTerm $ hfmap (\x -> unC x vars') t
+                    Term $ hfmap (\x -> unC x vars') t
 
-containsVarAlg :: (Eq v, HasVars f v, HFoldable f) => v -> HAlg f (K Bool)
+containsVarAlg :: (Eq v, HasVars f v, HFoldable f) => v -> Alg f (K Bool)
 containsVarAlg v t = K $ v `notElem` bindsVars t &&
                          (local || kfoldl (||) False t)
     where local = case isVar t of
@@ -101,10 +101,10 @@ containsVarAlg v t = K $ v `notElem` bindsVars t &&
 
 {-| This function checks whether a variable is contained in a context. -}
 containsVar :: (Eq v, HasVars f v, HFoldable f, HFunctor f)
-            => v -> HCxt h f a :=> Bool
-containsVar v = unK . hfree (containsVarAlg v) (const $ K False)
+            => v -> Cxt h f a :=> Bool
+containsVar v = unK . free (containsVarAlg v) (const $ K False)
 
-variableListAlg :: (HasVars f v, HFoldable f, Eq v) => HAlg f (K [v])
+variableListAlg :: (HasVars f v, HFoldable f, Eq v) => Alg f (K [v])
 variableListAlg t = K $ filter (`notElem` bindsVars t) $ kfoldl (++) local t
     where local = case isVar t of
                     Just v -> [v]
@@ -112,10 +112,10 @@ variableListAlg t = K $ filter (`notElem` bindsVars t) $ kfoldl (++) local t
 
 {-| This function computes the list of variables occurring in a context. -}
 variableList :: (HasVars f v, HFoldable f, HFunctor f, Eq v)
-             => HCxt h f a :=> [v]
-variableList = unK . hfree variableListAlg (const $ K [])
+             => Cxt h f a :=> [v]
+variableList = unK . free variableListAlg (const $ K [])
 
-variablesAlg :: (Ord v, HasVars f v, HFoldable f) => HAlg f (K (Set v))
+variablesAlg :: (Ord v, HasVars f v, HFoldable f) => Alg f (K (Set v))
 variablesAlg t = K $ Set.filter (`notElem` bindsVars t) $
                      kfoldl Set.union local t
     where local = case isVar t of
@@ -124,12 +124,12 @@ variablesAlg t = K $ Set.filter (`notElem` bindsVars t) $
 
 {-| This function computes the set of variables occurring in a context. -}
 variables :: (Ord v, HasVars f v, HFoldable f, HFunctor f)
-            => HCxt h f a :=> Set v
-variables = unK . hfree variablesAlg (const $ K Set.empty)
+            => Cxt h f a :=> Set v
+variables = unK . free variablesAlg (const $ K Set.empty)
 
 {-| This function computes the set of variables occurring in a context. -}
 variables' :: (Ord v, HasVars f v, HFoldable f, HFunctor f)
-            => HConst f :=> Set v
+            => Const f :=> Set v
 variables' c =  case isVar c of
                   Nothing -> Set.empty
                   Just v -> Set.singleton v
@@ -142,21 +142,21 @@ class SubstVars v t a where
 appSubst :: SubstVars v t a => GSubst v t -> a :-> a
 appSubst = substVars
 
-instance (Ord v, HasVars f v, HFunctor f) => SubstVars v (HCxt h f a) (HCxt h f a) where
+instance (Ord v, HasVars f v, HFunctor f) => SubstVars v (Cxt h f a) (Cxt h f a) where
     -- have to use explicit GADT pattern matching!!
-    -- subst f = hfree (substAlg f) HHole
-    substVars _ (HHole a) = HHole a
-    substVars f (HTerm v) = substAlg f v
-        where  substAlg :: (HasVars f v) => HCxtSubst h a f v
-                        -> HAlg f (HCxt h f a)
-               substAlg f t = fromMaybe (HTerm t) (isVar t >>= f . K)
+    -- subst f = free (substAlg f) Hole
+    substVars _ (Hole a) = Hole a
+    substVars f (Term v) = substAlg f v
+        where  substAlg :: (HasVars f v) => CxtSubst h a f v
+                        -> Alg f (Cxt h f a)
+               substAlg f t = fromMaybe (Term t) (isVar t >>= f . K)
     -- The code below does not work with GHC 7
-    -- substVars _ (HHole a) = HHole a
-    -- substVars f (HTerm v) = let f' = res (bindsVars v) f in
+    -- substVars _ (Hole a) = Hole a
+    -- substVars f (Term v) = let f' = res (bindsVars v) f in
     --                         substAlg f' $ hfmap (substVars f') v
-    --     where  substAlg :: (HasVars f v) => HCxtSubst h a f v
-    --                     -> HAlg f (HCxt h f a)
-    --            substAlg f t = fromMaybe (HTerm t) (isVar t >>= f . K)
+    --     where  substAlg :: (HasVars f v) => CxtSubst h a f v
+    --                     -> Alg f (Cxt h f a)
+    --            substAlg f t = fromMaybe (Term t) (isVar t >>= f . K)
     --            res :: Eq v => [v] -> GSubst v t -> GSubst v t
     --            res vars f x = if unK x `elem` vars then Nothing else f x
 
@@ -168,7 +168,7 @@ applying the resulting substitution is equivalent to first applying
 @s2@ and then @s1@. -}
 
 compSubst :: (Ord v, HasVars f v, HFunctor f)
-          => HCxtSubst h a f v -> HCxtSubst h a f v -> HCxtSubst h a f v
+          => CxtSubst h a f v -> CxtSubst h a f v -> CxtSubst h a f v
 compSubst s1 s2 v = case s2 v of
                       Nothing -> s1 v
                       Just t -> Just $ appSubst s1 t

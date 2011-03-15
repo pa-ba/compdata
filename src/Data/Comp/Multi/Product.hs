@@ -15,21 +15,21 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Multi.Product
-    ( (:&&:) (..),
-      HDistProd (..),
-      HRemoveP (..),
+    ( (:&:) (..),
+      DistProd (..),
+      RemoveP (..),
       liftP,
       constP,
       liftP',
       stripP,
-      productHTermHom,
-      hproject'
+      productTermHom,
+      project'
     )where
 
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Ops
-import Data.Comp.Ops
+import qualified Data.Comp.Ops as O
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.Functor
 
@@ -42,46 +42,46 @@ import Control.Monad
 -- from a functor to a function with a domain constructed with the
 -- same functor but with an additional product.
 
-liftP :: (HRemoveP s s') => (s' a :-> t) -> s a :-> t
-liftP f v = f (hremoveP v)
+liftP :: (RemoveP s s') => (s' a :-> t) -> s a :-> t
+liftP f v = f (removeP v)
 
 
 -- | This function annotates each sub term of the given term with the
 -- given value (of type a).
 
-constP :: (HDistProd f p g, HFunctor f, HFunctor g) 
-       => p -> HCxt h f a :-> HCxt h g a
-constP c = appHSigFun (hinjectP c)
+constP :: (DistProd f p g, HFunctor f, HFunctor g) 
+       => p -> Cxt h f a :-> Cxt h g a
+constP c = appSigFun (injectP c)
 
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
 -- same functor but with an additional product.
 
-liftP' :: (HDistProd s' p s, HFunctor s, HFunctor s')
-       => (s' a :-> HCxt h s' a) -> s a :-> HCxt h s a
-liftP' f v = let (v' :&: p) = hprojectP v
+liftP' :: (DistProd s' p s, HFunctor s, HFunctor s')
+       => (s' a :-> Cxt h s' a) -> s a :-> Cxt h s a
+liftP' f v = let (v' O.:&: p) = projectP v
              in constP p (f v')
     
 {-| This function strips the products from a term over a
 functor whith products. -}
 
-stripP :: (HFunctor f, HRemoveP g f, HFunctor g)
-       => HCxt h g a :-> HCxt h f a
-stripP = appHSigFun hremoveP
+stripP :: (HFunctor f, RemoveP g f, HFunctor g)
+       => Cxt h g a :-> Cxt h f a
+stripP = appSigFun removeP
 
 
-productHTermHom :: (HDistProd f p f', HDistProd g p g', HFunctor g, HFunctor g') 
-               => HTermHom f g -> HTermHom f' g'
-productHTermHom alg f' = constP p (alg f)
-    where (f :&: p) = hprojectP f'
+productTermHom :: (DistProd f p f', DistProd g p g', HFunctor g, HFunctor g') 
+               => TermHom f g -> TermHom f' g'
+productTermHom alg f' = constP p (alg f)
+    where (f O.:&: p) = projectP f'
 
 
 
 
 
--- | This function is similar to 'hproject' but applies to signatures
+-- | This function is similar to 'project' but applies to signatures
 -- with a product which is then ignored.
 
--- hproject' :: (HRemoveP s s',s :<<: f) =>
---      NatM Maybe (HCxt h f a) (s' (HCxt h f a))
-hproject' v = liftM hremoveP $ hproject v
+-- project' :: (RemoveP s s',s :<: f) =>
+--      NatM Maybe (Cxt h f a) (s' (Cxt h f a))
+project' v = liftM removeP $ project v

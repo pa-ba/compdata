@@ -33,8 +33,6 @@ module Data.Comp.Derive
      module Data.Comp.Derive.Foldable,
      -- ** Traversable
      module Data.Comp.Derive.Traversable,
-     -- ** ExpFunctor
-     module Data.Comp.Derive.ExpFunctor,
      -- ** Arbitrary
      module Data.Comp.Derive.Arbitrary,
      NFData(..),
@@ -58,8 +56,6 @@ module Data.Comp.Derive
      module Data.Comp.Derive.Multi.Foldable,
      -- ** HTraversable
      module Data.Comp.Derive.Multi.Traversable,
-     -- ** HExpFunctor
-     module Data.Comp.Derive.Multi.ExpFunctor,
      -- ** Smart Constructors
      module Data.Comp.Derive.Multi.SmartConstructors
     ) where
@@ -67,7 +63,6 @@ module Data.Comp.Derive
 import Control.DeepSeq (NFData(..))
 import Data.Comp.Derive.Foldable
 import Data.Comp.Derive.Traversable
-import Data.Comp.Derive.ExpFunctor
 import Data.Comp.Derive.DeepSeq
 import Data.Comp.Derive.Show
 import Data.Comp.Derive.Ordering
@@ -79,7 +74,6 @@ import Data.Comp.Derive.Multi.Show
 import Data.Comp.Derive.Multi.Functor
 import Data.Comp.Derive.Multi.Foldable
 import Data.Comp.Derive.Multi.Traversable
-import Data.Comp.Derive.Multi.ExpFunctor
 import Data.Comp.Derive.Multi.SmartConstructors
 
 import Language.Haskell.TH

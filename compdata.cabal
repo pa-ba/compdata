@@ -54,10 +54,6 @@ Description:
      includes /short-cut fusion/ style optimisation rules which yield a
      performance boost of up to factor six.
   .
-  *  Efficient implementation of catamorphisms on non-polynomial
-     signatures that contain function types. This allows to represent
-     /higher-order abstract syntax/ with compositional data types.
-  .
   *  Automatic derivation of instances of all relevant type classes for
      using compositional data types via /Template Haskell/. This includes
      instances of 'Prelude.Eq', 'Prelude.Ord' and 'Prelude.Show' that are
@@ -126,25 +122,24 @@ library
                         Data.Comp.Decompose, Data.Comp.Unification,
                         Data.Comp.Derive, Data.Comp.Matching, Data.Comp.Multi,
                         Data.Comp.Multi.Term, Data.Comp.Multi.Sum,
-                        Data.Comp.Multi.Functor, Data.Comp.Multi.ExpFunctor,
+                        Data.Comp.Multi.Functor,
                         Data.Comp.Multi.Foldable, Data.Comp.Multi.Traversable,
                         Data.Comp.Multi.Algebra,
                         Data.Comp.Multi.Product, Data.Comp.Multi.Show,
                         Data.Comp.Multi.Equality, Data.Comp.Multi.Variables,
-                        Data.Comp.Multi.Ops, Data.Comp.Ops, Data.Comp.ExpFunctor
+                        Data.Comp.Multi.Ops, Data.Comp.Ops
 
   Other-Modules:        Data.Comp.Derive.Utils, Data.Comp.Derive.Equality,
                         Data.Comp.Derive.Ordering, Data.Comp.Derive.Arbitrary,
                         Data.Comp.Derive.Show, Data.Comp.Derive.DeepSeq,
                         Data.Comp.Derive.SmartConstructors,
-                        Data.Comp.Derive.Foldable, Data.Comp.Derive.ExpFunctor,
+                        Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable,
                         Data.Comp.Derive.Multi.Functor,
                         Data.Comp.Derive.Multi.Foldable,
                         Data.Comp.Derive.Multi.Traversable,
                         Data.Comp.Derive.Multi.Equality,
                         Data.Comp.Derive.Multi.Show,
-                        Data.Comp.Derive.Multi.ExpFunctor,
                         Data.Comp.Derive.Multi.SmartConstructors
 
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns

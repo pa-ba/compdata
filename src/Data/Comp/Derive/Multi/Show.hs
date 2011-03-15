@@ -27,7 +27,7 @@ import Language.Haskell.TH
 {-| Signature printing. An instance @HShowF f@ gives rise to an instance
   @KShow (HTerm f)@. -}
 class HShowF f where
-    hshowF :: HAlg f (K String)
+    hshowF :: Alg f (K String)
     hshowF = K . hshowF'
     hshowF' :: f (K String) :=> String
     hshowF' = unK . hshowF

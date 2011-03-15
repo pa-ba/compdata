@@ -16,72 +16,72 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Multi.Term 
-    (HCxt (..),
-     HHole,
-     HNoHole,
-     HContext,
-     HNothing,
-     HTerm,
-     HConst,
-     constHTerm,
-     unHTerm,
-     toHCxt,
-     simpHCxt
+    (Cxt (..),
+     Hole,
+     NoHole,
+     Context,
+     Nothing,
+     Term,
+     Const,
+     constTerm,
+     unTerm,
+     toCxt,
+     simpCxt
      ) where
 
 import Data.Comp.Multi.Functor
 
-type HConst (f :: (* -> *) -> * -> *) = f (K ())
+type Const (f :: (* -> *) -> * -> *) = f (K ())
 
 -- | This function converts a constant to a term. This assumes that
 -- the argument is indeed a constant, i.e. does not have a value for
 -- the argument type of the functor f.
 
-constHTerm :: (HFunctor f) => HConst f :-> HTerm f
-constHTerm = HTerm . hfmap (const undefined)
+constTerm :: (HFunctor f) => Const f :-> Term f
+constTerm = Term . hfmap (const undefined)
 
 -- | This data type represents contexts over a signature. Contexts are
 -- terms containing zero or more holes. The first type parameter is
--- supposed to be one of the phantom types 'HHole' and 'HNoHole'. The
+-- supposed to be one of the phantom types 'Hole' and 'NoHole'. The
 -- second parameter is the signature of the context. The third
 -- parameter is the type family of the holes. The last parameter is
 -- the index/label.
 
-data HCxt h f a i where
-    HTerm ::  f (HCxt h f a) i -> HCxt h f a i
-    HHole :: a i -> HCxt HHole f a i
+data Cxt h f a i where
+    Term ::  f (Cxt h f a) i -> Cxt h f a i
+    Hole :: a i -> Cxt Hole f a i
 
--- | Phantom type that signals that a 'HCxt' might contain holes.
-data HHole
--- | Phantom type that signals that a 'HCxt' does not contain holes.
-data HNoHole
+-- | Phantom type that signals that a 'Cxt' might contain holes.
+data Hole
+-- | Phantom type that signals that a 'Cxt' does not contain holes.
+data NoHole
 
 -- | A context might contain holes.
-type HContext = HCxt HHole
+type Context = Cxt Hole
 
-{-| Phantom type family used to define 'HTerm'.  -}
-data HNothing :: * -> *
+{-| Phantom type family used to define 'Term'.  -}
+data Nothing :: * -> *
 
-instance Show (HNothing i) where
-instance Eq (HNothing i) where
-instance Ord (HNothing i) where
+instance Show (Nothing i) where
+instance Eq (Nothing i) where
+instance Ord (Nothing i) where
 
 -- | A (higher-order) term is a context with no holes.
-type HTerm f = HCxt HNoHole f HNothing
+type Term f = Cxt NoHole f Nothing
 
 -- | This function unravels the given term at the topmost layer.
-unHTerm :: HTerm f t -> f (HTerm f) t
-unHTerm (HTerm t) = t
+unTerm :: Term f t -> f (Term f) t
+unTerm (Term t) = t
 
-instance (HFunctor f) => HFunctor (HCxt h f) where
-    hfmap f (HHole x) = HHole (f x)
-    hfmap f (HTerm t) = HTerm (hfmap (hfmap f) t)
+instance (HFunctor f) => HFunctor (Cxt h f) where
+    hfmap f (Hole x) = Hole (f x)
+    hfmap f (Term t) = Term (hfmap (hfmap f) t)
 
 
-simpHCxt :: (HFunctor f) => f a i -> HContext f a i
-simpHCxt = HTerm . hfmap HHole
+simpCxt :: (HFunctor f) => f a i -> Context f a i
+simpCxt = Term . hfmap Hole
 
 {-| Cast a term over a signature to a context over the same signature. -}
-toHCxt :: (HFunctor f) => HTerm f :-> HContext f a
-{-# INLINE toHCxt #-}
-toHCxt = HTerm . (hfmap toHCxt) . unHTerm
+toCxt :: (HFunctor f) => Term f :-> Context f a
+{-# INLINE toCxt #-}
+toCxt = Term . (hfmap toCxt) . unTerm

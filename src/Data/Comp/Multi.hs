@@ -25,9 +25,6 @@ module Data.Comp.Multi (
 
   -- ** Lifting Term Homomorphisms to Products
   -- $ex4
-
-  -- ** Higher-Order Abstract Syntax
-  -- $ex5
     module Data.Comp.Multi.Term
   , module Data.Comp.Multi.Algebra
   , module Data.Comp.Multi.Functor
@@ -66,7 +63,7 @@ GADTs, version 7 of GHC is needed.
 >   Snd        ::          e (s,t) -> Op e t
 >
 > -- Signature for the simple expression language
-> type Sig = Op :++: Value
+> type Sig = Op :+: Value
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHShowF, smartHConstructors] 
@@ -74,34 +71,34 @@ GADTs, version 7 of GHC is needed.
 > 
 > -- Term evaluation algebra
 > class Eval f v where
->   evalAlg :: HAlg f (HTerm v)
+>   evalAlg :: Alg f (HTerm v)
 > 
-> instance (Eval f v, Eval g v) => Eval (f :++: g) v where
->   evalAlg (HInl x) = evalAlg x
->   evalAlg (HInr x) = evalAlg x
+> instance (Eval f v, Eval g v) => Eval (f :+: g) v where
+>   evalAlg (Inl x) = evalAlg x
+>   evalAlg (Inr x) = evalAlg x
 > 
 > -- Lift the evaluation algebra to a catamorphism
-> eval :: (HFunctor f, Eval f v) => HTerm f :-> HTerm v
-> eval = hcata evalAlg
+> eval :: (HFunctor f, Eval f v) => Term f :-> Term v
+> eval = cata evalAlg
 > 
-> instance (Value :<<: v) => Eval Value v where
->   evalAlg = hinject
+> instance (Value :<: v) => Eval Value v where
+>   evalAlg = inject
 > 
-> instance (Value :<<: v) => Eval Op v where
+> instance (Value :<: v) => Eval Op v where
 >   evalAlg (Add x y)  = iConst $ (projC x) + (projC y)
 >   evalAlg (Mult x y) = iConst $ (projC x) * (projC y)
 >   evalAlg (Fst x)    = fst $ projP x
 >   evalAlg (Snd x)    = snd $ projP x
 > 
-> projC :: (Value :<<: v) => HTerm v Int -> Int
-> projC v = case hproject v of Just (Const n) -> n
+> projC :: (Value :<: v) => Term v Int -> Int
+> projC v = case project v of Just (Const n) -> n
 > 
-> projP :: (Value :<<: v) => HTerm v (s,t) -> (HTerm v s, HTerm v t)
-> projP v = case hproject v of Just (Pair x y) -> (x,y)
+> projP :: (Value :<: v) => Term v (s,t) -> (Term v s, Term v t)
+> projP v = case project v of Just (Pair x y) -> (x,y)
 > 
 > -- Example: evalEx = iConst 2
-> evalEx :: HTerm Value Int
-> evalEx = eval (iFst $ iPair (iConst 2) (iConst 1) :: HTerm Sig Int)
+> evalEx :: Term Value Int
+> evalEx = eval (iFst $ iPair (iConst 2) (iConst 1) :: Term Sig Int)
 -}
 
 {- $ex2
@@ -130,7 +127,7 @@ derive instances for GADTs, version 7 of GHC is needed.
 >   Snd        ::          e (s,t) -> Op e t
 > 
 > -- Signature for the simple expression language
-> type Sig = Op :++: Value
+> type Sig = Op :+: Value
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
@@ -139,20 +136,20 @@ derive instances for GADTs, version 7 of GHC is needed.
 > 
 > -- Monadic term evaluation algebra
 > class EvalM f v where
->   evalAlgM :: HAlgM Maybe f (HTerm v)
+>   evalAlgM :: AlgM Maybe f (Term v)
 > 
-> instance (EvalM f v, EvalM g v) => EvalM (f :++: g) v where
->   evalAlgM (HInl x) = evalAlgM x
->   evalAlgM (HInr x) = evalAlgM x
+> instance (EvalM f v, EvalM g v) => EvalM (f :+: g) v where
+>   evalAlgM (Inl x) = evalAlgM x
+>   evalAlgM (Inr x) = evalAlgM x
 > 
-> evalM :: (HTraversable f, EvalM f v) => HTerm f l
->                                      -> Maybe (HTerm v l)
-> evalM = hcataM evalAlgM
+> evalM :: (HTraversable f, EvalM f v) => Term f l
+>                                      -> Maybe (Term v l)
+> evalM = cataM evalAlgM
 > 
-> instance (Value :<<: v) => EvalM Value v where
->   evalAlgM = return . hinject
+> instance (Value :<: v) => EvalM Value v where
+>   evalAlgM = return . inject
 > 
-> instance (Value :<<: v) => EvalM Op v where
+> instance (Value :<: v) => EvalM Op v where
 >   evalAlgM (Add x y)  = do n1 <- projC x
 >                            n2 <- projC y
 >                            return $ iConst $ n1 + n2
@@ -162,18 +159,18 @@ derive instances for GADTs, version 7 of GHC is needed.
 >   evalAlgM (Fst v)    = liftM fst $ projP v
 >   evalAlgM (Snd v)    = liftM snd $ projP v
 > 
-> projC :: (Value :<<: v) => HTerm v Int -> Maybe Int
-> projC v = case hproject v of
+> projC :: (Value :<: v) => Term v Int -> Maybe Int
+> projC v = case project v of
 >             Just (Const n) -> return n; _ -> Nothing
 > 
-> projP :: (Value :<<: v) => HTerm v (a,b) -> Maybe (HTerm v a, HTerm v b)
-> projP v = case hproject v of
+> projP :: (Value :<: v) => Term v (a,b) -> Maybe (Term v a, Term v b)
+> projP v = case project v of
 >             Just (Pair x y) -> return (x,y); _ -> Nothing
 > 
 > -- Example: evalMEx = Just (iConst 5)
-> evalMEx :: Maybe (HTerm Value Int)
+> evalMEx :: Maybe (Term Value Int)
 > evalMEx = evalM ((iConst 1) `iAdd`
->                  (iConst 2 `iMult` iConst 2) :: HTerm Sig Int)
+>                  (iConst 2 `iMult` iConst 2) :: Term Sig Int)
 -}
 
 {- $ex3
@@ -206,12 +203,12 @@ Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 >            deriving Show
 > 
 > -- Signature for the simple expression language
-> type Sig = Op :++: Value
-> type SigP = Op :&&: Pos :++: Value :&&: Pos
+> type Sig = Op :+: Value
+> type SigP = Op :&: Pos :+: Value :&: Pos
 >
 > -- Signature for the simple expression language, extended with syntactic sugar
-> type Sig' = Sugar :++: Op :++: Value
-> type SigP' = Sugar :&&: Pos :++: Op :&&: Pos :++: Value :&&: Pos
+> type Sig' = Sugar :+: Op :+: Value
+> type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
@@ -220,57 +217,57 @@ Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 > 
 > -- Term homomorphism for desugaring of terms
 > class (HFunctor f, HFunctor g) => Desugar f g where
->   desugHom :: HTermHom f g
->   desugHom = desugHom' . hfmap HHole
->   desugHom' :: HAlg f (HContext g a)
->   desugHom' x = appHCxt (desugHom x)
+>   desugHom :: TermHom f g
+>   desugHom = desugHom' . hfmap Hole
+>   desugHom' :: Alg f (Context g a)
+>   desugHom' x = appCxt (desugHom x)
 > 
-> instance (Desugar f h, Desugar g h) => Desugar (f :++: g) h where
->   desugHom (HInl x) = desugHom x
->   desugHom (HInr x) = desugHom x
->   desugHom' (HInl x) = desugHom' x
->   desugHom' (HInr x) = desugHom' x
+> instance (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
+>   desugHom (Inl x) = desugHom x
+>   desugHom (Inr x) = desugHom x
+>   desugHom' (Inl x) = desugHom' x
+>   desugHom' (Inr x) = desugHom' x
 > 
-> instance (Value :<<: v, HFunctor v) => Desugar Value v where
->   desugHom = simpHCxt . hinj
+> instance (Value :<: v, HFunctor v) => Desugar Value v where
+>   desugHom = simpCxt . inj
 > 
-> instance (Op :<<: v, HFunctor v) => Desugar Op v where
->   desugHom = simpHCxt . hinj
+> instance (Op :<: v, HFunctor v) => Desugar Op v where
+>   desugHom = simpCxt . inj
 > 
-> instance (Op :<<: v, Value :<<: v, HFunctor v) => Desugar Sugar v where
+> instance (Op :<: v, Value :<: v, HFunctor v) => Desugar Sugar v where
 >   desugHom' (Neg x)  = iConst (-1) `iMult` x
 >   desugHom' (Swap x) = iSnd x `iPair` iFst x
 >
 > -- Term evaluation algebra
 > class Eval f v where
->   evalAlg :: HAlg f (HTerm v)
+>   evalAlg :: Alg f (Term v)
 > 
-> instance (Eval f v, Eval g v) => Eval (f :++: g) v where
->   evalAlg (HInl x) = evalAlg x
->   evalAlg (HInr x) = evalAlg x
+> instance (Eval f v, Eval g v) => Eval (f :+: g) v where
+>   evalAlg (Inl x) = evalAlg x
+>   evalAlg (Inr x) = evalAlg x
 > 
-> instance (Value :<<: v) => Eval Value v where
->   evalAlg = hinject
+> instance (Value :<: v) => Eval Value v where
+>   evalAlg = inject
 > 
-> instance (Value :<<: v) => Eval Op v where
+> instance (Value :<: v) => Eval Op v where
 >   evalAlg (Add x y)  = iConst $ (projC x) + (projC y)
 >   evalAlg (Mult x y) = iConst $ (projC x) * (projC y)
 >   evalAlg (Fst x)    = fst $ projP x
 >   evalAlg (Snd x)    = snd $ projP x
 >
-> projC :: (Value :<<: v) => HTerm v Int -> Int
-> projC v = case hproject v of Just (Const n) -> n
+> projC :: (Value :<: v) => Term v Int -> Int
+> projC v = case project v of Just (Const n) -> n
 >
-> projP :: (Value :<<: v) => HTerm v (s,t) -> (HTerm v s, HTerm v t)
-> projP v = case hproject v of Just (Pair x y) -> (x,y)
+> projP :: (Value :<: v) => HTerm v (s,t) -> (HTerm v s, HTerm v t)
+> projP v = case project v of Just (Pair x y) -> (x,y)
 >
 > -- Compose the evaluation algebra and the desugaring homomorphism to an
 > -- algebra
-> eval :: HTerm Sig' :-> HTerm Value
-> eval = hcata (evalAlg `compHAlg` (desugHom :: HTermHom Sig' Sig))
+> eval :: Term Sig' :-> Term Value
+> eval = cata (evalAlg `compAlg` (desugHom :: TermHom Sig' Sig))
 > 
 > -- Example: evalEx = iPair (iConst 2) (iConst 1)
-> evalEx :: HTerm Value (Int,Int)
+> evalEx :: Term Value (Int,Int)
 > evalEx = eval $ iSwap $ iPair (iConst 1) (iConst 2)
 -}
 
@@ -305,12 +302,12 @@ The following language extensions are needed in order to run the example:
 >            deriving Show
 > 
 > -- Signature for the simple expression language
-> type Sig = Op :++: Value
-> type SigP = Op :&&: Pos :++: Value :&&: Pos
+> type Sig = Op :+: Value
+> type SigP = Op :&: Pos :+: Value :&: Pos
 >
 > -- Signature for the simple expression language, extended with syntactic sugar
-> type Sig' = Sugar :++: Op :++: Value
-> type SigP' = Sugar :&&: Pos :++: Op :&&: Pos :++: Value :&&: Pos
+> type Sig' = Sugar :+: Op :+: Value
+> type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
@@ -319,53 +316,53 @@ The following language extensions are needed in order to run the example:
 > 
 > -- Term homomorphism for desugaring of terms
 > class (HFunctor f, HFunctor g) => Desugar f g where
->   desugHom :: HTermHom f g
->   desugHom = desugHom' . hfmap HHole
->   desugHom' :: HAlg f (HContext g a)
->   desugHom' x = appHCxt (desugHom x)
+>   desugHom :: TermHom f g
+>   desugHom = desugHom' . hfmap Hole
+>   desugHom' :: Alg f (Context g a)
+>   desugHom' x = appCxt (desugHom x)
 > 
-> instance (Desugar f h, Desugar g h) => Desugar (f :++: g) h where
->   desugHom (HInl x) = desugHom x
->   desugHom (HInr x) = desugHom x
->   desugHom' (HInl x) = desugHom' x
->   desugHom' (HInr x) = desugHom' x
+> instance (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
+>   desugHom (Inl x) = desugHom x
+>   desugHom (Inr x) = desugHom x
+>   desugHom' (Inl x) = desugHom' x
+>   desugHom' (Inr x) = desugHom' x
 > 
-> instance (Value :<<: v, HFunctor v) => Desugar Value v where
->   desugHom = simpHCxt . hinj
+> instance (Value :<: v, HFunctor v) => Desugar Value v where
+>   desugHom = simpCxt . inj
 > 
-> instance (Op :<<: v, HFunctor v) => Desugar Op v where
->   desugHom = simpHCxt . hinj
+> instance (Op :<: v, HFunctor v) => Desugar Op v where
+>   desugHom = simpCxt . inj
 > 
-> instance (Op :<<: v, Value :<<: v, HFunctor v) => Desugar Sugar v where
+> instance (Op :<: v, Value :<: v, HFunctor v) => Desugar Sugar v where
 >   desugHom' (Neg x)  = iConst (-1) `iMult` x
 >   desugHom' (Swap x) = iSnd x `iPair` iFst x
 >
 > -- Lift the desugaring term homomorphism to a catamorphism
-> desug :: HTerm Sig' :-> HTerm Sig
-> desug = appHTermHom desugHom
+> desug :: Term Sig' :-> Term Sig
+> desug = appTermHom desugHom
 >
 > -- Example: desugEx = iPair (iConst 2) (iConst 1)
-> desugEx :: HTerm Sig (Int,Int)
+> desugEx :: Term Sig (Int,Int)
 > desugEx = desug $ iSwap $ iPair (iConst 1) (iConst 2)
 >
 > -- Lift desugaring to terms annotated with source positions
-> desugP :: HTerm SigP' :-> HTerm SigP
-> desugP = appHTermHom (productHTermHom desugHom)
+> desugP :: Term SigP' :-> Term SigP
+> desugP = appTermHom (productTermHom desugHom)
 >
-> iSwapP :: (HDistProd f p f', Sugar :<<: f) => p -> HTerm f' (a,b) -> HTerm f' (b,a)
-> iSwapP p x = HTerm (hinjectP p $ hinj $ Swap x)
+> iSwapP :: (DistProd f p f', Sugar :<: f) => p -> Term f' (a,b) -> Term f' (b,a)
+> iSwapP p x = Term (injectP p $ inj $ Swap x)
 >
-> iConstP :: (HDistProd f p f', Value :<<: f) => p -> Int -> HTerm f' Int
-> iConstP p x = HTerm (hinjectP p $ hinj $ Const x)
+> iConstP :: (DistProd f p f', Value :<: f) => p -> Int -> Term f' Int
+> iConstP p x = Term (injectP p $ inj $ Const x)
 >
-> iPairP :: (HDistProd f p f', Value :<<: f) => p -> HTerm f' a -> HTerm f' b -> HTerm f' (a,b)
-> iPairP p x y = HTerm (hinjectP p $ hinj $ Pair x y)
+> iPairP :: (DistProd f p f', Value :<: f) => p -> Term f' a -> Term f' b -> Term f' (a,b)
+> iPairP p x y = Term (injectP p $ inj $ Pair x y)
 >
-> iFstP :: (HDistProd f p f', Op :<<: f) => p -> HTerm f' (a,b) -> HTerm f' a
-> iFstP p x = HTerm (hinjectP p $ hinj $ Fst x)
+> iFstP :: (DistProd f p f', Op :<: f) => p -> Term f' (a,b) -> Term f' a
+> iFstP p x = Term (injectP p $ inj $ Fst x)
 >
-> iSndP :: (HDistProd f p f', Op :<<: f) => p -> HTerm f' (a,b) -> HTerm f' b
-> iSndP p x = HTerm (hinjectP p $ hinj $ Snd x)
+> iSndP :: (DistProd f p f', Op :<: f) => p -> Term f' (a,b) -> Term f' b
+> iSndP p x = Term (injectP p $ inj $ Snd x)
 >
 > -- Example: desugPEx = iPairP (Pos 1 0)
 > --                            (iSndP (Pos 1 0) (iPairP (Pos 1 1)
@@ -374,7 +371,7 @@ The following language extensions are needed in order to run the example:
 > --                            (iFstP (Pos 1 0) (iPairP (Pos 1 1)
 > --                                                     (iConstP (Pos 1 2) 1)
 > --                                                     (iConstP (Pos 1 3) 2)))
-> desugPEx :: HTerm SigP (Int,Int)
+> desugPEx :: Term SigP (Int,Int)
 > desugPEx = desugP $ iSwapP (Pos 1 0) (iPairP (Pos 1 1) (iConstP (Pos 1 2) 1)
 >                                                        (iConstP (Pos 1 3) 2))
 -}

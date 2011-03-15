@@ -91,20 +91,13 @@ module Data.Comp.Algebra (
       CVCoalg',
       futu',
       CVCoalgM,
-      futuM,
-
-      -- * Exponential Functors
-      appTermHomE,
-      cataE,
-      anaE,
-      appCxtE
+      futuM
     ) where
 
 import Data.Comp.Term
 import Data.Comp.Ops
 import Data.Traversable
 import Control.Monad hiding (sequence, mapM)
-import Data.Comp.ExpFunctor
 
 import Prelude hiding (sequence, mapM)
 
@@ -515,48 +508,6 @@ futu' coa = run
     where run :: a -> Term f
           run x = appCxt $ fmap run (coa x)
 
---------------------------
--- Exponential Functors --
---------------------------
-
--- | This variant of 'toCxt' should only be used for terms that use
--- function types parametrically.
-toCxtE :: ExpFunctor f => Term f -> Cxt h f a
-{-# INLINE toCxtE #-}
-toCxtE = unsafeCoerce
-
--- | Catamorphism for exponential functors. The intermediate 'cataFS'
--- originates from
--- <http://comonad.com/reader/2008/rotten-bananas/>. Using this
--- function is only safe on terms containing parametric function types!
-cataE :: forall f a . ExpFunctor f => Alg f a -> Term f -> a
-{-# NOINLINE [1] cataE #-}
-cataE f = cataFS . toCxtE
-    where cataFS :: ExpFunctor f => Context f a -> a
-          cataFS (Hole x) = x
-          cataFS (Term t) = f (xmap cataFS Hole t)
-
-{-| Anamorphism for exponential functors. -}
-anaE :: forall a f . ExpFunctor f => Coalg f a -> a -> Term f
-anaE f = cataE (Term . removeP) . anaFS
-    where anaFS :: a -> Term (f :&: a)
-          anaFS t = Term $ xmap anaFS (snd . projectP . unTerm) (f t) :&: t
-
--- | Variant of 'appCxt' for contexts over 'ExpFunctor' signatures.
-appCxtE :: ExpFunctor f => Context f (Cxt h f a) -> Cxt h f a
-appCxtE (Hole x) = x
-appCxtE (Term t) = Term (xmap appCxtE Hole t)
-
--- | Variant of 'appTermHom' for term homomorphisms from and to 'ExpFunctor'
--- signatures. Using this function is only safe on terms containing parametric
--- function types!
-appTermHomE :: forall f g . (ExpFunctor f, ExpFunctor g) => TermHom f g
-            -> Term f -> Term g
-appTermHomE f = cataFS . toCxtE
-    where cataFS :: Context f (Term g) -> Term g
-          cataFS (Hole x) = x
-          cataFS (Term t) = appCxtE (f (xmap cataFS Hole t))
-
 
 -------------------
 -- rewrite rules --
@@ -569,9 +520,6 @@ appTermHomE f = cataFS . toCxtE
 
   "appTermHom/appTermHom" forall (a :: TermHom g h) (h :: TermHom f g) x.
     appTermHom a (appTermHom h x) = appTermHom (compTermHom a h) x;
-
-  "cataE/appTermHom" forall (a :: Alg g d) (h :: TermHom f g) (x :: ExpFunctor f => Term f) .
-    cataE a (appTermHom h x) = cataE (compAlg a h) x
  #-}
 
 {-# RULES 

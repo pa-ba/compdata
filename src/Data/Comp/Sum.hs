@@ -42,9 +42,6 @@ module Data.Comp.Sum
      deepInject,
      deepInject2,
      deepInject3,
-     deepInjectE,
-     deepInjectE2,
-     deepInjectE3,
 
      -- * Injections and Projections for Constants
      injectConst,
@@ -60,7 +57,6 @@ module Data.Comp.Sum
 import Data.Comp.Term
 import Data.Comp.Algebra
 import Data.Comp.Ops
-import Data.Comp.ExpFunctor
 
 import Control.Monad hiding (sequence)
 import Prelude hiding (sequence)
@@ -183,23 +179,6 @@ deepInject3 :: (Functor f1, Functor f2, Functor f3, Functor g,
                 f1 :<: g, f2 :<: g, f3 :<: g)
             => Cxt h (f1 :+: f2 :+: f3) a -> Cxt h g a
 deepInject3 =  appSigFun inj3
-
-{-| A variant of 'deepInject' for exponential signatures. -}
-deepInjectE :: (ExpFunctor g, g :<: f) => Term g -> Term f
-deepInjectE = cataE inject
-
-{-| A variant of 'deepInject2' for exponential signatures. -}
-deepInjectE2 :: (ExpFunctor g1, ExpFunctor g2, g1 :<: f, g2 :<: f) =>
-                Term (g1 :+: g2)
-             -> Term f
-deepInjectE2 = cataE inject2
-
-{-| A variant of 'deepInject3' for exponential signatures. -}
-deepInjectE3 :: (ExpFunctor g1, ExpFunctor g2, ExpFunctor g3,
-                 g1 :<: f, g2 :<: f, g3 :<: f) =>
-                Term (g1 :+: g2 :+: g3)
-             -> Term f
-deepInjectE3 = cataE inject3
 
 injectConst :: (Functor g, g :<: f) => Const g -> Cxt h f a
 injectConst = inject . fmap (const undefined)

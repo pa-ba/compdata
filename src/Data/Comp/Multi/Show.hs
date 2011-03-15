@@ -26,24 +26,24 @@ import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.Functor
 import Data.Comp.Derive
 
-instance KShow HNothing where
+instance KShow Nothing where
     kshow _ = undefined
 instance KShow (K String) where
     kshow = id
 
-instance (HShowF f, HFunctor f) => HShowF (HCxt h f) where
-    hshowF (HHole s) = s
-    hshowF (HTerm t) = hshowF $ hfmap hshowF t
+instance (HShowF f, HFunctor f) => HShowF (Cxt h f) where
+    hshowF (Hole s) = s
+    hshowF (Term t) = hshowF $ hfmap hshowF t
 
-instance (HShowF f, HFunctor f, KShow a) => KShow (HCxt h f a) where
-    kshow = hfree hshowF kshow
+instance (HShowF f, HFunctor f, KShow a) => KShow (Cxt h f a) where
+    kshow = free hshowF kshow
 
 instance (KShow f) => Show (f i) where
     show = unK . kshow
 
-instance (HShowF f, Show p) => HShowF (f :&&: p) where
-    hshowF (v :&&: p) =  K $ unK (hshowF v) ++ " :&&: " ++ show p
+instance (HShowF f, Show p) => HShowF (f :&: p) where
+    hshowF (v :&: p) =  K $ unK (hshowF v) ++ " :&: " ++ show p
 
-instance (HShowF f, HShowF g) => HShowF (f :++: g) where
-    hshowF (HInl f) = hshowF f
-    hshowF (HInr g) = hshowF g
+instance (HShowF f, HShowF g) => HShowF (f :+: g) where
+    hshowF (Inl f) = hshowF f
+    hshowF (Inr g) = hshowF g

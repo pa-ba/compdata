@@ -35,7 +35,7 @@ subterms t = build (f t)
 
 -- | This function returns a list of all subterms of the given term
 -- that are constructed from a particular functor.
-subterms' :: forall f g . (HFoldable f, g :<<: f) => HTerm f :=> [A (g (HTerm f))]
+subterms' :: forall f g . (HFoldable f, g :<: f) => HTerm f :=> [A (g (HTerm f))]
 subterms' (HTerm t) = build (f t)
     where f :: f (HTerm f) :=> (A (g (HTerm f)) -> b -> b) -> b -> b
           f t cons nil = let rest = hfoldl (\u (HTerm s) -> f s cons u) nil t
@@ -67,7 +67,7 @@ query q c i@(HTerm t) = hfoldl (\s x -> s `c` query q c x) (q i) t
 subs :: HFoldable f => HTerm f  :=> [A (HTerm f)]
 subs = query (\x-> [A x]) (++)
 
-subs' :: (HFoldable f, g :<<: f) => HTerm f :=> [A (g (HTerm f))]
+subs' :: (HFoldable f, g :<: f) => HTerm f :=> [A (g (HTerm f))]
 subs' = mapMaybe . subs
         where pr (A v) = fmap A (project v)
 
