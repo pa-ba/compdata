@@ -13,7 +13,6 @@ module Functions.Comp.Eval where
 import DataTypes.Comp
 import Functions.Comp.Desugar
 import Data.Comp
-import Data.Comp.ExpFunctor
 import Control.Monad
 import Data.Traversable
 
@@ -136,14 +135,11 @@ instance (Monad m) => EvalDir Sugar m where
 
 -- evaluation2
 
-class ExpFunctor e => Eval2 e v where
+class Functor e => Eval2 e v where
     eval2Alg :: e (Term v) -> Term v
 
 eval2 :: (Functor e, Eval2 e v) => Term e -> Term v
 eval2 = cata eval2Alg
-
-eval2E :: (ExpFunctor e, Eval2 e v) => Term e -> Term v
-eval2E = cataE eval2Alg
 
 instance (Eval2 f v, Eval2 g v) => Eval2 (f :+: g) v where
     eval2Alg (Inl v) = eval2Alg v
@@ -193,12 +189,6 @@ instance (Value :<: v) => Eval2 Sugar v where
     eval2Alg (Gt x y) = (\ i j -> iVBool (i > j)) (coerceInt2 x) (coerceInt2 y)
     eval2Alg (Or x y) = (\ b c -> iVBool (b || c)) (coerceBool2 x) (coerceBool2 y)
     eval2Alg (Impl x y) = (\ b c -> iVBool (not b || c)) (coerceBool2 x) (coerceBool2 y)
-
-instance (Lam :<: v) => Eval2 Lam v where
-    eval2Alg = inject
-
-instance (Lam :<: v) => Eval2 App v where
-    eval2Alg (App v1 v2) = (coerceLam2 v1) v2
 
 
 -- direct evaluation 2
@@ -276,15 +266,11 @@ desugEval' = cataM desugEvalAlg
 desugEval2 :: SugarExpr -> ValueExpr
 desugEval2 = eval2 . (desug :: SugarExpr -> Expr)
 
-desugEval2E :: SugarExpr -> ValueExpr
-desugEval2E = eval2E . (desug :: SugarExpr -> Expr)
 
 
 evalSugar2 :: SugarExpr -> ValueExpr
 evalSugar2 = eval2
 
-evalSugar2E :: SugarExpr -> ValueExpr
-evalSugar2E = eval2E
 
 
 desugEval2Alg  :: Alg SugarSig ValueExpr
@@ -293,6 +279,3 @@ desugEval2Alg = eval2Alg  `compAlg` (desugAlg :: TermHom SugarSig ExprSig)
 
 desugEval2' :: SugarExpr -> ValueExpr
 desugEval2' = cata desugEval2Alg
-
-desugEval2E' :: SugarExpr -> ValueExpr
-desugEval2E' = cataE desugEval2Alg

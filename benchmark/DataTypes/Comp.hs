@@ -21,6 +21,7 @@ import Data.Comp.Show
 import Data.Traversable
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
+import Test.QuickCheck.Property
 
 import Control.Monad hiding (sequence_,mapM)
 import Prelude hiding (sequence_,mapM)
@@ -84,11 +85,11 @@ data App e = App e e
 $(derive [instanceNFData, instanceArbitrary] [''Proj])
 
 $(derive
-  [instanceFunctor, instanceExpFunctor, instanceFoldable, instanceTraversable,
+  [instanceFunctor, instanceFoldable, instanceTraversable,
    instanceEqF, instanceNFDataF, instanceArbitraryF, smartConstructors]
   [''Value, ''Op, ''Sugar, ''ValueT, ''FunT, ''App])
 
-$(derive [instanceExpFunctor, smartConstructors] [''Lam])
+$(derive [smartConstructors] [''Lam])
 
 instance EqF Lam where
     eqF _ _ = False
@@ -121,6 +122,13 @@ instance ShowF ValueT where
     showF TBool = "Bool"
     showF (TPair x y) = "(" ++ x ++ "," ++ y ++ ")"
 
+instance ShowF Sugar where 
+    showF (Neg x) = "- " ++ x
+    showF (Minus x y) = "(" ++ x ++ "-" ++ y ++ ")"
+    showF (Gt x y) = "(" ++ x ++ ">" ++ y ++ ")"
+    showF (Or x y) = "(" ++ x ++ "||" ++ y ++ ")"
+    showF (Impl x y) = "(" ++ x ++ "->" ++ y ++ ")"
+
 instance ShowF Lam where 
     showF (Lam f) = "\\x. " ++ f "x"
 
@@ -147,7 +155,11 @@ desize :: Gen a -> Gen a
 desize gen = sized (\n -> resize (max 0 (n-1)) gen)
 
 genSomeTyped :: (Traversable f, GenTyped f) => Gen (Term f)
-genSomeTyped = arbitrary >>= genTyped 
+genSomeTyped = arbitrary >>= genTyped
+
+forAllTyped :: (GenTyped f, ShowF f, Testable prop, Traversable f) =>
+               (Term f -> prop) -> Property
+forAllTyped f = forAll genSomeTyped f
 
 
 instance (GenTyped f, GenTyped g) => GenTyped (f :+: g) where

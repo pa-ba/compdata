@@ -22,15 +22,6 @@ aExpr = iIf ((iVInt 1 `iGt` (iVInt 2 `iMinus` iVInt 1))
 sExpr :: PExpr
 sExpr = transSugar aExpr
 
-aHOASExpr :: Int -> DC.HOASExpr
-aHOASExpr n = (iLam $ \x -> x `iPlus` ((iLam $ \x -> x `iMult` x) `iApp` x))
-              `iApp`
-              ((iLam $ \x -> x `iMult` x)
-               `iApp`
-               (if n <= 0 then iVInt 2 else aHOASExpr (n - 1)))
-
-sHOASExpr :: Int -> DS.HOASExpr
-sHOASExpr = transHOAS . aHOASExpr
 
 sfCoalg :: Coalg SugarSig Int
 sfCoalg 0 = inj $ VInt 1
@@ -103,27 +94,9 @@ randStdBenchmarks s = do
   print (A.desugType aExpr == Right ty)
   return $ standardBenchmarks (sExpr,aExpr, "random (depth: " ++ show s ++ ", size: "++ show (size aExpr) ++ ")")
 
-hoasBenchmaks :: Int -> Benchmark
-hoasBenchmaks s = bgroup ("HOAS (depth: " ++ show s ++ ")") $ getBench s
-    where getBench size =
-              let sExpr' = sHOASExpr size
-                  aExpr' = aHOASExpr size in
-              rnf aExpr' `seq` rnf sExpr' `seq`
-              [bench "Comp.eval2E" 
-                     (nf (A.eval2E :: DC.HOASExpr -> HOASValueExpr) aExpr'),
-               bench "Standard.evalHOAS" (nf S.evalHOAS sExpr')]
 
 main = do b1 <- randStdBenchmarks 5
           b2 <- randStdBenchmarks 10
           b3 <- randStdBenchmarks 20
           let b0 = standardBenchmarks (sExpr, aExpr, "hand-written")
-          let b4 = map hoasBenchmaks [1,10,100,1000,10000]
-          defaultMain $ [b0,b1,b2,b3] ++ b4
-
-          
-
-{-
-TODO 
- - benchmark generic functions (e.g. size, depth, breadth)
-
--}
+          defaultMain $ [b0,b1,b2,b3]

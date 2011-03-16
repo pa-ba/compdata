@@ -106,7 +106,7 @@ generateGenDecl genName constrs
                                    build) |]
 
 {-|
-  This function generates a declaration for the method 'shrink' using the given constructors.
+  This function generates a declaration for the method 'shrinkF' using the given constructors.
   The constructors are supposed to belong to the same type.
 -}
 generateShrinkFDecl :: [Con] -> Q Dec

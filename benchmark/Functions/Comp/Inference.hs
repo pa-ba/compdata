@@ -147,5 +147,5 @@ typeSugar2 = inferType2
 desugTypeAlg2  :: Alg SugarSig BaseType
 desugTypeAlg2 = inferTypeAlg2  `compAlg` (desugAlg :: TermHom SugarSig ExprSig)
 
-desugType2' :: SugarExpr -> Err BaseType
-desugType2' e = cataM desugTypeAlg e
+desugType2' :: SugarExpr -> BaseType
+desugType2' e = cata desugTypeAlg2 e
