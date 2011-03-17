@@ -30,6 +30,7 @@ module Data.Comp.Multi.Term
      ) where
 
 import Data.Comp.Multi.Functor
+import Unsafe.Coerce
 
 type Const (f :: (* -> *) -> * -> *) = f (K ())
 
@@ -84,4 +85,5 @@ simpCxt = Term . hfmap Hole
 {-| Cast a term over a signature to a context over the same signature. -}
 toCxt :: (HFunctor f) => Term f :-> Context f a
 {-# INLINE toCxt #-}
-toCxt = Term . (hfmap toCxt) . unTerm
+toCxt = unsafeCoerce
+-- equivalentto @Term . (hfmap toCxt) . unTerm@

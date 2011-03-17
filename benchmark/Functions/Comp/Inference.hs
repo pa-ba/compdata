@@ -35,16 +35,11 @@ instance (ValueT :<: t, Monad m) => InferType Value t m where
     inferTypeAlg (VBool _) = return $ inject TBool
     inferTypeAlg (VPair x y) = return $ inject $ TPair x y
 
-check:: (g :<: f, Eq (g (Term f)), Monad m) =>
-        g (Term f) -> Term f -> m ()
-check f t = if project t == Just f then return () else fail ""
-
-checkEq :: (Eq a, Monad m) => a -> a -> m ()
-checkEq x y = if x == y then return () else fail ""
-
 checkOp :: (g :<: f, Eq (g (Term f)), Monad m) =>
            [g (Term f)] -> g (Term f) -> [Term f] -> m (Term f)
-checkOp exs ret tys = sequence_ (zipWith check exs tys) >> return $ inject ret
+checkOp exs et tys = if and (zipWith (\ f t -> maybe False (==f) (project t)) exs tys) 
+                     then return (inject et)
+                     else fail""
 
 
 instance (ValueT :<: t, EqF t, Monad m) => InferType Op t m where
@@ -53,13 +48,15 @@ instance (ValueT :<: t, EqF t, Monad m) => InferType Op t m where
     inferTypeAlg (Lt x y) = checkOp [TInt,TInt] TBool [x ,y]
     inferTypeAlg (And x y) = checkOp [TBool,TBool] TBool [x ,y]
     inferTypeAlg (Not x) = checkOp [TBool] TBool [x]
-    inferTypeAlg (If b x y) = check TBool b >> checkEq x y >> return x
-    inferTypeAlg (Eq x y) = checkEq x y >> return $ iTBool
+    inferTypeAlg (If b x y) = case project b of
+                                 Just TBool | x == y -> return x
+                                 _ -> fail "" 
+    inferTypeAlg (Eq x y) = if x == y then return iTBool else fail ""
     inferTypeAlg (Proj p x) = case project x of
-                                Just (TPair x1 x2) -> return $
+                                Just (TPair x1 x2) -> 
                                     case p of
-                                      ProjLeft -> x1
-                                      ProjRight -> x2
+                                      ProjLeft -> return x1
+                                      ProjRight -> return x2
                                 _ -> fail ""
 
 instance (ValueT :<: t, EqF t, Monad m) => InferType Sugar t m where
@@ -101,19 +98,11 @@ instance (ValueT :<: t) => InferType2 Value t where
     inferTypeAlg2 (VBool _) = inject TBool
     inferTypeAlg2 (VPair x y) = inject $ TPair x y
 
-check2:: (g :<: f, Eq (g (Term f))) =>
-        g (Term f) -> Term f -> a -> a
-check2 f t z = if project t == Just f then z else error ""
-
-checkEq2 :: (Eq a) => a -> a -> b -> b
-checkEq2 x y z = if x == y then z else error ""
-
-runCheck :: [a -> a] -> a -> a
-runCheck = foldr (.) id
-
 checkOp2 :: (g :<: f, Eq (g (Term f))) =>
            [g (Term f)] -> g (Term f) -> [Term f] -> (Term f)
-checkOp2 exs ret tys = runCheck (zipWith check2 exs tys) (inject ret)
+checkOp2 exs ret tys = if and (zipWith (\ f t -> maybe False (==f) (project t)) exs tys)
+                       then inject ret
+                       else error ""
 
 
 instance (ValueT :<: t, EqF t) => InferType2 Op t where
@@ -122,8 +111,10 @@ instance (ValueT :<: t, EqF t) => InferType2 Op t where
     inferTypeAlg2 (Lt x y) = checkOp2 [TInt,TInt] TBool [x ,y]
     inferTypeAlg2 (And x y) = checkOp2 [TBool,TBool] TBool [x ,y]
     inferTypeAlg2 (Not x) = checkOp2 [TBool] TBool [x]
-    inferTypeAlg2 (If b x y) = checkEq2 x y $ check2 TBool b $ x
-    inferTypeAlg2 (Eq x y) = checkEq2 x y $ iTBool
+    inferTypeAlg2 (If b x y) = case project b of
+                                 Just TBool | x == y -> x
+                                 _ -> error ""
+    inferTypeAlg2 (Eq x y) = if x == y then iTBool else error ""
     inferTypeAlg2 (Proj p x) = case project x of
                                 Just (TPair x1 x2) -> 
                                     case p of

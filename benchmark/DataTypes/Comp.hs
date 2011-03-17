@@ -6,7 +6,8 @@
   UndecidableInstances,
   TypeOperators,
   ScopedTypeVariables,
-  TypeSynonymInstances #-}
+  TypeSynonymInstances,
+  DeriveFunctor#-}
 
 module DataTypes.Comp 
     ( module DataTypes.Comp,
@@ -47,12 +48,12 @@ type HOASBaseType = Term HOASBaseTypeSig
 data ValueT e = TInt
               | TBool
               | TPair e e
-                deriving (Eq)
+                deriving (Eq, Functor)
 
 data Value e = VInt Int
              | VBool Bool
              | VPair e e
-               deriving (Eq)
+               deriving (Eq, Functor)
 
 data Proj = ProjLeft | ProjRight
             deriving (Eq)
@@ -65,27 +66,27 @@ data Op e = Plus e e
           | And e e
           | Not e
           | Proj Proj e
-            deriving (Eq)
+            deriving (Eq, Functor)
 
 data Sugar e = Neg e
              | Minus e e
              | Gt e e
              | Or e e
              | Impl e e
-               deriving (Eq)
+               deriving (Eq, Functor)
 
 data FunT e = TFun e e
-              deriving (Eq)
+              deriving (Eq, Functor)
 
 data Lam e = Lam (e -> e)
 
 data App e = App e e
-             deriving (Eq)
+             deriving (Eq, Functor)
 
 $(derive [instanceNFData, instanceArbitrary] [''Proj])
 
 $(derive
-  [instanceFunctor, instanceFoldable, instanceTraversable,
+  [instanceFoldable, instanceTraversable,
    instanceEqF, instanceNFDataF, instanceArbitraryF, smartConstructors]
   [''Value, ''Op, ''Sugar, ''ValueT, ''FunT, ''App])
 
