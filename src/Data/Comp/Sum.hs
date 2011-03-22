@@ -58,8 +58,8 @@ import Data.Comp.Term
 import Data.Comp.Algebra
 import Data.Comp.Ops
 
-import Control.Monad hiding (sequence)
-import Prelude hiding (sequence)
+import Control.Monad hiding (mapM)
+import Prelude hiding (mapM)
 
 
 import Data.Maybe
@@ -119,7 +119,7 @@ deepProject' :: forall g f h a. (Traversable g, g :<: f) => Cxt h f a
              -> Maybe (Cxt h g a)
 deepProject' val = do
   v <- project val
-  v' <- sequence (fmap deepProject' v :: g (Maybe (Cxt h g a)))
+  v' <- mapM deepProject' v
   return $ Term v'
 
 -- |A variant of 'deepProject2' where the sub signatures are required to be
@@ -129,7 +129,7 @@ deepProject2' :: forall g1 g2 f h a. (Traversable g1, Traversable g2,
              -> Maybe (Cxt h (g1 :+: g2) a)
 deepProject2' val = do
   v <- project2 val
-  v' <- sequence (fmap deepProject2' v :: (g1 :+: g2) (Maybe (Cxt h (g1 :+: g2) a)))
+  v' <- mapM deepProject2' v
   return $ Term v'
 
 -- |A variant of 'deepProject3' where the sub signatures are required to be
@@ -140,7 +140,7 @@ deepProject3' :: forall g1 g2 g3 f h a. (Traversable g1, Traversable g2,
              -> Maybe (Cxt h (g1 :+: g2 :+: g3) a)
 deepProject3' val = do
   v <- project3 val
-  v' <- sequence (fmap deepProject3' v :: (g1 :+: g2 :+: g3) (Maybe (Cxt h (g1 :+: g2 :+: g3) a)))
+  v' <- mapM deepProject3' v
   return $ Term v'
 
 {-| A variant of 'inj' for binary sum signatures.  -}
