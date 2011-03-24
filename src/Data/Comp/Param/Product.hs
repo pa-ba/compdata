@@ -64,7 +64,7 @@ productTermHom alg f' = constP p (alg f)
     where (f,p) = projectP f'
 
 {-| Annotate each node of a term with a constant value. -}
-constP :: forall f g h p a b. (DistProd f p g, Difunctor f)
+constP :: forall f g p a b. (DistProd f p g, Difunctor f)
        => p -> Cxt f a b -> Cxt g a b
 constP c = run --appSigFun (injectP c)
     where run :: Cxt f a b -> Cxt g a b

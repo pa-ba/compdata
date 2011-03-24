@@ -3,74 +3,60 @@
   FlexibleInstances, IncoherentInstances #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Term
+-- Module      :  Data.Comp.Param.Term
 -- Copyright   :  (c) 2010-2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines the central notion of /terms/ and its
+-- This module defines the central notion of /parametrized terms/ and its
 -- generalisation to contexts.
 --
 --------------------------------------------------------------------------------
 
 module Data.Comp.Param.Term
-    (Cxt (..),
-     Hole,
---     NoHole,
---     Context,
+    (
+     Cxt (..),
      Nothing,
      Term,
      Const,
---     unTerm,
      simpCxt,
      toCxt,
      constTerm,
-     (:<)(..)
-     ) where
+     substHoles,
+     substHoles'
+    ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 import Data.Comp.Param.Functor
+import Data.Comp.Param.Ops
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe (fromJust)
 import Unsafe.Coerce
 
 {-|  -}
 type Const f = f Nothing ()
 
 {-| This function converts a constant to a term. This assumes that the
-argument is indeed a constant, i.e. does not have a value for the
-argument type of the functor @f@. -}
-
-constTerm :: (Difunctor f) => Const f -> Term f
+  argument is indeed a constant, i.e. does not have a value for the
+  argument type of the difunctor @f@. -}
+constTerm :: Difunctor f => Const f -> Term f
 constTerm = Term . fmap (const undefined)
 
-{-| This data type represents contexts over a signature. Contexts are
-terms containing zero or more holes. The first type parameter is
-supposed to be one of the phantom types 'Hole' and 'NoHole'. The
-second parameter is the signature of the context. The third parameter
-is the type of the holes. -}
-
+{-| This data type represents contexts over a signature. Contexts are terms
+  containing zero or more holes. The first parameter is the signature of the
+  context. The second parameter is the type of parameters, and the third
+  parameter is the type of holes. -}
 data Cxt :: (* -> * -> *) -> * -> * -> * where
             Term :: f a (Cxt f a b) -> Cxt f a b
             Hole :: b -> Cxt f a b
 
-
-{-| Phantom type that signals that a 'Cxt' might contain holes.  -}
-
-data Hole
-
-{-| Phantom type that signals that a 'Cxt' does not contain holes.
--}
-
---data NoHole
-
---type Context = Cxt Hole
-
-{-| Convert a functorial value into a context.  -}
+{-| Convert a difunctorial value into a context. -}
 simpCxt :: Difunctor f => f a b -> Cxt f a b
 {-# INLINE simpCxt #-}
 simpCxt = Term . dimap id Hole
-
 
 {-| Cast a term over a signature to a context over the same signature. The
   usage of 'unsafeCoerce' is safe, because the empty type 'Nothing' witnesses
@@ -78,61 +64,36 @@ simpCxt = Term . dimap id Hole
 toCxt :: Difunctor f => Term f -> Cxt f a a
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
-{-toCxt (Term t) = Term $ dimap (unsafeCoerce :: a -> Nothing) toCxt t
-toCxt (Hole x) = Hole ((unsafeCoerce :: Nothing -> a) x)-}
-
 
 {-| Phantom type used to define 'Term'.  -}
-
 data Nothing
 
 instance Eq Nothing where
 instance Ord Nothing where
 instance Show Nothing where
 
-
 {-| A (parametrized) term is a context with no /free/ holes, where all
   occurrences of the contravariant parameter is fully parametric. -}
 type Term f = Cxt f Nothing Nothing
 
+{-| This function applies the given context with hole type @b@ to a family @f@
+  of contexts (possibly terms) indexed by @b@. That is, each hole @h@ is
+  replaced by the context @f h@. -}
+substHoles :: (Difunctor f, Difunctor g, f :<: g)
+           => Cxt f a b -> (b -> Cxt g a c) -> Cxt g a c
+substHoles c f = injectCxt $ fmap f c
+    where injectCxt (Hole x) = x
+          injectCxt (Term t) = Term . inj $ fmap injectCxt t
+
+{-| Variant of 'substHoles' using 'Map's. -}
+substHoles' :: (Difunctor f, Difunctor g, f :<: g, Ord v)
+            => Cxt f p v -> Map v (Cxt g p a) -> Cxt g p a
+substHoles' c m = substHoles c (fromJust . (`Map.lookup`  m))
+
 instance Difunctor f => Difunctor (Cxt f) where
-    dimap _ g (Hole v) = Hole (g v)
-    dimap f g (Term t) = Term (dimap f (dimap f g) t)
+    dimap _ g (Hole v) = Hole $ g v
+    dimap f g (Term t) = Term $ dimap f (dimap f g) t
 
-{-instance (Difoldable f) => Difoldable (Cxt h f) where
-    foldr op e (Hole a) = a `op` e
-    foldr op e (Term t) = foldr op' e t
-        where op' c a = foldr op a c
-
-    foldl op e (Hole a) = e `op` a
-    foldl op e (Term t) = foldl op' e t
-        where op' = foldl op
-
-    fold (Hole a) = a
-    fold (Term t) = foldMap fold t
-
-    foldMap f (Hole a) = f a
-    foldMap f (Term t) = foldMap (foldMap f) t
-
-instance Ditraversable f => Ditraversable (Cxt h f) where
-    dimapM f (Hole a) = liftM Hole $ f a
-    dimapM f (Term t) = liftM Term $ dimapM (dimapM f) t
-
-    disequence (Hole a) = liftM Hole a-}
-
-{- {-| This function unravels the given term at the topmost layer.  -}
-unTerm :: Cxt NoHole f a e -> f a (Cxt NoHole f a e)
-{-# INLINE unTerm #-}
-unTerm (Term t) = t-}
-
-class a :< b where
-    inj' :: a -> b
-
-instance (:<) a a where
-    inj' = id
-
-instance (a :< b) => (:<) a (Cxt f c b) where
-    inj' = Hole . inj'
-
-instance (Monad m, a :< b) => (:<) a (m b) where
-    inj' = return . inj'
+instance Difunctor f => Monad (Cxt f a) where
+    return = Hole
+    (>>=) = substHoles

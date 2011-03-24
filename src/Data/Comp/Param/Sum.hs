@@ -4,7 +4,7 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Sum
--- Copyright   :  (c) 2010-2011 Patrick Bahr, Tom Hvitved
+-- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
@@ -48,24 +48,16 @@ module Data.Comp.Param.Sum
      injectConst3,
      projectConst,
      injectCxt,
-     liftCxt,
-     substHoles,
-     substHoles'
+     liftCxt
     ) where
 
 import Prelude hiding (sequence)
 import Control.Monad hiding (sequence)
-import Data.Maybe
-import Data.Map (Map)
-import qualified Data.Map as Map
 import Data.Comp.Param.Term
 import Data.Comp.Param.Algebra
 import Data.Comp.Param.Ops
 import Data.Comp.Param.Functor
 import Data.Comp.Param.Traversable
-
-
-
 
 {-| A variant of 'proj' for binary sum signatures.  -}
 proj2 :: forall f g1 g2 a e. (g1 :<: f, g2 :<: f) => f a e
@@ -84,41 +76,43 @@ proj3 x = case proj x of
                    _ -> liftM inj (proj x :: Maybe (g3 a e))
 
 -- |Project the outermost layer of a term to a sub signature.
-project :: (g :<: f) => Cxt f p a -> Maybe (g p (Cxt f p a))
+project :: (g :<: f) => Cxt f a b -> Maybe (g a (Cxt f a b))
 project (Hole _) = Nothing
 project (Term t) = proj t
 
 -- |Project the outermost layer of a term to a binary sub signature.
-project2 :: (g1 :<: f, g2 :<: f) => Cxt f p a
-         -> Maybe ((g1 :+: g2) p (Cxt f p a))
+project2 :: (g1 :<: f, g2 :<: f) => Cxt f a b
+         -> Maybe ((g1 :+: g2) a (Cxt f a b))
 project2 (Hole _) = Nothing
 project2 (Term t) = proj2 t
 
 -- |Project the outermost layer of a term to a ternary sub signature.
-project3 :: (g1 :<: f, g2 :<: f, g3 :<: f) => Cxt f p a
-         -> Maybe ((g1 :+: g2 :+: g3) p (Cxt f p a))
+project3 :: (g1 :<: f, g2 :<: f, g3 :<: f) => Cxt f a b
+         -> Maybe ((g1 :+: g2 :+: g3) a (Cxt f a b))
 project3 (Hole _) = Nothing
 project3 (Term t) = proj3 t
 
 -- |Project a term to a term over a sub signature.
-deepProject :: (Ditraversable f, Difunctor g, g :<: f) => Cxt f a a
-            -> Maybe (Cxt g a a)
+deepProject :: (Ditraversable f, Difunctor g, g :<: f, a :< b) => Cxt f a b
+            -> Maybe (Cxt g a b)
 deepProject = appSigFunM proj
 
 -- |Project a term to a term over a binary sub signature.
-deepProject2 :: (Ditraversable f, Difunctor g1, Difunctor g2, g1 :<: f, g2 :<: f) => Cxt f a a -> Maybe (Cxt (g1 :+: g2) a a)
+deepProject2 :: (Ditraversable f, Difunctor g1, Difunctor g2,
+                 g1 :<: f, g2 :<: f, a :< b) => Cxt f a b
+             -> Maybe (Cxt (g1 :+: g2) a b)
 deepProject2 = appSigFunM proj2
 
 -- |Project a term to a term over a ternary sub signature.
 deepProject3 :: (Ditraversable f, Difunctor g1, Difunctor g2, Difunctor g3,
-                 g1 :<: f, g2 :<: f, g3 :<: f) => Cxt f a a
-             -> Maybe (Cxt (g1 :+: g2 :+: g3) a a)
+                 g1 :<: f, g2 :<: f, g3 :<: f, a :< b) => Cxt f a b
+             -> Maybe (Cxt (g1 :+: g2 :+: g3) a b)
 deepProject3 = appSigFunM proj3
 
 -- |A variant of 'deepProject' where the sub signature is required to be
 -- 'Traversable rather than the whole signature.
-deepProject' :: forall g f h a. (Ditraversable g, g :<: f) => Cxt f a a
-             -> Maybe (Cxt g a a)
+deepProject' :: forall g f a b. (Ditraversable g, g :<: f, a :< b) => Cxt f a b
+             -> Maybe (Cxt g a b)
 deepProject' val = do
   v <- project val
   v' <- dimapM deepProject' v
@@ -126,9 +120,9 @@ deepProject' val = do
 
 -- |A variant of 'deepProject2' where the sub signatures are required to be
 -- 'Traversable rather than the whole signature.
-deepProject2' :: forall g1 g2 f h a. (Ditraversable g1, Ditraversable g2,
-                                      g1 :<: f, g2 :<: f) => Cxt f a a
-             -> Maybe (Cxt (g1 :+: g2) a a)
+deepProject2' :: forall g1 g2 f a b. (Ditraversable g1, Ditraversable g2,
+                                      g1 :<: f, g2 :<: f, a :< b) => Cxt f a b
+              -> Maybe (Cxt (g1 :+: g2) a b)
 deepProject2' val = do
   v <- project2 val
   v' <- dimapM deepProject2' v
@@ -136,27 +130,27 @@ deepProject2' val = do
 
 -- |A variant of 'deepProject3' where the sub signatures are required to be
 -- 'Traversable rather than the whole signature.
-deepProject3' :: forall g1 g2 g3 f h a. (Ditraversable g1, Ditraversable g2,
+deepProject3' :: forall g1 g2 g3 f a b. (Ditraversable g1, Ditraversable g2,
                                          Ditraversable g3, g1 :<: f, g2 :<: f,
-                                         g3 :<: f) => Cxt f a a
-             -> Maybe (Cxt (g1 :+: g2 :+: g3) a a)
+                                         g3 :<: f, a :< b) => Cxt f a b
+              -> Maybe (Cxt (g1 :+: g2 :+: g3) a b)
 deepProject3' val = do
   v <- project3 val
   v' <- dimapM deepProject3' v
   return $ Term v'
 
 {-| A variant of 'inj' for binary sum signatures.  -}
-inj2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) a e -> g a e
+inj2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) a b -> g a b
 inj2 (Inl x) = inj x
 inj2 (Inr y) = inj y
 
 {-| A variant of 'inj' for ternary sum signatures.  -}
-inj3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) a e -> g a e
+inj3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) a b -> g a b
 inj3 (Inl x) = inj x
 inj3 (Inr y) = inj2 y
 
 -- |Inject a term where the outermost layer is a sub signature.
-inject :: (g :<: f) => g p (Cxt f p a) -> Cxt f p a
+inject :: (g :<: f) => g a (Cxt f a b) -> Cxt f a b
 inject = Term . inj
 
 -- |Inject a term where the outermost layer is a binary sub signature.
@@ -207,32 +201,15 @@ injectCxt (Term t) = inject $ fmap injectCxt t
 liftCxt :: (Difunctor f, g :<: f) => g a b -> Cxt f a b
 liftCxt g = simpCxt $ inj g
 
-{-| This function applies the given context with hole type @a@ to a
-family @f@ of contexts (possibly terms) indexed by @a@. That is, each
-hole @h@ is replaced by the context @f h@. -}
-
-substHoles :: (Difunctor f, Difunctor g, f :<: g) => Cxt f p v -> (v -> Cxt g p a) -> Cxt g p a
-substHoles c f = injectCxt $ fmap f c
-
-substHoles' :: (Difunctor f, Difunctor g, f :<: g, Ord v) => Cxt f p v -> Map v (Cxt g p a) -> Cxt g p a
-substHoles' c m = substHoles c (fromJust . (`Map.lookup`  m))
-
-instance Difunctor f => Monad (Cxt f a) where
-    return = Hole
-    (>>=) = substHoles
-
-
 instance (Show (f a e), Show (g a e)) => Show ((f :+: g) a e) where
     show (Inl v) = show v
     show (Inr v) = show v
-
 
 instance (Ord (f a e), Ord (g a e)) => Ord ((f :+: g) a e) where
     compare (Inl _) (Inr _) = LT
     compare (Inr _) (Inl _) = GT
     compare (Inl x) (Inl y) = compare x y
     compare (Inr x) (Inr y) = compare x y
-
 
 instance (Eq (f a e), Eq (g a e)) => Eq ((f :+: g) a e) where
     (Inl x) == (Inl y) = x == y

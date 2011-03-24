@@ -1,10 +1,9 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, IncoherentInstances,
-  FlexibleInstances, FlexibleContexts, GADTs, TypeSynonymInstances,
-  ScopedTypeVariables, FunctionalDependencies, UndecidableInstances #-}
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FunctionalDependencies,
+  FlexibleInstances, UndecidableInstances, IncoherentInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Ops
--- Copyright   :  (c) 2010-2011 Patrick Bahr, Tom Hvitved
+-- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
@@ -18,18 +17,14 @@ module Data.Comp.Param.Ops where
 
 import Data.Comp.Param.Functor
 import Data.Comp.Param.Traversable
-
 import Control.Monad hiding (sequence, mapM)
-
 import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
 
 
 -- Sums
-
 infixr 6 :+:
 
-
--- |Formal sum of signatures (functors).
+-- |Formal sum of signatures (difunctors).
 data (f :+: g) a b = Inl (f a b)
                    | Inr (g a b)
 
@@ -51,11 +46,8 @@ instance (Difunctor f, Difunctor g) => Difunctor (f :+: g) where
     foldl1 f (Inl e) = foldl1 f e
     foldl1 f (Inr e) = foldl1 f e
 -}
+
 instance (Ditraversable f, Ditraversable g) => Ditraversable (f :+: g) where
-{-    traverse f (Inl e) = Inl <$> traverse f e
-    traverse f (Inr e) = Inr <$> traverse f e
-    sequenceA (Inl e) = Inl <$> sequenceA e
-    sequenceA (Inr e) = Inr <$> sequenceA e-}
     dimapM f (Inl e) = Inl `liftM` dimapM f e
     dimapM f (Inr e) = Inr `liftM` dimapM f e
     disequence (Inl e) = Inl `liftM` disequence e
@@ -84,13 +76,12 @@ instance (f :<: g) => (:<:) f (h :+: g) where
     proj (Inr x) = proj x
     proj (Inl _) = Nothing
 
--- Products
 
+-- Products
 infixr 8 :*:
 
 -- |Formal product of signatures (difunctors).
 data (f :*: g) a b = f a b :*: g a b
-
 
 ffst :: (f :*: g) a b -> f a b
 ffst (x :*: _) = x
@@ -98,14 +89,12 @@ ffst (x :*: _) = x
 fsnd :: (f :*: g) a b -> g a b
 fsnd (_ :*: x) = x
 
--- Constant Products
 
+-- Constant Products
 infixr 7 :&:
 
-{-| This data type adds a constant product to a signature.  -}
-
+{-| This data type adds a constant product to a signature. -}
 data (f :&: p) a b = f a b :&: p
-
 
 instance (Difunctor f) => Difunctor (f :&: a) where
     dimap f g (v :&: c) = dimap f g v :&: c
@@ -124,15 +113,12 @@ instance (Traversable f) => Traversable (f :&: a) where
     mapM f (v :&: c) = liftM (:&: c) (mapM f v)
     sequence (v :&: c) = liftM (:&: c) (sequence v)-}
 
-{-| This class defines how to distribute a product over a sum of
-signatures. -}
-
+{-| This class defines how to distribute a product over a sum of signatures. -}
 class DistProd s p s' | s' -> s, s' -> p where
     {-| Inject a product value over a signature. -}
     injectP :: p -> s a b -> s' a b
     {-| Project a product value from a signature. -}
     projectP :: s' a b -> (s a b, p)
-
 
 class RemoveP s s' | s -> s'  where
     {-| Remove products from a signature. -}
@@ -142,16 +128,13 @@ instance (RemoveP s s') => RemoveP (f :&: p :+: s) (f :+: s') where
     removeP (Inl (v :&: _)) = Inl v
     removeP (Inr v) = Inr $ removeP v
 
-
 instance RemoveP (f :&: p) f where
     removeP (v :&: _) = v
-
 
 instance DistProd f p (f :&: p) where
     injectP c v = v :&: c
 
     projectP (v :&: p) = (v,p)
-
 
 instance (DistProd s p s') => DistProd (f :+: s) p ((f :&: p) :+: s') where
     injectP c (Inl v) = Inl (v :&: c)
