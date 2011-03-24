@@ -129,6 +129,10 @@ library
                         Data.Comp.Multi.Product, Data.Comp.Multi.Show,
                         Data.Comp.Multi.Equality, Data.Comp.Multi.Variables,
                         Data.Comp.Multi.Ops, Data.Comp.Ops
+                        Data.Comp.Param, Data.Comp.Param.Term,
+                        Data.Comp.Param.Sum, Data.Comp.Param.Functor,
+                        Data.Comp.Param.Traversable, Data.Comp.Param.Algebra,
+                        Data.Comp.Param.Product, Data.Comp.Param.Ops
 
   Other-Modules:        Data.Comp.Derive.Utils, Data.Comp.Derive.Equality,
                         Data.Comp.Derive.Ordering, Data.Comp.Derive.Arbitrary,
