@@ -102,6 +102,7 @@ import Control.Monad hiding (sequence, mapM)
 import Prelude hiding (sequence, mapM)
 
 
+
 {-| This type represents an algebra over a functor @f@ and carrier
 @a@. -}
 
@@ -136,7 +137,7 @@ cata' f = free f id
 
 {-| This function applies a whole context into another context. -}
 
-appCxt :: Functor f => Context f (Cxt h f a) -> Cxt h f a
+appCxt :: (Functor f) => Context f (Cxt h f a) -> Cxt h f a
 -- appCxt = cata' Term
 appCxt (Hole x) = x
 appCxt (Term t) = Term (fmap appCxt t)
@@ -248,7 +249,7 @@ compSigFun f g = f . g
 {-| Lifts the given signature function to the canonical term homomorphism.
 -}
 
-termHom :: Functor g => SigFun f g -> TermHom f g
+termHom :: (Functor g) => SigFun f g -> TermHom f g
 termHom f = simpCxt . f
 
 {-|
