@@ -320,8 +320,8 @@ appSigFunM' f = run
 
 {-| Compose two monadic term homomorphisms. -}
 compTermHomM :: (Traversable g, Functor h, Monad m)
-            => TermHomM m g h -> TermHomM m f g -> TermHomM m f h
-compTermHomM f g =  appTermHomM f <=< g
+             => TermHomM m g h -> TermHomM m f g -> TermHomM m f h
+compTermHomM f g = appTermHomM f <=< g
 
 {-| Compose a monadic algebra with a monadic term homomorphism to get a new
   monadic algebra. -}

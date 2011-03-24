@@ -1,5 +1,6 @@
 {-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes,
-  ScopedTypeVariables #-}
+  ScopedTypeVariables, TypeOperators, MultiParamTypeClasses,
+  FlexibleInstances, IncoherentInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Term
@@ -17,15 +18,16 @@
 module Data.Comp.Param.Term
     (Cxt (..),
      Hole,
-     NoHole,
-     Context,
+--     NoHole,
+--     Context,
      Nothing,
      Term,
      Const,
-     unTerm,
+--     unTerm,
      simpCxt,
      toCxt,
-     constTerm
+     constTerm,
+     (:<)(..)
      ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
@@ -48,9 +50,9 @@ supposed to be one of the phantom types 'Hole' and 'NoHole'. The
 second parameter is the signature of the context. The third parameter
 is the type of the holes. -}
 
-data Cxt :: * -> (* -> * -> *) -> * -> * -> * where
-            Term :: f p (Cxt h f p a) -> Cxt h f p a
-            Hole :: a -> Cxt Hole f p a
+data Cxt :: (* -> * -> *) -> * -> * -> * where
+            Term :: f a (Cxt f a b) -> Cxt f a b
+            Hole :: b -> Cxt f a b
 
 
 {-| Phantom type that signals that a 'Cxt' might contain holes.  -}
@@ -60,12 +62,12 @@ data Hole
 {-| Phantom type that signals that a 'Cxt' does not contain holes.
 -}
 
-data NoHole
+--data NoHole
 
-type Context = Cxt Hole
+--type Context = Cxt Hole
 
 {-| Convert a functorial value into a context.  -}
-simpCxt :: Difunctor f => f a e -> Context f a e
+simpCxt :: Difunctor f => f a b -> Cxt f a b
 {-# INLINE simpCxt #-}
 simpCxt = Term . dimap id Hole
 
@@ -73,7 +75,7 @@ simpCxt = Term . dimap id Hole
 {-| Cast a term over a signature to a context over the same signature. The
   usage of 'unsafeCoerce' is safe, because the empty type 'Nothing' witnesses
   that all uses of the contravariant argument are parametric. -}
-toCxt :: Difunctor f => Term f -> Context f a a
+toCxt :: Difunctor f => Term f -> Cxt f a a
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
 {-toCxt (Term t) = Term $ dimap (unsafeCoerce :: a -> Nothing) toCxt t
@@ -91,9 +93,9 @@ instance Show Nothing where
 
 {-| A (parametrized) term is a context with no /free/ holes, where all
   occurrences of the contravariant parameter is fully parametric. -}
-type Term f = Cxt Hole f Nothing Nothing
+type Term f = Cxt f Nothing Nothing
 
-instance Difunctor f => Difunctor (Cxt h f) where
+instance Difunctor f => Difunctor (Cxt f) where
     dimap _ g (Hole v) = Hole (g v)
     dimap f g (Term t) = Term (dimap f (dimap f g) t)
 
@@ -118,7 +120,19 @@ instance Ditraversable f => Ditraversable (Cxt h f) where
 
     disequence (Hole a) = liftM Hole a-}
 
-{-| This function unravels the given term at the topmost layer.  -}
+{- {-| This function unravels the given term at the topmost layer.  -}
 unTerm :: Cxt NoHole f a e -> f a (Cxt NoHole f a e)
 {-# INLINE unTerm #-}
-unTerm (Term t) = t
+unTerm (Term t) = t-}
+
+class a :< b where
+    inj' :: a -> b
+
+instance (:<) a a where
+    inj' = id
+
+instance (a :< b) => (:<) a (Cxt f c b) where
+    inj' = Hole . inj'
+
+instance (Monad m, a :< b) => (:<) a (m b) where
+    inj' = return . inj'

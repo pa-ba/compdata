@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances,
-  UndecidableInstances, RankNTypes, GADTs #-}
+  UndecidableInstances, RankNTypes, GADTs, ScopedTypeVariables #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Product
@@ -40,7 +40,7 @@ import Control.Monad
  with a domain constructed with the same functor, but with an additional
  product. -}
 
-liftP :: (RemoveP s s') => (s' a e -> t) -> s a e -> t
+liftP :: (RemoveP s s') => (s' a b -> t) -> s a b -> t
 liftP f v = f (removeP v)
 
 
@@ -48,12 +48,12 @@ liftP f v = f (removeP v)
   with a domain constructed with the same functor, but with an additional
   product. -}
 liftP' :: (DistProd s' p s, Difunctor s, Difunctor s')
-       => (s' p a -> Cxt h s' p a) -> s p a -> Cxt h s p a
+       => (s' a b -> Cxt s' c c) -> s a b -> Cxt s c c
 liftP' f v = let (v',p) = projectP v
              in constP p (f v')
 
 {-| Strip the products from a term over a functor with products. -}
-stripP :: (Difunctor f, RemoveP g f, Difunctor g) => Cxt h g p a -> Cxt h f p a
+stripP :: (Difunctor f, RemoveP g f, Difunctor g) => CxtFun g f
 stripP = appSigFun removeP
 
 {-| Lift a term homomorphism over signatures @f@ and @g@ to a term homomorphism
@@ -64,9 +64,12 @@ productTermHom alg f' = constP p (alg f)
     where (f,p) = projectP f'
 
 {-| Annotate each node of a term with a constant value. -}
-constP :: (DistProd f p g, Difunctor f, Difunctor g) 
-       => p -> Cxt h f b a -> Cxt h g b a
-constP c = appSigFun (injectP c)
+constP :: forall f g h p a b. (DistProd f p g, Difunctor f)
+       => p -> Cxt f a b -> Cxt g a b
+constP c = run --appSigFun (injectP c)
+    where run :: Cxt f a b -> Cxt g a b
+          run (Hole x) = Hole x
+          run (Term t) = Term $ injectP c $ fmap run t
 
 {-| This function is similar to 'project' but applies to signatures
 with a product which is then ignored. -}
