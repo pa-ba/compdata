@@ -101,8 +101,6 @@ import Control.Monad hiding (sequence, mapM)
 
 import Prelude hiding (sequence, mapM)
 
-import Unsafe.Coerce
-
 
 
 {-| This type represents an algebra over a functor @f@ and carrier
