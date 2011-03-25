@@ -108,6 +108,10 @@ extra-source-files:
   examples/EvalM.hs
   examples/DesugarEval.hs
   examples/DesugarPos.hs
+  examples/Multi/Eval.hs
+  examples/Multi/EvalM.hs
+  examples/Multi/DesugarEval.hs
+  examples/Multi/DesugarPos.hs
 
 
 flag test
