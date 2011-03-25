@@ -103,6 +103,11 @@ extra-source-files:
   benchmark/Functions/Standard/FreeVars.hs
   benchmark/Functions/Standard/Inference.hs
   benchmark/Functions/Standard.hs
+  -- example files
+  examples/Eval.hs
+  examples/EvalM.hs
+  examples/DesugarEval.hs
+  examples/DesugarPos.hs
 
 
 flag test
@@ -155,7 +160,7 @@ library
 Executable test
   Main-is:		Data_Test.hs
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq
-  hs-source-dirs:	src testsuite/tests
+  hs-source-dirs:	src testsuite/tests .
   ghc-options:          -fhpc
   if !flag(test)
     buildable:     False

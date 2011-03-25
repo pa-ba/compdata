@@ -12,7 +12,7 @@ import Test.QuickCheck
 import Test.Utils
 
 import qualified Data.Comp.Equality_Test
-
+import qualified Data.Comp.Examples_Test
 
 --------------------------------------------------------------------------------
 -- Test Suits
@@ -21,7 +21,8 @@ import qualified Data.Comp.Equality_Test
 main = defaultMain [tests]
 
 tests = testGroup "Comp" [
-         Data.Comp.Equality_Test.tests
+         Data.Comp.Equality_Test.tests,
+         Data.Comp.Examples_Test.tests
         ]
 
 --------------------------------------------------------------------------------
