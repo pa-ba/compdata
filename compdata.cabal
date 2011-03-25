@@ -164,7 +164,7 @@ library
 Executable test
   Main-is:		Data_Test.hs
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq
-  hs-source-dirs:	src testsuite/tests .
+  hs-source-dirs:	src testsuite/tests examples
   ghc-options:          -fhpc
   if !flag(test)
     buildable:     False

@@ -41,7 +41,7 @@ $(derive [instanceHFunctor, instanceHShowF, smartHConstructors]
 
 -- Term evaluation algebra
 class Eval f v where
-  evalAlg :: Alg f (HTerm v)
+  evalAlg :: Alg f (Term v)
 
 instance (Eval f v, Eval g v) => Eval (f :+: g) v where
   evalAlg (Inl x) = evalAlg x
