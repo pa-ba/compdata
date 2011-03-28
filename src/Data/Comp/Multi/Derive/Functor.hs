@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Derive.Multi.Functor
+-- Module      :  Data.Comp.Multi.Derive.Functor
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -12,7 +12,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Derive.Multi.Functor
+module Data.Comp.Multi.Derive.Functor
     (
      HFunctor,
      instanceHFunctor

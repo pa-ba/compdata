@@ -21,7 +21,7 @@ module Data.Comp.Derive.Arbitrary
     )where
 
 import Test.QuickCheck
-import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Utils hiding (derive)
 import Language.Haskell.TH
 import Data.DeriveTH
 

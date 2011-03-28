@@ -2,32 +2,32 @@
 
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Derive.Multi.SmartConstructors
--- Copyright   :  (c) 2011 Patrick Bahr
+-- Module      :  Data.Comp.Param.Derive.SmartConstructors
+-- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
--- Maintainer  :  Patrick Bahr <paba@diku.dk>
+-- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Automatically derive smart constructors for mutually recursive types.
+-- Automatically derive smart constructors for parametric types.
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Derive.Multi.SmartConstructors 
-    (smartHConstructors) where
+module Data.Comp.Param.Derive.SmartConstructors 
+    (smartConstructors) where
 
 import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
-import Data.Comp.Multi.Sum
-import Data.Comp.Multi.Term
+import Data.Comp.Param.Sum
+import Data.Comp.Param.Term
 
 import Control.Monad
 
-{-| Derive smart constructors for a type constructor of any higher-order kind
+{-| Derive smart constructors for a type constructor of any parametric kind
  taking at least two arguments. The smart constructors are similar to the
  ordinary constructors, but an 'inject' is automatically inserted. -}
-smartHConstructors :: Name -> Q [Dec]
-smartHConstructors fname = do
+smartConstructors :: Name -> Q [Dec]
+smartConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
     let cons = map abstractConType constrs
     liftM concat $ mapM (genSmartConstr (map tyVarBndrName targs) tname) cons
@@ -44,18 +44,16 @@ smartHConstructors fname = do
                 sequence $ sig ++ function
               genSig targs tname sname 0 = (:[]) $ do
                 fvar <- newName "f"
-                hvar <- newName "h"
                 avar <- newName "a"
-                ivar <- newName "i"
+                bvar <- newName "b"
                 let targs' = init $ init targs
-                    vars = fvar:hvar:avar:ivar:targs'
+                    vars = fvar:avar:bvar:targs'
                     f = varT fvar
-                    h = varT hvar
                     a = varT avar
-                    i = varT ivar
+                    b = varT bvar
                     ftype = foldl appT (conT tname) (map varT targs')
                     constr = classP ''(:<:) [ftype, f]
-                    typ = foldl appT (conT ''Cxt) [h, f, a, i]
+                    typ = foldl appT (conT ''Cxt) [f, a, b]
                     typeSig = forallT (map PlainTV vars) (sequence [constr]) typ
                 sigD sname typeSig
               genSig _ _ _ _ = []

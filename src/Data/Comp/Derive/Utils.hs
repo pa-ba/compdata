@@ -99,3 +99,12 @@ newNames n name = replicateM n (newName name)
 
 tupleTypes n m = map tupleTypeName [n..m]
 
+{-| Helper function for generating a list of instances for a list of named
+ signatures. For example, in order to derive instances 'Functor' and
+ 'ShowF' for a signature @Exp@, use derive as follows (requires Template
+ Haskell):
+
+ > $(derive [instanceFunctor, instanceShowF] [''Exp])
+ -}
+derive :: [Name -> Q [Dec]] -> [Name] -> Q [Dec]
+derive ders names = liftM concat $ sequence [der name | der <- ders, name <- names]

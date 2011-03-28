@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Derive.Multi.Show
+-- Module      :  Data.Comp.Multi.Derive.Show
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -12,7 +12,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Derive.Multi.Show
+module Data.Comp.Multi.Derive.Show
     (
      HShowF(..),
      KShow(..),

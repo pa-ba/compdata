@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Derive.Multi.Foldable
+-- Module      :  Data.Comp.Multi.Derive.Foldable
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -12,7 +12,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Derive.Multi.Foldable
+module Data.Comp.Multi.Derive.Foldable
     (
      HFoldable,
      instanceHFoldable
