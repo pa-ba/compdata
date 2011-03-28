@@ -21,7 +21,7 @@ module Examples.Multi.EvalM where
 
 import Data.Comp.Multi
 import Data.Comp.Multi.Show ()
-import Data.Comp.Derive
+import Data.Comp.Multi.Derive
 import Control.Monad (liftM)
 
 -- Signature for values and operators
@@ -38,7 +38,7 @@ type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
-          instanceHEqF, instanceHShowF, smartHConstructors]
+          instanceHEqF, instanceHShowF, smartConstructors]
          [''Value, ''Op])
 
 -- Monadic term evaluation algebra

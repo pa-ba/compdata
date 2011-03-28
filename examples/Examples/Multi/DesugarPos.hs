@@ -18,11 +18,11 @@
 --
 --------------------------------------------------------------------------------
 
-module Examples.Mutli.DesugarPos where
+module Examples.Multi.DesugarPos where
 
 import Data.Comp.Multi
 import Data.Comp.Multi.Show ()
-import Data.Comp.Derive
+import Data.Comp.Multi.Derive
 
 -- Signature for values, operators, and syntactic sugar
 data Value e l where
@@ -38,7 +38,7 @@ data Sugar e l where
 
 -- Source position information (line number, column number)
 data Pos = Pos Int Int
-           deriving Show
+           deriving (Show, Eq)
 
 -- Signature for the simple expression language
 type Sig = Op :+: Value
@@ -50,7 +50,7 @@ type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 
 -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
-          instanceHEqF, instanceHShowF, smartHConstructors]
+          instanceHEqF, instanceHShowF, smartConstructors]
          [''Value, ''Op, ''Sugar])
 
 -- Term homomorphism for desugaring of terms

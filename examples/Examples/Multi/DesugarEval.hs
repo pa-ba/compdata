@@ -21,7 +21,7 @@ module Examples.Multi.DesugarEval where
 
 import Data.Comp.Multi
 import Data.Comp.Multi.Show ()
-import Data.Comp.Derive
+import Data.Comp.Multi.Derive
 
 -- Signature for values, operators, and syntactic sugar
 data Value e l where
@@ -49,7 +49,7 @@ type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 
 -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
-          instanceHEqF, instanceHShowF, smartHConstructors]
+          instanceHEqF, instanceHShowF, smartConstructors]
          [''Value, ''Op, ''Sugar])
 
 -- Term homomorphism for desugaring of terms

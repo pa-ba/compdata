@@ -21,7 +21,7 @@ module Examples.Multi.Eval where
 
 import Data.Comp.Multi
 import Data.Comp.Multi.Show ()
-import Data.Comp.Derive
+import Data.Comp.Multi.Derive
 
 -- Signature for values and operators
 data Value e l where
@@ -36,7 +36,7 @@ data Op e l where
 type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-$(derive [instanceHFunctor, instanceHShowF, smartHConstructors] 
+$(derive [instanceHFunctor, instanceHShowF, instanceHEqF, smartConstructors] 
          [''Value, ''Op])
 
 -- Term evaluation algebra

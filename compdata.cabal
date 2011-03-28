@@ -3,7 +3,7 @@ Version:		0.2
 Synopsis:            	Compositional Data Types
 Description:
 
-  Based on Wouter Swierstra's Functional Pearl /Data types à la carte/
+  Based on Wouter 1Swierstra's Functional Pearl /Data types à la carte/
   (Journal of Functional Programming, 18(4):423-436, 2008),
   this package provides a framework for defining recursive
   data types in a compositional manner. The fundamental idea of
@@ -137,12 +137,15 @@ library
                         Data.Comp.Multi.Algebra,
                         Data.Comp.Multi.Product, Data.Comp.Multi.Show,
                         Data.Comp.Multi.Equality, Data.Comp.Multi.Variables,
-                        Data.Comp.Multi.Ops, Data.Comp.Ops
+                        Data.Comp.Multi.Ops, Data.Comp.Ops,
+                        Data.Comp.Multi.Derive
                         Data.Comp.Param, Data.Comp.Param.Term,
                         Data.Comp.Param.Sub,
                         Data.Comp.Param.Sum, Data.Comp.Param.Functor,
-                        Data.Comp.Param.Traversable, Data.Comp.Param.Algebra,
+                        Data.Comp.Param.Traversable, Data.Comp.Param.Foldable,
+                        Data.Comp.Param.Algebra,
                         Data.Comp.Param.Product, Data.Comp.Param.Ops
+                        Data.Comp.Param.Derive
 
   Other-Modules:        Data.Comp.Derive.Utils, Data.Comp.Derive.Equality,
                         Data.Comp.Derive.Ordering, Data.Comp.Derive.Arbitrary,
@@ -150,12 +153,14 @@ library
                         Data.Comp.Derive.SmartConstructors,
                         Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable,
-                        Data.Comp.Derive.Multi.Functor,
-                        Data.Comp.Derive.Multi.Foldable,
-                        Data.Comp.Derive.Multi.Traversable,
-                        Data.Comp.Derive.Multi.Equality,
-                        Data.Comp.Derive.Multi.Show,
-                        Data.Comp.Derive.Multi.SmartConstructors
+                        Data.Comp.Multi.Derive.Functor,
+                        Data.Comp.Multi.Derive.Foldable,
+                        Data.Comp.Multi.Derive.Traversable,
+                        Data.Comp.Multi.Derive.Equality,
+                        Data.Comp.Multi.Derive.Show,
+                        Data.Comp.Multi.Derive.SmartConstructors
+                        Data.Comp.Param.Derive.Functor,
+                        Data.Comp.Param.Derive.SmartConstructors
 
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns
   hs-source-dirs:	src

@@ -26,17 +26,21 @@ module Data.Comp.Multi (
   -- ** Lifting Term Homomorphisms to Products
   -- $ex4
     module Data.Comp.Multi.Term
-  , module Data.Comp.Multi.Algebra
   , module Data.Comp.Multi.Functor
+  , module Data.Comp.Multi.Algebra
   , module Data.Comp.Multi.Sum
   , module Data.Comp.Multi.Product
+  , module Data.Comp.Multi.Equality
+--  , module Data.Comp.Multi.Generic
     ) where
 
+import Data.Comp.Multi.Functor
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Algebra
-import Data.Comp.Multi.Functor
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Product
+import Data.Comp.Multi.Equality
+--import Data.Comp.Multi.Generic
 
 {- $ex1
 The example below illustrates how to use generalised compositional data types 

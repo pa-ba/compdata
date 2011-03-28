@@ -24,7 +24,7 @@ import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Product
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.Functor
-import Data.Comp.Derive
+import Data.Comp.Multi.Derive
 
 instance KShow Nothing where
     kshow _ = undefined
