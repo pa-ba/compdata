@@ -50,8 +50,6 @@ instance (Difunctor f, Difunctor g) => Difunctor (f :+: g) where
 instance (Ditraversable f, Ditraversable g) => Ditraversable (f :+: g) where
     dimapM f (Inl e) = Inl `liftM` dimapM f e
     dimapM f (Inr e) = Inr `liftM` dimapM f e
-    disequence (Inl e) = Inl `liftM` disequence e
-    disequence (Inr e) = Inr `liftM` disequence e
 
 -- | Signature containment relation for automatic injections. The left-hand must
 -- be an atomic signature, where as the right-hand side must have a list-like

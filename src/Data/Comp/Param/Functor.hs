@@ -8,8 +8,9 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines difunctors, i.e. binary type constructors that are
--- contravariant in the first argument and covariant in the second argument.
+-- This module defines difunctors (Meijer, Hutton, FPCA '95), i.e. binary type
+-- constructors that are contravariant in the first argument and covariant in
+-- the second argument.
 --
 --------------------------------------------------------------------------------
 
@@ -21,7 +22,10 @@ module Data.Comp.Param.Functor
 -- | This class represents difunctors, i.e. binary type constructors that are
 -- contravariant in the first argument and covariant in the second argument.
 class Difunctor f where
-    dimap :: (a -> b) -> (c -> d) -> (f b c -> f a d)
+    dimap :: (a -> b) -> (c -> d) -> f b c -> f a d
+
+instance Difunctor (->) where
+    dimap f g h = g . h . f
 
 instance Difunctor f => Functor (f a) where
     fmap = dimap id

@@ -64,9 +64,9 @@ module Data.Comp.Param.Algebra (
       Coalg,
       ana,
       ana',
-      CoalgM,
+{-      CoalgM,
       anaM,
-{-
+
       -- * R-Algebras & Paramorphisms
       RAlg,
       para,
@@ -113,7 +113,7 @@ free f g = run
           run (Term t) = f (fmap run t)
 
 {-| Construct a catamorphism from the given algebra. -}
-cata :: forall f a . Difunctor f => Alg f a -> Term f -> a 
+cata :: forall f a. Difunctor f => Alg f a -> Term f -> a 
 {-# NOINLINE [1] cata #-}
 cata f = run . toCxt
     where run :: Cxt f a a -> a
@@ -240,7 +240,7 @@ termHomM :: (Difunctor g, Monad m) => SigFun f g -> TermHomM m f g
 termHomM f = sigFunM $ termHom f
 
 {-| Apply a monadic term homomorphism recursively to a term/context. -}
-appTermHomM :: forall f g m . (Ditraversable f, Difunctor g, Monad m)
+appTermHomM :: forall f g m. (Ditraversable f, Difunctor g, Monad m)
             => TermHomM m f g -> CxtFunM m f g
 {-# NOINLINE [1] appTermHomM #-}
 appTermHomM f = run
@@ -250,7 +250,7 @@ appTermHomM f = run
 
 {-| This function constructs the unique monadic homomorphism from the
   initial term algebra to the given term algebra. -}
-termHomM' :: forall f g m . (Difunctor f, Difunctor g, Monad m)
+termHomM' :: forall f g m. (Difunctor f, Difunctor g, Monad m)
           => TermHomM' m f g -> CxtFunM m f g
 termHomM' f = run 
     where run :: CxtFunM m f g
@@ -263,7 +263,7 @@ appSigFunM :: (Ditraversable f, Difunctor g, Monad m)
 appSigFunM f = appTermHomM $ termHom' f
 
 {-| This function applies a signature function to the given context. -}
-appSigFunM' :: forall f g m . (Ditraversable f, Difunctor g, Monad m)
+appSigFunM' :: forall f g m. (Ditraversable f, Difunctor g, Monad m)
             => SigFunM' m f g -> CxtFunM m f g
 appSigFunM' f = run 
     where run :: CxtFunM m f g
@@ -296,16 +296,16 @@ compSigFunM f g a = g a >>= f
 ----------------
 
 {-| This type represents a coalgebra over a difunctor @f@ and carrier @a@. -}
-type Coalg f a = a -> f a a
+type Coalg f a = a -> f Nothing a
 
 {-| Construct an anamorphism from the given coalgebra. -}
-ana :: forall a f. Difunctor f => Coalg f a -> a -> Cxt f a a
+ana :: forall a f. Difunctor f => Coalg f a -> a -> Term f
 ana f = run
-    where run :: a -> Cxt f a a
+    where run :: a -> Term f
           run t = Term $ fmap run (f t)
 
 -- | Shortcut fusion variant of 'ana'.
-ana' :: forall a f. Difunctor f => Coalg f a -> a -> Cxt f a a
+ana' :: forall a f. Difunctor f => Coalg f a -> a -> Term f
 ana' f t = build $ run t
     where run t con = run' t where
               --run' :: a -> b
@@ -315,42 +315,43 @@ build :: ((f a (Cxt f a b) -> Cxt f a b) -> t) -> t
 {-# INLINE [1] build #-}
 build g = g Term
 
-{-| This type represents a monadic coalgebra over a functor @f@ and carrier
+{-{-| This type represents a monadic coalgebra over a difunctor @f@ and carrier
   @a@. -}
-type CoalgM m f a = a -> m (f a a)
+type CoalgM m f a = a -> m (f Nothing a)
 
 {-| Construct a monadic anamorphism from the given monadic coalgebra. -}
 anaM :: forall a m f. (Ditraversable f, Monad m)
-     => CoalgM m f a -> a -> m (Cxt f a a)
+     => CoalgM m f a -> a -> m (Term f)
 anaM f = run 
-    where run :: a -> m (Cxt f a a)
+    where run :: a -> m (Term f)
           run t = liftM Term $ f t >>= dimapM run
 
-{-
+
 --------------------------------
 -- R-Algebras & Paramorphisms --
 --------------------------------
 
-{-| This type represents an r-algebra over a functor @f@ and carrier @a@. -}
-type RAlg f a = f (Term f, a) -> a
+{-| This type represents an r-algebra over a difunctor @f@ and carrier @a@. -}
+type RAlg f a = f (Cxt f a a, a) (Cxt f a a, a) -> a
 
 {-| Construct a paramorphism from the given r-algebra. -}
-para :: (Functor f) => RAlg f a -> Term f -> a
+para :: forall f a. Difunctor f => RAlg f a -> Term f -> a
 para f = snd . cata run
-    where run t = (Term $ fmap fst t, f t)
+    where run :: Alg f (Cxt f a a, a)
+          run t = (Term $ dimap (\x -> (Hole x,x)) fst t, f t)-}
 
-{-| This type represents a monadic r-algebra over a functor @f@ and carrier
+{-{-| This type represents a monadic r-algebra over a difunctor @f@ and carrier
   @a@. -}
-type RAlgM m f a = f (Term f, a) -> m a
-
+type RAlgM m f a = f a (Cxt f a a, m a) -> m a
 {-| Construct a monadic paramorphism from the given monadic r-algebra. -}
-paraM :: (Traversable f, Monad m) => 
+paraM :: forall m f a. (Ditraversable f, Monad m) => 
          RAlgM m f a -> Term f -> m a
-paraM f = liftM snd . cataM run
-    where run t = do
-            a <- f t
-            return (Term $ fmap fst t, a)
+paraM f = run . toCxt
+    where run :: Cxt f (Cxt f a a, m a) (Cxt f a a, m a) -> (Cxt f a a, m a)
+          run (Hole x) = (Hole x, snd x)
+          run (Term t) = (Term t, f $ dimap (\x -> (Hole x,return x)) (run . fst) t)-}
 
+{-
 --------------------------------
 -- R-Coalgebras & Apomorphisms --
 --------------------------------

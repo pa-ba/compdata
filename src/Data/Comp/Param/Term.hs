@@ -1,23 +1,20 @@
-{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes,
-  ScopedTypeVariables, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, IncoherentInstances #-}
+{-# LANGUAGE EmptyDataDecls, RankNTypes, TypeOperators #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Term
--- Copyright   :  (c) 2010-2011 Patrick Bahr, Tom Hvitved
+-- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines the central notion of /parametrized terms/ and its
--- generalisation to contexts.
+-- This module defines the central notion of /parametrized terms/.
 --
 --------------------------------------------------------------------------------
 
 module Data.Comp.Param.Term
     (
-     Cxt (..),
+     Cxt(..),
      Nothing,
      Term,
      Const,
@@ -36,34 +33,12 @@ import qualified Data.Map as Map
 import Data.Maybe (fromJust)
 import Unsafe.Coerce
 
-{-|  -}
-type Const f = f Nothing ()
-
-{-| This function converts a constant to a term. This assumes that the
-  argument is indeed a constant, i.e. does not have a value for the
-  argument type of the difunctor @f@. -}
-constTerm :: Difunctor f => Const f -> Term f
-constTerm = Term . fmap (const undefined)
-
 {-| This data type represents contexts over a signature. Contexts are terms
   containing zero or more holes. The first parameter is the signature of the
   context. The second parameter is the type of parameters, and the third
-  parameter is the type of holes. -}
-data Cxt :: (* -> * -> *) -> * -> * -> * where
-            Term :: f a (Cxt f a b) -> Cxt f a b
-            Hole :: b -> Cxt f a b
-
-{-| Convert a difunctorial value into a context. -}
-simpCxt :: Difunctor f => f a b -> Cxt f a b
-{-# INLINE simpCxt #-}
-simpCxt = Term . dimap id Hole
-
-{-| Cast a term over a signature to a context over the same signature. The
-  usage of 'unsafeCoerce' is safe, because the empty type 'Nothing' witnesses
-  that all uses of the contravariant argument are parametric. -}
-toCxt :: Difunctor f => Term f -> Cxt f a a
-{-# INLINE toCxt #-}
-toCxt = unsafeCoerce
+  parameter is the type of holes. (For terms, the type of parameters and the
+  type of holes are identical.) -}
+data Cxt f a b = Term (f a (Cxt f a b)) | Hole b
 
 {-| Phantom type used to define 'Term'.  -}
 data Nothing
@@ -73,8 +48,31 @@ instance Ord Nothing where
 instance Show Nothing where
 
 {-| A (parametrized) term is a context with no /free/ holes, where all
-  occurrences of the contravariant parameter is fully parametric. -}
+  occurrences of the contravariant parameter is fully parametric. The type
+  approximates the type @forall a. Cxt f a a@ using the empty data type
+  'Nothing', thereby avoiding impredicative types. -}
 type Term f = Cxt f Nothing Nothing
+
+{-| Convert a difunctorial value into a context. -}
+simpCxt :: Difunctor f => f a b -> Cxt f a b
+{-# INLINE simpCxt #-}
+simpCxt = Term . dimap id Hole
+
+{-| Cast a term over a signature to a context over the same signature. The
+  usage of 'unsafeCoerce' is safe, because the empty type 'Nothing' witnesses
+  that all uses of the contravariant argument are parametric. -}
+toCxt :: Difunctor f => Term f -> forall a. Cxt f a a
+{-# INLINE toCxt #-}
+toCxt = unsafeCoerce
+
+{-|  -}
+type Const f = f Nothing ()
+
+{-| This function converts a constant to a term. This assumes that the
+  argument is indeed a constant, i.e. does not have a value for the
+  argument type of the difunctor @f@. -}
+constTerm :: Difunctor f => Const f -> Term f
+constTerm = Term . fmap (const undefined)
 
 {-| This function applies the given context with hole type @b@ to a family @f@
   of contexts (possibly terms) indexed by @b@. That is, each hole @h@ is

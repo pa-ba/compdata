@@ -1,3 +1,4 @@
+{-# LANGUAGE RankNTypes #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Traversable
@@ -25,9 +26,3 @@ class Difunctor f => Ditraversable f where
     -- these actions from left to right, and collect the results.
     dimapM :: (Functor g, Monad m, a :< c) => (b -> m (g c))
            -> f a b -> m (f a (g c))
-    dimapM f = disequence . fmap f
-
-    -- | Evaluate each monadic action in the structure from left to right,
-    -- and collect the results.
-    disequence :: (Functor g, Monad m, a :< b) => f a (m (g b)) -> m (f a (g b))
-    disequence = dimapM id
