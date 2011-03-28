@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE RankNTypes, FlexibleInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Traversable
@@ -19,10 +19,13 @@ module Data.Comp.Param.Traversable
 
 import Prelude hiding (mapM, sequence, foldr)
 import Data.Comp.Param.Functor
-import Data.Comp.Param.Sub ((:<))
+import Data.Comp.Param.Foldable
+import Data.Traversable
 
-class Difunctor f => Ditraversable f where
+class (Difunctor f, Difoldable f) => Ditraversable f where
     -- | Map each element of a structure to a monadic action, evaluate
     -- these actions from left to right, and collect the results.
-    dimapM :: (Functor g, Monad m, a :< c) => (b -> m (g c))
-           -> f a b -> m (f a (g c))
+    dimapM :: Monad m => (b -> m c) -> f a b -> m (f a c)
+
+instance Ditraversable f => Traversable (f a) where
+    mapM = dimapM

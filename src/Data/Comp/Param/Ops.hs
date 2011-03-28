@@ -16,6 +16,7 @@
 module Data.Comp.Param.Ops where
 
 import Data.Comp.Param.Functor
+import Data.Comp.Param.Foldable
 import Data.Comp.Param.Traversable
 import Control.Monad hiding (sequence, mapM)
 import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
@@ -32,20 +33,9 @@ instance (Difunctor f, Difunctor g) => Difunctor (f :+: g) where
     dimap f g (Inl e) = Inl (dimap f g e)
     dimap f g (Inr e) = Inr (dimap f g e)
 
-{-instance (Difoldable f, Difoldable g) => Difoldable (f :+: g) where
-    fold (Inl e) = fold e
-    fold (Inr e) = fold e
-    foldMap f (Inl e) = foldMap f e
-    foldMap f (Inr e) = foldMap f e
-    foldr f b (Inl e) = foldr f b e
-    foldr f b (Inr e) = foldr f b e
-    foldl f b (Inl e) = foldl f b e
-    foldl f b (Inr e) = foldl f b e
-    foldr1 f (Inl e) = foldr1 f e
-    foldr1 f (Inr e) = foldr1 f e
-    foldl1 f (Inl e) = foldl1 f e
-    foldl1 f (Inr e) = foldl1 f e
--}
+instance (Difoldable f, Difoldable g) => Difoldable (f :+: g) where
+    difoldl f b (Inl e) = difoldl f b e
+    difoldl f b (Inr e) = difoldl f b e
 
 instance (Ditraversable f, Ditraversable g) => Ditraversable (f :+: g) where
     dimapM f (Inl e) = Inl `liftM` dimapM f e
@@ -97,19 +87,11 @@ data (f :&: p) a b = f a b :&: p
 instance (Difunctor f) => Difunctor (f :&: a) where
     dimap f g (v :&: c) = dimap f g v :&: c
 
-{-instance (Foldable f) => Foldable (f :&: a) where
-    fold (v :&: _) = fold v
-    foldMap f (v :&: _) = foldMap f v
-    foldr f e (v :&: _) = foldr f e v
-    foldl f e (v :&: _) = foldl f e v
-    foldr1 f (v :&: _) = foldr1 f v
-    foldl1 f (v :&: _) = foldl1 f v
+instance (Difoldable f) => Difoldable (f :&: a) where
+    difoldl f e (v :&: _) = difoldl f e v
 
-instance (Traversable f) => Traversable (f :&: a) where
-    traverse f (v :&: c) = liftA (:&: c) (traverse f v)
-    sequenceA (v :&: c) = liftA (:&: c)(sequenceA v)
-    mapM f (v :&: c) = liftM (:&: c) (mapM f v)
-    sequence (v :&: c) = liftM (:&: c) (sequence v)-}
+instance (Ditraversable f) => Ditraversable (f :&: a) where
+    dimapM f (v :&: c) = liftM (:&: c) (dimapM f v)
 
 {-| This class defines how to distribute a product over a sum of signatures. -}
 class DistProd s p s' | s' -> s, s' -> p where
