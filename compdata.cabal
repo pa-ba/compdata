@@ -112,7 +112,7 @@ extra-source-files:
   examples/Multi/EvalM.hs
   examples/Multi/DesugarEval.hs
   examples/Multi/DesugarPos.hs
-
+  examples/Param/Eval.hs
 
 flag test
   description: Build test executable.
