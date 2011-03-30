@@ -30,6 +30,7 @@ module Data.Comp.Param (
   , module Data.Comp.Param.Functor
   , module Data.Comp.Param.Sum
   , module Data.Comp.Param.Product
+  , module Data.Comp.Param.Equality
     ) where
 
 import Data.Comp.Param.Term
@@ -37,6 +38,7 @@ import Data.Comp.Param.Algebra
 import Data.Comp.Param.Functor
 import Data.Comp.Param.Sum
 import Data.Comp.Param.Product
+import Data.Comp.Param.Equality
 
 {- $ex1
 The example below illustrates how to use generalised compositional data types 

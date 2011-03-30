@@ -145,6 +145,9 @@ library
                         Data.Comp.Param.Traversable, Data.Comp.Param.Foldable,
                         Data.Comp.Param.Algebra,
                         Data.Comp.Param.Product, Data.Comp.Param.Ops
+                        Data.Comp.Param.Equality
+                        Data.Comp.Param.Ordering
+                        Data.Comp.Param.Show
                         Data.Comp.Param.Derive
 
   Other-Modules:        Data.Comp.Derive.Utils, Data.Comp.Derive.Equality,
@@ -160,6 +163,9 @@ library
                         Data.Comp.Multi.Derive.Show,
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Param.Derive.Functor,
+                        Data.Comp.Param.Derive.Equality,
+                        Data.Comp.Param.Derive.Ordering,
+                        Data.Comp.Param.Derive.Show,
                         Data.Comp.Param.Derive.SmartConstructors
 
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns

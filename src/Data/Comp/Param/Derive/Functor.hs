@@ -78,11 +78,9 @@ instanceDifunctor fname = do
                     [|id|]
                 else
                     case tp of
-                      VarT a ->
-                          -- Apply f if we have reached the contravariant
-                          -- variable, g if we have reached the covariant
-                          if a == conArg then f else
-                              if a == coArg then g else [|id|]
+                      VarT a | a == conArg -> f
+                             | a == coArg -> g
+                             | otherwise -> [|id|]
                       ConT _ ->
                           [|id|]
                       AppT (AppT ArrowT tp1) tp2 -> do

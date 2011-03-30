@@ -10,3 +10,4 @@ dummy.cabal
 *.tix
 *.mix
 hpcreport
+*.DS_Store

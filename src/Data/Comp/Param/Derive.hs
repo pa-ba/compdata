@@ -19,7 +19,13 @@ module Data.Comp.Param.Derive
      -- |Derive boilerplate instances for parametric signatures, i.e.
      -- signatures for parametric compositional data types.
 
-     -- ** Diunctor
+     -- ** EqD
+     module Data.Comp.Param.Derive.Equality,
+     -- ** OrdD
+     module Data.Comp.Param.Derive.Ordering,
+     -- ** ShowD
+     module Data.Comp.Param.Derive.Show,
+     -- ** Difunctor
      module Data.Comp.Param.Derive.Functor,
 {-     -- ** Difoldable
      module Data.Comp.Param.Derive.Foldable,
@@ -30,8 +36,9 @@ module Data.Comp.Param.Derive
     ) where
 
 import Data.Comp.Derive.Utils (derive)
---import Data.Comp.Param.Derive.Equality
---import Data.Comp.Param.Derive.Show
+import Data.Comp.Param.Derive.Equality
+import Data.Comp.Param.Derive.Ordering
+import Data.Comp.Param.Derive.Show
 import Data.Comp.Param.Derive.Functor
 {-import Data.Comp.Param.Derive.Foldable
 import Data.Comp.Param.Derive.Traversable-}
