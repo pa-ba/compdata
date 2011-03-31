@@ -33,7 +33,7 @@ module Data.Comp.Multi (
   , module Data.Comp.Multi.Sum
   , module Data.Comp.Multi.Product
   , module Data.Comp.Multi.Equality
---  , module Data.Comp.Multi.Generic
+  , module Data.Comp.Multi.Generic
     ) where
 
 import Data.Comp.Multi.Functor
@@ -42,7 +42,7 @@ import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Product
 import Data.Comp.Multi.Equality
---import Data.Comp.Multi.Generic
+import Data.Comp.Multi.Generic
 
 {- $ex1
 The example illustrates how to use generalised compositional data types 

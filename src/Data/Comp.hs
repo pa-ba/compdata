@@ -15,10 +15,10 @@
 --------------------------------------------------------------------------------
 module Data.Comp(
   -- * Examples
-  -- **Expression Evaluation
+  -- ** Expression Evaluation
   -- $ex1
 
-  -- **Monadic Expression Evaluation
+  -- ** Monadic Expression Evaluation
   -- $ex2
 
   -- ** Desugaring + Expression Evaluation

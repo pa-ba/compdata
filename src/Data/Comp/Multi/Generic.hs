@@ -59,7 +59,7 @@ transformM :: forall f m . (HTraversable f, Monad m) =>
              NatM m (Term f) (Term f) -> NatM m (Term f) (Term f)
 transformM  f = run 
     where run :: NatM m (Term f) (Term f)
-          run t = f =<< liftM Term $ hmapM run $ unTerm t
+          run t = f =<< liftM Term (hmapM run $ unTerm t)
 
 query :: HFoldable f => (Term f :=>  r) -> (r -> r -> r) -> Term f :=> r
 -- query q c = run 
@@ -70,7 +70,7 @@ subs :: HFoldable f => Term f  :=> [A (Term f)]
 subs = query (\x-> [A x]) (++)
 
 subs' :: (HFoldable f, g :<: f) => Term f :=> [A (g (Term f))]
-subs' = mapMaybe . subs
+subs' = mapMaybe pr . subs
         where pr (A v) = fmap A (project v)
 
 -- | This function computes the generic size of the given term,
