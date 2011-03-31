@@ -9,12 +9,16 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Generalized Compositional Data Types Example: Intrinsic Expression
--- Evaluation.
+-- Intrinsic Expression Evaluation.
 --
 -- The example illustrates how to use generalised compositional data types 
 -- to implement a small expression language, and  an evaluation function mapping
 -- intrinsically typed expressions to values.
+--
+-- The following language extensions are needed in order to run the example:
+-- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
+-- @FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@,
+-- @GADTs@. Besides, GCH 7 is required.
 --
 --------------------------------------------------------------------------------
 

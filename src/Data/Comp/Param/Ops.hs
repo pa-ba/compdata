@@ -16,10 +16,8 @@
 module Data.Comp.Param.Ops where
 
 import Data.Comp.Param.Functor
-import Data.Comp.Param.Foldable
 import Data.Comp.Param.Traversable
-import Control.Monad hiding (sequence, mapM)
-import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
+import Control.Monad (liftM)
 
 
 -- Sums
@@ -33,13 +31,12 @@ instance (Difunctor f, Difunctor g) => Difunctor (f :+: g) where
     dimap f g (Inl e) = Inl (dimap f g e)
     dimap f g (Inr e) = Inr (dimap f g e)
 
-instance (Difoldable f, Difoldable g) => Difoldable (f :+: g) where
-    difoldl f b (Inl e) = difoldl f b e
-    difoldl f b (Inr e) = difoldl f b e
-
-instance (Ditraversable f, Ditraversable g) => Ditraversable (f :+: g) where
+instance (Ditraversable f m a, Ditraversable g m a)
+    => Ditraversable (f :+: g) m a where
     dimapM f (Inl e) = Inl `liftM` dimapM f e
     dimapM f (Inr e) = Inr `liftM` dimapM f e
+    disequence (Inl e) = Inl `liftM` disequence e
+    disequence (Inr e) = Inr `liftM` disequence e
 
 -- | Signature containment relation for automatic injections. The left-hand must
 -- be an atomic signature, where as the right-hand side must have a list-like
@@ -84,14 +81,12 @@ infixr 7 :&:
 {-| This data type adds a constant product to a signature. -}
 data (f :&: p) a b = f a b :&: p
 
-instance (Difunctor f) => Difunctor (f :&: a) where
+instance Difunctor f => Difunctor (f :&: p) where
     dimap f g (v :&: c) = dimap f g v :&: c
 
-instance (Difoldable f) => Difoldable (f :&: a) where
-    difoldl f e (v :&: _) = difoldl f e v
-
-instance (Ditraversable f) => Ditraversable (f :&: a) where
+instance Ditraversable f m a => Ditraversable (f :&: p) m a where
     dimapM f (v :&: c) = liftM (:&: c) (dimapM f v)
+    disequence (v :&: c) = liftM (:&: c) (disequence v)
 
 {-| This class defines how to distribute a product over a sum of signatures. -}
 class DistProd s p s' | s' -> s, s' -> p where

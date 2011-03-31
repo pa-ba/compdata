@@ -9,10 +9,14 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Compositional Data Types Example: Desugaring + Expression Evaluation.
+-- Desugaring + Expression Evaluation
 --
 -- The example illustrates how to compose a term homomorphism and an algebra,
 -- exemplified via a desugaring term homomorphism and an evaluation algebra.
+-- 
+-- The following language extensions are needed in order to run the example:
+-- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
+-- @FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@.
 --
 --------------------------------------------------------------------------------
 

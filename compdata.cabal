@@ -28,7 +28,7 @@ Description:
   *  Compositional data types in the style of Wouter Swierstra's
      Functional Pearl /Data types à la carte/.
   .
-  *  Modular definition of function on compositional data types through
+  *  Modular definition of functions on compositional data types through
      catamorphisms and anamorphisms as well as more structured
      recursion schemes such as primitive recursion  and co-recursion,
      and course-of-value iteration and co-iteration.
@@ -61,11 +61,13 @@ Description:
      also /smart constructors/, which allow to easily construct inhabitants
      of compositional data types, are automatically generated.
   .
-  *  /Mutually recursive data types/. All of the above is also lifted to
-     families of mutually recursive data types.
+  *  /Mutually recursive data types/ and
+     /generalised algebraic data types (GADTs)/. All of the above is also lifted
+     to families of mutually recursive data types and (more generally) GADTs.
   .
   For examples illustrating the use of compositional data types, consult
-  "Data.Comp" resp. "Data.Comp.Multi" for mutually recursive data types.
+  "Data.Comp" resp. "Data.Comp.Multi" for mutually recursive data types and
+  GADTs.
 
 Category:            	Generics
 License:		BSD3
@@ -109,10 +111,14 @@ extra-source-files:
   examples/DesugarEval.hs
   examples/DesugarPos.hs
   examples/Multi/Eval.hs
+  examples/Multi/EvalI.hs
   examples/Multi/EvalM.hs
   examples/Multi/DesugarEval.hs
   examples/Multi/DesugarPos.hs
   examples/Param/Eval.hs
+  examples/Param/EvalM.hs
+  examples/Param/EvalAlgM.hs
+  examples/Param/DesugarEval.hs
 
 flag test
   description: Build test executable.
@@ -142,7 +148,7 @@ library
                         Data.Comp.Param, Data.Comp.Param.Term,
                         Data.Comp.Param.Sub,
                         Data.Comp.Param.Sum, Data.Comp.Param.Functor,
-                        Data.Comp.Param.Traversable, Data.Comp.Param.Foldable,
+                        Data.Comp.Param.Traversable,
                         Data.Comp.Param.Algebra,
                         Data.Comp.Param.Product, Data.Comp.Param.Ops
                         Data.Comp.Param.Equality

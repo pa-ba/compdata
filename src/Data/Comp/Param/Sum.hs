@@ -93,49 +93,55 @@ project3 (Hole _) = Nothing
 project3 (Term t) = proj3 t
 
 -- |Project a term to a term over a sub signature.
-deepProject :: (Ditraversable f, Difunctor g, g :<: f, a :< b) => Cxt f a b
-            -> Maybe (Cxt g a b)
+deepProject :: (Ditraversable f Maybe a, Difunctor g, g :<: f, a :< b)
+            => Cxt f a b -> Maybe (Cxt g a b)
 deepProject = appSigFunM proj
 
 -- |Project a term to a term over a binary sub signature.
-deepProject2 :: (Ditraversable f, Difunctor g1, Difunctor g2,
-                 g1 :<: f, g2 :<: f, a :< b) => Cxt f a b
-             -> Maybe (Cxt (g1 :+: g2) a b)
+deepProject2 :: (Ditraversable f Maybe a, Difunctor g1, Difunctor g2,
+                 g1 :<: f, g2 :<: f, a :< b)
+             => Cxt f a b -> Maybe (Cxt (g1 :+: g2) a b)
 deepProject2 = appSigFunM proj2
 
 -- |Project a term to a term over a ternary sub signature.
-deepProject3 :: (Ditraversable f, Difunctor g1, Difunctor g2, Difunctor g3,
-                 g1 :<: f, g2 :<: f, g3 :<: f, a :< b) => Cxt f a b
-             -> Maybe (Cxt (g1 :+: g2 :+: g3) a b)
+deepProject3 :: (Ditraversable f Maybe a, Difunctor g1, Difunctor g2,
+                 Difunctor g3, g1 :<: f, g2 :<: f, g3 :<: f, a :< b)
+             => Cxt f a b -> Maybe (Cxt (g1 :+: g2 :+: g3) a b)
 deepProject3 = appSigFunM proj3
 
 -- |A variant of 'deepProject' where the sub signature is required to be
 -- 'Traversable rather than the whole signature.
-deepProject' :: forall g f a b. (Ditraversable g, g :<: f, a :< b) => Cxt f a b
-             -> Maybe (Cxt g a b)
-deepProject' val = do
-  v <- project val
+deepProject' :: forall g f a b. (Ditraversable g Maybe a, g :<: f, a :< b)
+             => Cxt f a b -> Maybe (Cxt g a b)
+deepProject' (Hole x) = return $ Hole x
+deepProject' (Term t) = do
+  v <- proj t
   v' <- dimapM deepProject' v
   return $ Term v'
 
 -- |A variant of 'deepProject2' where the sub signatures are required to be
 -- 'Traversable rather than the whole signature.
-deepProject2' :: forall g1 g2 f a b. (Ditraversable g1, Ditraversable g2,
-                                      g1 :<: f, g2 :<: f, a :< b) => Cxt f a b
-              -> Maybe (Cxt (g1 :+: g2) a b)
-deepProject2' val = do
-  v <- project2 val
+deepProject2' :: forall g1 g2 f a b. (Ditraversable g1 Maybe a,
+                                      Ditraversable g2 Maybe a,
+                                      g1 :<: f, g2 :<: f, a :< b)
+              => Cxt f a b -> Maybe (Cxt (g1 :+: g2) a b)
+deepProject2' (Hole x) = return $ Hole x
+deepProject2' (Term t) = do
+  v <- proj2 t
   v' <- dimapM deepProject2' v
   return $ Term v'
 
 -- |A variant of 'deepProject3' where the sub signatures are required to be
 -- 'Traversable rather than the whole signature.
-deepProject3' :: forall g1 g2 g3 f a b. (Ditraversable g1, Ditraversable g2,
-                                         Ditraversable g3, g1 :<: f, g2 :<: f,
-                                         g3 :<: f, a :< b) => Cxt f a b
-              -> Maybe (Cxt (g1 :+: g2 :+: g3) a b)
-deepProject3' val = do
-  v <- project3 val
+deepProject3' :: forall g1 g2 g3 f a b. (Ditraversable g1 Maybe a,
+                                         Ditraversable g2 Maybe a,
+                                         Ditraversable g3 Maybe a,
+                                         g1 :<: f, g2 :<: f,
+                                         g3 :<: f, a :< b)
+              => Cxt f a b -> Maybe (Cxt (g1 :+: g2 :+: g3) a b)
+deepProject3' (Hole x) = return $ Hole x
+deepProject3' (Term t) = do
+  v <- proj3 t
   v' <- dimapM deepProject3' v
   return $ Term v'
 

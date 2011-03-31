@@ -7,24 +7,26 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines the infrastructure necessary to use compositional data
--- types for mutually recursive data types. Examples of usage are provided
--- below.
+-- This module defines the infrastructure necessary to use generalised
+-- compositional data types. Examples of usage are provided below.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Multi (
   -- * Examples
-  -- ** Pure Computations
+  -- ** Expression Evaluation
   -- $ex1
 
-  -- ** Monadic Computations
+  -- ** Monadic Expression Evaluation
   -- $ex2
 
-  -- ** Composing Term Homomorphisms and Algebras
+  -- ** Intrinsic Expression Evaluation.
   -- $ex3
 
-  -- ** Lifting Term Homomorphisms to Products
+  -- ** Desugaring + Expression Evaluation
   -- $ex4
+
+  -- ** Desugaring + Propagation of Annotations
+  -- $ex5
     module Data.Comp.Multi.Term
   , module Data.Comp.Multi.Functor
   , module Data.Comp.Multi.Algebra
@@ -43,19 +45,18 @@ import Data.Comp.Multi.Equality
 --import Data.Comp.Multi.Generic
 
 {- $ex1
-The example below illustrates how to use generalised compositional data types 
+The example illustrates how to use generalised compositional data types 
 to implement a small expression language, with a sub language of values, and 
 an evaluation function mapping expressions to values.
 
-The following language extensions are
-needed in order to run the example: @TemplateHaskell@, @TypeOperators@,
-@MultiParamTypeClasses@, @FlexibleInstances@, @FlexibleContexts@,
-@UndecidableInstances@, and @GADTs@. Moreover, in order to derive instances for
-GADTs, version 7 of GHC is needed.
+The following language extensions are needed in order to run the example:
+@TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
+@FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@,
+@GADTs@. Besides, GCH 7 is required.
 
 > import Data.Comp.Multi
 > import Data.Comp.Multi.Show ()
-> import Data.Comp.Derive
+> import Data.Comp.Multi.Derive
 > 
 > -- Signature for values and operators
 > data Value e l where
@@ -65,17 +66,17 @@ GADTs, version 7 of GHC is needed.
 >   Add, Mult  :: e Int -> e Int   -> Op e Int
 >   Fst        ::          e (s,t) -> Op e s
 >   Snd        ::          e (s,t) -> Op e t
->
+> 
 > -- Signature for the simple expression language
 > type Sig = Op :+: Value
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-> $(derive [instanceHFunctor, instanceHShowF, smartHConstructors] 
+> $(derive [instanceHFunctor, instanceHShowF, instanceHEqF, smartConstructors] 
 >          [''Value, ''Op])
 > 
 > -- Term evaluation algebra
 > class Eval f v where
->   evalAlg :: Alg f (HTerm v)
+>   evalAlg :: Alg f (Term v)
 > 
 > instance (Eval f v, Eval g v) => Eval (f :+: g) v where
 >   evalAlg (Inl x) = evalAlg x
@@ -106,19 +107,18 @@ GADTs, version 7 of GHC is needed.
 -}
 
 {- $ex2
-The example below illustrates how to use generalised compositional data types to
+The example illustrates how to use generalised compositional data types to
 implement a small expression language, with a sub language of values, and a 
 monadic evaluation function mapping expressions to values.
 
-The following language
-extensions are needed in order to run the example: @TemplateHaskell@,
-@TypeOperators@, @MultiParamTypeClasses@, @FlexibleInstances@,
-@FlexibleContexts@, @UndecidableInstances@, and @GADTs@.  Moreover, in order to
-derive instances for GADTs, version 7 of GHC is needed.
+The following language extensions are needed in order to run the example:
+@TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
+@FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@,
+@GADTs@. Besides, GCH 7 is required.
 
 > import Data.Comp.Multi
 > import Data.Comp.Multi.Show ()
-> import Data.Comp.Derive
+> import Data.Comp.Multi.Derive
 > import Control.Monad (liftM)
 > 
 > -- Signature for values and operators
@@ -135,7 +135,7 @@ derive instances for GADTs, version 7 of GHC is needed.
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
->           instanceHEqF, instanceHShowF, smartHConstructors]
+>           instanceHEqF, instanceHShowF, smartConstructors]
 >          [''Value, ''Op])
 > 
 > -- Monadic term evaluation algebra
@@ -146,8 +146,7 @@ derive instances for GADTs, version 7 of GHC is needed.
 >   evalAlgM (Inl x) = evalAlgM x
 >   evalAlgM (Inr x) = evalAlgM x
 > 
-> evalM :: (HTraversable f, EvalM f v) => Term f l
->                                      -> Maybe (Term v l)
+> evalM :: (HTraversable f, EvalM f v) => Term f l -> Maybe (Term v l)
 > evalM = cataM evalAlgM
 > 
 > instance (Value :<: v) => EvalM Value v where
@@ -178,17 +177,74 @@ derive instances for GADTs, version 7 of GHC is needed.
 -}
 
 {- $ex3
-The example below illustrates how to compose a term homomorphism and an algebra,
+The example illustrates how to use generalised compositional data types 
+to implement a small expression language, and  an evaluation function mapping
+intrinsically typed expressions to values.
+
+The following language extensions are needed in order to run the example:
+@TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
+@FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@,
+@GADTs@. Besides, GCH 7 is required.
+
+> import Data.Comp.Multi
+> import Data.Comp.Multi.Show ()
+> import Data.Comp.Multi.Derive
+> 
+> -- Signature for values and operators
+> data Value e l where
+>   Const  ::        Int -> Value e Int
+>   Pair   :: e s -> e t -> Value e (s,t)
+> data Op e l where
+>   Add, Mult  :: e Int -> e Int   -> Op e Int
+>   Fst        ::          e (s,t) -> Op e s
+>   Snd        ::          e (s,t) -> Op e t
+> 
+> -- Signature for the simple expression language
+> type Sig = Op :+: Value
+> 
+> -- Derive boilerplate code using Template Haskell (GHC 7 needed)
+> $(derive [instanceHFunctor, instanceHShowF, instanceHEqF, smartConstructors] 
+>          [''Value, ''Op])
+> 
+> -- Term evaluation algebra
+> class EvalI f where
+>   evalAlgI :: Alg f I
+> 
+> instance (EvalI f, EvalI g) => EvalI (f :+: g) where
+>   evalAlgI (Inl x) = evalAlgI x
+>   evalAlgI (Inr x) = evalAlgI x
+> 
+> -- Lift the evaluation algebra to a catamorphism
+> evalI :: (HFunctor f, EvalI f) => Term f i -> i
+> evalI = unI . cata evalAlgI
+> 
+> instance EvalI Value where
+>   evalAlgI (Const n) = I n
+>   evalAlgI (Pair (I x) (I y)) = I (x,y)
+> 
+> instance EvalI Op where
+>   evalAlgI (Add (I x) (I y))  = I (x + y)
+>   evalAlgI (Mult (I x) (I y)) = I (x * y)
+>   evalAlgI (Fst (I (x,_)))    = I x
+>   evalAlgI (Snd (I (_,y)))    = I y
+> 
+> -- Example: evalEx = 2
+> evalIEx :: Int
+> evalIEx = evalI (iFst $ iPair (iConst 2) (iConst 1) :: Term Sig Int)
+-}
+
+{- $ex4
+The example illustrates how to compose a term homomorphism and an algebra,
 exemplified via a desugaring term homomorphism and an evaluation algebra.
 
 The following language extensions are needed in order to run the example:
 @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
-@FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@, and @GADTs@. 
-Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
+@FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@,
+@GADTs@. Besides, GCH 7 is required.
 
 > import Data.Comp.Multi
 > import Data.Comp.Multi.Show ()
-> import Data.Comp.Derive
+> import Data.Comp.Multi.Derive
 > 
 > -- Signature for values, operators, and syntactic sugar
 > data Value e l where
@@ -201,7 +257,7 @@ Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 > data Sugar e l where
 >   Neg   :: e Int   -> Sugar e Int
 >   Swap  :: e (s,t) -> Sugar e (t,s)
->
+> 
 > -- Source position information (line number, column number)
 > data Pos = Pos Int Int
 >            deriving Show
@@ -209,14 +265,14 @@ Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 > -- Signature for the simple expression language
 > type Sig = Op :+: Value
 > type SigP = Op :&: Pos :+: Value :&: Pos
->
+> 
 > -- Signature for the simple expression language, extended with syntactic sugar
 > type Sig' = Sugar :+: Op :+: Value
 > type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
->           instanceHEqF, instanceHShowF, smartHConstructors]
+>           instanceHEqF, instanceHShowF, smartConstructors]
 >          [''Value, ''Op, ''Sugar])
 > 
 > -- Term homomorphism for desugaring of terms
@@ -241,7 +297,7 @@ Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 > instance (Op :<: v, Value :<: v, HFunctor v) => Desugar Sugar v where
 >   desugHom' (Neg x)  = iConst (-1) `iMult` x
 >   desugHom' (Swap x) = iSnd x `iPair` iFst x
->
+> 
 > -- Term evaluation algebra
 > class Eval f v where
 >   evalAlg :: Alg f (Term v)
@@ -258,13 +314,13 @@ Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 >   evalAlg (Mult x y) = iConst $ (projC x) * (projC y)
 >   evalAlg (Fst x)    = fst $ projP x
 >   evalAlg (Snd x)    = snd $ projP x
->
+> 
 > projC :: (Value :<: v) => Term v Int -> Int
 > projC v = case project v of Just (Const n) -> n
->
-> projP :: (Value :<: v) => HTerm v (s,t) -> (HTerm v s, HTerm v t)
+> 
+> projP :: (Value :<: v) => Term v (s,t) -> (Term v s, Term v t)
 > projP v = case project v of Just (Pair x y) -> (x,y)
->
+> 
 > -- Compose the evaluation algebra and the desugaring homomorphism to an
 > -- algebra
 > eval :: Term Sig' :-> Term Value
@@ -275,19 +331,19 @@ Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
 > evalEx = eval $ iSwap $ iPair (iConst 1) (iConst 2)
 -}
 
-{- $ex4
-The example below illustrates how to lift a term homomorphism to products,
+{- $ex5
+The example illustrates how to lift a term homomorphism to products,
 exemplified via a desugaring term homomorphism lifted to terms annotated with
 source position information.
 
 The following language extensions are needed in order to run the example:
 @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
-@FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@, and @GADTs@.
- Moreover, in order to derive instances for GADTs, version 7 of GHC is needed.
+@FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@,
+@GADTs@. Besides, GCH 7 is required.
 
 > import Data.Comp.Multi
 > import Data.Comp.Multi.Show ()
-> import Data.Comp.Derive
+> import Data.Comp.Multi.Derive
 > 
 > -- Signature for values, operators, and syntactic sugar
 > data Value e l where
@@ -300,22 +356,22 @@ The following language extensions are needed in order to run the example:
 > data Sugar e l where
 >   Neg   :: e Int   -> Sugar e Int
 >   Swap  :: e (s,t) -> Sugar e (t,s)
->
+> 
 > -- Source position information (line number, column number)
 > data Pos = Pos Int Int
->            deriving Show
+>            deriving (Show, Eq)
 > 
 > -- Signature for the simple expression language
 > type Sig = Op :+: Value
 > type SigP = Op :&: Pos :+: Value :&: Pos
->
+> 
 > -- Signature for the simple expression language, extended with syntactic sugar
 > type Sig' = Sugar :+: Op :+: Value
 > type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 > $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
->           instanceHEqF, instanceHShowF, smartHConstructors]
+>           instanceHEqF, instanceHShowF, smartConstructors]
 >          [''Value, ''Op, ''Sugar])
 > 
 > -- Term homomorphism for desugaring of terms
@@ -340,34 +396,34 @@ The following language extensions are needed in order to run the example:
 > instance (Op :<: v, Value :<: v, HFunctor v) => Desugar Sugar v where
 >   desugHom' (Neg x)  = iConst (-1) `iMult` x
 >   desugHom' (Swap x) = iSnd x `iPair` iFst x
->
+> 
 > -- Lift the desugaring term homomorphism to a catamorphism
 > desug :: Term Sig' :-> Term Sig
 > desug = appTermHom desugHom
->
+> 
 > -- Example: desugEx = iPair (iConst 2) (iConst 1)
 > desugEx :: Term Sig (Int,Int)
 > desugEx = desug $ iSwap $ iPair (iConst 1) (iConst 2)
->
+> 
 > -- Lift desugaring to terms annotated with source positions
 > desugP :: Term SigP' :-> Term SigP
 > desugP = appTermHom (productTermHom desugHom)
->
+> 
 > iSwapP :: (DistProd f p f', Sugar :<: f) => p -> Term f' (a,b) -> Term f' (b,a)
 > iSwapP p x = Term (injectP p $ inj $ Swap x)
->
+> 
 > iConstP :: (DistProd f p f', Value :<: f) => p -> Int -> Term f' Int
 > iConstP p x = Term (injectP p $ inj $ Const x)
->
+> 
 > iPairP :: (DistProd f p f', Value :<: f) => p -> Term f' a -> Term f' b -> Term f' (a,b)
 > iPairP p x y = Term (injectP p $ inj $ Pair x y)
->
+> 
 > iFstP :: (DistProd f p f', Op :<: f) => p -> Term f' (a,b) -> Term f' a
 > iFstP p x = Term (injectP p $ inj $ Fst x)
->
+> 
 > iSndP :: (DistProd f p f', Op :<: f) => p -> Term f' (a,b) -> Term f' b
 > iSndP p x = Term (injectP p $ inj $ Snd x)
->
+> 
 > -- Example: desugPEx = iPairP (Pos 1 0)
 > --                            (iSndP (Pos 1 0) (iPairP (Pos 1 1)
 > --                                                     (iConstP (Pos 1 2) 1)

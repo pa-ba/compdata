@@ -44,7 +44,7 @@ instanceEqD fname = do
   let defC = if length constrs < 2 then
                  []
              else
-                 [clause [wildP,wildP] (normalB [|False|]) []]
+                 [clause [wildP,wildP] (normalB [|return False|]) []]
   eqDDecl <- funD 'eqD (map (eqDClause conArg) constrs' ++ defC)
   return [InstanceD [] classType [eqDDecl]]
       where eqDClause :: Name -> (Name,[Type]) -> ClauseQ

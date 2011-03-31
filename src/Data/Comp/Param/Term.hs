@@ -1,4 +1,5 @@
-{-# LANGUAGE EmptyDataDecls, RankNTypes, TypeOperators #-}
+{-# LANGUAGE EmptyDataDecls, RankNTypes, TypeOperators, FlexibleInstances,
+  MultiParamTypeClasses #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Term
@@ -27,6 +28,7 @@ module Data.Comp.Param.Term
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 import Data.Comp.Param.Functor
+import Data.Comp.Param.Traversable
 import Data.Comp.Param.Ops
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -95,3 +97,7 @@ instance Difunctor f => Difunctor (Cxt f) where
 instance Difunctor f => Monad (Cxt f a) where
     return = Hole
     (>>=) = substHoles
+
+instance Ditraversable (->) Maybe Nothing where
+    disequence f = do _ <- f undefined
+                      return $ \x -> fromJust $ f x

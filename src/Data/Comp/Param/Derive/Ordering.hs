@@ -77,6 +77,6 @@ instanceOrdD fname = do
                 | otherwise =
                     [|pcompare $(varE x) $(varE y) |]
             genLtClause (c, _) (d, _) =
-                clause [recP c [], recP d []] (normalB [| LT |]) []
+                clause [recP c [], recP d []] (normalB [| return LT |]) []
             genGtClause (c, _) (d, _) =
-                clause [recP c [], recP d []] (normalB [| GT |]) []
+                clause [recP c [], recP d []] (normalB [| return GT |]) []

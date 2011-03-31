@@ -9,11 +9,16 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Generalized Compositional Data Types Example: Expression Evaluation.
+-- Expression Evaluation
 --
 -- The example illustrates how to use generalised compositional data types 
 -- to implement a small expression language, with a sub language of values, and 
 -- an evaluation function mapping expressions to values.
+--
+-- The following language extensions are needed in order to run the example:
+-- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
+-- @FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@,
+-- @GADTs@. Besides, GCH 7 is required.
 --
 --------------------------------------------------------------------------------
 

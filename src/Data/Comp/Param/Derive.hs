@@ -27,10 +27,10 @@ module Data.Comp.Param.Derive
      module Data.Comp.Param.Derive.Show,
      -- ** Difunctor
      module Data.Comp.Param.Derive.Functor,
-{-     -- ** Difoldable
-     module Data.Comp.Param.Derive.Foldable,
-     -- ** Ditraversable
-     module Data.Comp.Param.Derive.Traversable,-}
+     -- ** Foldable
+     module Data.Comp.Derive.Foldable,
+     -- ** Traversable
+     module Data.Comp.Derive.Traversable,
      -- ** Smart Constructors
      module Data.Comp.Param.Derive.SmartConstructors
     ) where
@@ -40,6 +40,6 @@ import Data.Comp.Param.Derive.Equality
 import Data.Comp.Param.Derive.Ordering
 import Data.Comp.Param.Derive.Show
 import Data.Comp.Param.Derive.Functor
-{-import Data.Comp.Param.Derive.Foldable
-import Data.Comp.Param.Derive.Traversable-}
+import Data.Comp.Derive.Foldable
+import Data.Comp.Derive.Traversable
 import Data.Comp.Param.Derive.SmartConstructors

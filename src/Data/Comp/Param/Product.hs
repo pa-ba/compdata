@@ -22,6 +22,7 @@ module Data.Comp.Param.Product
       liftP',
       stripP,
       productTermHom,
+      productTermHomM,
       constP,
       project'
     )where
@@ -63,13 +64,18 @@ productTermHom :: (DistProd f p f', DistProd g p g', Difunctor g, Difunctor g')
 productTermHom alg f' = constP p (alg f)
     where (f,p) = projectP f'
 
+{-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
+  term homomorphism over the same signatures, but extended with products. -}
+productTermHomM :: (DistProd f p f', DistProd g p g',
+                    Difunctor g, Difunctor g', Monad m) 
+               => TermHomM m f g a -> TermHomM m f' g' a
+productTermHomM alg f' = liftM (constP p) (alg f)
+    where (f,p) = projectP f'
+
 {-| Annotate each node of a term with a constant value. -}
-constP :: forall f g p a b. (DistProd f p g, Difunctor f)
+constP :: forall f g p a b. (DistProd f p g, Difunctor f, Difunctor g, a :< b)
        => p -> Cxt f a b -> Cxt g a b
-constP c = run --appSigFun (injectP c)
-    where run :: Cxt f a b -> Cxt g a b
-          run (Hole x) = Hole x
-          run (Term t) = Term $ injectP c $ fmap run t
+constP c = appSigFun (injectP c)
 
 {-| This function is similar to 'project' but applies to signatures
 with a product which is then ignored. -}

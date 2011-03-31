@@ -9,11 +9,15 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Compositional Data Types Example: Desugaring + Propagation of Annotations.
+-- Desugaring + Propagation of Annotations.
 --
 -- The example illustrates how to lift a term homomorphism to products,
 -- exemplified via a desugaring term homomorphism lifted to terms annotated with
 -- source position information.
+--
+-- The following language extensions are needed in order to run the example:
+-- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
+-- @FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@.
 --
 --------------------------------------------------------------------------------
 

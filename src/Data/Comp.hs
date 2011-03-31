@@ -15,16 +15,16 @@
 --------------------------------------------------------------------------------
 module Data.Comp(
   -- * Examples
-  -- ** Pure Computations
+  -- **Expression Evaluation
   -- $ex1
 
-  -- ** Monadic Computations
+  -- **Monadic Expression Evaluation
   -- $ex2
 
-  -- ** Composing Term Homomorphisms and Algebras
+  -- ** Desugaring + Expression Evaluation
   -- $ex3
 
-  -- ** Lifting Term Homomorphisms to Products
+  -- ** Desugaring + Propagation of Annotations
   -- $ex4
 
     module Data.Comp.Term
@@ -45,14 +45,14 @@ import Data.Comp.Ordering
 import Data.Comp.Generic
 
 {- $ex1
-The example below illustrates how to use compositional data types to implement
+
+The example illustrates how to use compositional data types to implement
 a small expression language, with a sub language of values, and an evaluation
 function mapping expressions to values.
 
-The following language extensions are
-needed in order to run the example: @TemplateHaskell@, @TypeOperators@,
-@MultiParamTypeClasses@, @FlexibleInstances@, @FlexibleContexts@, and
-@UndecidableInstances@.
+The following language extensions are needed in order to run the example:
+@TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
+@FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@.
 
 > import Data.Comp
 > import Data.Comp.Show ()
@@ -66,7 +66,8 @@ needed in order to run the example: @TemplateHaskell@, @TypeOperators@,
 > type Sig = Op :+: Value
 > 
 > -- Derive boilerplate code using Template Haskell
-> $(derive [instanceFunctor, instanceShowF, smartConstructors] [''Value, ''Op])
+> $(derive [instanceFunctor, instanceShowF,
+>           instanceEqF, smartConstructors] [''Value, ''Op])
 > 
 > -- Term evaluation algebra
 > class Eval f v where
@@ -90,25 +91,26 @@ needed in order to run the example: @TemplateHaskell@, @TypeOperators@,
 >   evalAlg (Snd x)    = snd $ projP x
 > 
 > projC :: (Value :<: v) => Term v -> Int
-> projC v = let Just (Const n) = project v in n
+> projC v = case project v of Just (Const n) -> n
 > 
 > projP :: (Value :<: v) => Term v -> (Term v, Term v)
-> projP v = let Just (Pair x y) = project v in (x,y)
+> projP v = case project v of Just (Pair x y) -> (x,y)
 > 
 > -- Example: evalEx = iConst 5
 > evalEx :: Term Value
 > evalEx = eval ((iConst 1) `iAdd` (iConst 2 `iMult` iConst 2) :: Term Sig)
+
 -}
 
 {- $ex2
-The example below illustrates how to use compositional data types to implement
+
+The example illustrates how to use compositional data types to implement
 a small expression language, with a sub language of values, and a monadic
 evaluation function mapping expressions to values.
 
-The following language
-extensions are needed in order to run the example: @TemplateHaskell@,
-@TypeOperators@, @MultiParamTypeClasses@, @FlexibleInstances@,
-@FlexibleContexts@, and @UndecidableInstances@.
+The following language extensions are needed in order to run the example:
+@TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
+@FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@.
 
 > import Data.Comp
 > import Data.Comp.Derive
@@ -164,12 +166,13 @@ extensions are needed in order to run the example: @TemplateHaskell@,
 > -- Example: evalMEx = Just (iConst 5)
 > evalMEx :: Maybe (Term Value)
 > evalMEx = evalM ((iConst 1) `iAdd` (iConst 2 `iMult` iConst 2) :: Term Sig)
+
 -}
 
 {- $ex3
-The example below illustrates how to compose a term homomorphism and an algebra,
+The example illustrates how to compose a term homomorphism and an algebra,
 exemplified via a desugaring term homomorphism and an evaluation algebra.
-
+ 
 The following language extensions are needed in order to run the example:
 @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
 @FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@.
@@ -182,19 +185,13 @@ The following language extensions are needed in order to run the example:
 > data Value e = Const Int | Pair e e
 > data Op e = Add e e | Mult e e | Fst e | Snd e
 > data Sugar e = Neg e | Swap e
->
-> -- Source position information (line number, column number)
-> data Pos = Pos Int Int
->            deriving Show
 > 
 > -- Signature for the simple expression language
 > type Sig = Op :+: Value
-> type SigP = Op :&: Pos :+: Value :&: Pos
->
+> 
 > -- Signature for the simple expression language, extended with syntactic sugar
 > type Sig' = Sugar :+: Op :+: Value
-> type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
->
+> 
 > -- Derive boilerplate code using Template Haskell
 > $(derive [instanceFunctor, instanceTraversable, instanceFoldable,
 >           instanceEqF, instanceShowF, smartConstructors]
@@ -222,7 +219,7 @@ The following language extensions are needed in order to run the example:
 > instance (Op :<: v, Value :<: v, Functor v) => Desugar Sugar v where
 >   desugHom' (Neg x)  = iConst (-1) `iMult` x
 >   desugHom' (Swap x) = iSnd x `iPair` iFst x
->
+> 
 > -- Term evaluation algebra
 > class Eval f v where
 >   evalAlg :: Alg f (Term v)
@@ -241,13 +238,12 @@ The following language extensions are needed in order to run the example:
 >   evalAlg (Snd x)    = snd $ projP x
 > 
 > projC :: (Value :<: v) => Term v -> Int
-> projC v = let Just (Const n) = project v in n
+> projC v = case project v of Just (Const n) -> n
 > 
 > projP :: (Value :<: v) => Term v -> (Term v, Term v)
-> projP v = let Just (Pair x y) = project v in (x,y)
->
-> -- Compose the evaluation algebra and the desugaring homomorphism to an
-> -- algebra
+> projP v = case project v of Just (Pair x y) -> (x,y)
+> 
+> -- Compose the evaluation algebra and the desugaring homomorphism to an algebra
 > eval :: Term Sig' -> Term Value
 > eval = cata (evalAlg `compAlg` (desugHom :: TermHom Sig' Sig))
 > 
@@ -257,7 +253,7 @@ The following language extensions are needed in order to run the example:
 -}
 
 {- $ex4
-The example below illustrates how to lift a term homomorphism to products,
+The example illustrates how to lift a term homomorphism to products,
 exemplified via a desugaring term homomorphism lifted to terms annotated with
 source position information.
 
@@ -267,25 +263,26 @@ The following language extensions are needed in order to run the example:
 
 > import Data.Comp
 > import Data.Comp.Show ()
+> import Data.Comp.Equality ()
 > import Data.Comp.Derive
 > 
 > -- Signature for values, operators, and syntactic sugar
 > data Value e = Const Int | Pair e e
 > data Op e = Add e e | Mult e e | Fst e | Snd e
 > data Sugar e = Neg e | Swap e
->
+> 
 > -- Source position information (line number, column number)
 > data Pos = Pos Int Int
->            deriving Show
+>            deriving (Show, Eq)
 > 
 > -- Signature for the simple expression language
 > type Sig = Op :+: Value
 > type SigP = Op :&: Pos :+: Value :&: Pos
->
+> 
 > -- Signature for the simple expression language, extended with syntactic sugar
 > type Sig' = Sugar :+: Op :+: Value
 > type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
->
+> 
 > -- Derive boilerplate code using Template Haskell
 > $(derive [instanceFunctor, instanceTraversable, instanceFoldable,
 >           instanceEqF, instanceShowF, smartConstructors]
@@ -317,30 +314,30 @@ The following language extensions are needed in order to run the example:
 > -- Lift the desugaring term homomorphism to a catamorphism
 > desug :: Term Sig' -> Term Sig
 > desug = appTermHom desugHom
->
+> 
 > -- Example: desugEx = iPair (iConst 2) (iConst 1)
 > desugEx :: Term Sig
 > desugEx = desug $ iSwap $ iPair (iConst 1) (iConst 2)
->
+> 
 > -- Lift desugaring to terms annotated with source positions
 > desugP :: Term SigP' -> Term SigP
 > desugP = appTermHom (productTermHom desugHom)
->
+> 
 > iSwapP :: (DistProd f p f', Sugar :<: f) => p -> Term f' -> Term f'
 > iSwapP p x = Term (injectP p $ inj $ Swap x)
->
+> 
 > iConstP :: (DistProd f p f', Value :<: f) => p -> Int -> Term f'
 > iConstP p x = Term (injectP p $ inj $ Const x)
->
+> 
 > iPairP :: (DistProd f p f', Value :<: f) => p -> Term f' -> Term f' -> Term f'
 > iPairP p x y = Term (injectP p $ inj $ Pair x y)
->
+> 
 > iFstP :: (DistProd f p f', Op :<: f) => p -> Term f' -> Term f'
 > iFstP p x = Term (injectP p $ inj $ Fst x)
->
+> 
 > iSndP :: (DistProd f p f', Op :<: f) => p -> Term f' -> Term f'
 > iSndP p x = Term (injectP p $ inj $ Snd x)
->
+> 
 > -- Example: desugPEx = iPairP (Pos 1 0)
 > --                            (iSndP (Pos 1 0) (iPairP (Pos 1 1)
 > --                                                     (iConstP (Pos 1 2) 1)

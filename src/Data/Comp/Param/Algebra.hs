@@ -133,29 +133,29 @@ appCxt (Term t) = Term (fmap appCxt t)
 
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
   the return type is monadic. -}
-type AlgM m f a = f a (m a) -> m a
+type AlgM m f a = f a a -> m a
 
 {-| Convert a monadic algebra into an ordinary algebra with a monadic
   carrier. -}
-algM :: (Difunctor f, Monad m) => AlgM m f a -> Alg f (m a)
-algM f x = f $ dimap return id x
+algM :: (Ditraversable f m a, Monad m) => AlgM m f a -> Alg f (m a)
+algM f x = disequence (dimap return id x) >>= f
 
 {-| Construct a monadic catamorphism for contexts over @f@ with holes of type
   @b@, from the given monadic algebra. -}
-freeM :: forall m f a b. (Difunctor f, Monad m)
+freeM :: forall m f a b. (Ditraversable f m a, Monad m)
       => AlgM m f a -> (b -> m a) -> Cxt f a b -> m a
 freeM f g = run
     where run :: Cxt f a b -> m a
           run (Hole x) = g x
-          run (Term t) = f (fmap run t)
+          run (Term t) = f =<< dimapM run t
 
 {-| Construct a monadic catamorphism from the given monadic algebra. -}
-cataM :: (Difunctor f, Monad m) => AlgM m f a -> Term f -> m a
-cataM f = free f return . toCxt
+cataM :: (Ditraversable f m a, Monad m) => AlgM m f a -> Term f -> m a
+cataM f = freeM f return . toCxt
 
 {-| A generalisation of 'cataM' from terms over @f@ to contexts over @f@, where
   the holes have the type of the monadic algebra carrier. -}
-cataM' :: forall m f a. (Difunctor f, Monad m)
+cataM' :: forall m f a. (Ditraversable f m a, Monad m)
        => AlgM m f a -> Cxt f a (m a) -> m a
 cataM' f = freeM f id
 
@@ -208,86 +208,87 @@ termHom :: Difunctor g => SigFun f g -> TermHom f g
 termHom f = simpCxt . f
 
 {-| This type represents a monadic context function. -}
-type CxtFunM m f g = forall a b. (a :< b) => Cxt f a b -> m (Cxt g a b)
+type CxtFunM m f g a = forall b. (a :< b) => Cxt f a b -> m (Cxt g a b)
 
 {-| This type represents a monadic signature function. -}
-type SigFunM m f g = forall a b. (a :< b) => f a b -> m (g a b)
+type SigFunM m f g a = forall b. (a :< b) => f a b -> m (g a b)
 
 {-| This type represents a monadic signature function. It is similar to
   'SigFunM' but has monadic values also in the domain. -}
-type SigFunM' m f g = forall a b. (a :< b) => f a (m b) -> m (g a b)
+type SigFunM' m f g a = forall b. (a :< b) => f a (m b) -> m (g a b)
 
 {-| This type represents a monadic term homomorphism. -}
-type TermHomM m f g = SigFunM m f (Cxt g)
+type TermHomM m f g a = SigFunM m f (Cxt g) a
 
 {-| This type represents a monadic term homomorphism. It is similar to
   'TermHomM' but has monadic values also in the domain. -}
-type TermHomM' m f g = SigFunM' m f (Cxt g)
+type TermHomM' m f g a = SigFunM' m f (Cxt g) a
 
 {-| Lift the given signature function to a monadic signature function. Note that
   term homomorphisms are instances of signature functions. Hence this function
   also applies to term homomorphisms. -}
-sigFunM :: Monad m => SigFun f g -> SigFunM m f g
+sigFunM :: Monad m => SigFun f g -> SigFunM m f g a
 sigFunM f = return . f
 
 {-| Lift the give monadic signature function to a monadic term homomorphism. -}
 termHom' :: (Difunctor f, Difunctor g, Monad m)
-         => SigFunM m f g -> TermHomM m f g
+         => SigFunM m f g a -> TermHomM m f g a
 termHom' f = liftM  (Term . fmap Hole) . f
 
 {-| Lift the given signature function to a monadic term homomorphism. -}
-termHomM :: (Difunctor g, Monad m) => SigFun f g -> TermHomM m f g
+termHomM :: (Difunctor g, Monad m) => SigFun f g -> TermHomM m f g a
 termHomM f = sigFunM $ termHom f
 
 {-| Apply a monadic term homomorphism recursively to a term/context. -}
-appTermHomM :: forall f g m. (Ditraversable f, Difunctor g, Monad m)
-            => TermHomM m f g -> CxtFunM m f g
+appTermHomM :: forall f g m a. (Ditraversable f m a, Difunctor g, Monad m)
+            => TermHomM m f g a -> CxtFunM m f g a
 {-# NOINLINE [1] appTermHomM #-}
 appTermHomM f = run
-    where run :: CxtFunM m f g
+    where run :: CxtFunM m f g a
           run (Hole x) = return (Hole x)
           run (Term t) = liftM appCxt (f =<< dimapM run t)
 
 {-| This function constructs the unique monadic homomorphism from the
   initial term algebra to the given term algebra. -}
-termHomM' :: forall f g m. (Difunctor f, Difunctor g, Monad m)
-          => TermHomM' m f g -> CxtFunM m f g
+termHomM' :: forall f g m a. (Difunctor f, Difunctor g, Monad m)
+          => TermHomM' m f g a -> CxtFunM m f g a
 termHomM' f = run 
-    where run :: CxtFunM m f g
+    where run :: CxtFunM m f g a
           run (Hole x) = return (Hole x)
           run (Term t) = liftM appCxt (f (fmap run t))
 
 {-| This function applies a monadic signature function to the given context. -}
-appSigFunM :: (Ditraversable f, Difunctor g, Monad m)
-           => SigFunM m f g -> CxtFunM m f g
+appSigFunM :: (Ditraversable f m a, Difunctor g, Monad m)
+           => SigFunM m f g a -> CxtFunM m f g a
 appSigFunM f = appTermHomM $ termHom' f
 
 {-| This function applies a signature function to the given context. -}
-appSigFunM' :: forall f g m. (Ditraversable f, Difunctor g, Monad m)
-            => SigFunM' m f g -> CxtFunM m f g
+appSigFunM' :: forall f g m a. (Ditraversable f m a, Difunctor g, Monad m)
+            => SigFunM' m f g a -> CxtFunM m f g a
 appSigFunM' f = run 
-    where run :: CxtFunM m f g
+    where run :: CxtFunM m f g a
           run (Hole x) = return (Hole x)
           run (Term t) = liftM Term (f (fmap run t))
 
 {-| Compose two monadic term homomorphisms. -}
-compTermHomM :: (Ditraversable g, Difunctor h, Monad m)
-             => TermHomM m g h -> TermHomM m f g -> TermHomM m f h
+compTermHomM :: (Ditraversable g m a, Difunctor h, Monad m)
+             => TermHomM m g h a -> TermHomM m f g a -> TermHomM m f h a
 compTermHomM f g = appTermHomM f <=< g
 
 {-| Compose a monadic algebra with a monadic term homomorphism to get a new
   monadic algebra. -}
-compAlgM :: (Ditraversable g, Monad m)
-         => AlgM m g a -> TermHomM m f g -> AlgM m f a
-compAlgM alg talg = cataM' alg <=< talg
+compAlgM :: (Ditraversable g m a, Monad m)
+         => AlgM m g a -> TermHomM m f g a -> AlgM m f a
+compAlgM alg talg = freeM alg return <=< talg
 
 {-| Compose a monadic algebra with a term homomorphism to get a new monadic
   algebra. -}
-compAlgM' :: (Ditraversable g, Monad m) => AlgM m g a -> TermHom f g -> AlgM m f a
-compAlgM' alg talg = cataM' alg . talg
+compAlgM' :: (Ditraversable g m a, Monad m) => AlgM m g a
+          -> TermHom f g -> AlgM m f a
+compAlgM' alg talg = freeM alg return . talg
 
 {-| This function composes two monadic signature functions. -}
-compSigFunM :: (Monad m) => SigFunM m g h -> SigFunM m f g -> SigFunM m f h
+compSigFunM :: Monad m => SigFunM m g h a -> SigFunM m f g a -> SigFunM m f h a
 compSigFunM f g a = g a >>= f
 
 

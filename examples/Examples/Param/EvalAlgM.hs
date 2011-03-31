@@ -2,18 +2,22 @@
   FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Examples.EvalM
+-- Module      :  Examples.Param.EvalAlgM
 -- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Monadic Expression Evaluation
+-- Monadic Expression Evaluation w/o PHOAS
 --
--- The example illustrates how to use compositional data types to implement
--- a small expression language, with a sub language of values, and a monadic
--- evaluation function mapping expressions to values.
+-- The example illustrates how to use parametric compositional data types to
+-- implement a small expression language, with a sub language of values, and a
+-- monadic evaluation function mapping expressions to values. The lack for PHOAS
+-- means that -- unlike the example in 'Examples.Param.EvalM' -- a monadic
+-- algebra can be used.
+--
+-- The example is similar to the example from 'Examples.EvalM'.
 --
 -- The following language extensions are needed in order to run the example:
 -- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
@@ -21,22 +25,23 @@
 --
 --------------------------------------------------------------------------------
 
-module Examples.EvalM where
+module Examples.Param.EvalAlgM where
 
-import Data.Comp
-import Data.Comp.Derive
+import Data.Comp.Param
+import Data.Comp.Param.Traversable
+import Data.Comp.Param.Derive
 import Control.Monad (liftM)
 
 -- Signature for values and operators
-data Value e = Const Int | Pair e e
-data Op e = Add e e | Mult e e | Fst e | Snd e
+data Value a e = Const Int | Pair e e
+data Op a e = Add e e | Mult e e | Fst e | Snd e
 
 -- Signature for the simple expression language
 type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell
-$(derive [instanceFunctor, instanceTraversable, instanceFoldable,
-          instanceEqF, instanceShowF, smartConstructors]
+$(derive [instanceDifunctor, instanceTraversable, instanceFoldable,
+          instanceEqD, instanceShowD, smartConstructors]
          [''Value, ''Op])
 
 -- Monadic term evaluation algebra
@@ -48,11 +53,12 @@ instance (EvalM f v, EvalM g v) => EvalM (f :+: g) v where
   evalAlgM (Inr x) = evalAlgM x
 
 -- Lift the monadic evaluation algebra to a monadic catamorphism
-evalM :: (Traversable f, EvalM f v) => Term f -> Maybe (Term v)
+evalM :: (Ditraversable f Maybe (Term v), EvalM f v) => Term f -> Maybe (Term v)
 evalM = cataM evalAlgM
 
 instance (Value :<: v) => EvalM Value v where
-  evalAlgM = return . inject
+  evalAlgM (Const n) = return $ iConst n
+  evalAlgM (Pair x y) = return $ iPair x y
 
 instance (Value :<: v) => EvalM Op v where
   evalAlgM (Add x y)  = do n1 <- projC x

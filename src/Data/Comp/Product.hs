@@ -22,6 +22,7 @@ module Data.Comp.Product
       liftP',
       stripP,
       productTermHom,
+      productTermHomM,
       constP,
       project'
     )where
@@ -58,8 +59,16 @@ stripP = appSigFun removeP
 {-| Lift a term homomorphism over signatures @f@ and @g@ to a term homomorphism
  over the same signatures, but extended with products. -}
 productTermHom :: (DistProd f p f', DistProd g p g', Functor g, Functor g') 
-            => TermHom f g -> TermHom f' g'
+               => TermHom f g -> TermHom f' g'
 productTermHom alg f' = constP p (alg f)
+    where (f,p) = projectP f'
+
+{-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
+  term homomorphism over the same signatures, but extended with products. -}
+productTermHomM :: (DistProd f p f', DistProd g p g',
+                    Functor g, Functor g', Monad m) 
+               => TermHomM m f g -> TermHomM m f' g'
+productTermHomM alg f' = liftM (constP p) (alg f)
     where (f,p) = projectP f'
 
 {-| Annotate each node of a term with a constant value. -}
