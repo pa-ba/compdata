@@ -28,7 +28,7 @@
 module Examples.Param.EvalAlgM where
 
 import Data.Comp.Param
-import Data.Comp.Param.Traversable
+import Data.Comp.Param.Ditraversable
 import Data.Comp.Param.Derive
 import Control.Monad (liftM)
 

@@ -21,7 +21,7 @@ module Data.Comp.Param.Ordering
 
 import Data.Comp.Param.Term
 import Data.Comp.Param.Sum
-import Data.Comp.Param.Functor
+import Data.Comp.Param.Difunctor
 import Data.Comp.Param.FreshM
 import Data.Comp.Param.Equality
 

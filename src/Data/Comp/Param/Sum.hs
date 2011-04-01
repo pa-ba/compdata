@@ -48,7 +48,9 @@ module Data.Comp.Param.Sum
      injectConst3,
      projectConst,
      injectCxt,
-     liftCxt
+     liftCxt,
+     substHoles,
+     substHoles'
     ) where
 
 import Prelude hiding (sequence)
@@ -56,8 +58,11 @@ import Control.Monad hiding (sequence)
 import Data.Comp.Param.Term
 import Data.Comp.Param.Algebra
 import Data.Comp.Param.Ops
-import Data.Comp.Param.Functor
-import Data.Comp.Param.Traversable
+import Data.Comp.Param.Difunctor
+import Data.Comp.Param.Ditraversable
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Maybe (fromJust)
 
 {-| A variant of 'proj' for binary sum signatures.  -}
 proj2 :: forall f g1 g2 a e. (g1 :<: f, g2 :<: f) => f a e
@@ -206,6 +211,22 @@ injectCxt (Term t) = inject $ fmap injectCxt t
 {-| This function lifts the given functor to a context. -}
 liftCxt :: (Difunctor f, g :<: f) => g a b -> Cxt f a b
 liftCxt g = simpCxt $ inj g
+
+{-| This function applies the given context with hole type @b@ to a family @f@
+  of contexts (possibly terms) indexed by @b@. That is, each hole @h@ is
+  replaced by the context @f h@. -}
+substHoles :: (Difunctor f, Difunctor g, f :<: g)
+           => Cxt f a b -> (b -> Cxt g a c) -> Cxt g a c
+substHoles c f = injectCxt $ fmap f c
+
+{-| Variant of 'substHoles' using 'Map's. -}
+substHoles' :: (Difunctor f, Difunctor g, f :<: g, Ord v)
+            => Cxt f p v -> Map v (Cxt g p a) -> Cxt g p a
+substHoles' c m = substHoles c (fromJust . (`Map.lookup`  m))
+
+instance Difunctor f => Monad (Cxt f a) where
+    return = Hole
+    (>>=) = substHoles
 
 instance (Show (f a e), Show (g a e)) => Show ((f :+: g) a e) where
     show (Inl v) = show v

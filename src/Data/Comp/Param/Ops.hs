@@ -15,8 +15,8 @@
 
 module Data.Comp.Param.Ops where
 
-import Data.Comp.Param.Functor
-import Data.Comp.Param.Traversable
+import Data.Comp.Param.Difunctor
+import Data.Comp.Param.Ditraversable
 import Control.Monad (liftM)
 
 

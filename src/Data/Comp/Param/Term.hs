@@ -1,5 +1,5 @@
-{-# LANGUAGE EmptyDataDecls, RankNTypes, TypeOperators, FlexibleInstances,
-  MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes, TypeOperators, FlexibleInstances,
+  MultiParamTypeClasses, IncoherentInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Term
@@ -21,18 +21,13 @@ module Data.Comp.Param.Term
      Const,
      simpCxt,
      toCxt,
-     constTerm,
-     substHoles,
-     substHoles'
+     constTerm
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
-import Data.Comp.Param.Functor
-import Data.Comp.Param.Traversable
-import Data.Comp.Param.Ops
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Data.Maybe (fromJust)
+import Data.Comp.Param.Sub
+import Data.Comp.Param.Difunctor
+import Data.Comp.Param.Ditraversable (Nothing)
 import Unsafe.Coerce
 
 {-| This data type represents contexts over a signature. Contexts are terms
@@ -41,13 +36,6 @@ import Unsafe.Coerce
   parameter is the type of holes. (For terms, the type of parameters and the
   type of holes are identical.) -}
 data Cxt f a b = Term (f a (Cxt f a b)) | Hole b
-
-{-| Phantom type used to define 'Term'.  -}
-data Nothing
-
-instance Eq Nothing where
-instance Ord Nothing where
-instance Show Nothing where
 
 {-| A (parametrized) term is a context with no /free/ holes, where all
   occurrences of the contravariant parameter is fully parametric. The type
@@ -76,28 +64,11 @@ type Const f = f Nothing ()
 constTerm :: Difunctor f => Const f -> Term f
 constTerm = Term . fmap (const undefined)
 
-{-| This function applies the given context with hole type @b@ to a family @f@
-  of contexts (possibly terms) indexed by @b@. That is, each hole @h@ is
-  replaced by the context @f h@. -}
-substHoles :: (Difunctor f, Difunctor g, f :<: g)
-           => Cxt f a b -> (b -> Cxt g a c) -> Cxt g a c
-substHoles c f = injectCxt $ fmap f c
-    where injectCxt (Hole x) = x
-          injectCxt (Term t) = Term . inj $ fmap injectCxt t
-
-{-| Variant of 'substHoles' using 'Map's. -}
-substHoles' :: (Difunctor f, Difunctor g, f :<: g, Ord v)
-            => Cxt f p v -> Map v (Cxt g p a) -> Cxt g p a
-substHoles' c m = substHoles c (fromJust . (`Map.lookup`  m))
-
 instance Difunctor f => Difunctor (Cxt f) where
     dimap _ g (Hole v) = Hole $ g v
     dimap f g (Term t) = Term $ dimap f (dimap f g) t
 
-instance Difunctor f => Monad (Cxt f a) where
-    return = Hole
-    (>>=) = substHoles
-
-instance Ditraversable (->) Maybe Nothing where
-    disequence f = do _ <- f undefined
-                      return $ \x -> fromJust $ f x
+{-| If @a@ can be coerced into @b@ then @a@ can be coerced into any context with
+  holes of type @b@. -}
+instance (a :< b) => (:<) a (Cxt f c b) where
+    coerce = Hole . coerce

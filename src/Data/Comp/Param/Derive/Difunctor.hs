@@ -8,21 +8,21 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Automatically derive instances of @HFunctor@.
+-- Automatically derive instances of @Difunctor@.
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Param.Derive.Functor
+module Data.Comp.Param.Derive.Difunctor
     (
      Difunctor,
      instanceDifunctor
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.Param.Functor
+import Data.Comp.Param.Difunctor
 import Language.Haskell.TH
 
-{-| Derive an instance of 'DiFunctor' for a type constructor of any parametric
+{-| Derive an instance of 'Difunctor' for a type constructor of any parametric
   kind taking at least two arguments. -}
 instanceDifunctor :: Name -> Q [Dec]
 instanceDifunctor fname = do

@@ -1,7 +1,7 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Param.Functor
+-- Module      :  Data.Comp.Param.Difunctor
 -- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
@@ -14,7 +14,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Param.Functor
+module Data.Comp.Param.Difunctor
     (
      Difunctor (..)
     ) where

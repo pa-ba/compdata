@@ -26,7 +26,7 @@ module Data.Comp.Param.Derive
      -- ** ShowD
      module Data.Comp.Param.Derive.Show,
      -- ** Difunctor
-     module Data.Comp.Param.Derive.Functor,
+     module Data.Comp.Param.Derive.Difunctor,
      -- ** Foldable
      module Data.Comp.Derive.Foldable,
      -- ** Traversable
@@ -39,7 +39,7 @@ import Data.Comp.Derive.Utils (derive)
 import Data.Comp.Param.Derive.Equality
 import Data.Comp.Param.Derive.Ordering
 import Data.Comp.Param.Derive.Show
-import Data.Comp.Param.Derive.Functor
+import Data.Comp.Param.Derive.Difunctor
 import Data.Comp.Derive.Foldable
 import Data.Comp.Derive.Traversable
 import Data.Comp.Param.Derive.SmartConstructors

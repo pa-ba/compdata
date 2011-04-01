@@ -20,7 +20,8 @@ module Data.Comp.Param.Show
 
 import Data.Comp.Param.Term
 import Data.Comp.Param.Sum
-import Data.Comp.Param.Functor
+import Data.Comp.Param.Ops
+import Data.Comp.Param.Difunctor
 import Data.Comp.Param.FreshM
 
 -- |Printing of parametric values.
@@ -56,3 +57,8 @@ instance (ShowD f, PShow a) => PShow (Cxt f Var a) where
 
 instance (Difunctor f, ShowD f) => Show (Term f) where
     show x = evalFreshM $ showD $ toCxt x
+
+instance (ShowD f, PShow p) => ShowD (f :&: p) where
+    showD (x :&: p) = do sx <- showD x
+                         sp <- pshow p
+                         return $ sx ++ " :&: " ++ sp

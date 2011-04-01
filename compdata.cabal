@@ -119,6 +119,7 @@ extra-source-files:
   examples/Param/EvalM.hs
   examples/Param/EvalAlgM.hs
   examples/Param/DesugarEval.hs
+  examples/Param/DesugarPos.hs
 
 flag test
   description: Build test executable.
@@ -147,8 +148,8 @@ library
                         Data.Comp.Multi.Derive
                         Data.Comp.Param, Data.Comp.Param.Term,
                         Data.Comp.Param.Sub,
-                        Data.Comp.Param.Sum, Data.Comp.Param.Functor,
-                        Data.Comp.Param.Traversable,
+                        Data.Comp.Param.Sum, Data.Comp.Param.Difunctor,
+                        Data.Comp.Param.Ditraversable,
                         Data.Comp.Param.Algebra,
                         Data.Comp.Param.Product, Data.Comp.Param.Ops
                         Data.Comp.Param.Equality
@@ -168,7 +169,7 @@ library
                         Data.Comp.Multi.Derive.Equality,
                         Data.Comp.Multi.Derive.Show,
                         Data.Comp.Multi.Derive.SmartConstructors
-                        Data.Comp.Param.Derive.Functor,
+                        Data.Comp.Param.Derive.Difunctor,
                         Data.Comp.Param.Derive.Equality,
                         Data.Comp.Param.Derive.Ordering,
                         Data.Comp.Param.Derive.Show,

@@ -25,6 +25,3 @@ class a :< b where
 
 instance (:<) a a where
     coerce = id
-
-instance (Monad m, a :< b) => (:<) a (m b) where
-    coerce = return . coerce
