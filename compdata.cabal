@@ -1,5 +1,5 @@
 Name:			compdata
-Version:		0.2
+Version:		0.3
 Synopsis:            	Compositional Data Types
 Description:
 
@@ -153,8 +153,10 @@ library
                         Data.Comp.Multi.Equality, Data.Comp.Multi.Variables,
                         Data.Comp.Multi.Ops, Data.Comp.Ops,
                         Data.Comp.Multi.Derive
+                        Data.Comp.Multi.Generic
                         Data.Comp.Param, Data.Comp.Param.Term,
                         Data.Comp.Param.Sub,
+                        Data.Comp.Param.FreshM,
                         Data.Comp.Param.Sum, Data.Comp.Param.Difunctor,
                         Data.Comp.Param.Ditraversable,
                         Data.Comp.Param.Algebra,
