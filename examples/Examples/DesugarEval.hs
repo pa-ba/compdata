@@ -55,13 +55,13 @@ instance (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
   desugHom' (Inl x) = desugHom' x
   desugHom' (Inr x) = desugHom' x
 
-instance (Value :<: v, Functor v) => Desugar Value v where
+instance (Value :<: f, Functor f) => Desugar Value f where
   desugHom = simpCxt . inj
 
-instance (Op :<: v, Functor v) => Desugar Op v where
+instance (Op :<: f, Functor f) => Desugar Op f where
   desugHom = simpCxt . inj
 
-instance (Op :<: v, Value :<: v, Functor v) => Desugar Sugar v where
+instance (Op :<: f, Value :<: f, Functor f) => Desugar Sugar f where
   desugHom' (Neg x)  = iConst (-1) `iMult` x
   desugHom' (Swap x) = iSnd x `iPair` iFst x
 

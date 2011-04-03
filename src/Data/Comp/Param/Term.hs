@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, TypeOperators, FlexibleInstances,
+{-# LANGUAGE RankNTypes, TypeOperators, FlexibleInstances, EmptyDataDecls,
   MultiParamTypeClasses, IncoherentInstances #-}
 --------------------------------------------------------------------------------
 -- |
@@ -19,6 +19,7 @@ module Data.Comp.Param.Term
      Nothing,
      Term,
      Const,
+     hole,
      simpCxt,
      toCxt,
      constTerm
@@ -27,15 +28,31 @@ module Data.Comp.Param.Term
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 import Data.Comp.Param.Sub
 import Data.Comp.Param.Difunctor
-import Data.Comp.Param.Ditraversable (Nothing)
+import Data.Comp.Param.Ditraversable
+import Data.Maybe (fromJust)
 import Unsafe.Coerce
 
 {-| This data type represents contexts over a signature. Contexts are terms
   containing zero or more holes. The first parameter is the signature of the
-  context. The second parameter is the type of parameters, and the third
-  parameter is the type of holes. (For terms, the type of parameters and the
-  type of holes are identical.) -}
-data Cxt f a b = Term (f a (Cxt f a b)) | Hole b
+  context, in the form of a "Data.Comp.Param.Difunctor". The second parameter is the type of
+  parameters, and the third parameter is the type of holes. (For terms, the type
+  of parameters and the type of holes are identical.) -}
+data Cxt f a b = Term (f a (Cxt f a b))
+               | Hole b
+
+{-| Smart constructor for 'Hole's. Automatically coerces the input before it
+ is put inside a hole. -}
+hole :: (c :< b) => c -> Cxt g a b
+hole = Hole . coerce
+
+{-| An empty type. @Nothing@ is used to emulate parametricity, e.g. a function
+  @Nothing -> a[Nothing]@ is equivalent with @forall b. b -> a[b]@, but the
+  former avoids the impredicative typing extension. -}
+data Nothing
+
+instance Eq Nothing where
+instance Ord Nothing where
+instance Show Nothing where
 
 {-| A (parametrized) term is a context with no /free/ holes, where all
   occurrences of the contravariant parameter is fully parametric. The type
@@ -64,11 +81,14 @@ type Const f = f Nothing ()
 constTerm :: Difunctor f => Const f -> Term f
 constTerm = Term . fmap (const undefined)
 
-instance Difunctor f => Difunctor (Cxt f) where
-    dimap _ g (Hole v) = Hole $ g v
-    dimap f g (Term t) = Term $ dimap f (dimap f g) t
-
 {-| If @a@ can be coerced into @b@ then @a@ can be coerced into any context with
   holes of type @b@. -}
 instance (a :< b) => (:<) a (Cxt f c b) where
     coerce = Hole . coerce
+
+{-| Functions of the type @Nothing -> Maybe a@ can be turned into functions of
+ type @Maybe (Nothing -> a)@. The empty type @Nothing@ ensures that the function
+ is parametric in the input, and hence the @Maybe@ monad can be pulled out. -}
+instance Ditraversable (->) Maybe Nothing where
+    disequence f = do _ <- f undefined
+                      return $ \x -> fromJust $ f x

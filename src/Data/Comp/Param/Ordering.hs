@@ -49,8 +49,8 @@ instance (OrdD f, OrdD g) => OrdD (f :+: g) where
     compareD (Inr x) (Inr y) = compareD x y
     compareD (Inr _) (Inl _) = return GT
 
-{-| From an 'OrdD' functor an 'Ord' instance of the corresponding term type can
-  be derived. -}
+{-| From an 'OrdD' difunctor an 'Ord' instance of the corresponding term type
+  can be derived. -}
 instance OrdD f => OrdD (Cxt f) where
     compareD (Term e1) (Term e2) = compareD e1 e2
     compareD (Hole h1) (Hole h2) = pcompare h1 h2
@@ -58,7 +58,8 @@ instance OrdD f => OrdD (Cxt f) where
     compareD (Hole _) (Term _) = return GT
 
 instance (OrdD f, POrd a) => POrd (Cxt f Var a) where
-    pcompare x y = compareD x y
+    pcompare = compareD
 
+{-| Ordering of terms. -}
 instance (Difunctor f, OrdD f) => Ord (Term f) where
     compare x y = evalFreshM $ compareD (toCxt x) (toCxt y)

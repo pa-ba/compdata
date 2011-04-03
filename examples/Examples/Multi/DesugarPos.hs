@@ -54,7 +54,7 @@ type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 
 -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
-          instanceHEqF, instanceHShowF, smartConstructors]
+          instanceHEqF, instanceHShowF, smartConstructors, smartPConstructors]
          [''Value, ''Op, ''Sugar])
 
 -- Term homomorphism for desugaring of terms
@@ -92,28 +92,13 @@ desugEx = desug $ iSwap $ iPair (iConst 1) (iConst 2)
 desugP :: Term SigP' :-> Term SigP
 desugP = appTermHom (productTermHom desugHom)
 
-iSwapP :: (DistProd f p f', Sugar :<: f) => p -> Term f' (a,b) -> Term f' (b,a)
-iSwapP p x = Term (injectP p $ inj $ Swap x)
-
-iConstP :: (DistProd f p f', Value :<: f) => p -> Int -> Term f' Int
-iConstP p x = Term (injectP p $ inj $ Const x)
-
-iPairP :: (DistProd f p f', Value :<: f) => p -> Term f' a -> Term f' b -> Term f' (a,b)
-iPairP p x y = Term (injectP p $ inj $ Pair x y)
-
-iFstP :: (DistProd f p f', Op :<: f) => p -> Term f' (a,b) -> Term f' a
-iFstP p x = Term (injectP p $ inj $ Fst x)
-
-iSndP :: (DistProd f p f', Op :<: f) => p -> Term f' (a,b) -> Term f' b
-iSndP p x = Term (injectP p $ inj $ Snd x)
-
--- Example: desugPEx = iPairP (Pos 1 0)
---                            (iSndP (Pos 1 0) (iPairP (Pos 1 1)
---                                                     (iConstP (Pos 1 2) 1)
---                                                     (iConstP (Pos 1 3) 2)))
---                            (iFstP (Pos 1 0) (iPairP (Pos 1 1)
---                                                     (iConstP (Pos 1 2) 1)
---                                                     (iConstP (Pos 1 3) 2)))
+-- Example: desugPEx = iPPair (Pos 1 0)
+--                            (iPSnd (Pos 1 0) (iPPair (Pos 1 1)
+--                                                     (iPConst (Pos 1 2) 1)
+--                                                     (iPConst (Pos 1 3) 2)))
+--                            (iPFst (Pos 1 0) (iPPair (Pos 1 1)
+--                                                     (iPConst (Pos 1 2) 1)
+--                                                     (iPConst (Pos 1 3) 2)))
 desugPEx :: Term SigP (Int,Int)
-desugPEx = desugP $ iSwapP (Pos 1 0) (iPairP (Pos 1 1) (iConstP (Pos 1 2) 1)
-                                                       (iConstP (Pos 1 3) 2))
+desugPEx = desugP $ iPSwap (Pos 1 0) (iPPair (Pos 1 1) (iPConst (Pos 1 2) 1)
+                                                       (iPConst (Pos 1 3) 2))

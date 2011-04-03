@@ -106,7 +106,7 @@ import Data.Comp.Param.Ditraversable
 {-| This type represents an algebra over a difunctor @f@ and carrier @a@. -}
 type Alg f a = f a a -> a
 
-{-| Construct a catamorphism for contexts over @f@ with holes of type @a@, from
+{-| Construct a catamorphism for contexts over @f@ with holes of type @b@, from
   the given algebra. -}
 free :: forall f a b c. Difunctor f
      => (f a c -> c) -> (b -> c) -> Cxt f a b -> c
@@ -304,6 +304,9 @@ compSigFunM f g a = g a >>= f
 
 -- |Constant difunctor.
 data K b a e = K b
+
+instance Difunctor (K b) where
+    dimap _ _ (K x) = K x
 
 {-| This type represents a coalgebra over a difunctor @f@ and carrier @a@. The
  list of @b@s represent the free variables that may occur in the constructed

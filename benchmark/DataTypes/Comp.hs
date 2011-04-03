@@ -38,13 +38,6 @@ type SugarExpr = Term SugarSig
 type BaseTypeSig = ValueT
 type BaseType = Term BaseTypeSig
 
-type HOASValueSig = Value :+: Lam
-type HOASValueExpr = Term HOASValueSig
-type HOASExprSig = Value :+: Lam :+: App :+: Op
-type HOASExpr = Term HOASExprSig
-type HOASBaseTypeSig = ValueT :+: FunT
-type HOASBaseType = Term HOASBaseTypeSig
-
 data ValueT e = TInt
               | TBool
               | TPair e e
@@ -75,28 +68,12 @@ data Sugar e = Neg e
              | Impl e e
                deriving (Eq, Functor)
 
-data FunT e = TFun e e
-              deriving (Eq, Functor)
-
-data Lam e = Lam (e -> e)
-
-data App e = App e e
-             deriving (Eq, Functor)
-
 $(derive [instanceNFData, instanceArbitrary] [''Proj])
 
 $(derive
   [instanceFoldable, instanceTraversable,
    instanceEqF, instanceNFDataF, instanceArbitraryF, smartConstructors]
-  [''Value, ''Op, ''Sugar, ''ValueT, ''FunT, ''App])
-
-$(derive [smartConstructors] [''Lam])
-
-instance EqF Lam where
-    eqF _ _ = False
-
-instance NFDataF Lam where
-    rnfF (Lam f) = f `seq` ()
+  [''Value, ''Op, ''Sugar, ''ValueT])
 
 showBinOp :: String -> String -> String -> String
 showBinOp op x y = "("++ x ++ op ++ y ++ ")"
@@ -129,16 +106,6 @@ instance ShowF Sugar where
     showF (Gt x y) = "(" ++ x ++ ">" ++ y ++ ")"
     showF (Or x y) = "(" ++ x ++ "||" ++ y ++ ")"
     showF (Impl x y) = "(" ++ x ++ "->" ++ y ++ ")"
-
-instance ShowF Lam where 
-    showF (Lam f) = "\\x. " ++ f "x"
-
-instance ShowF App where 
-    showF (App x y) = x ++ " " ++ y
-
-instance ShowF FunT where 
-    showF (TFun x y) = x ++ " -> " ++ y
-
 
 class GenTyped f where
     genTypedAlg :: CoalgM Gen f BaseType

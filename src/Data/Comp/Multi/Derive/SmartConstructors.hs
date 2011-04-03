@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Derive.SmartConstructors
@@ -14,7 +13,9 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Multi.Derive.SmartConstructors 
-    (smartConstructors) where
+    (
+     smartConstructors
+    ) where
 
 import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils

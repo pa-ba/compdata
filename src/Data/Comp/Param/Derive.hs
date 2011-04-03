@@ -32,7 +32,9 @@ module Data.Comp.Param.Derive
      -- ** Traversable
      module Data.Comp.Derive.Traversable,
      -- ** Smart Constructors
-     module Data.Comp.Param.Derive.SmartConstructors
+     module Data.Comp.Param.Derive.SmartConstructors,
+     -- ** Smart Constructors w/ Products
+     module Data.Comp.Param.Derive.SmartPConstructors
     ) where
 
 import Data.Comp.Derive.Utils (derive)
@@ -43,3 +45,4 @@ import Data.Comp.Param.Derive.Difunctor
 import Data.Comp.Derive.Foldable
 import Data.Comp.Derive.Traversable
 import Data.Comp.Param.Derive.SmartConstructors
+import Data.Comp.Param.Derive.SmartPConstructors

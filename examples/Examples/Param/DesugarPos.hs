@@ -51,16 +51,14 @@ type Sig' = Sug :+: Sug
 type SigP' = Sug :&: Pos :+: SigP
 
 -- Derive boilerplate code using Template Haskell
-$(derive [instanceDifunctor, instanceEqD, instanceShowD, smartConstructors]
+$(derive [instanceDifunctor, instanceEqD, instanceShowD,
+          smartConstructors, smartPConstructors]
          [''Const, ''Lam, ''App, ''Op, ''Sug])
--- $(derive [instanceFoldable, instanceTraversable]
---          [''Const, ''App, ''Op])
--- $(derive [smartConstructors] [''Fun])
 
 -- Term homomorphism for desugaring of terms
 class (Difunctor f, Difunctor g) => Desugar f g where
   desugHom :: TermHom f g
-  desugHom = desugHom' . fmap Hole
+  desugHom = desugHom' . fmap hole
   desugHom' :: (a :< b) => f a (Cxt g a b) -> Cxt g a b
   desugHom' x = appCxt (desugHom x)
 
@@ -77,34 +75,34 @@ instance (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
   desugHom' (Inl x) = desugHom' x
   desugHom' (Inr x) = desugHom' x
 
-instance (Op :<: v, Difunctor v) => Desugar Op v where
+instance (Op :<: f, Difunctor f) => Desugar Op f where
   desugHom = simpCxt . inj
 
-instance (Const :<: v, Difunctor v) => Desugar Const v where
+instance (Const :<: f, Difunctor f) => Desugar Const f where
   desugHom = simpCxt . inj
 
-instance (Lam :<: v, Difunctor v) => Desugar Lam v where
+instance (Lam :<: f, Difunctor f) => Desugar Lam f where
   desugHom = simpCxt . inj
 
-instance (App :<: v, Difunctor v) => Desugar App v where
+instance (App :<: f, Difunctor f) => Desugar App f where
   desugHom = simpCxt . inj
 
-instance (Op :<: v, Const :<: v, Lam :<: v, App :<: v, Difunctor v)
-  => Desugar Sug v where
+instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
+  => Desugar Sug f where
   desugHom' (Neg x)   = iConst (-1) `iMult` x
   desugHom' (Let x y) = iLam y `iApp` x
   desugHom' Fix       = iLam $ \f ->
                            (iLam $ \x -> hole f `iApp` (hole x `iApp` hole x))
                            `iApp`
                            (iLam $ \x -> hole f `iApp` (hole x `iApp` hole x))
-                               where hole = Hole . coerce
 
-iLamP :: (DistProd f p f', Lam :<: f) => p -> (a -> Cxt f' a b) -> Cxt f' a b
-iLamP p x = Term (injectP p $ inj $ Lam x)
-
-iLetP p a b = Term (injectP p $ inj $ Let a b)
-
-iFixP p = Term (injectP p $ inj Fix)
-
+-- Example: desugPEx == iPApp (Pos 1 0)
+--          (iPLam (Pos 1 0) hole)
+--          (iPLam (Pos 1 1) $ \f ->
+--               iPApp (Pos 1 1)
+--                     (iPLam (Pos 1 1) $ \x ->
+--                          iPApp (Pos 1 1) (hole f) (iPApp (Pos 1 1) (hole x) (hole x)))
+--                     (iPLam (Pos 1 1) $ \x ->
+--                          iPApp (Pos 1 1) (hole f) (iPApp (Pos 1 1) (hole x) (hole x))))
 desugPEx :: Term SigP
-desugPEx = desugP $ iLetP (Pos 1 0) (iFixP (Pos 1 1)) Hole
+desugPEx = desugP $ iPLet (Pos 1 0) (iPFix (Pos 1 1)) hole

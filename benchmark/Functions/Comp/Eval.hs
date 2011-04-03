@@ -163,11 +163,6 @@ coercePair2 t = case project t of
                 Just (VPair x y) -> (x,y)
                 _ -> undefined
 
-coerceLam2 :: (Lam :<: v) => Term v -> Term v -> Term v
-coerceLam2 t = case project t of
-                Just (Lam f) -> f
-                _ -> undefined
-
 instance (Value :<: v, EqF v) => Eval2 Op v where
     eval2Alg (Plus x y) = (\ i j -> iVInt (i + j)) (coerceInt2 x) (coerceInt2 y)
     eval2Alg (Mult x y) = (\ i j -> iVInt (i * j)) (coerceInt2 x) (coerceInt2 y)

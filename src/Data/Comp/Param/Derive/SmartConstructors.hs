@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Derive.SmartConstructors
@@ -14,13 +13,14 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Param.Derive.SmartConstructors 
-    (smartConstructors) where
+    (
+     smartConstructors
+    ) where
 
 import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
 import Data.Comp.Param.Sum
 import Data.Comp.Param.Term
-
 import Control.Monad
 
 {-| Derive smart constructors for a type constructor of any parametric kind

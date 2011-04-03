@@ -39,6 +39,8 @@ module Data.Comp.Derive
      module Data.Comp.Derive.DeepSeq,
      -- ** Smart Constructors
      module Data.Comp.Derive.SmartConstructors,
+     -- ** Smart Constructors w/ Products
+     module Data.Comp.Derive.SmartPConstructors
     ) where
 
 import Control.DeepSeq (NFData(..))
@@ -51,6 +53,7 @@ import Data.Comp.Derive.Ordering
 import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Arbitrary
 import Data.Comp.Derive.SmartConstructors
+import Data.Comp.Derive.SmartPConstructors
 
 import Language.Haskell.TH
 

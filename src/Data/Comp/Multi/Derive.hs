@@ -30,7 +30,9 @@ module Data.Comp.Multi.Derive
      -- ** HTraversable
      module Data.Comp.Multi.Derive.Traversable,
      -- ** Smart Constructors
-     module Data.Comp.Multi.Derive.SmartConstructors
+     module Data.Comp.Multi.Derive.SmartConstructors,
+     -- ** Smart Constructors w/ Products
+     module Data.Comp.Multi.Derive.SmartPConstructors
     ) where
 
 import Data.Comp.Derive.Utils (derive)
@@ -40,3 +42,4 @@ import Data.Comp.Multi.Derive.Functor
 import Data.Comp.Multi.Derive.Foldable
 import Data.Comp.Multi.Derive.Traversable
 import Data.Comp.Multi.Derive.SmartConstructors
+import Data.Comp.Multi.Derive.SmartPConstructors

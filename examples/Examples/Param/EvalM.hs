@@ -105,5 +105,5 @@ evalMG = deepProject' <=< (evalM :: Term Sig -> Maybe (Term Value))
 -- Example: evalEx = Just (iConst 12) (3 * (2 + 2) = 12)
 evalMEx :: Maybe (Term GValue)
 evalMEx = evalMG $ (iLam $ \x -> iLam $ \y ->
-                                 Hole y `iMult` (Hole x `iAdd` Hole x))
+                                 hole y `iMult` (hole x `iAdd` hole x))
                    `iApp` iConst 2 `iApp` iConst 3

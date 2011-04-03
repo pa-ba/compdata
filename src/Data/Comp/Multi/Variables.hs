@@ -86,11 +86,11 @@ varsToHoles t = unC (cata alg t) []
                 Just v ->
                     -- Check for capture-avoidance
                     if v `elem` vars' then
-                        Term $ hfmap (\x -> unC x vars') t
+                        Term $ hfmap (`unC` vars') t
                     else
                         Hole $ K v
                 Nothing ->
-                    Term $ hfmap (\x -> unC x vars') t
+                    Term $ hfmap (`unC` vars') t
 
 containsVarAlg :: (Eq v, HasVars f v, HFoldable f) => v -> Alg f (K Bool)
 containsVarAlg v t = K $ v `notElem` bindsVars t &&

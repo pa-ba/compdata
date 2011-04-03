@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Signature
@@ -14,15 +13,14 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Derive.SmartConstructors 
-    (smartConstructors) where
-
-
+    (
+     smartConstructors
+    ) where
 
 import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
 import Data.Comp.Sum
 import Data.Comp.Term
-
 import Control.Monad
 
 {-| Derive smart constructors for a type constructor of any first-order kind

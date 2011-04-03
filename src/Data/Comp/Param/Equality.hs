@@ -24,7 +24,8 @@ import Data.Comp.Param.Sum
 import Data.Comp.Param.Difunctor
 import Data.Comp.Param.FreshM
 
--- |Equality on parametric values.
+-- |Equality on parametric values. The equality test is performed inside the
+-- 'FreshM' monad for generating fresh identifiers.
 class PEq a where
     peq :: a -> a -> FreshM Bool
 
@@ -32,7 +33,8 @@ instance Eq a => PEq a where
     peq x y = return $ x == y
 
 {-| Signature equality. An instance @EqD f@ gives rise to an instance
-  @Eq (Term f)@. -}
+  @Eq (Term f)@. The equality test is performed inside the 'FreshM' monad for
+  generating fresh identifiers. -}
 class EqD f where
     eqD :: PEq a => f Var a -> f Var a -> FreshM Bool
 
@@ -47,7 +49,7 @@ instance (EqD f, EqD g) => EqD (f :+: g) where
     eqD (Inr x) (Inr y) = eqD x y
     eqD _ _ = return False
 
-{-| From an 'EqD' functor an 'Eq' instance of the corresponding term type can
+{-| From an 'EqD' difunctor an 'Eq' instance of the corresponding term type can
   be derived. -}
 instance EqD f => EqD (Cxt f) where
     eqD (Term e1) (Term e2) = eqD e1 e2
@@ -55,7 +57,8 @@ instance EqD f => EqD (Cxt f) where
     eqD _ _ = return False
 
 instance (EqD f, PEq a) => PEq (Cxt f Var a) where
-    peq x y = eqD x y
+    peq = eqD
 
+{-| Equality on terms. -}
 instance (Difunctor f, EqD f) => Eq (Term f) where
     (==) x y = evalFreshM $ eqD (toCxt x) (toCxt y)

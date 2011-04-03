@@ -145,7 +145,7 @@ instance (Ord v, HasVars f v, Functor f)
             where substAlg :: (HasVars f v) => (v -> Maybe (Cxt h f a))
                            -> Alg f (Cxt h f a)
                   substAlg f t = fromMaybe (Term t) (isVar t >>= f)
-                  res :: Eq v => [v] -> (v -> Maybe t) -> (v -> Maybe t)
+                  res :: Eq v => [v] -> (v -> Maybe t) -> v -> Maybe t
                   res vars f x = if x `elem` vars then Nothing else f x
 
 instance (SubstVars v t a, Functor f) => SubstVars v t (f a) where

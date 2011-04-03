@@ -87,4 +87,4 @@ evalG = deepProject' . (eval :: Term Sig -> Term Value)
 
 -- Example: evalEx = Just (iConst 4)
 evalEx :: Maybe (Term GValue)
-evalEx = evalG $ (iLam $ \x -> Hole x `iAdd` Hole x) `iApp` iConst 2
+evalEx = evalG $ (iLam $ \x -> hole x `iAdd` hole x) `iApp` iConst 2

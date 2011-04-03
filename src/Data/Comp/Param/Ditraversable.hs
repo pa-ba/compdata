@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes, FlexibleInstances, MultiParamTypeClasses,
-  FlexibleContexts, IncoherentInstances, EmptyDataDecls #-}
+  FlexibleContexts, IncoherentInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Ditraversable
@@ -15,23 +15,12 @@
 
 module Data.Comp.Param.Ditraversable
     (
-     Ditraversable(..),
-     Nothing
+     Ditraversable(..)
     ) where
 
 import Prelude hiding (mapM, sequence, foldr)
 import Data.Comp.Param.Difunctor
 import Data.Traversable
-import Data.Maybe (fromJust)
-
-{-| An empty type. @Nothing@ is used to emulate parametricity, e.g. a function
-  @Nothing -> a[Nothing]@ is equivalent with @forall b. b -> a@, but the former
-  avoids the impredicative typing extension. -}
-data Nothing
-
-instance Eq Nothing where
-instance Ord Nothing where
-instance Show Nothing where
 
 {-| Difunctors representing data structures that can be traversed from left to
   right. -}
@@ -47,7 +36,3 @@ class (Difunctor f, Monad m) => Ditraversable f m a where
 instance (Difunctor f, Monad m, Traversable (f a)) => Ditraversable f m a where
     dimapM = mapM
     disequence = sequence
-
-instance Ditraversable (->) Maybe Nothing where
-    disequence f = do _ <- f undefined
-                      return $ \x -> fromJust $ f x

@@ -65,9 +65,12 @@ Description:
      /generalised algebraic data types (GADTs)/. All of the above is also lifted
      to families of mutually recursive data types and (more generally) GADTs.
   .
+  *  /Parametric compositional data types/. All of the above is also lifted
+     to parametric data types, which enables support for parametric higher-order
+     abstract syntax (PHOAS).
+  .
   For examples illustrating the use of compositional data types, consult
-  "Data.Comp" resp. "Data.Comp.Multi" for mutually recursive data types and
-  GADTs.
+  "Data.Comp", "Data.Comp.Multi", resp. "Data.Comp.Param".
 
 Category:            	Generics
 License:		BSD3
@@ -82,6 +85,10 @@ extra-source-files:
   testsuite/tests/Data_Test.hs,
   testsuite/tests/Data/Comp_Test.hs,
   testsuite/tests/Data/Comp/Equality_Test.hs,
+  testsuite/tests/Data/Comp/Examples_Test.hs,
+  testsuite/tests/Data/Comp/Examples/Comp.hs,
+  testsuite/tests/Data/Comp/Examples/Multi.hs,
+  testsuite/tests/Data/Comp/Examples/Param.hs,
   testsuite/tests/Test/Utils.hs
   -- benchmark files
   benchmark/Test.hs
@@ -161,6 +168,7 @@ library
                         Data.Comp.Derive.Ordering, Data.Comp.Derive.Arbitrary,
                         Data.Comp.Derive.Show, Data.Comp.Derive.DeepSeq,
                         Data.Comp.Derive.SmartConstructors,
+                        Data.Comp.Derive.SmartPConstructors,
                         Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable,
                         Data.Comp.Multi.Derive.Functor,
@@ -169,11 +177,13 @@ library
                         Data.Comp.Multi.Derive.Equality,
                         Data.Comp.Multi.Derive.Show,
                         Data.Comp.Multi.Derive.SmartConstructors
+                        Data.Comp.Multi.Derive.SmartPConstructors
                         Data.Comp.Param.Derive.Difunctor,
                         Data.Comp.Param.Derive.Equality,
                         Data.Comp.Param.Derive.Ordering,
                         Data.Comp.Param.Derive.Show,
                         Data.Comp.Param.Derive.SmartConstructors
+                        Data.Comp.Param.Derive.SmartPConstructors
 
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns
   hs-source-dirs:	src

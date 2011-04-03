@@ -59,7 +59,7 @@ $(derive [smartConstructors] [''Fun])
 -- Term homomorphism for desugaring of terms
 class (Difunctor f, Difunctor g) => Desugar f g where
   desugHom :: TermHom f g
-  desugHom = desugHom' . fmap Hole
+  desugHom = desugHom' . fmap hole
   desugHom' :: (a :< b) => f a (Cxt g a b) -> Cxt g a b
   desugHom' x = appCxt (desugHom x)
 
@@ -72,30 +72,29 @@ instance (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
   desugHom' (Inl x) = desugHom' x
   desugHom' (Inr x) = desugHom' x
 
-instance (Op :<: v, Difunctor v) => Desugar Op v where
+instance (Op :<: f, Difunctor f) => Desugar Op f where
   desugHom = simpCxt . inj
 
-instance (Const :<: v, Difunctor v) => Desugar Const v where
+instance (Const :<: f, Difunctor f) => Desugar Const f where
   desugHom = simpCxt . inj
 
-instance (Lam :<: v, Difunctor v) => Desugar Lam v where
+instance (Lam :<: f, Difunctor f) => Desugar Lam f where
   desugHom = simpCxt . inj
 
-instance (App :<: v, Difunctor v) => Desugar App v where
+instance (App :<: f, Difunctor f) => Desugar App f where
   desugHom = simpCxt . inj
 
-instance (IfThenElse :<: v, Difunctor v) => Desugar IfThenElse v where
+instance (IfThenElse :<: f, Difunctor f) => Desugar IfThenElse f where
   desugHom = simpCxt . inj
 
-instance (Op :<: v, Const :<: v, Lam :<: v, App :<: v, Difunctor v)
-  => Desugar Sug v where
+instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
+  => Desugar Sug f where
   desugHom' (Neg x)   = iConst (-1) `iMult` x
   desugHom' (Let x y) = iLam y `iApp` x
   desugHom' Fix       = iLam $ \f ->
                            (iLam $ \x -> hole f `iApp` (hole x `iApp` hole x))
                            `iApp`
                            (iLam $ \x -> hole f `iApp` (hole x `iApp` hole x))
-                               where hole = Hole . coerce
 
 -- Term evaluation algebra
 class Eval f v where
@@ -144,6 +143,6 @@ fact = iFix `iApp`
        (iLam $ \f ->
           iLam $ \n ->
               iIfThenElse
-              (Hole n)
-              ((Hole n) `iMult` (Hole f `iApp` (Hole n `iAdd` iConst (-1))))
+              (hole n)
+              ((hole n) `iMult` (hole f `iApp` (hole n `iAdd` iConst (-1))))
               (iConst 1))

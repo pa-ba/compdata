@@ -46,7 +46,7 @@ instance (ShowD f, ShowD g) => ShowD (f :+: g) where
     showD (Inl x) = showD x
     showD (Inr x) = showD x
 
-{-| From an 'ShowD' functor an 'ShowD' instance of the corresponding term type
+{-| From an 'ShowD' difunctor an 'ShowD' instance of the corresponding term type
   can be derived. -}
 instance ShowD f => ShowD (Cxt f) where
     showD (Term t) = showD t
@@ -55,6 +55,7 @@ instance ShowD f => ShowD (Cxt f) where
 instance (ShowD f, PShow a) => PShow (Cxt f Var a) where
     pshow = showD
 
+{-| Printing of terms. -}
 instance (Difunctor f, ShowD f) => Show (Term f) where
     show x = evalFreshM $ showD $ toCxt x
 

@@ -8,11 +8,10 @@
 -- Portability :  non-portable (GHC Extensions)
 --
 -- This module defines the infrastructure necessary to use parametric
--- compositional data types. Examples of usage are provided below.
+-- compositional data types.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Param (
-  -- * Examples
     module Data.Comp.Param.Term
   , module Data.Comp.Param.Algebra
   , module Data.Comp.Param.Difunctor

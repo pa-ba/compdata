@@ -24,6 +24,7 @@ module Data.Comp.Param.Difunctor
 class Difunctor f where
     dimap :: (a -> b) -> (c -> d) -> f b c -> f a d
 
+{-| The canonical example of a difunctor. -}
 instance Difunctor (->) where
     dimap f g h = g . h . f
 
