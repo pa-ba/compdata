@@ -18,7 +18,6 @@ module Data.Comp.Show
     ) where
 
 import Data.Comp.Term
-import Data.Comp.Sum
 import Data.Comp.Product
 import Data.Comp.Algebra
 import Data.Comp.Derive
@@ -33,8 +32,5 @@ instance (Functor f, ShowF f, Show a) => Show (Cxt h f a) where
 instance (ShowF f, Show p) => ShowF (f :&: p) where
     showF (v :&: p) = showF v ++ " :&: " ++ show p
 
-instance (ShowF f, ShowF g) => ShowF (f :+: g) where
-    showF (Inl f) = showF f
-    showF (Inr g) = showF g
-
+$(derive [liftSum] [''ShowF])
 $(derive [instanceShowF] [''Maybe, ''[], ''(,)])

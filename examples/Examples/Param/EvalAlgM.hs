@@ -28,6 +28,7 @@
 module Examples.Param.EvalAlgM where
 
 import Data.Comp.Param
+import Data.Comp.Param.Show ()
 import Data.Comp.Param.Ditraversable
 import Data.Comp.Param.Derive
 import Control.Monad (liftM)
@@ -48,9 +49,7 @@ $(derive [instanceDifunctor, instanceTraversable, instanceFoldable,
 class EvalM f v where
   evalAlgM :: AlgM Maybe f (Term v)
 
-instance (EvalM f v, EvalM g v) => EvalM (f :+: g) v where
-  evalAlgM (Inl x) = evalAlgM x
-  evalAlgM (Inr x) = evalAlgM x
+$(derive [liftSum] [''EvalM])
 
 -- Lift the monadic evaluation algebra to a monadic catamorphism
 evalM :: (Ditraversable f Maybe (Term v), EvalM f v) => Term f -> Maybe (Term v)

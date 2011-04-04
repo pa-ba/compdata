@@ -13,6 +13,7 @@ module Functions.Comp.Eval where
 import DataTypes.Comp
 import Functions.Comp.Desugar
 import Data.Comp
+import Data.Comp.Derive
 import Control.Monad
 import Data.Traversable
 
@@ -24,9 +25,7 @@ class Monad m => Eval e v m where
 eval :: (Traversable e, Eval e v m) => Term e -> m (Term v)
 eval = cataM evalAlg
 
-instance (Eval f v m, Eval g v m) => Eval (f :+: g) v m where
-    evalAlg (Inl v) = evalAlg v
-    evalAlg (Inr v) = evalAlg v
+$(derive [liftSum] [''Eval])
 
 instance (Value :<: v, Monad m) => Eval Value v m where
     evalAlg = return . inject
@@ -79,9 +78,7 @@ evalDirect = evalDir . unTerm
 evalDirectE :: SugarExpr -> Err ValueExpr
 evalDirectE = evalDirect
 
-instance (EvalDir f m, EvalDir g m) => EvalDir (f :+: g) m where
-    evalDir (Inl v) = evalDir v
-    evalDir (Inr v) = evalDir v
+$(derive [liftSum] [''EvalDir])
 
 instance (Monad m) => EvalDir Value m where
     evalDir (VInt i) = return $ iVInt i
@@ -141,9 +138,7 @@ class Functor e => Eval2 e v where
 eval2 :: (Functor e, Eval2 e v) => Term e -> Term v
 eval2 = cata eval2Alg
 
-instance (Eval2 f v, Eval2 g v) => Eval2 (f :+: g) v where
-    eval2Alg (Inl v) = eval2Alg v
-    eval2Alg (Inr v) = eval2Alg v
+$(derive [liftSum] [''Eval2])
 
 instance (Value :<: v) => Eval2 Value v where
     eval2Alg = inject
@@ -197,9 +192,7 @@ evalDirect2 = evalDir2 . unTerm
 evalDirectE2 :: SugarExpr -> ValueExpr
 evalDirectE2 = evalDirect2
 
-instance (EvalDir2 f, EvalDir2 g) => EvalDir2 (f :+: g) where
-    evalDir2 (Inl v) = evalDir2 v
-    evalDir2 (Inr v) = evalDir2 v
+$(derive [liftSum] [''EvalDir2])
 
 instance EvalDir2 Value where
     evalDir2 (VInt i) = iVInt i

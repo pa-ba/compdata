@@ -34,7 +34,9 @@ module Data.Comp.Param.Derive
      -- ** Smart Constructors
      module Data.Comp.Param.Derive.SmartConstructors,
      -- ** Smart Constructors w/ Products
-     module Data.Comp.Param.Derive.SmartPConstructors
+     module Data.Comp.Param.Derive.SmartPConstructors,
+     -- ** Lifting to Sums
+     module Data.Comp.Param.Derive.LiftSum
     ) where
 
 import Data.Comp.Derive.Utils (derive)
@@ -46,3 +48,4 @@ import Data.Comp.Derive.Foldable
 import Data.Comp.Derive.Traversable
 import Data.Comp.Param.Derive.SmartConstructors
 import Data.Comp.Param.Derive.SmartPConstructors
+import Data.Comp.Param.Derive.LiftSum

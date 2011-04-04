@@ -22,7 +22,6 @@ module Data.Comp.DeepSeq
     where
 
 import Data.Comp.Term
-import Data.Comp.Sum
 import Control.DeepSeq
 import Data.Comp.Derive
 import Data.Foldable
@@ -36,11 +35,7 @@ instance (NFDataF f, NFData a) => NFData (Cxt h f a) where
     rnf (Hole x) = rnf x
     rnf (Term x) = rnfF x
 
-instance (NFDataF f, NFDataF g) => NFDataF (f:+:g) where
-    rnfF (Inl v) = rnfF v
-    rnfF (Inr v) = rnfF v
-
 instance NFData Nothing where
 
-
+$(derive [liftSum] [''NFDataF])
 $(derive [instanceNFDataF] [''Maybe, ''[], ''(,)])

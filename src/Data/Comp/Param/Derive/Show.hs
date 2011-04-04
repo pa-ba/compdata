@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, FlexibleInstances, IncoherentInstances,
-  ScopedTypeVariables #-}
+  ScopedTypeVariables, UndecidableInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Derive.Show
@@ -14,14 +14,24 @@
 --------------------------------------------------------------------------------
 module Data.Comp.Param.Derive.Show
     (
+     PShow(..),
      ShowD(..),
      instanceShowD
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.Param.Show
+import Data.Comp.Param.FreshM
 import Control.Monad
 import Language.Haskell.TH hiding (Cxt, match)
+
+-- |Printing of parametric values.
+class PShow a where
+    pshow :: a -> FreshM String
+
+{-| Signature printing. An instance @ShowD f@ gives rise to an instance
+  @Show (Term f)@. -}
+class ShowD f where
+    showD :: PShow a => f Var a -> FreshM String
 
 {-| Derive an instance of 'ShowD' for a type constructor of any parametric
   kind taking at least two arguments. -}

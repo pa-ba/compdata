@@ -27,6 +27,7 @@
 module Examples.Param.Eval where
 
 import Data.Comp.Param hiding (Const)
+import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
 
 -- Signatures for values and operators
@@ -54,9 +55,11 @@ $(derive [smartConstructors] [''Fun])
 class Eval f v where
   evalAlg :: Alg f (Term v)
 
-instance (Eval f v, Eval g v) => Eval (f :+: g) v where
+$(derive [liftSum] [''Eval])
+
+{-instance (Eval f v, Eval g v) => Eval (f :+: g) v where
   evalAlg (Inl x) = evalAlg x
-  evalAlg (Inr x) = evalAlg x
+  evalAlg (Inr x) = evalAlg x-}
 
 -- Lift the evaluation algebra to a catamorphism
 eval :: (Difunctor f, Eval f v) => Term f -> Term v

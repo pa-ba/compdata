@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances,
-  TypeSynonymInstances #-}
+  TypeSynonymInstances, OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Param.DesugarPos
@@ -19,14 +19,15 @@
 --
 -- The following language extensions are needed in order to run the example:
 -- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
--- @FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@, and
--- @TypeSynonymInstances@.
+-- @FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@,
+-- @TypeSynonymInstances@, and @OverlappingInstances@.
 --
 --------------------------------------------------------------------------------
 
 module Examples.Param.DesugarPos where
 
 import Data.Comp.Param hiding (Const)
+import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
 
 -- Signatures for values and operators
@@ -62,6 +63,8 @@ class (Difunctor f, Difunctor g) => Desugar f g where
   desugHom' :: (a :< b) => f a (Cxt g a b) -> Cxt g a b
   desugHom' x = appCxt (desugHom x)
 
+$(derive [liftSum] [''Desugar])
+
 desug :: (Desugar f g, Difunctor f) => Term f -> Term g
 desug = appTermHom desugHom
 
@@ -69,22 +72,8 @@ desug = appTermHom desugHom
 desugP :: Term SigP' -> Term SigP
 desugP = appTermHom (productTermHom desugHom)
 
-instance (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
-  desugHom (Inl x) = desugHom x
-  desugHom (Inr x) = desugHom x
-  desugHom' (Inl x) = desugHom' x
-  desugHom' (Inr x) = desugHom' x
-
-instance (Op :<: f, Difunctor f) => Desugar Op f where
-  desugHom = simpCxt . inj
-
-instance (Const :<: f, Difunctor f) => Desugar Const f where
-  desugHom = simpCxt . inj
-
-instance (Lam :<: f, Difunctor f) => Desugar Lam f where
-  desugHom = simpCxt . inj
-
-instance (App :<: f, Difunctor f) => Desugar App f where
+-- Default desugaring implementation
+instance (Difunctor f, Difunctor g, f :<: g) => Desugar f g where
   desugHom = simpCxt . inj
 
 instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)

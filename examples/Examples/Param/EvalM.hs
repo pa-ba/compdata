@@ -30,6 +30,7 @@
 module Examples.Param.EvalM where
 
 import Data.Comp.Param hiding (Const)
+import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
 import Control.Monad ((<=<))
 
@@ -64,9 +65,7 @@ $(derive [smartConstructors] [''FunM])
 class EvalM f v where
   evalAlgM :: Alg f (Maybe (Term v))
 
-instance (EvalM f v, EvalM g v) => EvalM (f :+: g) v where
-  evalAlgM (Inl x) = evalAlgM x
-  evalAlgM (Inr x) = evalAlgM x
+$(derive [liftSum] [''EvalM])
 
 -- Lift the evaluation algebra to a catamorphism
 evalM :: (Difunctor f, EvalM f v) => Term f -> Maybe (Term v)

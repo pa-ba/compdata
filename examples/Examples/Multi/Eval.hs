@@ -48,9 +48,7 @@ $(derive [instanceHFunctor, instanceHShowF, instanceHEqF, smartConstructors]
 class Eval f v where
   evalAlg :: Alg f (Term v)
 
-instance (Eval f v, Eval g v) => Eval (f :+: g) v where
-  evalAlg (Inl x) = evalAlg x
-  evalAlg (Inr x) = evalAlg x
+$(derive [liftSum] [''Eval])
 
 -- Lift the evaluation algebra to a catamorphism
 eval :: (HFunctor f, Eval f v) => Term f :-> Term v

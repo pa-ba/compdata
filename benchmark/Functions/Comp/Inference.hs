@@ -13,7 +13,7 @@ module Functions.Comp.Inference where
 import Functions.Comp.Desugar
 import DataTypes.Comp
 import Data.Comp
-import Data.Traversable
+import Data.Comp.Derive
 
 -- type inference
 
@@ -26,9 +26,7 @@ inferType = cataM inferTypeAlg
 inferBaseType :: (Traversable f, InferType f ValueT m) => Term f -> m BaseType
 inferBaseType = inferType
 
-instance (InferType f t m, InferType g t m) => InferType (f :+: g) t m where
-    inferTypeAlg (Inl v) = inferTypeAlg v
-    inferTypeAlg (Inr v) = inferTypeAlg v
+$(derive [liftSum] [''InferType])
 
 instance (ValueT :<: t, Monad m) => InferType Value t m where
     inferTypeAlg (VInt _) = return $ inject TInt
@@ -89,9 +87,7 @@ inferType2 = cata inferTypeAlg2
 inferBaseType2 :: (Functor f, InferType2 f ValueT) => Term f -> BaseType
 inferBaseType2 = inferType2
 
-instance (InferType2 f t, InferType2 g t) => InferType2 (f :+: g) t where
-    inferTypeAlg2 (Inl v) = inferTypeAlg2 v
-    inferTypeAlg2 (Inr v) = inferTypeAlg2 v
+$(derive [liftSum] [''InferType2])
 
 instance (ValueT :<: t) => InferType2 Value t where
     inferTypeAlg2 (VInt _) = inject TInt

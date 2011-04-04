@@ -22,6 +22,7 @@ module Data.Comp.Multi.Equality
 
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Sum
+import Data.Comp.Multi.Ops
 import Data.Comp.Multi.Derive
 
 import Data.Comp.Multi.Functor

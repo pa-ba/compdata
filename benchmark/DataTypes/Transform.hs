@@ -11,6 +11,7 @@
 module DataTypes.Transform where
 
 import Data.Comp
+import Data.Comp.Derive
 import DataTypes.Standard as S
 import DataTypes.Comp
 
@@ -20,9 +21,7 @@ class TransSugar f where
 transSugar :: (Functor f, TransSugar f) => Term f -> PExpr
 transSugar = cata transSugarAlg
 
-instance (TransSugar f, TransSugar g) => TransSugar (f :+: g) where
-    transSugarAlg (Inl v) = transSugarAlg v
-    transSugarAlg (Inr v) = transSugarAlg v
+$(derive [liftSum] [''TransSugar])
 
 instance TransSugar Value where
     transSugarAlg (VInt i) = PInt i
@@ -56,10 +55,7 @@ class TransCore f where
 transCore :: (Functor f, TransCore f) => Term f -> OExpr
 transCore = cata transCoreAlg
 
-
-instance (TransCore f, TransCore g) => TransCore (f :+: g) where
-    transCoreAlg (Inl v) = transCoreAlg v
-    transCoreAlg (Inr v) = transCoreAlg v
+$(derive [liftSum] [''TransCore])
 
 instance TransCore Value where
     transCoreAlg (VInt i) = OInt i
@@ -84,10 +80,7 @@ class TransVal f where
 transVal :: (Functor f, TransVal f) => Term f -> SExpr
 transVal = cata transValAlg
 
-
-instance (TransVal f, TransVal g) => TransVal (f :+: g) where
-    transValAlg (Inl v) = transValAlg v
-    transValAlg (Inr v) = transValAlg v
+$(derive [liftSum] [''TransVal])
 
 instance TransVal Value where
     transValAlg (VInt i) = SInt i
@@ -100,10 +93,7 @@ class TransType f where
 transType :: (Functor f, TransType f) => Term f -> VType
 transType = cata transTypeAlg
 
-
-instance (TransType f, TransType g) => TransType (f :+: g) where
-    transTypeAlg (Inl v) = transTypeAlg v
-    transTypeAlg (Inr v) = transTypeAlg v
+$(derive [liftSum] [''TransType])
 
 instance TransType ValueT where
     transTypeAlg TInt = VTInt

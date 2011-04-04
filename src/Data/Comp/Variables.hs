@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances,
-  OverlappingInstances, TypeOperators #-}
+  OverlappingInstances, TypeOperators, TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Variables
@@ -29,8 +29,8 @@ module Data.Comp.Variables
     ) where
 
 import Data.Comp.Term
-import Data.Comp.Sum
 import Data.Comp.Algebra
+import Data.Comp.Derive
 import Data.Foldable hiding (elem, notElem)
 import Data.Maybe
 import Data.Set (Set)
@@ -54,11 +54,7 @@ class HasVars f v where
     bindsVars :: f a -> [v]
     bindsVars _ = []
 
-instance (HasVars f v, HasVars g v) => HasVars (f :+: g) v where
-    isVar (Inl v) = isVar v
-    isVar (Inr v) = isVar v
-    bindsVars (Inl v) = bindsVars v
-    bindsVars (Inr v) = bindsVars v
+$(derive [liftSum] [''HasVars])
 
 instance HasVars f v => HasVars (Cxt h f) v where
     isVar (Term t) = isVar t

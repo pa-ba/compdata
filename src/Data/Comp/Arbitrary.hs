@@ -20,7 +20,7 @@ module Data.Comp.Arbitrary
 import Test.QuickCheck
 import Data.Comp.Term
 import Data.Comp.Sum
-import Data.Comp.Product
+import Data.Comp.Ops
 import Data.Comp.Derive.Utils
 import Data.Comp.Derive
 import Control.Applicative
@@ -31,8 +31,6 @@ for the corresponding term type. -}
 instance (ArbitraryF f) => Arbitrary (Term f) where
     arbitrary = Term <$> arbitraryF
     shrink (Term expr) = map Term $ shrinkF expr
-    
-    
 
 instance (ArbitraryF f, Arbitrary p) => ArbitraryF (f :&: p) where
     arbitraryF' = map addP arbitraryF'

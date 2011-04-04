@@ -20,6 +20,7 @@ module Data.Comp.Equality
 
 import Data.Comp.Term
 import Data.Comp.Sum
+import Data.Comp.Ops
 import Data.Comp.Derive
 import Data.Comp.Derive.Utils
 

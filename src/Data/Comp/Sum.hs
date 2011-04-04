@@ -18,7 +18,7 @@
 module Data.Comp.Sum
     (
      (:<:)(..),
-     (:+:)(..),
+     (:+:),
 
      -- * Projections for Signatures and Terms
      proj2,

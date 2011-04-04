@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs,
+  OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Multi.DesugarPos
@@ -17,8 +18,8 @@
 --
 -- The following language extensions are needed in order to run the example:
 -- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
--- @FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@,
--- @GADTs@. Besides, GCH 7 is required.
+-- @FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@,
+-- @GADTs@, and @OverlappingInstances@. Besides, GCH 7 is required.
 --
 --------------------------------------------------------------------------------
 
@@ -64,16 +65,10 @@ class (HFunctor f, HFunctor g) => Desugar f g where
   desugHom' :: Alg f (Context g a)
   desugHom' x = appCxt (desugHom x)
 
-instance (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
-  desugHom (Inl x) = desugHom x
-  desugHom (Inr x) = desugHom x
-  desugHom' (Inl x) = desugHom' x
-  desugHom' (Inr x) = desugHom' x
+$(derive [liftSum] [''Desugar])
 
-instance (Value :<: v, HFunctor v) => Desugar Value v where
-  desugHom = simpCxt . inj
-
-instance (Op :<: v, HFunctor v) => Desugar Op v where
+-- Default desugaring implementation
+instance (HFunctor f, HFunctor g, f :<: g) => Desugar f g where
   desugHom = simpCxt . inj
 
 instance (Op :<: v, Value :<: v, HFunctor v) => Desugar Sugar v where

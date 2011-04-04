@@ -40,7 +40,9 @@ module Data.Comp.Derive
      -- ** Smart Constructors
      module Data.Comp.Derive.SmartConstructors,
      -- ** Smart Constructors w/ Products
-     module Data.Comp.Derive.SmartPConstructors
+     module Data.Comp.Derive.SmartPConstructors,
+     -- ** Lifting to Sums
+     module Data.Comp.Derive.LiftSum
     ) where
 
 import Control.DeepSeq (NFData(..))
@@ -54,6 +56,7 @@ import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Arbitrary
 import Data.Comp.Derive.SmartConstructors
 import Data.Comp.Derive.SmartPConstructors
+import Data.Comp.Derive.LiftSum
 
 import Language.Haskell.TH
 

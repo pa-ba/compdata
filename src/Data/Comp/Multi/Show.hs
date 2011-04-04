@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeOperators, GADTs, FlexibleContexts,
-  ScopedTypeVariables, UndecidableInstances, FlexibleInstances #-}
+  ScopedTypeVariables, UndecidableInstances, FlexibleInstances,
+  TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Show
@@ -20,7 +21,6 @@ module Data.Comp.Multi.Show
     ) where
 
 import Data.Comp.Multi.Term
-import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Product
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.Functor
@@ -44,6 +44,4 @@ instance (KShow f) => Show (f i) where
 instance (HShowF f, Show p) => HShowF (f :&: p) where
     hshowF (v :&: p) =  K $ unK (hshowF v) ++ " :&: " ++ show p
 
-instance (HShowF f, HShowF g) => HShowF (f :+: g) where
-    hshowF (Inl f) = hshowF f
-    hshowF (Inr g) = hshowF g
+$(derive [liftSum] [''HShowF])

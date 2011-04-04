@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, FlexibleInstances, TypeSynonymInstances,
-  IncoherentInstances, UndecidableInstances #-}
+  IncoherentInstances, UndecidableInstances, TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Show
@@ -19,32 +19,20 @@ module Data.Comp.Param.Show
     ) where
 
 import Data.Comp.Param.Term
-import Data.Comp.Param.Sum
 import Data.Comp.Param.Ops
-import Data.Comp.Param.Difunctor
+import Data.Comp.Param.Derive
 import Data.Comp.Param.FreshM
-
--- |Printing of parametric values.
-class PShow a where
-    pshow :: a -> FreshM String
 
 instance Show a => PShow a where
     pshow x = return $ show x
-
-{-| Signature printing. An instance @ShowD f@ gives rise to an instance
-  @Show (Term f)@. -}
-class ShowD f where
-    showD :: PShow a => f Var a -> FreshM String
 
 instance ShowD (->) where
     showD f = do x <- genVar
                  body <- pshow $ f x
                  return $ "\\" ++ show x ++ " -> " ++ body
 
-{-| 'ShowD' is propagated through sums. -}
-instance (ShowD f, ShowD g) => ShowD (f :+: g) where
-    showD (Inl x) = showD x
-    showD (Inr x) = showD x
+-- Lift ShowD to sums
+$(derive [liftSum] [''ShowD])
 
 {-| From an 'ShowD' difunctor an 'ShowD' instance of the corresponding term type
   can be derived. -}

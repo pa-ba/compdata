@@ -171,6 +171,7 @@ library
                         Data.Comp.Derive.Show, Data.Comp.Derive.DeepSeq,
                         Data.Comp.Derive.SmartConstructors,
                         Data.Comp.Derive.SmartPConstructors,
+                        Data.Comp.Derive.LiftSum,
                         Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable,
                         Data.Comp.Multi.Derive.Functor,
@@ -180,12 +181,14 @@ library
                         Data.Comp.Multi.Derive.Show,
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Multi.Derive.SmartPConstructors
+                        Data.Comp.Multi.Derive.LiftSum,
                         Data.Comp.Param.Derive.Difunctor,
                         Data.Comp.Param.Derive.Equality,
                         Data.Comp.Param.Derive.Ordering,
                         Data.Comp.Param.Derive.Show,
-                        Data.Comp.Param.Derive.SmartConstructors
-                        Data.Comp.Param.Derive.SmartPConstructors
+                        Data.Comp.Param.Derive.SmartConstructors,
+                        Data.Comp.Param.Derive.SmartPConstructors,
+                        Data.Comp.Param.Derive.LiftSum
 
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns
   hs-source-dirs:	src

@@ -19,9 +19,8 @@ module Data.Comp.Param.Derive.SmartPConstructors
 
 import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
-import Data.Comp.Param.Sum
+import Data.Comp.Param.Ops
 import Data.Comp.Param.Term
-import Data.Comp.Param.Product
 
 import Control.Monad
 

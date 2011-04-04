@@ -12,6 +12,7 @@ module Functions.Comp.Desugar where
 
 import DataTypes.Comp
 import Data.Comp
+import Data.Comp.Derive
 import Data.Traversable
 
 -- de-sugar
@@ -26,9 +27,7 @@ desug :: Desug f e => Term f -> Term e
 {-# INLINE desug #-}
 desug = appTermHom desugAlg
 
-instance (Desug f e, Desug g e) => Desug (g :+: f) e where
-    desugAlg (Inl v) = desugAlg v
-    desugAlg (Inr v) = desugAlg v
+$(derive [liftSum] [''Desug])
 
 instance (Value :<: v, Functor v) => Desug Value v where
     desugAlg = liftCxt
@@ -55,9 +54,7 @@ desugExpr2 = desug2
 desug2 :: (Functor f, Desug2 f g) => Term f -> Term g
 desug2 = cata desugAlg2
 
-instance (Desug2 f e, Desug2 g e) => Desug2 (f :+: g) e where
-    desugAlg2 (Inl v) = desugAlg2 v
-    desugAlg2 (Inr v) = desugAlg2 v
+$(derive [liftSum] [''Desug2])
 
 instance (Value :<: v) => Desug2 Value v where
     desugAlg2 = inject

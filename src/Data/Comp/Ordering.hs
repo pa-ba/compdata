@@ -19,6 +19,7 @@ module Data.Comp.Ordering
 
 import Data.Comp.Term
 import Data.Comp.Sum
+import Data.Comp.Ops
 import Data.Comp.Equality ()
 import Data.Comp.Derive
 import Data.Comp.Derive.Utils
@@ -46,7 +47,6 @@ instance (OrdF f) => OrdF (Cxt h f) where
 {-|
   'OrdF' is propagated through sums.
 -}
-
 instance (OrdF f, OrdF g) => OrdF (f :+: g) where
     compareF (Inl _) (Inr _) = LT
     compareF (Inr _) (Inl _) = GT

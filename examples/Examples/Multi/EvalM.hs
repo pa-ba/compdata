@@ -50,9 +50,7 @@ $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
 class EvalM f v where
   evalAlgM :: AlgM Maybe f (Term v)
 
-instance (EvalM f v, EvalM g v) => EvalM (f :+: g) v where
-  evalAlgM (Inl x) = evalAlgM x
-  evalAlgM (Inr x) = evalAlgM x
+$(derive [liftSum] [''EvalM])
 
 evalM :: (HTraversable f, EvalM f v) => Term f l -> Maybe (Term v l)
 evalM = cataM evalAlgM
