@@ -449,26 +449,25 @@ apoM f = run
 type CVAlg f a f' = f (Term f') -> a
 
 
--- | This function applies 'projectP' at the tip of the term.
-
-projectTip  :: (DistProd f a f') => Term f' -> (f (Term f'), a)
-projectTip (Term v) = projectP v
+-- | This function applies 'projectA' at the tip of the term.
+projectTip  :: (DistAnn f a f') => Term f' -> (f (Term f'), a)
+projectTip (Term v) = projectA v
 
 {-| Construct a histomorphism from the given cv-algebra. -}
-histo :: (Functor f,DistProd f a f') => CVAlg f a f' -> Term f -> a
+histo :: (Functor f,DistAnn f a f') => CVAlg f a f' -> Term f -> a
 histo alg  = snd . projectTip . cata run
-    where run v = Term $ injectP (alg v) v
+    where run v = Term $ injectA (alg v) v
 
 {-| This type represents a monadic cv-algebra over a functor @f@ and carrier
   @a@. -}
 type CVAlgM m f a f' = f (Term f') -> m a
 
 {-| Construct a monadic histomorphism from the given monadic cv-algebra. -}
-histoM :: (Traversable f, Monad m, DistProd f a f') =>
+histoM :: (Traversable f, Monad m, DistAnn f a f') =>
           CVAlgM m f a f' -> Term f -> m a
 histoM alg  = liftM (snd . projectTip) . cataM run
     where run v = do r <- alg v
-                     return $ Term $ injectP r v
+                     return $ Term $ injectA r v
 
 -----------------------------------
 -- CV-Coalgebras & Futumorphisms --

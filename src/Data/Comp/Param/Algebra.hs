@@ -414,26 +414,26 @@ apoM f = run
 {-| This type represents a cv-algebra over a difunctor @f@ and carrier @a@. -}
 type CVAlg f a f' = f a (Cxt f' a a) -> a
 
--- | This function applies 'projectP' at the tip of the term.
-projectTip  :: DistProd f a f' => Cxt f' b a -> a
+-- | This function applies 'projectA' at the tip of the term.
+projectTip  :: DistAnn f a f' => Cxt f' b a -> a
 projectTip (Hole x) = x
-projectTip (Term v) = snd $ projectP v
+projectTip (Term v) = snd $ projectA v
 
 {-| Construct a histomorphism from the given cv-algebra. -}
-histo :: (Difunctor f, DistProd f a f') => CVAlg f a f' -> Term f -> a
+histo :: (Difunctor f, DistAnn f a f') => CVAlg f a f' -> Term f -> a
 histo alg = projectTip . free run Hole . toCxt
-    where run v = Term $ injectP (alg v) v
+    where run v = Term $ injectA (alg v) v
 
 {-| This type represents a monadic cv-algebra over a functor @f@ and carrier
   @a@. -}
 type CVAlgM m f a f' = f a (Cxt f' a a) -> m a
 
 {-| Construct a monadic histomorphism from the given monadic cv-algebra. -}
-histoM :: (Ditraversable f m a, Monad m, DistProd f a f') =>
+histoM :: (Ditraversable f m a, Monad m, DistAnn f a f') =>
           CVAlgM m f a f' -> Term f -> m a
 histoM alg = liftM projectTip . freeM run (return . Hole) . toCxt
     where run v = do r <- alg v
-                     return $ Term $ injectP r v
+                     return $ Term $ injectA r v
 
 -----------------------------------
 -- CV-Coalgebras & Futumorphisms --

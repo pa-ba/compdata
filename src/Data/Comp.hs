@@ -30,7 +30,7 @@ module Data.Comp(
     module Data.Comp.Term
   , module Data.Comp.Algebra
   , module Data.Comp.Sum
-  , module Data.Comp.Product
+  , module Data.Comp.Annotation
   , module Data.Comp.Equality
   , module Data.Comp.Ordering
   , module Data.Comp.Generic
@@ -39,7 +39,7 @@ module Data.Comp(
 import Data.Comp.Term
 import Data.Comp.Algebra
 import Data.Comp.Sum
-import Data.Comp.Product
+import Data.Comp.Annotation
 import Data.Comp.Equality
 import Data.Comp.Ordering
 import Data.Comp.Generic
@@ -253,7 +253,7 @@ The following language extensions are needed in order to run the example:
 -}
 
 {- $ex4
-The example illustrates how to lift a term homomorphism to products,
+The example illustrates how to lift a term homomorphism to annotations,
 exemplified via a desugaring term homomorphism lifted to terms annotated with
 source position information.
 
@@ -321,22 +321,22 @@ The following language extensions are needed in order to run the example:
 > 
 > -- Lift desugaring to terms annotated with source positions
 > desugP :: Term SigP' -> Term SigP
-> desugP = appTermHom (productTermHom desugHom)
+> desugP = appTermHom (propAnn desugHom)
 > 
-> iSwapP :: (DistProd f p f', Sugar :<: f) => p -> Term f' -> Term f'
-> iSwapP p x = Term (injectP p $ inj $ Swap x)
+> iSwapP :: (DistAnn f p f', Sugar :<: f) => p -> Term f' -> Term f'
+> iSwapP p x = Term (injectA p $ inj $ Swap x)
 > 
-> iConstP :: (DistProd f p f', Value :<: f) => p -> Int -> Term f'
-> iConstP p x = Term (injectP p $ inj $ Const x)
+> iConstP :: (DistAnn f p f', Value :<: f) => p -> Int -> Term f'
+> iConstP p x = Term (injectA p $ inj $ Const x)
 > 
-> iPairP :: (DistProd f p f', Value :<: f) => p -> Term f' -> Term f' -> Term f'
-> iPairP p x y = Term (injectP p $ inj $ Pair x y)
+> iPairP :: (DistAnn f p f', Value :<: f) => p -> Term f' -> Term f' -> Term f'
+> iPairP p x y = Term (injectA p $ inj $ Pair x y)
 > 
-> iFstP :: (DistProd f p f', Op :<: f) => p -> Term f' -> Term f'
-> iFstP p x = Term (injectP p $ inj $ Fst x)
+> iFstP :: (DistAnn f p f', Op :<: f) => p -> Term f' -> Term f'
+> iFstP p x = Term (injectA p $ inj $ Fst x)
 > 
-> iSndP :: (DistProd f p f', Op :<: f) => p -> Term f' -> Term f'
-> iSndP p x = Term (injectP p $ inj $ Snd x)
+> iSndP :: (DistAnn f p f', Op :<: f) => p -> Term f' -> Term f'
+> iSndP p x = Term (injectA p $ inj $ Snd x)
 > 
 > -- Example: desugPEx = iPairP (Pos 1 0)
 > --                            (iSndP (Pos 1 0) (iPairP (Pos 1 1)

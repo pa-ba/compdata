@@ -2,29 +2,30 @@
   FlexibleInstances, UndecidableInstances, RankNTypes, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Multi.Product
+-- Module      :  Data.Comp.Multi.Annotation
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines products on signatures. All definitions are
--- generalised versions of those in "Data.Comp.Product".
+-- This module defines annotations on signatures. All definitions are
+-- generalised versions of those in "Data.Comp.Annotation".
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Product
-    ( (:&:) (..),
-      DistProd (..),
-      RemoveP (..),
-      liftP,
-      constP,
-      liftP',
-      stripP,
-      productTermHom,
-      project'
-    )where
+module Data.Comp.Multi.Annotation
+    (
+     (:&:) (..),
+     DistAnn (..),
+     RemA (..),
+     liftA,
+     ann,
+     liftA',
+     stripA,
+     propAnn,
+     project'
+    ) where
 
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Sum
@@ -40,48 +41,46 @@ import Control.Monad
 
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
--- same functor but with an additional product.
-
-liftP :: (RemoveP s s') => (s' a :-> t) -> s a :-> t
-liftP f v = f (removeP v)
+-- same functor but with an additional annotation.
+liftA :: (RemA s s') => (s' a :-> t) -> s a :-> t
+liftA f v = f (remA v)
 
 
 -- | This function annotates each sub term of the given term with the
 -- given value (of type a).
 
-constP :: (DistProd f p g, HFunctor f, HFunctor g) 
+ann :: (DistAnn f p g, HFunctor f, HFunctor g) 
        => p -> Cxt h f a :-> Cxt h g a
-constP c = appSigFun (injectP c)
+ann c = appSigFun (injectA c)
 
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
--- same functor but with an additional product.
-
-liftP' :: (DistProd s' p s, HFunctor s, HFunctor s')
+-- same functor but with an additional annotation.
+liftA' :: (DistAnn s' p s, HFunctor s, HFunctor s')
        => (s' a :-> Cxt h s' a) -> s a :-> Cxt h s a
-liftP' f v = let (v' O.:&: p) = projectP v
-             in constP p (f v')
+liftA' f v = let (v' O.:&: p) = projectA v
+             in ann p (f v')
     
-{-| This function strips the products from a term over a
-functor whith products. -}
+{-| This function strips the annotations from a term over a
+functor with annotations. -}
 
-stripP :: (HFunctor f, RemoveP g f, HFunctor g)
+stripA :: (HFunctor f, RemA g f, HFunctor g)
        => Cxt h g a :-> Cxt h f a
-stripP = appSigFun removeP
+stripA = appSigFun remA
 
 
-productTermHom :: (DistProd f p f', DistProd g p g', HFunctor g, HFunctor g') 
+propAnn :: (DistAnn f p f', DistAnn g p g', HFunctor g, HFunctor g') 
                => TermHom f g -> TermHom f' g'
-productTermHom alg f' = constP p (alg f)
-    where (f O.:&: p) = projectP f'
+propAnn alg f' = ann p (alg f)
+    where (f O.:&: p) = projectA f'
 
 
 
 
 
 -- | This function is similar to 'project' but applies to signatures
--- with a product which is then ignored.
+-- with an annotation which is then ignored.
 
--- project' :: (RemoveP s s',s :<: f) =>
+-- project' :: (RemA s s',s :<: f) =>
 --      NatM Maybe (Cxt h f a) (s' (Cxt h f a))
-project' v = liftM removeP $ project v
+project' v = liftM remA $ project v

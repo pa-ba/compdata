@@ -55,7 +55,7 @@ type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 
 -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
-          instanceHEqF, instanceHShowF, smartConstructors, smartPConstructors]
+          instanceHEqF, instanceHShowF, smartConstructors, smartAConstructors]
          [''Value, ''Op, ''Sugar])
 
 -- Term homomorphism for desugaring of terms
@@ -85,7 +85,7 @@ desugEx = desug $ iSwap $ iPair (iConst 1) (iConst 2)
 
 -- Lift desugaring to terms annotated with source positions
 desugP :: Term SigP' :-> Term SigP
-desugP = appTermHom (productTermHom desugHom)
+desugP = appTermHom (propAnn desugHom)
 
 -- Example: desugPEx = iPPair (Pos 1 0)
 --                            (iPSnd (Pos 1 0) (iPPair (Pos 1 1)

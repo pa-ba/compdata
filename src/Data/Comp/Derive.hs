@@ -39,8 +39,8 @@ module Data.Comp.Derive
      module Data.Comp.Derive.DeepSeq,
      -- ** Smart Constructors
      module Data.Comp.Derive.SmartConstructors,
-     -- ** Smart Constructors w/ Products
-     module Data.Comp.Derive.SmartPConstructors,
+     -- ** Smart Constructors w/ Annotations
+     module Data.Comp.Derive.SmartAConstructors,
      -- ** Lifting to Sums
      module Data.Comp.Derive.LiftSum
     ) where
@@ -55,7 +55,7 @@ import Data.Comp.Derive.Ordering
 import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Arbitrary
 import Data.Comp.Derive.SmartConstructors
-import Data.Comp.Derive.SmartPConstructors
+import Data.Comp.Derive.SmartAConstructors
 import Data.Comp.Derive.LiftSum
 
 import Language.Haskell.TH

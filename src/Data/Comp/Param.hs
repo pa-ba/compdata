@@ -16,7 +16,7 @@ module Data.Comp.Param (
   , module Data.Comp.Param.Algebra
   , module Data.Comp.Param.Difunctor
   , module Data.Comp.Param.Sum
-  , module Data.Comp.Param.Product
+  , module Data.Comp.Param.Annotation
   , module Data.Comp.Param.Equality
     ) where
 
@@ -24,5 +24,5 @@ import Data.Comp.Param.Term
 import Data.Comp.Param.Algebra
 import Data.Comp.Param.Difunctor
 import Data.Comp.Param.Sum
-import Data.Comp.Param.Product
+import Data.Comp.Param.Annotation
 import Data.Comp.Param.Equality

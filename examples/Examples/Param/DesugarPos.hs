@@ -53,7 +53,7 @@ type SigP' = Sug :&: Pos :+: SigP
 
 -- Derive boilerplate code using Template Haskell
 $(derive [instanceDifunctor, instanceEqD, instanceShowD,
-          smartConstructors, smartPConstructors]
+          smartConstructors, smartAConstructors]
          [''Const, ''Lam, ''App, ''Op, ''Sug])
 
 -- Term homomorphism for desugaring of terms
@@ -70,7 +70,7 @@ desug = appTermHom desugHom
 
 -- Lift desugaring to terms annotated with source positions
 desugP :: Term SigP' -> Term SigP
-desugP = appTermHom (productTermHom desugHom)
+desugP = appTermHom (propAnn desugHom)
 
 -- Default desugaring implementation
 instance (Difunctor f, Difunctor g, f :<: g) => Desugar f g where

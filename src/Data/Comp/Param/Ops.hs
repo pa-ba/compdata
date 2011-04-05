@@ -88,33 +88,34 @@ instance Ditraversable f m a => Ditraversable (f :&: p) m a where
     dimapM f (v :&: c) = liftM (:&: c) (dimapM f v)
     disequence (v :&: c) = liftM (:&: c) (disequence v)
 
-{-| This class defines how to distribute a product over a sum of signatures. -}
-class DistProd s p s' | s' -> s, s' -> p where
-    {-| Inject a product value over a signature. -}
-    injectP :: p -> s a b -> s' a b
-    {-| Project a product value from a signature. -}
-    projectP :: s' a b -> (s a b, p)
+{-| This class defines how to distribute an annotation over a sum of
+  signatures. -}
+class DistAnn s p s' | s' -> s, s' -> p where
+    {-| Inject an annotation over a signature. -}
+    injectA :: p -> s a b -> s' a b
+    {-| Project an annotation from a signature. -}
+    projectA :: s' a b -> (s a b, p)
 
-class RemoveP s s' | s -> s'  where
-    {-| Remove products from a signature. -}
-    removeP :: s a b -> s' a b
+class RemA s s' | s -> s'  where
+    {-| Remove annotations from a signature. -}
+    remA :: s a b -> s' a b
 
-instance (RemoveP s s') => RemoveP (f :&: p :+: s) (f :+: s') where
-    removeP (Inl (v :&: _)) = Inl v
-    removeP (Inr v) = Inr $ removeP v
+instance (RemA s s') => RemA (f :&: p :+: s) (f :+: s') where
+    remA (Inl (v :&: _)) = Inl v
+    remA (Inr v) = Inr $ remA v
 
-instance RemoveP (f :&: p) f where
-    removeP (v :&: _) = v
+instance RemA (f :&: p) f where
+    remA (v :&: _) = v
 
-instance DistProd f p (f :&: p) where
-    injectP c v = v :&: c
+instance DistAnn f p (f :&: p) where
+    injectA c v = v :&: c
 
-    projectP (v :&: p) = (v,p)
+    projectA (v :&: p) = (v,p)
 
-instance (DistProd s p s') => DistProd (f :+: s) p ((f :&: p) :+: s') where
-    injectP c (Inl v) = Inl (v :&: c)
-    injectP c (Inr v) = Inr $ injectP c v
+instance (DistAnn s p s') => DistAnn (f :+: s) p ((f :&: p) :+: s') where
+    injectA c (Inl v) = Inl (v :&: c)
+    injectA c (Inr v) = Inr $ injectA c v
 
-    projectP (Inl (v :&: p)) = (Inl v,p)
-    projectP (Inr v) = let (v',p) = projectP v
+    projectA (Inl (v :&: p)) = (Inl v,p)
+    projectA (Inr v) = let (v',p) = projectA v
                        in  (Inr v',p)

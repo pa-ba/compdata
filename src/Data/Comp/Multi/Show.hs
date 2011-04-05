@@ -21,7 +21,7 @@ module Data.Comp.Multi.Show
     ) where
 
 import Data.Comp.Multi.Term
-import Data.Comp.Multi.Product
+import Data.Comp.Multi.Annotation
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.Functor
 import Data.Comp.Multi.Derive

@@ -120,40 +120,38 @@ instance (HTraversable f) => HTraversable (f :&: a) where
     htraverse f (v :&: c) =  (:&: c) <$> (htraverse f v)
     hmapM f (v :&: c) = liftM (:&: c) (hmapM f v)
 
--- | This class defines how to distribute a product over a sum of
+-- | This class defines how to distribute an annotation over a sum of
 -- signatures.
-
-class DistProd (s :: (* -> *) -> * -> *) p s' | s' -> s, s' -> p where
-        
-    -- | This function injects a product a value over a signature.
-    injectP :: p -> s a :-> s' a
-    projectP :: s' a :-> (s a O.:&: p)
+class DistAnn (s :: (* -> *) -> * -> *) p s' | s' -> s, s' -> p where
+    -- | This function injects an annotation over a signature.
+    injectA :: p -> s a :-> s' a
+    projectA :: s' a :-> (s a O.:&: p)
 
 
-class RemoveP (s :: (* -> *) -> * -> *) s' | s -> s'  where
-    removeP :: s a :-> s' a
+class RemA (s :: (* -> *) -> * -> *) s' | s -> s'  where
+    remA :: s a :-> s' a
 
 
-instance (RemoveP s s') => RemoveP (f :&: p :+: s) (f :+: s') where
-    removeP (Inl (v :&: _)) = Inl v
-    removeP (Inr v) = Inr $ removeP v
+instance (RemA s s') => RemA (f :&: p :+: s) (f :+: s') where
+    remA (Inl (v :&: _)) = Inl v
+    remA (Inr v) = Inr $ remA v
 
 
-instance RemoveP (f :&: p) f where
-    removeP (v :&: _) = v
+instance RemA (f :&: p) f where
+    remA (v :&: _) = v
 
 
-instance DistProd f p (f :&: p) where
+instance DistAnn f p (f :&: p) where
 
-    injectP p v = v :&: p
+    injectA p v = v :&: p
 
-    projectP (v :&: p) = v O.:&: p
+    projectA (v :&: p) = v O.:&: p
 
 
-instance (DistProd s p s') => DistProd (f :+: s) p ((f :&: p) :+: s') where
-    injectP p (Inl v) = Inl (v :&: p)
-    injectP p (Inr v) = Inr $ injectP p v
+instance (DistAnn s p s') => DistAnn (f :+: s) p ((f :&: p) :+: s') where
+    injectA p (Inl v) = Inl (v :&: p)
+    injectA p (Inr v) = Inr $ injectA p v
 
-    projectP (Inl (v :&: p)) = (Inl v O.:&: p)
-    projectP (Inr v) = let (v' O.:&: p) = projectP v
+    projectA (Inl (v :&: p)) = (Inl v O.:&: p)
+    projectA (Inr v) = let (v' O.:&: p) = projectA v
                         in  (Inr v' O.:&: p)

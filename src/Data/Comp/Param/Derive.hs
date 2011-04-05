@@ -33,8 +33,8 @@ module Data.Comp.Param.Derive
      module Data.Comp.Derive.Traversable,
      -- ** Smart Constructors
      module Data.Comp.Param.Derive.SmartConstructors,
-     -- ** Smart Constructors w/ Products
-     module Data.Comp.Param.Derive.SmartPConstructors,
+     -- ** Smart Constructors w/ Annotations
+     module Data.Comp.Param.Derive.SmartAConstructors,
      -- ** Lifting to Sums
      module Data.Comp.Param.Derive.LiftSum
     ) where
@@ -47,5 +47,5 @@ import Data.Comp.Param.Derive.Difunctor
 import Data.Comp.Derive.Foldable
 import Data.Comp.Derive.Traversable
 import Data.Comp.Param.Derive.SmartConstructors
-import Data.Comp.Param.Derive.SmartPConstructors
+import Data.Comp.Param.Derive.SmartAConstructors
 import Data.Comp.Param.Derive.LiftSum

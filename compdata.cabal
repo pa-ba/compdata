@@ -138,7 +138,7 @@ flag benchmark
 
 
 library
-  Exposed-Modules:      Data.Comp, Data.Comp.Product, Data.Comp.Sum,
+  Exposed-Modules:      Data.Comp, Data.Comp.Annotation, Data.Comp.Sum,
                         Data.Comp.Term, Data.Comp.Algebra, Data.Comp.Equality,
                         Data.Comp.Ordering, Data.Comp.DeepSeq, Data.Comp.Generic
                         Data.Comp.TermRewriting, Data.Comp.Automata,
@@ -149,7 +149,7 @@ library
                         Data.Comp.Multi.Functor,
                         Data.Comp.Multi.Foldable, Data.Comp.Multi.Traversable,
                         Data.Comp.Multi.Algebra,
-                        Data.Comp.Multi.Product, Data.Comp.Multi.Show,
+                        Data.Comp.Multi.Annotation, Data.Comp.Multi.Show,
                         Data.Comp.Multi.Equality, Data.Comp.Multi.Variables,
                         Data.Comp.Multi.Ops, Data.Comp.Ops,
                         Data.Comp.Multi.Derive
@@ -160,7 +160,7 @@ library
                         Data.Comp.Param.Sum, Data.Comp.Param.Difunctor,
                         Data.Comp.Param.Ditraversable,
                         Data.Comp.Param.Algebra,
-                        Data.Comp.Param.Product, Data.Comp.Param.Ops
+                        Data.Comp.Param.Annotation, Data.Comp.Param.Ops
                         Data.Comp.Param.Equality
                         Data.Comp.Param.Ordering
                         Data.Comp.Param.Show
@@ -170,7 +170,7 @@ library
                         Data.Comp.Derive.Ordering, Data.Comp.Derive.Arbitrary,
                         Data.Comp.Derive.Show, Data.Comp.Derive.DeepSeq,
                         Data.Comp.Derive.SmartConstructors,
-                        Data.Comp.Derive.SmartPConstructors,
+                        Data.Comp.Derive.SmartAConstructors,
                         Data.Comp.Derive.LiftSum,
                         Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable,
@@ -180,14 +180,14 @@ library
                         Data.Comp.Multi.Derive.Equality,
                         Data.Comp.Multi.Derive.Show,
                         Data.Comp.Multi.Derive.SmartConstructors
-                        Data.Comp.Multi.Derive.SmartPConstructors
+                        Data.Comp.Multi.Derive.SmartAConstructors
                         Data.Comp.Multi.Derive.LiftSum,
                         Data.Comp.Param.Derive.Difunctor,
                         Data.Comp.Param.Derive.Equality,
                         Data.Comp.Param.Derive.Ordering,
                         Data.Comp.Param.Derive.Show,
                         Data.Comp.Param.Derive.SmartConstructors,
-                        Data.Comp.Param.Derive.SmartPConstructors,
+                        Data.Comp.Param.Derive.SmartAConstructors,
                         Data.Comp.Param.Derive.LiftSum
 
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns

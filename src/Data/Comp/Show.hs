@@ -18,7 +18,7 @@ module Data.Comp.Show
     ) where
 
 import Data.Comp.Term
-import Data.Comp.Product
+import Data.Comp.Annotation
 import Data.Comp.Algebra
 import Data.Comp.Derive
 
