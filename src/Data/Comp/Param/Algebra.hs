@@ -62,6 +62,7 @@ module Data.Comp.Param.Algebra (
       compAlgM',
 
       -- * Coalgebras & Anamorphisms
+      K(..),
       Coalg,
       ana,
 --      ana',
@@ -309,33 +310,35 @@ instance Difunctor (K b) where
     dimap _ _ (K x) = K x
 
 {-| This type represents a coalgebra over a difunctor @f@ and carrier @a@. The
- list of @b@s represent the free variables that may occur in the constructed
- value. Such variables are injected via the @K@ functor. If @f@ is itself a
- binder, then the variables bound by @f@ can be passed to the covariant
- argument, thereby making them available to subterms. -}
-type Coalg f a = forall b. (a,[b]) -> (K b :+: f) b (a,[b])
+  list of @(a,b)@s represent the free variables that may occur in the
+  constructed value. The first component represents the seed of the parameter,
+  and the second component is the (polymorphic) parameter itself, which can be
+  injected via the @K@ functor. If @f@ is itself a binder, then the variables
+  bound by @f@ can be passed to the covariant argument, thereby making them
+  available to sub terms. -}
+type Coalg f a = forall b. a -> [(a,b)] -> (K b :+: f) b (a,[(a,b)])
 
 {-| Construct an anamorphism from the given coalgebra. -}
 ana :: forall a f. Difunctor f => Coalg f a -> a -> Term f
-ana f x = run (x,[]) -- initially, the set of available parameters is empty
-    where run :: (a,[b]) -> Cxt f b b
-          run a = case f a of
-                    Inl (K x) -> Hole x
-                    Inr t -> Term $ fmap run t
+ana f x = run (x,[])
+    where run :: (a, [(a,b)]) -> Cxt f b b
+          run (a,bs) = case f a bs of
+                         Inl (K x) -> Hole x
+                         Inr t -> Term $ fmap run t
 
 {-| This type represents a monadic coalgebra over a difunctor @f@ and carrier
   @a@. -}
-type CoalgM m f a = forall b. (a,[b]) -> m ((K b :+: f) b (a,[b]))
+type CoalgM m f a = forall b. a -> [(a,b)] -> m ((K b :+: f) b (a,[(a,b)]))
 
 {-| Construct a monadic anamorphism from the given monadic coalgebra. -}
 anaM :: forall a m f. (Ditraversable f m Nothing, Monad m)
      => CoalgM m f a -> a -> m (Term f)
 anaM f x = run (x,[])
-    where run :: Ditraversable f m b => (a,[b]) -> m (Cxt f b b)
-          run a = do a' <- f a
-                     case a' of
-                       Inl (K x) -> return (Hole x)
-                       Inr t -> liftM Term $ dimapM run t
+    where run :: Ditraversable f m b => (a,[(a,b)]) -> m (Cxt f b b)
+          run (a,bs) = do a' <- f a bs
+                          case a' of
+                            Inl (K x) -> return (Hole x)
+                            Inr t -> liftM Term $ dimapM run t
 
 --------------------------------
 -- R-Algebras & Paramorphisms --
@@ -437,50 +440,54 @@ histoM alg = liftM projectTip . freeM run (return . Hole) . toCxt
 -----------------------------------
 
 {-| This type represents a cv-coalgebra over a difunctor @f@ and carrier @a@.
- The list of @b@s represent the free variables that may occur in the constructed
- value. Such variables are injected via the @K@ functor. If @f@ is itself a
- binder, then the variables bound by @f@ can be passed to the covariant
- argument, thereby making them available to subterms. -}
-type CVCoalg f a = forall b. (a,[b]) -> (K b :+: f) b (Cxt (K b :+: f) b (a,[b]))
+  The list of @(a,b)@s represent the free variables that may occur in the
+  constructed value. The first component represents the seed of the parameter,
+  and the second component is the (polymorphic) parameter itself, which can be
+  injected via the @K@ functor. If @f@ is itself a binder, then the variables
+  bound by @f@ can be passed to the covariant argument, thereby making them
+  available to subterms. -}
+type CVCoalg f a = forall b. a -> [(a,b)]
+                 -> (K b :+: f) b (Cxt (K b :+: f) b (a,[(a,b)]))
 
 {-| Construct a futumorphism from the given cv-coalgebra. -}
 futu :: forall f a. Difunctor f => CVCoalg f a -> a -> Term f
 futu coa x = run $ Hole (x,[])
-    where run :: Cxt (K b :+: f) b (a,[b]) -> Cxt f b b
-          run (Hole x) = run' (coa x)
+    where run :: Cxt (K b :+: f) b (a,[(a,b)]) -> Cxt f b b
+          run (Hole (a,bs)) = run' (coa a bs)
           run (Term t) = run' t
-          run' :: (K b :+: f) b (Cxt (K b :+: f) b (a,[b])) -> Cxt f b b
+          run' :: (K b :+: f) b (Cxt (K b :+: f) b (a,[(a,b)])) -> Cxt f b b
           run' (Inl (K x)) = Hole x
           run' (Inr t) = Term $ fmap run t
 
 {-| This type represents a monadic cv-coalgebra over a difunctor @f@ and carrier
   @a@. -}
-type CVCoalgM m f a = forall b. (a,[b]) -> m ((K b :+: f) b (Cxt (K b :+: f) b (a,[b])))
+type CVCoalgM m f a = forall b. a -> [(a,b)]
+                    -> m ((K b :+: f) b (Cxt (K b :+: f) b (a,[(a,b)])))
 
 {-| Construct a monadic futumorphism from the given monadic cv-coalgebra. -}
 futuM :: forall f a m. (Ditraversable f m Nothing, Monad m) =>
          CVCoalgM m f a -> a -> m (Term f)
 futuM coa x = run $ Hole (x,[])
     where run :: Ditraversable f m b
-               => Cxt (K b :+: f) b (a,[b]) -> m (Cxt f b b)
-          run (Hole x) = coa x >>= run'
+               => Cxt (K b :+: f) b (a,[(a,b)]) -> m (Cxt f b b)
+          run (Hole (a,bs)) = coa a bs >>= run'
           run (Term t) = run' t
           run' :: Ditraversable f m b
-               => (K b :+: f) b (Cxt (K b :+: f) b (a,[b])) -> m (Cxt f b b)
+               => (K b :+: f) b (Cxt (K b :+: f) b (a,[(a,b)])) -> m (Cxt f b b)
           run' (Inl (K x)) = return $ Hole x
           run' (Inr t) = liftM Term $ dimapM run t
 
 {-| This type represents a generalised cv-coalgebra over a difunctor @f@ and
   carrier @a@. -}
-type CVCoalg' f a = forall b. (a,[b]) -> Cxt (K b :+: f) b (a,[b])
+type CVCoalg' f a = forall b. a -> [(a,b)] -> Cxt (K b :+: f) b (a,[(a,b)])
 
 {-| Construct a futumorphism from the given generalised cv-coalgebra. -}
 futu' :: forall f a. Difunctor f => CVCoalg' f a -> a -> Term f
 futu' coa x = run $ Hole (x,[])
-    where run :: Cxt (K b :+: f) b (a,[b]) -> Cxt f b b
-          run (Hole x) = run (coa x)
+    where run :: Cxt (K b :+: f) b (a,[(a,b)]) -> Cxt f b b
+          run (Hole (a,bs)) = run (coa a bs)
           run (Term t) = run' t
-          run' :: (K b :+: f) b (Cxt (K b :+: f) b (a,[b])) -> Cxt f b b
+          run' :: (K b :+: f) b (Cxt (K b :+: f) b (a,[(a,b)])) -> Cxt f b b
           run' (Inl (K x)) = Hole x
           run' (Inr t) = Term $ fmap run t
 
