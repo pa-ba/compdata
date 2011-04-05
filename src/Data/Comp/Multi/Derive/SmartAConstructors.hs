@@ -35,7 +35,7 @@ smartAConstructors fname = do
     liftM concat $ mapM (genSmartConstr (map tyVarBndrName targs) tname) cons
         where genSmartConstr targs tname (name, args) = do
                 let bname = nameBase name
-                genSmartConstr' targs tname (mkName $ "iP" ++ bname) name args
+                genSmartConstr' targs tname (mkName $ "iA" ++ bname) name args
               genSmartConstr' targs tname sname name args = do
                 varNs <- newNames args "x"
                 varPr <- newName "_p"

@@ -45,11 +45,11 @@ evalMTest = EvalM.evalMEx == Just (EvalM.iConst 12)
 evalAlgMTest = EvalAlgM.evalMEx == Just (EvalAlgM.iConst 5)
 desugarEvalTest = DesugarEval.evalEx == Just (DesugarEval.iConst 720)
 desugarPosTest = DesugarPos.desugPEx ==
-                 DesugarPos.iPApp (DesugarPos.Pos 1 0)
-                                  (DesugarPos.iPLam (DesugarPos.Pos 1 0) hole)
-                                  (DesugarPos.iPLam (DesugarPos.Pos 1 1) $ \f ->
-                                       DesugarPos.iPApp (DesugarPos.Pos 1 1)
-                                                        (DesugarPos.iPLam (DesugarPos.Pos 1 1) $ \x ->
-                                                             DesugarPos.iPApp (DesugarPos.Pos 1 1) (hole f) (DesugarPos.iPApp (DesugarPos.Pos 1 1) (hole x) (hole x)))
-                                                        (DesugarPos.iPLam (DesugarPos.Pos 1 1) $ \x ->
-                                                             DesugarPos.iPApp (DesugarPos.Pos 1 1) (hole f) (DesugarPos.iPApp (DesugarPos.Pos 1 1) (hole x) (hole x))))
+                 DesugarPos.iAApp (DesugarPos.Pos 1 0)
+                                  (DesugarPos.iALam (DesugarPos.Pos 1 0) hole)
+                                  (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \f ->
+                                       DesugarPos.iAApp (DesugarPos.Pos 1 1)
+                                                        (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
+                                                             DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole f) (DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole x) (hole x)))
+                                                        (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
+                                                             DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole f) (DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole x) (hole x))))

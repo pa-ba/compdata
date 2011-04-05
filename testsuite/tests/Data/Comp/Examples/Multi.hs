@@ -43,17 +43,17 @@ evalITest = EvalI.evalIEx == 2
 evalMTest = EvalM.evalMEx == Just (EvalM.iConst 5)
 desugarEvalTest = DesugarEval.evalEx == DesugarEval.iPair (DesugarEval.iConst 2) (DesugarEval.iConst 1)
 desugarPosTest = DesugarPos.desugPEx ==
-                 DesugarPos.iPPair
+                 DesugarPos.iAPair
                                (DesugarPos.Pos 1 0)
-                               (DesugarPos.iPSnd
+                               (DesugarPos.iASnd
                                               (DesugarPos.Pos 1 0)
-                                              (DesugarPos.iPPair
+                                              (DesugarPos.iAPair
                                                              (DesugarPos.Pos 1 1)
-                                                             (DesugarPos.iPConst (DesugarPos.Pos 1 2) 1)
-                                                             (DesugarPos.iPConst (DesugarPos.Pos 1 3) 2)))
-                               (DesugarPos.iPFst
+                                                             (DesugarPos.iAConst (DesugarPos.Pos 1 2) 1)
+                                                             (DesugarPos.iAConst (DesugarPos.Pos 1 3) 2)))
+                               (DesugarPos.iAFst
                                               (DesugarPos.Pos 1 0)
-                                              (DesugarPos.iPPair
+                                              (DesugarPos.iAPair
                                                              (DesugarPos.Pos 1 1)
-                                                             (DesugarPos.iPConst (DesugarPos.Pos 1 2) 1)
-                                                             (DesugarPos.iPConst (DesugarPos.Pos 1 3) 2)))
+                                                             (DesugarPos.iAConst (DesugarPos.Pos 1 2) 1)
+                                                             (DesugarPos.iAConst (DesugarPos.Pos 1 3) 2)))

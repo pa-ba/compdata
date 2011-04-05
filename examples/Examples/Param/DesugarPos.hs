@@ -85,13 +85,13 @@ instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
                            `iApp`
                            (iLam $ \x -> hole f `iApp` (hole x `iApp` hole x))
 
--- Example: desugPEx == iPApp (Pos 1 0)
---          (iPLam (Pos 1 0) hole)
---          (iPLam (Pos 1 1) $ \f ->
---               iPApp (Pos 1 1)
---                     (iPLam (Pos 1 1) $ \x ->
---                          iPApp (Pos 1 1) (hole f) (iPApp (Pos 1 1) (hole x) (hole x)))
---                     (iPLam (Pos 1 1) $ \x ->
---                          iPApp (Pos 1 1) (hole f) (iPApp (Pos 1 1) (hole x) (hole x))))
+-- Example: desugPEx == iAApp (Pos 1 0)
+--          (iALam (Pos 1 0) hole)
+--          (iALam (Pos 1 1) $ \f ->
+--               iAApp (Pos 1 1)
+--                     (iALam (Pos 1 1) $ \x ->
+--                          iAApp (Pos 1 1) (hole f) (iAApp (Pos 1 1) (hole x) (hole x)))
+--                     (iALam (Pos 1 1) $ \x ->
+--                          iAApp (Pos 1 1) (hole f) (iAApp (Pos 1 1) (hole x) (hole x))))
 desugPEx :: Term SigP
-desugPEx = desugP $ iPLet (Pos 1 0) (iPFix (Pos 1 1)) hole
+desugPEx = desugP $ iALet (Pos 1 0) (iAFix (Pos 1 1)) hole
