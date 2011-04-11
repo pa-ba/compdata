@@ -27,6 +27,7 @@ module Examples.Multi.DesugarEval where
 import Data.Comp.Multi
 import Data.Comp.Multi.Show ()
 import Data.Comp.Multi.Derive
+import Data.Comp.Multi.Desugar
 
 -- Signature for values, operators, and syntactic sugar
 data Value e l where
@@ -56,19 +57,6 @@ type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
           instanceHEqF, instanceHShowF, smartConstructors]
          [''Value, ''Op, ''Sugar])
-
--- Term homomorphism for desugaring of terms
-class (HFunctor f, HFunctor g) => Desugar f g where
-  desugHom :: TermHom f g
-  desugHom = desugHom' . hfmap Hole
-  desugHom' :: Alg f (Context g a)
-  desugHom' x = appCxt (desugHom x)
-
-$(derive [liftSum] [''Desugar])
-
--- Default desugaring implementation
-instance (HFunctor f, HFunctor g, f :<: g) => Desugar f g where
-  desugHom = simpCxt . inj
 
 instance (Op :<: v, Value :<: v, HFunctor v) => Desugar Sugar v where
   desugHom' (Neg x)  = iConst (-1) `iMult` x

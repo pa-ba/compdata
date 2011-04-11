@@ -27,6 +27,7 @@ module Examples.DesugarEval where
 import Data.Comp
 import Data.Comp.Show ()
 import Data.Comp.Derive
+import Data.Comp.Desugar
 
 -- Signature for values, operators, and syntactic sugar
 data Value e = Const Int | Pair e e
@@ -43,19 +44,6 @@ type Sig' = Sugar :+: Op :+: Value
 $(derive [instanceFunctor, instanceTraversable, instanceFoldable,
           instanceEqF, instanceShowF, smartConstructors]
          [''Value, ''Op, ''Sugar])
-
--- Term homomorphism for desugaring of terms
-class (Functor f, Functor g) => Desugar f g where
-  desugHom :: TermHom f g
-  desugHom = desugHom' . fmap Hole
-  desugHom' :: Alg f (Context g a)
-  desugHom' x = appCxt (desugHom x)
-
-$(derive [liftSum] [''Desugar])
-
--- Default desugaring implementation
-instance (Functor f, Functor g, f :<: g) => Desugar f g where
-  desugHom = simpCxt . inj
 
 instance (Op :<: f, Value :<: f, Functor f) => Desugar Sugar f where
   desugHom' (Neg x)  = iConst (-1) `iMult` x

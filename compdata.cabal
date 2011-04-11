@@ -144,7 +144,8 @@ library
                         Data.Comp.TermRewriting, Data.Comp.Automata,
                         Data.Comp.Arbitrary, Data.Comp.Show, Data.Comp.Variables,
                         Data.Comp.Decompose, Data.Comp.Unification,
-                        Data.Comp.Derive, Data.Comp.Matching, Data.Comp.Multi,
+                        Data.Comp.Derive, Data.Comp.Matching, Data.Comp.Desugar,
+                        Data.Comp.Multi,
                         Data.Comp.Multi.Term, Data.Comp.Multi.Sum,
                         Data.Comp.Multi.Functor,
                         Data.Comp.Multi.Foldable, Data.Comp.Multi.Traversable,
@@ -153,7 +154,8 @@ library
                         Data.Comp.Multi.Equality, Data.Comp.Multi.Variables,
                         Data.Comp.Multi.Ops, Data.Comp.Ops,
                         Data.Comp.Multi.Derive
-                        Data.Comp.Multi.Generic
+                        Data.Comp.Multi.Generic,
+                        Data.Comp.Multi.Desugar,
                         Data.Comp.Param, Data.Comp.Param.Term,
                         Data.Comp.Param.Sub,
                         Data.Comp.Param.FreshM,
@@ -164,7 +166,8 @@ library
                         Data.Comp.Param.Equality
                         Data.Comp.Param.Ordering
                         Data.Comp.Param.Show
-                        Data.Comp.Param.Derive
+                        Data.Comp.Param.Derive,
+                        Data.Comp.Param.Desugar
 
   Other-Modules:        Data.Comp.Derive.Utils, Data.Comp.Derive.Equality,
                         Data.Comp.Derive.Ordering, Data.Comp.Derive.Arbitrary,

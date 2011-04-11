@@ -29,6 +29,7 @@ module Examples.Param.DesugarEval where
 import Data.Comp.Param hiding (Const)
 import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
+import Data.Comp.Param.Desugar
 
 -- Signatures for values and operators
 data Const a e = Const Int
@@ -56,22 +57,6 @@ $(derive [instanceDifunctor, instanceEqD, instanceShowD, smartConstructors]
 $(derive [instanceFoldable, instanceTraversable]
          [''Const, ''App, ''Op])
 $(derive [smartConstructors] [''Fun])
-
--- Term homomorphism for desugaring of terms
-class (Difunctor f, Difunctor g) => Desugar f g where
-  desugHom :: TermHom f g
-  desugHom = desugHom' . fmap hole
-  desugHom' :: (a :< b) => f a (Cxt g a b) -> Cxt g a b
-  desugHom' x = appCxt (desugHom x)
-
-$(derive [liftSum] [''Desugar])
-
-desug :: (Desugar f g, Difunctor f) => Term f -> Term g
-desug = appTermHom desugHom
-
--- Default desugaring implementation
-instance (Difunctor f, Difunctor g, f :<: g) => Desugar f g where
-  desugHom = simpCxt . inj
 
 instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
   => Desugar Sug f where

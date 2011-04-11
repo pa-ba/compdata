@@ -29,6 +29,7 @@ module Examples.Param.DesugarPos where
 import Data.Comp.Param hiding (Const)
 import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
+import Data.Comp.Param.Desugar
 
 -- Signatures for values and operators
 data Const a e = Const Int
@@ -56,26 +57,6 @@ $(derive [instanceDifunctor, instanceEqD, instanceShowD,
           smartConstructors, smartAConstructors]
          [''Const, ''Lam, ''App, ''Op, ''Sug])
 
--- Term homomorphism for desugaring of terms
-class (Difunctor f, Difunctor g) => Desugar f g where
-  desugHom :: TermHom f g
-  desugHom = desugHom' . fmap hole
-  desugHom' :: (a :< b) => f a (Cxt g a b) -> Cxt g a b
-  desugHom' x = appCxt (desugHom x)
-
-$(derive [liftSum] [''Desugar])
-
-desug :: (Desugar f g, Difunctor f) => Term f -> Term g
-desug = appTermHom desugHom
-
--- Lift desugaring to terms annotated with source positions
-desugP :: Term SigP' -> Term SigP
-desugP = appTermHom (propAnn desugHom)
-
--- Default desugaring implementation
-instance (Difunctor f, Difunctor g, f :<: g) => Desugar f g where
-  desugHom = simpCxt . inj
-
 instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
   => Desugar Sug f where
   desugHom' (Neg x)   = iConst (-1) `iMult` x
@@ -94,4 +75,4 @@ instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
 --                     (iALam (Pos 1 1) $ \x ->
 --                          iAApp (Pos 1 1) (hole f) (iAApp (Pos 1 1) (hole x) (hole x))))
 desugPEx :: Term SigP
-desugPEx = desugP $ iALet (Pos 1 0) (iAFix (Pos 1 1)) hole
+desugPEx = desugarA (iALet (Pos 1 0) (iAFix (Pos 1 1)) hole :: Term SigP')
