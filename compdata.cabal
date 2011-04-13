@@ -194,13 +194,13 @@ library
                         Data.Comp.Param.Derive.SmartAConstructors,
                         Data.Comp.Param.Derive.LiftSum
 
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers
   hs-source-dirs:	src
   ghc-options:          -W
 
 Executable test
   Main-is:		Data_Test.hs
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq, transformers
   hs-source-dirs:	src testsuite/tests examples
   ghc-options:          -fhpc
   if !flag(test)
@@ -208,7 +208,7 @@ Executable test
 
 Executable benchmark
   Main-is:		Benchmark.hs
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
   hs-source-dirs:	src benchmark
   ghc-options:          -W -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
