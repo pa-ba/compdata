@@ -6,6 +6,7 @@ import qualified Examples.Param.EvalM as EvalM
 import qualified Examples.Param.EvalAlgM as EvalAlgM
 import qualified Examples.Param.DesugarEval as DesugarEval
 import qualified Examples.Param.DesugarPos as DesugarPos
+import qualified Examples.Param.Parsing as Parsing
 
 import Data.Comp.Param
 
@@ -27,7 +28,8 @@ tests = testGroup "Parametric Compositional Data Types" [
          testProperty "evalM" evalMTest,
          testProperty "evalAlgM" evalAlgMTest,
          testProperty "desugarEval" desugarEvalTest,
-         testProperty "desugarPos" desugarPosTest
+         testProperty "desugarPos" desugarPosTest,
+         testProperty "parsing" parsingTest
         ]
 
 
@@ -53,3 +55,4 @@ desugarPosTest = DesugarPos.desugPEx ==
                                                              DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole f) (DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole x) (hole x)))
                                                         (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
                                                              DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole f) (DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole x) (hole x))))
+parsingTest = Parsing.transEx == (Parsing.iLam $ \a -> Parsing.iApp (Parsing.iLam $ \b -> Parsing.iLam $ \c -> hole b) (hole a))

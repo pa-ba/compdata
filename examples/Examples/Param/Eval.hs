@@ -57,10 +57,6 @@ class Eval f v where
 
 $(derive [liftSum] [''Eval])
 
-{-instance (Eval f v, Eval g v) => Eval (f :+: g) v where
-  evalAlg (Inl x) = evalAlg x
-  evalAlg (Inr x) = evalAlg x-}
-
 -- Lift the evaluation algebra to a catamorphism
 eval :: (Difunctor f, Eval f v) => Term f -> Term v
 eval = cata evalAlg
