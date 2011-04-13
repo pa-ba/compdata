@@ -43,15 +43,18 @@ instance (Difunctor f, Monad m, Traversable (f a)) => Ditraversable f m a where
 instance Ditraversable (->) Gen a where
     dimapM f s = MkGen run
         where run stdGen seed a = unGen (f (s a)) stdGen seed
+    disequence s = MkGen run
+        where run stdGen seed a = unGen (s a) stdGen seed
 
 instance Ditraversable (->) Identity a where
     dimapM f s = Identity run
         where run a = runIdentity (f (s a))
+    disequence s = Identity run
+        where run a = runIdentity (s a)
 
-instance Ditraversable (->) (ReaderT r Identity) a where
-    dimapM f s = ReaderT (Identity . run)
-        where run r a = runIdentity $ runReaderT (f (s a)) r
 
 instance Ditraversable (->) m a =>  Ditraversable (->) (ReaderT r m) a where
     dimapM f s = ReaderT (disequence . run)
         where run r a = runReaderT (f (s a)) r
+    disequence s = ReaderT (disequence . run)
+        where run r a = runReaderT (s a) r
