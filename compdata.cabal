@@ -158,7 +158,6 @@ library
                         Data.Comp.Multi.Generic,
                         Data.Comp.Multi.Desugar,
                         Data.Comp.Param, Data.Comp.Param.Term,
-                        Data.Comp.Param.Sub,
                         Data.Comp.Param.FreshM,
                         Data.Comp.Param.Sum, Data.Comp.Param.Difunctor,
                         Data.Comp.Param.Ditraversable,

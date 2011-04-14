@@ -48,11 +48,11 @@ evalAlgMTest = EvalAlgM.evalMEx == Just (EvalAlgM.iConst 5)
 desugarEvalTest = DesugarEval.evalEx == Just (DesugarEval.iConst 720)
 desugarPosTest = DesugarPos.desugPEx ==
                  DesugarPos.iAApp (DesugarPos.Pos 1 0)
-                                  (DesugarPos.iALam (DesugarPos.Pos 1 0) hole)
+                                  (DesugarPos.iALam (DesugarPos.Pos 1 0) Place)
                                   (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \f ->
                                        DesugarPos.iAApp (DesugarPos.Pos 1 1)
                                                         (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
-                                                             DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole f) (DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole x) (hole x)))
+                                                             DesugarPos.iAApp (DesugarPos.Pos 1 1) (Place f) (DesugarPos.iAApp (DesugarPos.Pos 1 1) (Place x) (Place x)))
                                                         (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
-                                                             DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole f) (DesugarPos.iAApp (DesugarPos.Pos 1 1) (hole x) (hole x))))
-parsingTest = Parsing.transEx == (Parsing.iLam $ \a -> Parsing.iApp (Parsing.iLam $ \b -> Parsing.iLam $ \c -> hole b) (hole a))
+                                                             DesugarPos.iAApp (DesugarPos.Pos 1 1) (Place f) (DesugarPos.iAApp (DesugarPos.Pos 1 1) (Place x) (Place x))))
+parsingTest = Parsing.transEx == (Parsing.iLam $ \a -> Parsing.iApp (Parsing.iLam $ \b -> Parsing.iLam $ \c -> Place b) (Place a))

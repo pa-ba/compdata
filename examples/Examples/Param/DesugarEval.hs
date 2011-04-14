@@ -63,9 +63,9 @@ instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
   desugHom' (Neg x)   = iConst (-1) `iMult` x
   desugHom' (Let x y) = iLam y `iApp` x
   desugHom' Fix       = iLam $ \f ->
-                           (iLam $ \x -> hole f `iApp` (hole x `iApp` hole x))
+                           (iLam $ \x -> Place f `iApp` (Place x `iApp` Place x))
                            `iApp`
-                           (iLam $ \x -> hole f `iApp` (hole x `iApp` hole x))
+                           (iLam $ \x -> Place f `iApp` (Place x `iApp` Place x))
 
 -- Term evaluation algebra
 class Eval f v where
@@ -112,6 +112,6 @@ fact = iFix `iApp`
        (iLam $ \f ->
           iLam $ \n ->
               iIfThenElse
-              (hole n)
-              ((hole n) `iMult` (hole f `iApp` (hole n `iAdd` iConst (-1))))
+              (Place n)
+              (Place n `iMult` (Place f `iApp` (Place n `iAdd` iConst (-1))))
               (iConst 1))

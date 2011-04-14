@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, FlexibleInstances, TypeSynonymInstances,
-  IncoherentInstances, UndecidableInstances, TemplateHaskell #-}
+  IncoherentInstances, UndecidableInstances, TemplateHaskell, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Show
@@ -36,16 +36,17 @@ $(derive [liftSum] [''ShowD])
 
 {-| From an 'ShowD' difunctor an 'ShowD' instance of the corresponding term type
   can be derived. -}
-instance ShowD f => ShowD (Cxt f) where
+instance ShowD f => ShowD (Cxt h f) where
     showD (Term t) = showD t
     showD (Hole h) = pshow h
+    showD (Place p) = pshow p
 
-instance (ShowD f, PShow a) => PShow (Cxt f Var a) where
+instance (ShowD f, PShow a) => PShow (Cxt h f Var a) where
     pshow = showD
 
 {-| Printing of terms. -}
 instance (Difunctor f, ShowD f) => Show (Term f) where
-    show x = evalFreshM $ showD $ toCxt x
+    show x = evalFreshM $ showD $ coerceCxt x
 
 instance (ShowD f, PShow p) => ShowD (f :&: p) where
     showD (x :&: p) = do sx <- showD x

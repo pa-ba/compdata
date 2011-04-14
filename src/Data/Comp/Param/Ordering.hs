@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, TypeSynonymInstances, FlexibleInstances,
-  UndecidableInstances, IncoherentInstances #-}
+  UndecidableInstances, IncoherentInstances, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Ordering
@@ -52,15 +52,18 @@ instance (OrdD f, OrdD g) => OrdD (f :+: g) where
 
 {-| From an 'OrdD' difunctor an 'Ord' instance of the corresponding term type
   can be derived. -}
-instance OrdD f => OrdD (Cxt f) where
+instance OrdD f => OrdD (Cxt h f) where
     compareD (Term e1) (Term e2) = compareD e1 e2
     compareD (Hole h1) (Hole h2) = pcompare h1 h2
-    compareD (Term _) (Hole _) = return LT
+    compareD (Place p1) (Place p2) = pcompare p1 p2
+    compareD (Term _) _ = return LT
     compareD (Hole _) (Term _) = return GT
+    compareD (Hole _) (Place _) = return LT
+    compareD (Place _) _ = return GT
 
-instance (OrdD f, POrd a) => POrd (Cxt f Var a) where
+instance (OrdD f, POrd a) => POrd (Cxt h f Var a) where
     pcompare = compareD
 
 {-| Ordering of terms. -}
 instance (Difunctor f, OrdD f) => Ord (Term f) where
-    compare x y = evalFreshM $ compareD (toCxt x) (toCxt y)
+    compare x y = evalFreshM $ compareD (coerceCxt x) (coerceCxt y)

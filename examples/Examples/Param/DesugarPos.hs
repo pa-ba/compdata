@@ -62,17 +62,17 @@ instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
   desugHom' (Neg x)   = iConst (-1) `iMult` x
   desugHom' (Let x y) = iLam y `iApp` x
   desugHom' Fix       = iLam $ \f ->
-                           (iLam $ \x -> hole f `iApp` (hole x `iApp` hole x))
+                           (iLam $ \x -> Place f `iApp` (Place x `iApp` Place x))
                            `iApp`
-                           (iLam $ \x -> hole f `iApp` (hole x `iApp` hole x))
+                           (iLam $ \x -> Place f `iApp` (Place x `iApp` Place x))
 
 -- Example: desugPEx == iAApp (Pos 1 0)
---          (iALam (Pos 1 0) hole)
+--          (iALam (Pos 1 0) Place)
 --          (iALam (Pos 1 1) $ \f ->
 --               iAApp (Pos 1 1)
 --                     (iALam (Pos 1 1) $ \x ->
---                          iAApp (Pos 1 1) (hole f) (iAApp (Pos 1 1) (hole x) (hole x)))
+--                          iAApp (Pos 1 1) (Place f) (iAApp (Pos 1 1) (Place x) (Place x)))
 --                     (iALam (Pos 1 1) $ \x ->
---                          iAApp (Pos 1 1) (hole f) (iAApp (Pos 1 1) (hole x) (hole x))))
+--                          iAApp (Pos 1 1) (Place f) (iAApp (Pos 1 1) (Place x) (Place x))))
 desugPEx :: Term SigP
-desugPEx = desugarA (iALet (Pos 1 0) (iAFix (Pos 1 1)) hole :: Term SigP')
+desugPEx = desugarA (iALet (Pos 1 0) (iAFix (Pos 1 1)) Place :: Term SigP')

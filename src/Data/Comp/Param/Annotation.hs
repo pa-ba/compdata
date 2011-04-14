@@ -36,21 +36,17 @@ import Data.Comp.Param.Algebra
 
 import Control.Monad
 
-
-
 {-| Transform a function with a domain constructed from a functor to a function
  with a domain constructed with the same functor, but with an additional
  annotation. -}
-
 liftA :: (RemA s s') => (s' a b -> t) -> s a b -> t
 liftA f v = f (remA v)
-
 
 {-| Transform a function with a domain constructed from a functor to a function
   with a domain constructed with the same functor, but with an additional
   annotation. -}
 liftA' :: (DistAnn s' p s, Difunctor s, Difunctor s')
-       => (s' a b -> Cxt s' c c) -> s a b -> Cxt s c c
+          => (s' a b -> Cxt h s' c d) -> s a b -> Cxt h s c d
 liftA' f v = let (v',p) = projectA v
              in ann p (f v')
 
@@ -67,15 +63,14 @@ propAnn alg f' = ann p (alg f)
 
 {-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
   term homomorphism over the same signatures, but extended with annotations. -}
-propAnnM :: (DistAnn f p f', DistAnn g p g',
-                    Difunctor g, Difunctor g', Monad m) 
-               => TermHomM m f g a -> TermHomM m f' g' a
+propAnnM :: (DistAnn f p f', DistAnn g p g', Difunctor g, Difunctor g',
+             Monad m) => TermHomM m f g a -> TermHomM m f' g' a
 propAnnM alg f' = liftM (ann p) (alg f)
     where (f,p) = projectA f'
 
 {-| Annotate each node of a term with a constant value. -}
-ann :: forall f g p a b. (DistAnn f p g, Difunctor f, Difunctor g, a :< b)
-       => p -> Cxt f a b -> Cxt g a b
+ann :: forall h f g p a b. (DistAnn f p g, Difunctor f, Difunctor g)
+       => p -> Cxt h f a b -> Cxt h g a b
 ann c = appSigFun (injectA c)
 
 {-| This function is similar to 'project' but applies to signatures

@@ -20,10 +20,10 @@ import Data.Comp.Derive
 
 -- |The desugaring term homomorphism.
 class (Functor f, Functor g) => Desugar f g where
-  desugHom :: TermHom f g
-  desugHom = desugHom' . fmap Hole
-  desugHom' :: Alg f (Context g a)
-  desugHom' x = appCxt (desugHom x)
+    desugHom :: TermHom f g
+    desugHom = desugHom' . fmap Hole
+    desugHom' :: Alg f (Context g a)
+    desugHom' x = appCxt (desugHom x)
 
 $(derive [liftSum] [''Desugar])
 
@@ -38,4 +38,4 @@ desugarA = appTermHom (propAnn desugHom)
 
 -- |Default desugaring instance.
 instance (Functor f, Functor g, f :<: g) => Desugar f g where
-  desugHom = simpCxt . inj
+    desugHom = simpCxt . inj

@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, TypeSynonymInstances, FlexibleInstances,
-  UndecidableInstances, IncoherentInstances #-}
+  UndecidableInstances, IncoherentInstances, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Equality
@@ -52,14 +52,15 @@ instance (EqD f, EqD g) => EqD (f :+: g) where
 
 {-| From an 'EqD' difunctor an 'Eq' instance of the corresponding term type can
   be derived. -}
-instance EqD f => EqD (Cxt f) where
+instance EqD f => EqD (Cxt h f) where
     eqD (Term e1) (Term e2) = eqD e1 e2
     eqD (Hole h1) (Hole h2) = peq h1 h2
+    eqD (Place p1) (Place p2) = peq p1 p2
     eqD _ _ = return False
 
-instance (EqD f, PEq a) => PEq (Cxt f Var a) where
+instance (EqD f, PEq a) => PEq (Cxt h f Var a) where
     peq = eqD
 
 {-| Equality on terms. -}
 instance (Difunctor f, EqD f) => Eq (Term f) where
-    (==) x y = evalFreshM $ eqD (toCxt x) (toCxt y)
+    (==) x y = evalFreshM $ eqD (coerceCxt x) (coerceCxt y)

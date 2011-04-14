@@ -57,7 +57,7 @@ $(derive [instanceDifunctor, instanceEqD, instanceShowD, smartConstructors]
 $(derive [instanceFoldable, instanceTraversable]
          [''Const, ''App, ''Op, ''Abs, ''Var])
 
-type TransM = Reader (Map VarId Nothing)
+type TransM = Reader (Map VarId Any)
 
 class PHOASTrans f g where
   transAlg :: Alg f (TransM (Term g))
@@ -65,15 +65,15 @@ class PHOASTrans f g where
 $(derive [liftSum] [''PHOASTrans])
 
 -- default translation
-instance (f :<: g, Ditraversable f TransM Nothing) => PHOASTrans f g where
-  transAlg x =  liftM inject $ disequence $ dimap (return . hole) id x
+instance (f :<: g, Ditraversable f TransM Any) => PHOASTrans f g where
+  transAlg x =  liftM inject $ disequence $ dimap (return . Place) id x
 
 instance (Lam :<: g) => PHOASTrans Abs g where
   transAlg (Abs x b) = do env <- ask
                           return $ iLam $ \y -> runReader b (Map.insert x y env)
 
 instance PHOASTrans Var g where
-  transAlg (Var x) = liftM (hole . fromJust) $ asks $ Map.lookup x
+  transAlg (Var x) = liftM (Place . fromJust) $ asks $ Map.lookup x
 
 trans :: Term Sig -> Term Sig'
 trans x = runReader (cata transAlg x) Map.empty
