@@ -83,7 +83,7 @@ module Data.Comp.Param.Algebra (
       CVAlg,
       histo,
       CVAlgM,
---      histoM,
+      histoM,
 
       -- * CV-Coalgebras & Futumorphisms
       CVCoalg,
@@ -434,13 +434,15 @@ histo alg = projectTip . cata run
   @a@. -}
 type CVAlgM m f a f' = f a (Cxt NoHole f' a ()) -> m a
 
-{-{-| Construct a monadic histomorphism from the given monadic cv-algebra. -}
-histoM :: (Ditraversable f m a, Monad m, DistAnn f a f')
+{-| Construct a monadic histomorphism from the given monadic cv-algebra. -}
+histoM :: forall f f' m a. (Ditraversable f m a, Monad m, DistAnn f a f')
           => CVAlgM m f a f' -> Term f -> m a
-histoM alg = liftM projectTip . cataM run
-    where run v = do r <- alg v'
-                     return (Term $ injectA r v')
-              where v' = dimap Place id v-}
+histoM alg = liftM projectTip . run . coerceCxt
+    where run (Term t) = do t' <- dimapM run t
+                            r <- alg t'
+                            return $ Term $ injectA r t'
+          run (Place p) = return $ Place p
+
 
 -----------------------------------
 -- CV-Coalgebras & Futumorphisms --
