@@ -59,10 +59,6 @@ data NoHole
   @Any -> (Any,Any)@. -}
 data Any
 
-instance Eq Any where
-instance Ord Any where
-instance Show Any where
-
 {-| A context may contain holes, but must be parametric in the bound
   parameters. -}
 type Context f = Cxt Hole f Any
