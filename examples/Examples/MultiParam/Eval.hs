@@ -12,16 +12,17 @@
 --
 -- Expression Evaluation
 --
--- The example illustrates how to use parametric compositional data types to
--- implement a small expression language, with a language of values, and
--- an evaluation function mapping expressions to values. The example
--- demonstrates how (parametric) abstractions are mapped to general functions,
--- from values to values, and how it is possible to project a general value
--- (with functions) back into ground values, that can again be analysed.
+-- The example illustrates how to use generalised parametric compositional data
+-- types to implement a small expression language, with a language of values,
+-- and an evaluation function mapping typed expressions to typed values. The
+-- example demonstrates how (parametric) abstractions are mapped to general
+-- functions, from values to values, and how it is possible to project a general
+-- value (with functions) back into ground values, that can again be analysed.
 --
 -- The following language extensions are needed in order to run the example:
 -- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
--- @FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@.
+-- @FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@, @GADTs@,
+-- and @KindSignatures@.
 --
 --------------------------------------------------------------------------------
 
@@ -35,7 +36,7 @@ import Data.Comp.MultiParam.Derive
 data Const :: (* -> *) -> (* -> *) -> * -> * where
     Const :: Int -> Const a e Int
 data Lam :: (* -> *) -> (* -> *) -> * -> * where
-    Lam :: (a :~> e) (i -> j) -> Lam a e (i -> j)
+    Lam :: (a i -> e j) -> Lam a e (i -> j)
 data App :: (* -> *) -> (* -> *) -> * -> * where
     App :: e (i -> j) -> e i -> App a e j
 data Op :: (* -> *) -> (* -> *) -> * -> * where
@@ -79,7 +80,7 @@ instance (Fun :<: v) => Eval App v where
   evalAlg (App x y) = (projF x) y
 
 instance (Fun :<: v) => Eval Lam v where
-  evalAlg (Lam ((:~>) f)) = iFun f
+  evalAlg (Lam f) = iFun f
 
 projC :: (Const :<: v) => Term v Int -> Int
 projC v = case project v of Just (Const n) -> n
@@ -93,13 +94,4 @@ evalG = deepProject' . (eval :: Term Sig :-> Term Value)
 
 -- Example: evalEx = Just (iConst 4)
 evalEx :: Maybe (Term GValue Int)
-evalEx = evalG $ (iLam . (:~>) $ \x -> Place x `iAdd` Place x) `iApp` iConst 2
-
-x :: Term Sig Int
-x = (iLam . (:~>) $ \x -> Place x `iAdd` Place x) `iApp` iConst 2
-
-y :: Term Sig (a -> a)
-y = iLam $ (:~>) Place
-
-z :: Term Sig (Int -> Int)
-z = y `iApp` (iLam . (:~>) $ \x -> Place x `iAdd` Place x)
+evalEx = evalG $ (iLam $ \x -> Place x `iAdd` Place x) `iApp` iConst 2

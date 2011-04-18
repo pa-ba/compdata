@@ -18,9 +18,9 @@ module Data.Comp.MultiParam.Derive.Ordering
      instanceOrdHD
     ) where
 
+import Data.Comp.MultiParam.FreshM
 import Data.Comp.MultiParam.Ordering
 import Data.Comp.Derive.Utils
-
 import Data.Maybe
 import Data.List
 import Language.Haskell.TH hiding (Cxt)
@@ -43,34 +43,50 @@ instanceOrdHD fname = do
   let complType = foldl AppT (ConT name) argNames
   let classType = AppT (ConT ''OrdHD) complType
   constrs' :: [(Name,[Type])] <- mapM normalConExp constrs
-  compareHDDecl <- funD 'compareHD (compareHDClauses coArg conArg constrs')
+  compareHDDecl <- funD 'compareHD (compareHDClauses conArg coArg constrs')
   return [InstanceD [] classType [compareHDDecl]]
       where compareHDClauses :: Name -> Name -> [(Name,[Type])] -> [ClauseQ]
             compareHDClauses _ _ [] = []
-            compareHDClauses coArg conArg constrs = 
+            compareHDClauses conArg coArg constrs = 
                 let constrs' = constrs `zip` [1..]
                     constPairs = [(x,y)| x<-constrs', y <- constrs']
-                in map (genClause coArg conArg) constPairs
-            genClause coArg conArg ((c,n),(d,m))
-                | n == m = genEqClause coArg conArg c
+                in map (genClause conArg coArg) constPairs
+            genClause conArg coArg ((c,n),(d,m))
+                | n == m = genEqClause conArg coArg c
                 | n < m = genLtClause c d
                 | otherwise = genGtClause c d
             genEqClause :: Name -> Name -> (Name,[Type]) -> ClauseQ
-            genEqClause coArg conArg (constr, args) = do 
+            genEqClause conArg coArg (constr, args) = do 
               varXs <- newNames (length args) "x"
               varYs <- newNames (length args) "y"
               let patX = ConP constr $ map VarP varXs
               let patY = ConP constr $ map VarP varYs
-              body <- eqDBody coArg conArg (zip3 varXs varYs args)
+              body <- eqDBody conArg coArg (zip3 varXs varYs args)
               return $ Clause [patX, patY] (NormalB body) []
             eqDBody :: Name -> Name -> [(Name, Name, Type)] -> ExpQ
-            eqDBody coArg conArg x =
-                [|liftM compList (sequence $(listE $ map (eqDB coArg conArg) x))|]
+            eqDBody conArg coArg x =
+                [|liftM compList (sequence $(listE $ map (eqDB conArg coArg) x))|]
             eqDB :: Name -> Name -> (Name, Name, Type) -> ExpQ
-            eqDB coArg conArg (x, y, tp)
-                | containsType tp (VarT conArg) = [| compareHD $(varE x) $(varE y) |]
-                | containsType tp (VarT coArg) = [| pcompare $(varE x) $(varE y) |]
-                | otherwise = [| return $ compare $(varE x) $(varE y) |]
+            eqDB conArg coArg (x, y, tp)
+                | not (containsType tp (VarT conArg)) &&
+                  not (containsType tp (VarT coArg)) =
+                    [| return $ compare $(varE x) $(varE y) |]
+                | otherwise =
+                    case tp of
+                      AppT (VarT a) _ 
+                          | a == coArg -> [| pcompare $(varE x) $(varE y) |]
+                      AppT (AppT ArrowT (AppT (VarT a) _)) _
+                          | a == conArg ->
+                              [| do {v <- genVar;
+                                     pcompare ($(varE x) $ varCoerce v)
+                                              ($(varE y) $ varCoerce v)} |]
+                      SigT tp' _ ->
+                          eqDB conArg coArg (x, y, tp')
+                      _ ->
+                          if containsType tp (VarT conArg) then
+                              [| compareHD $(varE x) $(varE y) |]
+                          else
+                              [| pcompare $(varE x) $(varE y) |]
             genLtClause (c, _) (d, _) =
                 clause [recP c [], recP d []] (normalB [| return LT |]) []
             genGtClause (c, _) (d, _) =

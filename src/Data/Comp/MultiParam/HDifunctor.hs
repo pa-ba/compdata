@@ -19,11 +19,11 @@
 module Data.Comp.MultiParam.HDifunctor
     (
      HDifunctor (..),
+     HFunctor (..),
      I (..),
      K (..),
      A (..),
      (:->),
-     (:~>)(..),
      NatM
     ) where
 
@@ -57,7 +57,6 @@ instance Ord a => Ord (K a i) where
     compare (K x) (K y) = compare x y
 
 infixr 0 :-> -- same precedence as function space operator ->
-infixr 0 :~> -- same precedence as function space operator ->
 
 -- |This type represents natural transformations.
 type f :-> g = forall i . f i -> g i
@@ -65,18 +64,9 @@ type f :-> g = forall i . f i -> g i
 -- |This type represents monadic natural transformations.
 type NatM m f g = forall i. f i -> m (g i)
 
--- |This type represents \"generalised\" functions, i.e. functions where both
--- the domain and codomain are tagged with a type.
-data (:~>) :: (* -> *) -> (* -> *) -> * -> * where
-              (:~>) :: (a i -> b j) -> (:~>) a b (i -> j)
-
 -- | This class represents higher-order difunctors.
 class HDifunctor f where
     hdimap :: (a :-> b) -> (c :-> d) -> f b c :-> f a d
-
--- |The canonical example of a higher-order difunctor.
-instance HDifunctor (:~>) where
-    hdimap f g ((:~>) h) = (:~>) (g . h . f)
 
 -- |A higher-order difunctor gives rise to a higher-order functor when
 -- restricted to a particular contravariant argument.

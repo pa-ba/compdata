@@ -70,19 +70,13 @@ instanceDifunctor fname = do
             -- Example: dimapArg a b (a -> b) f g yields the expression
             -- [|\x -> g . x . f|]
             dimapArg :: Name -> Name -> Type -> ExpQ -> ExpQ -> ExpQ
-            dimapArg conArg coArg tp f g =
-                -- No need to descend into tp if it does not contain the
-                -- difunctor type variables
-                if not (containsType tp (VarT conArg) ||
-                        containsType tp (VarT coArg)) then
-                    [|id|]
-                else
+            dimapArg conArg coArg tp f g
+                | not (containsType tp (VarT conArg)) &&
+                  not (containsType tp (VarT coArg)) = [| id |]
+                | otherwise =
                     case tp of
                       VarT a | a == conArg -> f
                              | a == coArg -> g
-                             | otherwise -> [|id|]
-                      ConT _ ->
-                          [|id|]
                       AppT (AppT ArrowT tp1) tp2 -> do
                           xn <- newName "x"
                           let ftp1 = dimapArg conArg coArg tp1 f g
@@ -93,9 +87,10 @@ instanceDifunctor fname = do
                                        (Just $ infixE (Just $ varE xn)
                                                       [|(.)|]
                                                       (Just ftp1)))
-                      AppT _ tp' ->
-                          [|fmap|] `appE` dimapArg conArg coArg tp' f g
                       SigT tp' _ ->
                           dimapArg conArg coArg tp' f g
                       _ ->
-                          error $ "unsopported type: " ++ show tp
+                          if containsType tp (VarT conArg) then
+                              [| dimap $f $g |]
+                          else
+                              [| fmap $g |]

@@ -41,6 +41,8 @@ instanceShowD fname = do
   -- constrs = [(X,[c]), (Y,[a,c]), (Z,[b -> c])], i.e. the data type
   -- declaration: T a b c = X c | Y a c | Z (b -> c)
   TyConI (DataD _ name args constrs _) <- abstractNewtypeQ $ reify fname
+  -- coArg = c (covariant difunctor argument)
+  let coArg :: Name = tyVarBndrName $ last args
   -- conArg = b (contravariant difunctor argument)
   let conArg :: Name = tyVarBndrName $ last $ init args
   -- argNames = [a]
@@ -51,21 +53,39 @@ instanceShowD fname = do
   let classType = AppT (ConT ''ShowD) complType
   -- constrs' = [(X,[c]), (Y,[a,c]), (Z,[b -> c])]
   constrs' :: [(Name,[Type])] <- mapM normalConExp constrs
-  showDDecl <- funD 'showD (map (showDClause conArg) constrs')
+  showDDecl <- funD 'showD (map (showDClause conArg coArg) constrs')
   return [InstanceD [] classType [showDDecl]]
-      where showDClause :: Name -> (Name,[Type]) -> ClauseQ
-            showDClause conArg (constr, args) = do
+      where showDClause :: Name -> Name -> (Name,[Type]) -> ClauseQ
+            showDClause conArg coArg (constr, args) = do
               varXs <- newNames (length args) "x"
               -- Pattern for the constructor
               let patx = ConP constr $ map VarP varXs
-              body <- showDBody (nameBase constr) conArg (zip varXs args)
+              body <- showDBody (nameBase constr) conArg coArg (zip varXs args)
               return $ Clause [patx] (NormalB body) []
-            showDBody :: String -> Name -> [(Name, Type)] -> ExpQ
-            showDBody constr conArg x =
+            showDBody :: String -> Name -> Name -> [(Name, Type)] -> ExpQ
+            showDBody constr conArg coArg x =
                 [|liftM (unwords . (constr :) .
                          map (\x -> if elem ' ' x then "(" ++ x ++ ")" else x))
-                        (sequence $(listE $ map (showDB conArg) x))|]
-            showDB :: Name -> (Name, Type) -> ExpQ
-            showDB conArg (x, tp)
-                | containsType tp (VarT conArg) = [| showD $(varE x) |]
-                | otherwise = [| pshow $(varE x) |]
+                        (sequence $(listE $ map (showDB conArg coArg) x))|]
+            showDB :: Name -> Name -> (Name, Type) -> ExpQ
+            showDB conArg coArg (x, tp)
+                | not (containsType tp (VarT conArg)) &&
+                  not (containsType tp (VarT coArg)) =
+                    [| return $ show $(varE x) |]
+                | otherwise =
+                    case tp of
+                      VarT a
+                          | a == coArg -> [| pshow $(varE x) |]
+                      AppT (AppT ArrowT (VarT a)) _
+                          | a == conArg ->
+                              [| do {v <- genVar;
+                                     body <- pshow $ $(varE x) v;
+                                     vs <- pshow v;
+                                     return $ "\\" ++ vs ++ " -> " ++ body} |]
+                      SigT tp' _ ->
+                          showDB conArg coArg (x, tp')
+                      _ ->
+                          if containsType tp (VarT conArg) then
+                              [| showD $(varE x) |]
+                          else
+                              [| pshow $(varE x) |]

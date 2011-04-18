@@ -53,7 +53,6 @@ module Data.Comp.MultiParam.Sum
 
 import Prelude hiding (sequence)
 import Control.Monad hiding (sequence)
-import Data.Comp.Multi.Functor (hfmap)
 import Data.Comp.MultiParam.Term
 import Data.Comp.MultiParam.Algebra
 import Data.Comp.MultiParam.Ops

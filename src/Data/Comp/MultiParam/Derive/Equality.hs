@@ -19,7 +19,7 @@ module Data.Comp.MultiParam.Derive.Equality
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.MultiParam.HDifunctor (K(..))
+import Data.Comp.MultiParam.FreshM
 import Data.Comp.MultiParam.Equality
 import Control.Monad
 import Language.Haskell.TH hiding (Cxt, match)
@@ -42,22 +42,38 @@ instanceEqHD fname = do
                  []
              else
                  [clause [wildP,wildP] (normalB [|return False|]) []]
-  eqHDDecl <- funD 'eqHD (map (eqHDClause coArg conArg) constrs' ++ defC)
+  eqHDDecl <- funD 'eqHD (map (eqHDClause conArg coArg) constrs' ++ defC)
   return [InstanceD [] classType [eqHDDecl]]
       where eqHDClause :: Name -> Name -> (Name,[Type]) -> ClauseQ
-            eqHDClause coArg conArg (constr, args) = do
+            eqHDClause conArg coArg (constr, args) = do
               varXs <- newNames (length args) "x"
               varYs <- newNames (length args) "y"
               -- Patterns for the constructors
               let patx = ConP constr $ map VarP varXs
               let paty = ConP constr $ map VarP varYs
-              body <- eqHDBody coArg conArg (zip3 varXs varYs args)
+              body <- eqHDBody conArg coArg (zip3 varXs varYs args)
               return $ Clause [patx,paty] (NormalB body) []
             eqHDBody :: Name -> Name -> [(Name, Name, Type)] -> ExpQ
-            eqHDBody coArg conArg x =
-                [|liftM and (sequence $(listE $ map (eqHDB coArg conArg) x))|]
+            eqHDBody conArg coArg x =
+                [|liftM and (sequence $(listE $ map (eqHDB conArg coArg) x))|]
             eqHDB :: Name -> Name -> (Name, Name, Type) -> ExpQ
-            eqHDB coArg conArg (x, y, tp)
-                | containsType tp (VarT conArg) = [| eqHD $(varE x) $(varE y) |]
-                | containsType tp (VarT coArg) = [| peq $(varE x) $(varE y) |]
-                | otherwise = [| return $ $(varE x) == $(varE y) |]
+            eqHDB conArg coArg (x, y, tp)
+                | not (containsType tp (VarT conArg)) &&
+                  not (containsType tp (VarT coArg)) =
+                    [| return $ $(varE x) == $(varE y) |]
+                | otherwise =
+                    case tp of
+                      AppT (VarT a) _ 
+                          | a == coArg -> [| peq $(varE x) $(varE y) |]
+                      AppT (AppT ArrowT (AppT (VarT a) _)) _
+                          | a == conArg ->
+                              [| do {v <- genVar;
+                                     peq ($(varE x) $ varCoerce v) 
+                                         ($(varE y) $ varCoerce v)} |]
+                      SigT tp' _ ->
+                          eqHDB conArg coArg (x, y, tp')
+                      _ ->
+                          if containsType tp (VarT conArg) then
+                              [| eqHD $(varE x) $(varE y) |]
+                          else
+                              [| peq $(varE x) $(varE y) |]

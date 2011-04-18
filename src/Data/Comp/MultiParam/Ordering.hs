@@ -38,12 +38,6 @@ instance Ord a => POrd (K a) where
 class EqHD f => OrdHD f where
     compareHD :: POrd a => f Var a i -> f Var a j -> FreshM Ordering
 
-{-| Ordering on functions means ordering on the codomain. -}
-instance OrdHD (:~>) where
-    compareHD ((:~>) f) ((:~>) g) =
-        do x <- genVar
-           pcompare (f $ varCoerce x) (g $ varCoerce x)
-
 {-| 'OrdHD' is propagated through sums. -}
 instance (OrdHD f, OrdHD g) => OrdHD (f :+: g) where
     compareHD (Inl x) (Inl y) = compareHD x y

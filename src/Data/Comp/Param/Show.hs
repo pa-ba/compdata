@@ -26,11 +26,6 @@ import Data.Comp.Param.FreshM
 instance Show a => PShow a where
     pshow x = return $ show x
 
-instance ShowD (->) where
-    showD f = do x <- genVar
-                 body <- pshow $ f x
-                 return $ "\\" ++ show x ++ " -> " ++ body
-
 -- Lift ShowD to sums
 $(derive [liftSum] [''ShowD])
 

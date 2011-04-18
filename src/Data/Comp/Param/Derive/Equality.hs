@@ -19,6 +19,7 @@ module Data.Comp.Param.Derive.Equality
     ) where
 
 import Data.Comp.Derive.Utils
+import Data.Comp.Param.FreshM
 import Data.Comp.Param.Equality
 import Control.Monad
 import Language.Haskell.TH hiding (Cxt, match)
@@ -31,6 +32,8 @@ instanceEqD fname = do
   -- constrs = [(X,[c]), (Y,[a,c]), (Z,[b -> c])], i.e. the data type
   -- declaration: T a b c = X c | Y a c | Z (b -> c)
   TyConI (DataD _ name args constrs _) <- abstractNewtypeQ $ reify fname
+  -- coArg = c (covariant difunctor argument)
+  let coArg :: Name = tyVarBndrName $ last args
   -- conArg = b (contravariant difunctor argument)
   let conArg :: Name = tyVarBndrName $ last $ init args
   -- argNames = [a]
@@ -45,21 +48,37 @@ instanceEqD fname = do
                  []
              else
                  [clause [wildP,wildP] (normalB [|return False|]) []]
-  eqDDecl <- funD 'eqD (map (eqDClause conArg) constrs' ++ defC)
+  eqDDecl <- funD 'eqD (map (eqDClause conArg coArg) constrs' ++ defC)
   return [InstanceD [] classType [eqDDecl]]
-      where eqDClause :: Name -> (Name,[Type]) -> ClauseQ
-            eqDClause conArg (constr, args) = do
+      where eqDClause :: Name -> Name -> (Name,[Type]) -> ClauseQ
+            eqDClause conArg coArg (constr, args) = do
               varXs <- newNames (length args) "x"
               varYs <- newNames (length args) "y"
               -- Patterns for the constructors
               let patx = ConP constr $ map VarP varXs
               let paty = ConP constr $ map VarP varYs
-              body <- eqDBody conArg (zip3 varXs varYs args)
+              body <- eqDBody conArg coArg (zip3 varXs varYs args)
               return $ Clause [patx,paty] (NormalB body) []
-            eqDBody :: Name -> [(Name, Name, Type)] -> ExpQ
-            eqDBody conArg x =
-                [|liftM and (sequence $(listE $ map (eqDB conArg) x))|]
-            eqDB :: Name -> (Name, Name, Type) -> ExpQ
-            eqDB conArg (x, y, tp)
-                | containsType tp (VarT conArg) = [| eqD $(varE x) $(varE y) |]
-                | otherwise = [| peq $(varE x) $(varE y) |]
+            eqDBody :: Name -> Name -> [(Name, Name, Type)] -> ExpQ
+            eqDBody conArg coArg x =
+                [|liftM and (sequence $(listE $ map (eqDB conArg coArg) x))|]
+            eqDB :: Name -> Name -> (Name, Name, Type) -> ExpQ
+            eqDB conArg coArg (x, y, tp)
+                | not (containsType tp (VarT conArg)) &&
+                  not (containsType tp (VarT coArg)) =
+                    [| return $ $(varE x) == $(varE y) |]
+                | otherwise =
+                    case tp of
+                      VarT a
+                          | a == coArg -> [| peq $(varE x) $(varE y) |]
+                      AppT (AppT ArrowT (VarT a)) _
+                          | a == conArg ->
+                              [| do {v <- genVar;
+                                     peq ($(varE x) v) ($(varE y) v)} |]
+                      SigT tp' _ ->
+                          eqDB conArg coArg (x, y, tp')
+                      _ ->
+                          if containsType tp (VarT conArg) then
+                              [| eqD $(varE x) $(varE y) |]
+                          else
+                              [| peq $(varE x) $(varE y) |]

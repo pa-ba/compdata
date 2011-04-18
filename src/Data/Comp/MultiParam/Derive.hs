@@ -9,7 +9,7 @@
 --
 -- This module contains functionality for automatically deriving boilerplate
 -- code using Template Haskell. Examples include instances of 'HDifunctor',
--- 'Difoldable', and 'HDitraversable'.
+-- 'ShowHD', and 'EqHD'.
 --
 --------------------------------------------------------------------------------
 
@@ -19,17 +19,17 @@ module Data.Comp.MultiParam.Derive
      -- |Derive boilerplate instances for parametric signatures, i.e.
      -- signatures for parametric compositional data types.
 
-     -- ** EqD
+     -- ** EqHD
      module Data.Comp.MultiParam.Derive.Equality,
-     -- ** OrdD
+     -- ** OrdHD
      module Data.Comp.MultiParam.Derive.Ordering,
-     -- ** ShowD
+     -- ** ShowHD
      module Data.Comp.MultiParam.Derive.Show,
      -- ** HDifunctor
      module Data.Comp.MultiParam.Derive.HDifunctor,
-     -- ** Foldable
+     -- ** HFoldable
      module Data.Comp.Multi.Derive.Foldable,
-     -- ** Traversable
+     -- ** HTraversable
      module Data.Comp.Multi.Derive.Traversable,
      -- ** Smart Constructors
      module Data.Comp.MultiParam.Derive.SmartConstructors,

@@ -15,18 +15,17 @@
 
 module Data.Comp.MultiParam.HDitraversable
     (
-     HDitraversable(..)
+     HDitraversable (..),
+     HTraversable (..)
     ) where
 
 import Prelude hiding (mapM, sequence, foldr)
-import GHC.Prim (Any)
-import Data.Maybe (fromJust)
 import Data.Comp.Multi.Traversable
 import Data.Comp.MultiParam.HDifunctor
-import Data.Traversable
+{-import Data.Traversable
 import Test.QuickCheck.Gen
 import Data.Functor.Identity
-import Control.Monad.Reader hiding (mapM, sequence)
+import Control.Monad.Reader hiding (mapM, sequence)-}
 
 {-| HDifunctors representing data structures that can be traversed from left to
   right. -}

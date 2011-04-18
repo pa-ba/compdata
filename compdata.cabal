@@ -69,8 +69,13 @@ Description:
      to parametric data types, which enables support for parametric higher-order
      abstract syntax (PHOAS).
   .
+  *  /Generalised parametric compositional data types/. All of the above is also
+     lifted to generalised parametric data types, which enables support for
+     typed parametric higher-order abstract syntax (PHOAS).
+  .
   For examples illustrating the use of compositional data types, consult
-  "Data.Comp", "Data.Comp.Multi", resp. "Data.Comp.Param".
+  "Data.Comp", "Data.Comp.Multi", "Data.Comp.Param", resp.
+  "Data.Comp.MultiParam".
 
 Category:            	Generics
 License:		BSD3
@@ -89,6 +94,7 @@ extra-source-files:
   testsuite/tests/Data/Comp/Examples/Comp.hs,
   testsuite/tests/Data/Comp/Examples/Multi.hs,
   testsuite/tests/Data/Comp/Examples/Param.hs,
+  testsuite/tests/Data/Comp/Examples/MultiParam.hs,
   testsuite/tests/Test/Utils.hs
   -- benchmark files
   benchmark/Test.hs
@@ -128,6 +134,8 @@ extra-source-files:
   examples/Param/DesugarEval.hs
   examples/Param/DesugarPos.hs
   examples/Param/Parsing.hs
+  examples/MultiParam/Eval.hs
+  examples/MultiParam/EvalI.hs
 
 flag test
   description: Build test executable.
@@ -169,6 +177,20 @@ library
                         Data.Comp.Param.Derive,
                         Data.Comp.Param.Desugar
 
+                        Data.Comp.MultiParam, Data.Comp.MultiParam.Term,
+                        Data.Comp.MultiParam.FreshM,
+                        Data.Comp.MultiParam.Sum,
+                        Data.Comp.MultiParam.HDifunctor,
+                        Data.Comp.MultiParam.HDitraversable,
+                        Data.Comp.MultiParam.Algebra,
+                        Data.Comp.MultiParam.Annotation,
+                        Data.Comp.MultiParam.Ops
+                        Data.Comp.MultiParam.Equality
+                        Data.Comp.MultiParam.Ordering
+                        Data.Comp.MultiParam.Show
+                        Data.Comp.MultiParam.Derive,
+                        Data.Comp.MultiParam.Desugar
+
   Other-Modules:        Data.Comp.Derive.Utils, Data.Comp.Derive.Equality,
                         Data.Comp.Derive.Ordering, Data.Comp.Derive.Arbitrary,
                         Data.Comp.Derive.Show, Data.Comp.Derive.DeepSeq,
@@ -192,6 +214,13 @@ library
                         Data.Comp.Param.Derive.SmartConstructors,
                         Data.Comp.Param.Derive.SmartAConstructors,
                         Data.Comp.Param.Derive.LiftSum
+                        Data.Comp.MultiParam.Derive.HDifunctor,
+                        Data.Comp.MultiParam.Derive.Equality,
+                        Data.Comp.MultiParam.Derive.Ordering,
+                        Data.Comp.MultiParam.Derive.Show,
+                        Data.Comp.MultiParam.Derive.SmartConstructors,
+                        Data.Comp.MultiParam.Derive.SmartAConstructors,
+                        Data.Comp.MultiParam.Derive.LiftSum
 
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers, ghc-prim
   hs-source-dirs:	src

@@ -27,12 +27,6 @@ import Data.Comp.MultiParam.FreshM
 instance Show a => PShow (K a) where
     pshow = return . show . unK
 
-instance ShowHD (:~>) where
-    showHD ((:~>) f) = do x <- genVar
-                          body <- pshow $ f x
-                          xs <- pshow x
-                          return $ "\\" ++ xs ++ " -> " ++ body
-
 -- Lift ShowHD to sums
 $(derive [liftSum] [''ShowHD])
 
@@ -48,7 +42,8 @@ instance (ShowHD f, PShow a) => PShow (Cxt h f Var a) where
 
 {-| Printing of terms. -}
 instance (HDifunctor f, ShowHD f) => Show (Term f i) where
-    show = evalFreshM . pshow . (coerceCxt :: Term f i -> Cxt NoHole f Var U i)
+    show = evalFreshM . pshow .
+           (coerceCxt :: Term f i -> Cxt NoHole f Var (K ()) i)
 
 instance (ShowHD f, PShow (K p)) => ShowHD (f :&: p) where
     showHD (x :&: p) = do sx <- showHD x

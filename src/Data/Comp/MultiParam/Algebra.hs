@@ -96,7 +96,6 @@ module Data.Comp.MultiParam.Algebra (
 
 import Prelude hiding (sequence, mapM)
 import Control.Monad hiding (sequence, mapM)
-import Data.Comp.Multi.Functor (hfmap)
 import Data.Comp.MultiParam.Term
 import Data.Comp.MultiParam.Ops
 import Data.Comp.MultiParam.HDifunctor
@@ -119,7 +118,7 @@ free f g = run
 cata :: forall f a. HDifunctor f => Alg f a -> Term f :-> a 
 {-# NOINLINE [1] cata #-}
 cata f = run . coerceCxt
-    where run :: Cxt NoHole f a U :-> a
+    where run :: Cxt NoHole f a (K ()) :-> a
           run (Term t) = f (hfmap run t)
           run (Place x) = x
 
@@ -159,7 +158,7 @@ cataM :: forall m f a. (HDitraversable f m a, Monad m)
          => AlgM m f a -> NatM m (Term f) a
 {-# NOINLINE [1] cataM #-}
 cataM algm = run . coerceCxt
-    where run :: NatM m (Cxt NoHole f a U) a
+    where run :: NatM m (Cxt NoHole f a (K ())) a
           run (Term t) = algm =<< hdimapM run t
           run (Place x) = return x
 
@@ -349,7 +348,7 @@ anaM f x = run (x,[])
 --------------------------------
 {-
 {-| This type represents an r-algebra over a difunctor @f@ and carrier @a@. -}
-type RAlg f a = f a (Cxt NoHole f a U, a) -> a
+type RAlg f a = f a (Cxt NoHole f a (K ()), a) -> a
 
 {-| Construct a paramorphism from the given r-algebra. -}
 para :: forall f a. HDifunctor f => RAlg f a -> Term f -> a

@@ -39,11 +39,6 @@ instance Eq a => PEq a where
 class EqD f where
     eqD :: PEq a => f Var a -> f Var a -> FreshM Bool
 
-{-| Equality on functions means equality on all input. -}
-instance EqD (->) where
-    eqD f g = do x <- genVar
-                 peq (f x) (g x)
-
 {-| 'EqD' is propagated through sums. -}
 instance (EqD f, EqD g) => EqD (f :+: g) where
     eqD (Inl x) (Inl y) = eqD x y

@@ -10,7 +10,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module provides operators on difunctors.
+-- This module provides operators on higher-order difunctors.
 --
 --------------------------------------------------------------------------------
 
@@ -37,8 +37,6 @@ instance (HDitraversable f m a, HDitraversable g m a)
     => HDitraversable (f :+: g) m a where
     hdimapM f (Inl e) = Inl `liftM` hdimapM f e
     hdimapM f (Inr e) = Inr `liftM` hdimapM f e
---    disequence (Inl e) = Inl `liftM` disequence e
---    disequence (Inr e) = Inr `liftM` disequence e
 
 -- | Signature containment relation for automatic injections. The left-hand must
 -- be an atomic signature, where as the right-hand side must have a list-like
@@ -67,7 +65,7 @@ instance (f :<: g) => (:<:) f (h :+: g) where
 -- Products
 infixr 8 :*:
 
--- |Formal product of signatures (difunctors).
+-- |Formal product of signatures (higher-order difunctors).
 data (f :*: g) a b = f a b :*: g a b
 
 ffst :: (f :*: g) a b -> f a b
@@ -88,7 +86,6 @@ instance HDifunctor f => HDifunctor (f :&: p) where
 
 instance HDitraversable f m a => HDitraversable (f :&: p) m a where
     hdimapM f (v :&: c) = liftM (:&: c) (hdimapM f v)
---    disequence (v :&: c) = liftM (:&: c) (disequence v)
 
 {-| This class defines how to distribute an annotation over a sum of
   signatures. -}

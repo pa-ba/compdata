@@ -21,7 +21,6 @@ module Data.Comp.MultiParam.Derive.Show
 
 import Data.Comp.Derive.Utils
 import Data.Comp.MultiParam.FreshM
-import Data.Comp.MultiParam.HDifunctor
 import Control.Monad
 import Language.Haskell.TH hiding (Cxt, match)
 
@@ -48,22 +47,39 @@ instanceShowHD fname = do
   let complType = foldl AppT (ConT name) argNames
   let classType = AppT (ConT ''ShowHD) complType
   constrs' :: [(Name,[Type])] <- mapM normalConExp constrs
-  showHDDecl <- funD 'showHD (map (showHDClause coArg conArg) constrs')
+  showHDDecl <- funD 'showHD (map (showHDClause conArg coArg) constrs')
   return [InstanceD [] classType [showHDDecl]]
       where showHDClause :: Name -> Name -> (Name,[Type]) -> ClauseQ
-            showHDClause coArg conArg (constr, args) = do
+            showHDClause conArg coArg (constr, args) = do
               varXs <- newNames (length args) "x"
               -- Pattern for the constructor
               let patx = ConP constr $ map VarP varXs
-              body <- showHDBody (nameBase constr) coArg conArg (zip varXs args)
+              body <- showHDBody (nameBase constr) conArg coArg (zip varXs args)
               return $ Clause [patx] (NormalB body) []
             showHDBody :: String -> Name -> Name -> [(Name, Type)] -> ExpQ
-            showHDBody constr coArg conArg x =
+            showHDBody constr conArg coArg x =
                 [|liftM (unwords . (constr :) .
                          map (\x -> if elem ' ' x then "(" ++ x ++ ")" else x))
-                        (sequence $(listE $ map (showHDB coArg conArg) x))|]
+                        (sequence $(listE $ map (showHDB conArg coArg) x))|]
             showHDB :: Name -> Name -> (Name, Type) -> ExpQ
-            showHDB coArg conArg (x, tp)
-                | containsType tp (VarT conArg) = [| showHD $(varE x) |]
-                | containsType tp (VarT coArg) = [| pshow $(varE x) |]
-                | otherwise = [| return $ show $(varE x) |]
+            showHDB conArg coArg (x, tp)
+                | not (containsType tp (VarT conArg)) &&
+                  not (containsType tp (VarT coArg)) =
+                    [| return $ show $(varE x) |]
+                | otherwise =
+                    case tp of
+                      AppT (VarT a) _ 
+                          | a == coArg -> [| pshow $(varE x) |]
+                      AppT (AppT ArrowT (AppT (VarT a) _)) _
+                          | a == conArg ->
+                              [| do {v <- genVar;
+                                     body <- pshow $ $(varE x) v;
+                                     vs <- pshow v;
+                                     return $ "\\" ++ vs ++ " -> " ++ body} |]
+                      SigT tp' _ ->
+                          showHDB conArg coArg (x, tp')
+                      _ ->
+                          if containsType tp (VarT conArg) then
+                              [| showHD $(varE x) |]
+                          else
+                              [| pshow $(varE x) |]

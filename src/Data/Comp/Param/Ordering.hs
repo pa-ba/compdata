@@ -38,11 +38,6 @@ instance Ord a => POrd a where
 class EqD f => OrdD f where
     compareD :: POrd a => f Var a -> f Var a -> FreshM Ordering
 
-{-| Ordering on functions means ordering on the codomain. -}
-instance OrdD (->) where
-    compareD f g = do x <- genVar
-                      pcompare (f x) (g x)
-
 {-| 'OrdD' is propagated through sums. -}
 instance (OrdD f, OrdD g) => OrdD (f :+: g) where
     compareD (Inl x) (Inl y) = compareD x y

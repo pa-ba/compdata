@@ -36,10 +36,10 @@ instanceHDifunctor fname = do
   let complType = foldl AppT (ConT name) argNames
   let classType = AppT (ConT ''HDifunctor) complType
   constrs' :: [(Name,[Type])] <- mapM normalConExp constrs
-  hdimapDecl <- funD 'hdimap (map (hdimapClause coArg conArg) constrs')
+  hdimapDecl <- funD 'hdimap (map (hdimapClause conArg coArg) constrs')
   return [InstanceD [] classType [hdimapDecl]]
       where hdimapClause :: Name -> Name -> (Name,[Type]) -> ClauseQ
-            hdimapClause coArg conArg (constr, args) = do
+            hdimapClause conArg coArg (constr, args) = do
               fn <- newName "_f"
               gn <- newName "_g"
               varNs <- newNames (length args) "x"
@@ -49,28 +49,37 @@ instanceHDifunctor fname = do
               let gp = VarP gn
               -- Pattern for the constructor
               let pat = ConP constr $ map VarP varNs
-              body <- hdimapArgs coArg conArg f g (zip varNs args) (conE constr)
+              body <- hdimapArgs conArg coArg f g (zip varNs args) (conE constr)
               return $ Clause [fp, gp, pat] (NormalB body) []
             hdimapArgs :: Name -> Name -> ExpQ -> ExpQ
                       -> [(Name, Type)] -> ExpQ -> ExpQ
             hdimapArgs _ _ _ _ [] acc =
                 acc
-            hdimapArgs coArg conArg f g ((x,tp):tps) acc =
-                hdimapArgs coArg conArg f g tps
-                          (acc `appE` (hdimapArg coArg conArg tp f g `appE` varE x))
+            hdimapArgs conArg coArg f g ((x,tp):tps) acc =
+                hdimapArgs conArg coArg f g tps
+                          (acc `appE` (hdimapArg conArg coArg tp f g `appE` varE x))
             hdimapArg :: Name -> Name -> Type -> ExpQ -> ExpQ -> ExpQ
-            hdimapArg coArg conArg tp f g
-                | containsType tp (VarT conArg) = [| hdimap $f $g |]
-                | not (containsType tp (VarT coArg)) = [| id |]
+            hdimapArg conArg coArg tp f g
+                | not (containsType tp (VarT conArg)) &&
+                  not (containsType tp (VarT coArg)) = [| id |]
                 | otherwise =
                     case tp of
-                      ConT _ ->
-                          [|id|]
-                      AppT (VarT a) _
-                          | a == coArg -> g
-                      AppT _ tp' ->
-                          [|fmap|] `appE` hdimapArg conArg coArg tp' f g
+                      AppT (VarT a) _ | a == conArg -> f
+                                      | a == coArg -> g
+                      AppT (AppT ArrowT tp1) tp2 -> do
+                          xn <- newName "x"
+                          let ftp1 = hdimapArg conArg coArg tp1 f g
+                          let ftp2 = hdimapArg conArg coArg tp2 f g
+                          lamE [varP xn]
+                               (infixE (Just ftp2)
+                                       [|(.)|]
+                                       (Just $ infixE (Just $ varE xn)
+                                                      [|(.)|]
+                                                      (Just ftp1)))
                       SigT tp' _ ->
                           hdimapArg conArg coArg tp' f g
                       _ ->
-                          error $ "unsopported type: " ++ show tp
+                          if containsType tp (VarT conArg) then
+                              [| hdimap $f $g |]
+                          else
+                              [| hfmap $g |]

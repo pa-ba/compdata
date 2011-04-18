@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances,
-  UndecidableInstances, OverlappingInstances #-}
+  UndecidableInstances, OverlappingInstances, TypeOperators #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.MultiParam.Desugar
@@ -21,19 +21,19 @@ import Data.Comp.MultiParam.Derive
 -- |The desugaring term homomorphism.
 class (HDifunctor f, HDifunctor g) => Desugar f g where
     desugHom :: TermHom f g
-    desugHom = desugHom' . fmap Hole
-    desugHom' :: f a (Cxt h g a b) -> Cxt h g a b
+    desugHom = desugHom' . hfmap Hole
+    desugHom' :: f a (Cxt h g a b) :-> Cxt h g a b
     desugHom' x = appCxt (desugHom x)
 
 $(derive [liftSum] [''Desugar])
 
 -- |Desugar a term.
-desugar :: (Desugar f g, HDifunctor f) => Term f -> Term g
+desugar :: (Desugar f g, HDifunctor f) => Term f :-> Term g
 desugar = appTermHom desugHom
 
 -- |Lift desugaring to annotated terms.
 desugarA :: (HDifunctor f, HDifunctor f', HDifunctor g, HDifunctor g',
-             DistAnn f p f', DistAnn g p g', Desugar f g) => Term f' -> Term g'
+             DistAnn f p f', DistAnn g p g', Desugar f g) => Term f' :-> Term g'
 desugarA = appTermHom (propAnn desugHom)
 
 -- |Default desugaring instance.
