@@ -29,6 +29,7 @@ import Control.Monad.Reader hiding (mapM, sequence)
 import Control.Monad.Error hiding (mapM, sequence)
 import Control.Monad.State hiding (mapM, sequence)
 import Control.Monad.List hiding (mapM, sequence)
+import Control.Monad.RWS hiding (Any, mapM, sequence)
 import Control.Monad.Writer hiding (Any, mapM, sequence)
 
 {-| Difunctors representing data structures that can be traversed from left to
@@ -121,3 +122,12 @@ instance Ditraversable (->) m Any =>  Ditraversable (->) (ListT m) Any where
         where run [] _ = return []
               run (_ : xs) i = do f <- disequence $ liftM (!! i) . runListT . h
                                   liftM (f :) (run xs (i+1))
+
+instance (Monoid w, Ditraversable (->) m Any) => Ditraversable (->) (RWST r w s m) Any where
+    dimapM f g = disequence (f . g)
+    disequence h = RWST trans
+        where trans r s = 
+                  do (_,s',w) <- runRWST (h undefined) r s
+                     fun <-  disequence (liftM fst' . (\ m -> runRWST m r s) . h)
+                     return (fun,s',w)
+              fst' (x,_,_) = x
