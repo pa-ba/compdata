@@ -25,7 +25,7 @@ import Control.Monad
 import Language.Haskell.TH hiding (Cxt, match)
 
 {-| Derive an instance of 'EqHD' for a type constructor of any parametric
-  kind taking at least two arguments. -}
+  kind taking at least three arguments. -}
 instanceEqHD :: Name -> Q [Dec]
 instanceEqHD fname = do
   TyConI (DataD _ name args constrs _) <- abstractNewtypeQ $ reify fname
@@ -58,6 +58,6 @@ instanceEqHD fname = do
                 [|liftM and (sequence $(listE $ map (eqHDB coArg conArg) x))|]
             eqHDB :: Name -> Name -> (Name, Name, Type) -> ExpQ
             eqHDB coArg conArg (x, y, tp)
-                | containsType tp (VarT conArg) ||
-                  not (containsType tp (VarT coArg)) = [| peq (K $(varE x)) (K $(varE y)) |]
-                | otherwise = [| peq $(varE x) $(varE y) |]
+                | containsType tp (VarT conArg) = [| eqHD $(varE x) $(varE y) |]
+                | containsType tp (VarT coArg) = [| peq $(varE x) $(varE y) |]
+                | otherwise = [| return $ $(varE x) == $(varE y) |]

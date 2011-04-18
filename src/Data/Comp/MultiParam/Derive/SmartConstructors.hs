@@ -24,7 +24,7 @@ import Data.Comp.MultiParam.Term
 import Control.Monad
 
 {-| Derive smart constructors for a type constructor of any parametric kind
- taking at least two arguments. The smart constructors are similar to the
+ taking at least three arguments. The smart constructors are similar to the
  ordinary constructors, but an 'inject' is automatically inserted. -}
 smartConstructors :: Name -> Q [Dec]
 smartConstructors fname = do
@@ -47,15 +47,17 @@ smartConstructors fname = do
                 fvar <- newName "f"
                 avar <- newName "a"
                 bvar <- newName "b"
+                ivar <- newName "i"
                 let targs' = init $ init targs
-                    vars = hvar:fvar:avar:bvar:targs'
+                    vars = hvar:fvar:avar:bvar:ivar:targs'
                     h = varT hvar
                     f = varT fvar
                     a = varT avar
                     b = varT bvar
+                    i = varT ivar
                     ftype = foldl appT (conT tname) (map varT targs')
                     constr = classP ''(:<:) [ftype, f]
-                    typ = foldl appT (conT ''Cxt) [h, f, a, b]
+                    typ = foldl appT (conT ''Cxt) [h, f, a, b,i]
                     typeSig = forallT (map PlainTV vars) (sequence [constr]) typ
                 sigD sname typeSig
               genSig _ _ _ _ = []

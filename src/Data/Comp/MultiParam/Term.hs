@@ -31,9 +31,10 @@ module Data.Comp.MultiParam.Term
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
-import Data.Comp.MultiParam.HDifunctor
+import Data.Maybe (fromJust)
 import Data.Comp.Multi.Functor (hfmap)
---import GHC.Prim (Any)
+import Data.Comp.MultiParam.HDifunctor
+import Data.Comp.MultiParam.HDitraversable
 import Unsafe.Coerce
 
 {-| This data type represents contexts over a signature. Contexts are terms
@@ -98,3 +99,10 @@ type Const (f :: (* -> *) -> (* -> *) -> * -> *) = f Any U
   argument type of the difunctor @f@. -}
 constTerm :: HDifunctor f => Const f :-> Term f
 constTerm = Term . hfmap (const undefined)
+
+{-| Functions of the type @Any :~> Maybe a@ can be turned into functions of
+ type @Maybe (Any :~> a)@. The empty type @Any@ ensures that the function
+ is parametric in the input, and hence the @Maybe@ monad can be pulled out. -}
+instance HDitraversable (:~>) Maybe Any where
+    hdimapM f ((:~>) g) = do _ <- (f . g) undefined
+                             return . (:~>) $ \x -> fromJust $ f (g x)

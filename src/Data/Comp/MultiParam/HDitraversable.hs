@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes, FlexibleInstances, MultiParamTypeClasses,
-  FlexibleContexts, OverlappingInstances, TypeOperators #-}
+  FlexibleContexts, OverlappingInstances, TypeOperators, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.MultiParam.HDitraversable
@@ -9,7 +9,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines traversable difunctors.
+-- This module defines traversable higher-order difunctors.
 --
 --------------------------------------------------------------------------------
 
@@ -31,32 +31,17 @@ import Control.Monad.Reader hiding (mapM, sequence)
 {-| HDifunctors representing data structures that can be traversed from left to
   right. -}
 class (HDifunctor f, Monad m) => HDitraversable f m a where
-    dimapM :: NatM m b c -> NatM m (f a b) (f a c) -- (b :-> m c) -> f a b :-> m (f a c)
+    hdimapM :: NatM m b c -> NatM m (f a b) (f a c)
 
-
-{-| If a difunctor is 'Traversable' for a given contravariant argument @a@, then
-  it is 'HDitraversable' for all 'Monad's @m@ with the same @a@. -}
+{-| If a higher-order difunctor is 'HTraversable' for a given contravariant
+  argument @a@, then it is 'HDitraversable' for all 'Monad's @m@ with the same
+  @a@. -}
 instance (HDifunctor f, Monad m, HTraversable (f a)) => HDitraversable f m a where
-    dimapM = hmapM
+    hdimapM = hmapM
 
-
---    dimapM f = disequence . fmap f
-
---    disequence :: f a (M m b) :-> M m (f a b)
---    disequence x = dimapM id (x :: f a (M m b) i)
-
-{-
-{-| If a difunctor is 'Traversable' for a given contravariant argument @a@, then
-  it is 'HDitraversable' for all 'Monad's @m@ with the same @a@. -}
-instance (HDifunctor f, Monad m, Traversable (f a)) => HDitraversable f m a where
-    dimapM = mapM
-    disequence = sequence
-
-instance HDitraversable (->) Gen a where
-    dimapM f s = MkGen run
+{-instance HDitraversable (:~>) Gen a where
+    hdimapM f ((:~>) s) = MkGen run
         where run stdGen seed a = unGen (f (s a)) stdGen seed
-    disequence s = MkGen run
-        where run stdGen seed a = unGen (s a) stdGen seed
 
 instance HDitraversable (->) Identity a where
     dimapM f s = Identity run

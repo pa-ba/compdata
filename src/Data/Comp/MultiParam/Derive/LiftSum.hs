@@ -8,14 +8,15 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Lift a class declaration for difunctors to sums of difunctors.
+-- Lift a class declaration for higher-order difunctors to sums of higher-order
+-- difunctors.
 --
 --------------------------------------------------------------------------------
 
 module Data.Comp.MultiParam.Derive.LiftSum
     (
      liftSum,
-     caseD
+     caseHD
     ) where
 
 import Language.Haskell.TH hiding (Cxt)
@@ -23,9 +24,10 @@ import Data.Comp.Derive.Utils
 import Data.Comp.MultiParam.Sum
 import Data.Comp.MultiParam.Ops ((:+:)(..))
 
-{-| Given the name of a type class, where the first parameter is a difunctor,
-  lift it to sums of difunctors. Example: @class ShowD f where ...@ is lifted
-  as @instance (ShowD f, ShowD g) => ShowD (f :+: g) where ... @. -}
+{-| Given the name of a type class, where the first parameter is a higher-order
+  difunctor, lift it to sums of higher-order difunctors. Example:
+  @class ShowHD f where ...@ is lifted as
+  @instance (ShowHD f, ShowHD g) => ShowHD (f :+: g) where ... @. -}
 liftSum :: Name -> Q [Dec]
 liftSum fname = do
   ClassI (ClassD _ name targs _ decs) _ <- abstractNewtypeQ $ reify fname
@@ -43,12 +45,12 @@ liftSum fname = do
             decl _ = []
             clause :: Name -> ClauseQ
             clause f = do x <- newName "x"
-                          b <- normalB [|caseD $(varE f) $(varE f) $(varE x)|]
+                          b <- normalB [|caseHD $(varE f) $(varE f) $(varE x)|]
                           return $ Clause [VarP x] b []
 
-{-| Utility function to case on a difunctor sum, without exposing the internal
-  representation of sums. -}
-caseD :: (f a b i -> c) -> (g a b i -> c) -> (f :+: g) a b i -> c
-caseD f g x = case x of
-                Inl x -> f x
-                Inr x -> g x
+{-| Utility function to case on a higher-order difunctor sum, without exposing
+  the internal representation of sums. -}
+caseHD :: (f a b i -> c) -> (g a b i -> c) -> (f :+: g) a b i -> c
+caseHD f g x = case x of
+                 Inl x -> f x
+                 Inr x -> g x

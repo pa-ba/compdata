@@ -30,13 +30,13 @@ data (f :+: g) (a :: * -> *) (b :: * -> *) i = Inl (f a b i)
                                              | Inr (g a b i)
 
 instance (HDifunctor f, HDifunctor g) => HDifunctor (f :+: g) where
-    dimap f g (Inl e) = Inl (dimap f g e)
-    dimap f g (Inr e) = Inr (dimap f g e)
+    hdimap f g (Inl e) = Inl (hdimap f g e)
+    hdimap f g (Inr e) = Inr (hdimap f g e)
 
 instance (HDitraversable f m a, HDitraversable g m a)
     => HDitraversable (f :+: g) m a where
-    dimapM f (Inl e) = Inl `liftM` dimapM f e
-    dimapM f (Inr e) = Inr `liftM` dimapM f e
+    hdimapM f (Inl e) = Inl `liftM` hdimapM f e
+    hdimapM f (Inr e) = Inr `liftM` hdimapM f e
 --    disequence (Inl e) = Inl `liftM` disequence e
 --    disequence (Inr e) = Inr `liftM` disequence e
 
@@ -84,10 +84,10 @@ infixr 7 :&:
 data (f :&: p) (a :: * -> *) (b :: * -> *) i = f a b i :&: p
 
 instance HDifunctor f => HDifunctor (f :&: p) where
-    dimap f g (v :&: c) = dimap f g v :&: c
+    hdimap f g (v :&: c) = hdimap f g v :&: c
 
 instance HDitraversable f m a => HDitraversable (f :&: p) m a where
-    dimapM f (v :&: c) = liftM (:&: c) (dimapM f v)
+    hdimapM f (v :&: c) = liftM (:&: c) (hdimapM f v)
 --    disequence (v :&: c) = liftM (:&: c) (disequence v)
 
 {-| This class defines how to distribute an annotation over a sum of

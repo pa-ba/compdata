@@ -25,7 +25,7 @@ import Data.Comp.MultiParam.Term
 import Control.Monad
 
 {-| Derive smart constructors with products for a type constructor of any
-  parametric kind taking at least two arguments. The smart constructors are
+  parametric kind taking at least three arguments. The smart constructors are
   similar to the ordinary constructors, but an 'injectA' is automatically
   inserted. -}
 smartAConstructors :: Name -> Q [Dec]

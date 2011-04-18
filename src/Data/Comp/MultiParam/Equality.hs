@@ -34,15 +34,15 @@ instance Eq a => PEq (K a) where
     peq (K x) (K y) = return $ x == y
 
 {-| Signature equality. An instance @EqHD f@ gives rise to an instance
-  @Eq (Term f)@. The equality test is performed inside the 'FreshM' monad for
+  @Eq (Term f i)@. The equality test is performed inside the 'FreshM' monad for
   generating fresh identifiers. -}
 class EqHD f where
     eqHD :: PEq a => f Var a i -> f Var a j -> FreshM Bool
 
 {-| Equality on functions means equality on all input. -}
-instance PEq a => PEq (K (Var i -> a j)) where
-    peq (K f) (K g) = do x <- genVar
-                         peq (f x) (g x)
+instance EqHD (:~>) where
+    eqHD ((:~>) f) ((:~>) g) = do x <- genVar
+                                  peq (f $ varCoerce x) (g $ varCoerce x)
 
 {-| 'EqHD' is propagated through sums. -}
 instance (EqHD f, EqHD g) => EqHD (f :+: g) where

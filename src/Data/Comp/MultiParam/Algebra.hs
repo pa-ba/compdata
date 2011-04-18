@@ -142,7 +142,7 @@ type AlgM m f a = NatM m (f a a) a
 {-{-| Convert a monadic algebra into an ordinary algebra with a monadic
   carrier. -}
 algM :: (HDitraversable f m a, Monad m) => AlgM m f a -> Alg f (m a)
-algM f x = disequence (dimap return id x) >>= f-}
+algM f x = disequence (hdimap return id x) >>= f-}
 
 {-| Construct a monadic catamorphism for contexts over @f@ with holes of type
   @b@, from the given monadic algebra. -}
@@ -150,7 +150,7 @@ freeM :: forall m h f a b. (HDitraversable f m a, Monad m)
          => AlgM m f a -> (NatM m b a) -> NatM m (Cxt h f a b) a
 freeM f g = run
     where run :: NatM m (Cxt h f a b) a
-          run (Term t) = f =<< dimapM run t
+          run (Term t) = f =<< hdimapM run t
           run (Hole x) = g x
           run (Place p) = return p
 
@@ -160,7 +160,7 @@ cataM :: forall m f a. (HDitraversable f m a, Monad m)
 {-# NOINLINE [1] cataM #-}
 cataM algm = run . coerceCxt
     where run :: NatM m (Cxt NoHole f a U) a
-          run (Term t) = algm =<< dimapM run t
+          run (Term t) = algm =<< hdimapM run t
           run (Place x) = return x
 
 {-| A generalisation of 'cataM' from terms over @f@ to contexts over @f@, where
@@ -261,7 +261,7 @@ appTermHomM :: forall f g m a. (HDitraversable f m a, HDifunctor g, Monad m)
 {-# NOINLINE [1] appTermHomM #-}
 appTermHomM f = run
     where run :: CxtFunM m f g a
-          run (Term t) = liftM appCxt (f =<< dimapM run t)
+          run (Term t) = liftM appCxt (f =<< hdimapM run t)
           run (Hole x) = return (Hole x)
           run (Place p) = return (Place p)
 
@@ -341,7 +341,7 @@ anaM f x = run (x,[])
     where run (a,bs) = do c <- f a bs
                           case c of
                             Left p -> return $ Place p
-                            Right t -> liftM Term $ dimapM run t
+                            Right t -> liftM Term $ hdimapM run t
 
 
 --------------------------------
@@ -366,7 +366,7 @@ paraM :: forall m f a. (HDitraversable f m a, Monad m)
          => RAlgM m f a -> Term f -> m a
 paraM f = run . coerceCxt
     where run :: Cxt NoHole f a () -> m a
-          run (Term t) = f =<< dimapM (\x -> run x >>= \y -> return (x, y)) t
+          run (Term t) = f =<< hdimapM (\x -> run x >>= \y -> return (x, y)) t
           run (Place x) = return x
 
 -}
@@ -429,7 +429,7 @@ histo :: forall f f' a. (HDifunctor f, DistAnn f a f')
 histo alg = projectTip . cata run
     where run :: Alg f (Cxt NoHole f' a ())
           run v = Term $ injectA (alg v') v'
-              where v' = dimap Place id v
+              where v' = hdimap Place id v
 
 {-| This type represents a monadic cv-algebra over a functor @f@ and carrier
   @a@. -}
@@ -439,7 +439,7 @@ type CVAlgM m f a f' = f a (Cxt NoHole f' a ()) -> m a
 histoM :: forall f f' m a. (HDitraversable f m a, Monad m, DistAnn f a f')
           => CVAlgM m f a f' -> Term f -> m a
 histoM alg = liftM projectTip . run . coerceCxt
-    where run (Term t) = do t' <- dimapM run t
+    where run (Term t) = do t' <- hdimapM run t
                             r <- alg t'
                             return $ Term $ injectA r t'
           run (Place p) = return $ Place p
@@ -480,8 +480,8 @@ futuM coa x = run (x,[])
     where run (a,bs) = do c <- coa a bs
                           case c of 
                             Left p -> return $ Place p
-                            Right t -> liftM Term $ dimapM run' t
-          run' (Term t) = liftM Term $ dimapM run' t
+                            Right t -> liftM Term $ hdimapM run' t
+          run' (Term t) = liftM Term $ hdimapM run' t
           run' (Hole x) = run x
           run' (Place p) = return $ Place p
 

@@ -20,6 +20,7 @@ module Data.Comp.MultiParam.FreshM
      varCompare,
      varShow,
      genVar,
+     varCoerce,
      evalFreshM
     ) where
 
@@ -32,23 +33,21 @@ newtype FreshM a = FreshM (State [String] a)
 -- |Abstract notion of a variable (the constructor is hidden).
 data Var i = Var String
 
+-- |Equality on variables.
 varEq :: Var i -> Var j -> Bool
 varEq (Var x) (Var y) = x == y
 
+-- |Ordering of variables.
 varCompare :: Var i -> Var j -> Ordering
 varCompare (Var x) (Var y) = compare x y
 
+-- |Printing of variables.
 varShow :: Var i -> String
 varShow (Var x) = x
 
-instance Show (Var i) where
-    show (Var x) = x
-
-instance Eq (Var i) where
-    (==) (Var x) (Var y) = x == y
-
-instance Ord (Var i) where
-    compare (Var x) (Var y) = compare x y
+-- |Change the type of a variable.
+varCoerce :: Var i -> Var j
+varCoerce (Var x) = Var x
 
 -- |Generate a fresh variable.
 genVar :: FreshM (Var i)

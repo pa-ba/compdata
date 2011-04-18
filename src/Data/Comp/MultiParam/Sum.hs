@@ -119,7 +119,7 @@ deepProject' :: forall h g f a b. (HDitraversable g Maybe a, g :<: f)
                 => NatM Maybe (Cxt h f a b) (Cxt h g a b)
 deepProject' (Term t) = do
   v <- proj t
-  v' <- dimapM deepProject' v
+  v' <- hdimapM deepProject' v
   return $ Term v'
 deepProject' (Hole x) = return $ Hole x
 deepProject' (Place p) = return $ Place p
@@ -132,7 +132,7 @@ deepProject2' :: forall h g1 g2 f a b. (HDitraversable g1 Maybe a,
                  => NatM Maybe (Cxt h f a b) (Cxt h (g1 :+: g2) a b)
 deepProject2' (Term t) = do
   v <- proj2 t
-  v' <- dimapM deepProject2' v
+  v' <- hdimapM deepProject2' v
   return $ Term v'
 deepProject2' (Hole x) = return $ Hole x
 deepProject2' (Place p) = return $ Place p
@@ -146,7 +146,7 @@ deepProject3' :: forall h g1 g2 g3 f a b. (HDitraversable g1 Maybe a,
                  => NatM Maybe (Cxt h f a b) (Cxt h (g1 :+: g2 :+: g3) a b)
 deepProject3' (Term t) = do
   v <- proj3 t
-  v' <- dimapM deepProject3' v
+  v' <- hdimapM deepProject3' v
   return $ Term v'
 deepProject3' (Hole x) = return $ Hole x
 deepProject3' (Place p) = return $ Place p

@@ -9,9 +9,10 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines difunctors (Meijer, Hutton, FPCA '95), i.e. binary type
--- constructors that are contravariant in the first argument and covariant in
--- the second argument.
+-- This module defines higher-order difunctors, a hybrid between higher-order
+-- functors (Johann, Ghani, POPL '08), and difunctors (Meijer, Hutton, FPCA
+-- '95). Higher-order difunctors are used to define signatures for
+-- compositional parametric generalised data types.
 --
 --------------------------------------------------------------------------------
 
@@ -22,6 +23,7 @@ module Data.Comp.MultiParam.HDifunctor
      K (..),
      A (..),
      (:->),
+     (:~>)(..),
      NatM
     ) where
 
@@ -55,16 +57,28 @@ instance Ord a => Ord (K a i) where
     compare (K x) (K y) = compare x y
 
 infixr 0 :-> -- same precedence as function space operator ->
+infixr 0 :~> -- same precedence as function space operator ->
 
--- | This type represents natural transformations.
+-- |This type represents natural transformations.
 type f :-> g = forall i . f i -> g i
 
+-- |This type represents monadic natural transformations.
 type NatM m f g = forall i. f i -> m (g i)
 
--- | This class represents difunctors, i.e. binary type constructors that are
--- contravariant in the first argument and covariant in the second argument.
-class HDifunctor f where
-    dimap :: (a :-> b) -> (c :-> d) -> f b c :-> f a d
+-- |This type represents \"generalised\" functions, i.e. functions where both
+-- the domain and codomain are tagged with a type.
+data (:~>) :: (* -> *) -> (* -> *) -> * -> * where
+              (:~>) :: (a i -> b j) -> (:~>) a b (i -> j)
 
+-- | This class represents higher-order difunctors.
+class HDifunctor f where
+    hdimap :: (a :-> b) -> (c :-> d) -> f b c :-> f a d
+
+-- |The canonical example of a higher-order difunctor.
+instance HDifunctor (:~>) where
+    hdimap f g ((:~>) h) = (:~>) (g . h . f)
+
+-- |A higher-order difunctor gives rise to a higher-order functor when
+-- restricted to a particular contravariant argument.
 instance HDifunctor f => HFunctor (f a) where
-    hfmap = dimap id
+    hfmap = hdimap id

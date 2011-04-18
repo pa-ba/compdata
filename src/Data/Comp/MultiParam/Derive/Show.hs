@@ -30,7 +30,7 @@ class PShow a where
     pshow :: a i -> FreshM String
 
 {-| Signature printing. An instance @ShowHD f@ gives rise to an instance
-  @Show (Term f)@. -}
+  @Show (Term f i)@. -}
 class ShowHD f where
     showHD :: PShow a => f Var a i -> FreshM String
 
@@ -42,7 +42,7 @@ instanceShowHD fname = do
   let args' = init args
   -- covariant argument
   let coArg :: Name = tyVarBndrName $ last args'
-  -- contravariant difunctor argument
+  -- contravariant argument
   let conArg :: Name = tyVarBndrName $ last $ init args'
   let argNames = map (VarT . tyVarBndrName) (init $ init args')
   let complType = foldl AppT (ConT name) argNames
@@ -64,6 +64,6 @@ instanceShowHD fname = do
                         (sequence $(listE $ map (showHDB coArg conArg) x))|]
             showHDB :: Name -> Name -> (Name, Type) -> ExpQ
             showHDB coArg conArg (x, tp)
-                | containsType tp (VarT conArg) ||
-                  not (containsType tp (VarT coArg)) = [| pshow $ K $(varE x) |]
-                | otherwise = [| pshow $(varE x) |]
+                | containsType tp (VarT conArg) = [| showHD $(varE x) |]
+                | containsType tp (VarT coArg) = [| pshow $(varE x) |]
+                | otherwise = [| return $ show $(varE x) |]

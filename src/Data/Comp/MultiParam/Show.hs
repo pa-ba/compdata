@@ -27,10 +27,11 @@ import Data.Comp.MultiParam.FreshM
 instance Show a => PShow (K a) where
     pshow = return . show . unK
 
-instance PShow a => PShow (K (Var i -> a j)) where
-    pshow (K f) = do x <- genVar
-                     body <- pshow $ f x
-                     return $ "\\" ++ show x ++ " -> " ++ body
+instance ShowHD (:~>) where
+    showHD ((:~>) f) = do x <- genVar
+                          body <- pshow $ f x
+                          xs <- pshow x
+                          return $ "\\" ++ xs ++ " -> " ++ body
 
 -- Lift ShowHD to sums
 $(derive [liftSum] [''ShowHD])
