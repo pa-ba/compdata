@@ -25,7 +25,7 @@ module Data.Comp.Multi.Algebra (
       
       -- * Monadic Algebras & Catamorphisms
       AlgM,
---      halgM,
+--      algM,
       freeM,
       cataM,
       cataM',

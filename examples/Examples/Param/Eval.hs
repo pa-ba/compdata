@@ -18,10 +18,6 @@
 -- from values to values, and how it is possible to project a general value
 -- (with functions) back into ground values, that can again be analysed.
 --
--- The following language extensions are needed in order to run the example:
--- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
--- @FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@.
---
 --------------------------------------------------------------------------------
 
 module Examples.Param.Eval where

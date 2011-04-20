@@ -1,9 +1,9 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances,
-  TypeSynonymInstances, OverlappingInstances #-}
+  TypeSynonymInstances, OverlappingInstances, GADTs, KindSignatures #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Examples.Param.DesugarEval
+-- Module      :  Examples.MultiParam.DesugarEval
 -- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
@@ -15,27 +15,36 @@
 -- The example illustrates how to compose a term homomorphism and an algebra,
 -- exemplified via a desugaring term homomorphism and an evaluation algebra.
 --
--- The example extends the example from 'Examples.Param.Eval'.
+-- The example extends the example from 'Examples.MultiParam.Eval'.
 --
 --------------------------------------------------------------------------------
 
-module Examples.Param.DesugarEval where
+module Examples.MultiParam.DesugarEval where
 
-import Data.Comp.Param hiding (Const)
-import Data.Comp.Param.Show ()
-import Data.Comp.Param.Derive
-import Data.Comp.Param.Desugar
+import Data.Comp.MultiParam hiding (Const)
+import Data.Comp.MultiParam.Show ()
+import Data.Comp.MultiParam.Derive
+import Data.Comp.MultiParam.Desugar
 
 -- Signatures for values and operators
-data Const a e = Const Int
-data Lam a e = Lam (a -> e) -- Note: not e -> e
-data App a e = App e e
-data Op a e = Add e e | Mult e e
-data Fun a e = Fun (e -> e) -- Note: not a -> e
-data IfThenElse a e = IfThenElse e e e
+data Const :: (* -> *) -> (* -> *) -> * -> * where
+    Const :: Int -> Const a e Int
+data Lam :: (* -> *) -> (* -> *) -> * -> * where
+    Lam :: (a i -> e j) -> Lam a e (i -> j)
+data App :: (* -> *) -> (* -> *) -> * -> * where
+    App :: e (i -> j) -> e i -> App a e j
+data Op :: (* -> *) -> (* -> *) -> * -> * where
+    Add :: e Int -> e Int -> Op a e Int
+    Mult :: e Int -> e Int -> Op a e Int
+data Fun :: (* -> *) -> (* -> *) -> * -> * where
+    Fun :: (e i -> e j) -> Fun a e (i -> j)
+data IfThenElse :: (* -> *) -> (* -> *) -> * -> * where
+                   IfThenElse :: (e Int) -> (e i) -> (e i) -> IfThenElse a e i
 
--- Signature for syntactic sugar (negation, let expressions, Y combinator)
-data Sug a e = Neg e | Let e (a -> e) | Fix
+-- Signature for syntactic sugar (negation, let expressions)
+data Sug :: (* -> *) -> (* -> *) -> * -> * where
+            Neg :: e Int -> Sug a e Int
+            Let :: e i -> (a i -> e j) -> Sug a e j
 
 -- Signature for the simple expression language
 type Sig = Const :+: Lam :+: App :+: Op :+: IfThenElse
@@ -47,20 +56,16 @@ type Value = Const :+: Fun
 type GValue = Const
 
 -- Derive boilerplate code using Template Haskell
-$(derive [instanceDifunctor, instanceEqD, instanceShowD, smartConstructors]
+$(derive [instanceHDifunctor, instanceEqHD, instanceShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op, ''IfThenElse, ''Sug])
-$(derive [instanceFoldable, instanceTraversable]
+$(derive [instanceHFoldable, instanceHTraversable]
          [''Const, ''App, ''Op])
 $(derive [smartConstructors] [''Fun])
 
-instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
+instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, HDifunctor f)
   => Desugar Sug f where
   desugHom' (Neg x)   = iConst (-1) `iMult` x
   desugHom' (Let x y) = iLam y `iApp` x
-  desugHom' Fix       = iLam $ \f ->
-                           (iLam $ \x -> Place f `iApp` (Place x `iApp` Place x))
-                           `iApp`
-                           (iLam $ \x -> Place f `iApp` (Place x `iApp` Place x))
 
 -- Term evaluation algebra
 class Eval f v where
@@ -69,7 +74,7 @@ class Eval f v where
 $(derive [liftSum] [''Eval])
 
 -- Compose the evaluation algebra and the desugaring homomorphism to an algebra
-eval :: Term Sig' -> Term Value
+eval :: Term Sig' :-> Term Value
 eval = cata (evalAlg `compAlg` (desugHom :: TermHom Sig' Sig))
 
 instance (Const :<: v) => Eval Const v where
@@ -88,25 +93,16 @@ instance (Fun :<: v) => Eval Lam v where
 instance (Const :<: v) => Eval IfThenElse v where
   evalAlg (IfThenElse c v1 v2) = if projC c /= 0 then v1 else v2
 
-projC :: (Const :<: v) => Term v -> Int
+projC :: (Const :<: v) => Term v Int -> Int
 projC v = case project v of Just (Const n) -> n
 
-projF :: (Fun :<: v) => Term v -> Term v -> Term v
+projF :: (Fun :<: v) => Term v (i -> j) -> Term v i -> Term v j
 projF v = case project v of Just (Fun f) -> f
 
 -- |Evaluation of expressions to ground values.
-evalG :: Term Sig' -> Maybe (Term GValue)
-evalG = deepProject' . (eval :: Term Sig' -> Term Value)
+evalG :: Term Sig' i -> Maybe (Term GValue i)
+evalG = deepProject' . (eval :: Term Sig' :-> Term Value)
 
--- Example: evalEx = Just (iConst 720)
-evalEx :: Maybe (Term GValue)
-evalEx = evalG $ fact `iApp` iConst 6
-
-fact :: Term Sig'
-fact = iFix `iApp`
-       (iLam $ \f ->
-          iLam $ \n ->
-              iIfThenElse
-              (Place n)
-              (Place n `iMult` (Place f `iApp` (Place n `iAdd` iConst (-1))))
-              (iConst 1))
+-- Example: evalEx = Just (iConst -6)
+evalEx :: Maybe (Term GValue Int)
+evalEx = evalG $ iLet (iConst 6) $ \x -> iNeg $ Place x

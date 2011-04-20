@@ -15,10 +15,6 @@
 -- a small expression language, with a sub language of values, and a monadic
 -- evaluation function mapping expressions to values.
 --
--- The following language extensions are needed in order to run the example:
--- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
--- @FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@.
---
 --------------------------------------------------------------------------------
 
 module Examples.EvalM where

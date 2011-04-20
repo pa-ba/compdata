@@ -10,17 +10,10 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Desugaring + Propagation of Annotations.
+-- Desugaring + Propagation of Annotations
 --
 -- The example illustrates how to compose a term homomorphism and an algebra,
 -- exemplified via a desugaring term homomorphism and an evaluation algebra.
---
--- The example extends the example from 'Examples.Param.Eval'.
---
--- The following language extensions are needed in order to run the example:
--- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
--- @FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@,
--- @TypeSynonymInstances@, and @OverlappingInstances@.
 --
 --------------------------------------------------------------------------------
 

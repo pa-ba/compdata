@@ -16,11 +16,6 @@
 -- exemplified via a desugaring term homomorphism lifted to terms annotated with
 -- source position information.
 --
--- The following language extensions are needed in order to run the example:
--- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
--- @FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@,
--- @GADTs@, and @OverlappingInstances@. Besides, GCH 7 is required.
---
 --------------------------------------------------------------------------------
 
 module Examples.Multi.DesugarPos where

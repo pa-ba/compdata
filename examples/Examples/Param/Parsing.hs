@@ -17,11 +17,6 @@
 -- example shows how we can easily convert object language binders to Haskell
 -- binders, without having to worry about capture avoidance.
 --
--- The following language extensions are needed in order to run the example:
--- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
--- @FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@, and
--- @OverlappingInstances@.
---
 --------------------------------------------------------------------------------
 
 module Examples.Param.Parsing where

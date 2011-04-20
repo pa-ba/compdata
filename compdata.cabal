@@ -136,6 +136,9 @@ extra-source-files:
   examples/Param/Parsing.hs
   examples/MultiParam/Eval.hs
   examples/MultiParam/EvalI.hs
+  examples/MultiParam/EvalAlgM.hs
+  examples/MultiParam/DesugarEval.hs
+  examples/MultiParam/DesugarPos.hs
 
 flag test
   description: Build test executable.

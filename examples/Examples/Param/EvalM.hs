@@ -9,7 +9,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Expression Evaluation
+-- Monadic Expression Evaluation
 --
 -- The example illustrates how to use parametric compositional data types to
 -- implement a small expression language, with a language of values, and
@@ -17,13 +17,6 @@
 -- demonstrates how (parametric) abstractions are mapped to general functions,
 -- from values to /monadic/ values, and how it is possible to project a general
 -- value (with functions) back into ground values, that can again be analysed.
---
--- The example lifts the example from 'Examples.Param.Eval' to monadic
--- evaluation.
---
--- The following language extensions are needed in order to run the example:
--- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
--- @FlexibleInstances@, @FlexibleContexts@, and @UndecidableInstances@.
 --
 --------------------------------------------------------------------------------
 

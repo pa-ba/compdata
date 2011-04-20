@@ -16,11 +16,6 @@
 -- types to implement a small expression language, and an evaluation function
 -- mapping typed expressions to values.
 --
--- The following language extensions are needed in order to run the example:
--- @TemplateHaskell@, @TypeOperators@, @MultiParamTypeClasses@,
--- @FlexibleInstances@, @FlexibleContexts@, @UndecidableInstances@, @GADTs@, and
--- @KindSignatures@.
---
 --------------------------------------------------------------------------------
 
 module Examples.MultiParam.EvalI where
@@ -74,4 +69,5 @@ instance Eval Lam where
 
 -- Example: evalEx = 4
 evalEx :: Int
-evalEx = eval $ ((iLam $ \x -> Place x `iAdd` Place x) `iApp` iConst 2 :: Term Sig Int)
+evalEx = eval $ ((iLam $ \x -> Place x `iAdd` Place x) `iApp` iConst 2
+                 :: Term Sig Int)
