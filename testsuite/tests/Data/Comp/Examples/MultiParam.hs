@@ -3,7 +3,7 @@ module Data.Comp.Examples.MultiParam where
 
 import qualified Examples.MultiParam.Eval as Eval
 import qualified Examples.MultiParam.EvalI as EvalI
---import qualified Examples.MultiParam.EvalM as EvalM
+import qualified Examples.MultiParam.EvalM as EvalM
 import qualified Examples.MultiParam.EvalAlgM as EvalAlgM
 import qualified Examples.MultiParam.DesugarEval as DesugarEval
 import qualified Examples.MultiParam.DesugarPos as DesugarPos
@@ -26,7 +26,7 @@ import Test.Utils
 tests = testGroup "Parametric Compositional Data Types" [
          testProperty "eval" evalTest,
          testProperty "evalI" evalITest,
---         testProperty "evalM" evalMTest,
+         testProperty "evalM" evalMTest,
          testProperty "evalAlgM" evalAlgMTest,
          testProperty "desugarEval" desugarEvalTest,
          testProperty "desugarPos" desugarPosTest
@@ -43,7 +43,7 @@ instance (EqHD f, Eq p) => EqHD (f :&: p) where
 
 evalTest = Eval.evalEx == Just (Eval.iConst 4)
 evalITest = EvalI.evalEx == 4
-{-evalMTest = EvalM.evalMEx == Just (EvalM.iConst 12)-}
+evalMTest = EvalM.evalMEx == Just (EvalM.iConst 12)
 evalAlgMTest = EvalAlgM.evalMEx == Just (EvalAlgM.iConst 5)
 desugarEvalTest = DesugarEval.evalEx == Just (DesugarEval.iConst (-6))
 desugarPosTest = DesugarPos.desugPEx ==

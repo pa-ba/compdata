@@ -7,26 +7,14 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines the infrastructure necessary to use generalised
--- compositional data types. Examples of usage are provided below.
+-- This module defines the infrastructure necessary to use
+-- /Generalised Compositional Data Types/. Generalised Compositional Data Types 
+-- is an extension of Compositional Data Types with mutually recursive
+-- data types, and more generally GADTs. Examples of usage are bundled with the
+-- package in the library @examples\/Examples\/Multi@.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Multi (
-  -- * Examples
-  -- ** Expression Evaluation
-  -- $ex1
-
-  -- ** Monadic Expression Evaluation
-  -- $ex2
-
-  -- ** Intrinsic Expression Evaluation.
-  -- $ex3
-
-  -- ** Desugaring + Expression Evaluation
-  -- $ex4
-
-  -- ** Desugaring + Propagation of Annotations
-  -- $ex5
     module Data.Comp.Multi.Term
   , module Data.Comp.Multi.Functor
   , module Data.Comp.Multi.Algebra

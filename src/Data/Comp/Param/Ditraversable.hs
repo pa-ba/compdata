@@ -118,7 +118,7 @@ instance Ditraversable (->) [] Any where
 
 instance Ditraversable (->) m Any =>  Ditraversable (->) (ListT m) Any where 
     dimapM f g = disequence (f . g)
-    disequence h = ListT $ (`run`  0) =<< (runListT $ h undefined)
+    disequence h = ListT $ (`run`  0) =<< runListT (h undefined)
         where run [] _ = return []
               run (_ : xs) i = do f <- disequence $ liftM (!! i) . runListT . h
                                   liftM (f :) (run xs (i+1))

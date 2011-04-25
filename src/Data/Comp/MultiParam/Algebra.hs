@@ -146,7 +146,7 @@ algM f x = disequence (hdimap return id x) >>= f-}
 {-| Construct a monadic catamorphism for contexts over @f@ with holes of type
   @b@, from the given monadic algebra. -}
 freeM :: forall m h f a b. (HDitraversable f m a, Monad m)
-         => AlgM m f a -> (NatM m b a) -> NatM m (Cxt h f a b) a
+         => AlgM m f a -> NatM m b a -> NatM m (Cxt h f a b) a
 freeM f g = run
     where run :: NatM m (Cxt h f a b) a
           run (Term t) = f =<< hdimapM run t

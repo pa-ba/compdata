@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiParamTypeClasses, FlexibleInstances, RankNTypes,
-  TypeOperators, GADTs, KindSignatures #-}
+  TypeOperators, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.MultiParam.HDifunctor
@@ -24,8 +24,7 @@ module Data.Comp.MultiParam.HDifunctor
      K (..),
      A (..),
      (:->),
-     NatM,
-     (:.:) (..)
+     NatM
     ) where
 
 import Data.Comp.Multi.Functor (HFunctor (..))
@@ -73,9 +72,3 @@ class HDifunctor f where
 -- restricted to a particular contravariant argument.
 instance HDifunctor f => HFunctor (f a) where
     hfmap = hdimap id
-
--- |Functor composition.
-data (:.:) f g a = (:.:) (f (g a))
-
-instance (Functor f, Functor g) => Functor (f :.: g) where
-    fmap f ((:.:) x) = (:.:) (fmap (fmap f) x)

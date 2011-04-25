@@ -64,18 +64,17 @@ Description:
   *  /Mutually recursive data types/ and
      /generalised algebraic data types (GADTs)/. All of the above is also lifted
      to families of mutually recursive data types and (more generally) GADTs.
+     This extension resides in the module "Data.Comp.Multi".
   .
   *  /Parametric compositional data types/. All of the above is also lifted
      to parametric data types, which enables support for parametric higher-order
-     abstract syntax (PHOAS).
+     abstract syntax (PHOAS). This extension resides in the module
+     "Data.Comp.Param".
   .
   *  /Generalised parametric compositional data types/. All of the above is also
      lifted to generalised parametric data types, which enables support for
-     typed parametric higher-order abstract syntax (PHOAS).
-  .
-  For examples illustrating the use of compositional data types, consult
-  "Data.Comp", "Data.Comp.Multi", "Data.Comp.Param", resp.
-  "Data.Comp.MultiParam".
+     typed parametric higher-order abstract syntax (PHOAS). This extension
+     resides in the module "Data.Comp.MultiParam".
 
 Category:            	Generics
 License:		BSD3
@@ -136,6 +135,7 @@ extra-source-files:
   examples/Param/Parsing.hs
   examples/MultiParam/Eval.hs
   examples/MultiParam/EvalI.hs
+  examples/MultiParam/EvalM.hs
   examples/MultiParam/EvalAlgM.hs
   examples/MultiParam/DesugarEval.hs
   examples/MultiParam/DesugarPos.hs

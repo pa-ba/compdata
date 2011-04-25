@@ -7,8 +7,12 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines the infrastructure necessary to use parametric
--- compositional data types.
+-- This module defines the infrastructure necessary to use
+-- /Parametric Compositional Data Types/. Parametric Compositional Data Types 
+-- is an extension of Compositional Data Types with parametric
+-- higher-order abstract syntax (PHOAS) for usage with binders. Examples of
+-- usage are bundled with the package in the library
+-- @examples\/Examples\/Param@.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Param (

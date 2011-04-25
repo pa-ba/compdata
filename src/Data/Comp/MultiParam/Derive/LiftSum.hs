@@ -37,7 +37,7 @@ liftSum fname = do
   let cxt = [ClassP name (map VarT $ f : targs'),
              ClassP name (map VarT $ g : targs')]
   let tp = ConT name `AppT` ((ConT ''(:+:) `AppT` VarT f) `AppT` VarT g)
-  let complType = foldl (\a x -> a `AppT` (VarT x)) tp targs'
+  let complType = foldl (\a x -> a `AppT` VarT x) tp targs'
   decs' <- sequence $ concatMap decl decs
   return [InstanceD cxt complType decs']
       where decl :: Dec -> [DecQ]
