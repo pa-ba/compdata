@@ -27,7 +27,6 @@ import Data.Comp.MultiParam hiding (Const)
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
 import Control.Monad ((<=<))
-import Data.Functor.Compose -- Functor composition
 
 -- Signatures for values and operators
 data Const :: (* -> *) -> (* -> *) -> * -> * where
@@ -58,31 +57,31 @@ $(derive [smartConstructors] [''FunM])
 
 -- Term evaluation algebra.
 class EvalM f v where
-  evalAlgM :: Alg f (Compose Maybe (Term v))
+  evalAlgM :: AlgM' Maybe f (Term v)
 
 $(derive [liftSum] [''EvalM])
 
 -- Lift the evaluation algebra to a catamorphism
 evalM :: (HDifunctor f, EvalM f v) => Term f i -> Maybe (Term v i)
-evalM = getCompose . cata evalAlgM
+evalM = cataM' evalAlgM
 
 instance (Const :<: v) => EvalM Const v where
-  evalAlgM (Const n) = Compose . return $ iConst n
+  evalAlgM (Const n) = return $ iConst n
 
 instance (Const :<: v) => EvalM Op v where
-  evalAlgM (Add mx my) = Compose $ do x <- projC =<< getCompose mx
-                                      y <- projC =<< getCompose my
-                                      return $ iConst $ x + y
-  evalAlgM (Mult mx my) = Compose $ do x <- projC =<< getCompose mx
-                                       y <- projC =<< getCompose my
-                                       return $ iConst $ x * y
+  evalAlgM (Add mx my) = do x <- projC =<< getCompose mx
+                            y <- projC =<< getCompose my
+                            return $ iConst $ x + y
+  evalAlgM (Mult mx my) = do x <- projC =<< getCompose mx
+                             y <- projC =<< getCompose my
+                             return $ iConst $ x * y
 
 instance (FunM Maybe :<: v) => EvalM App v where
-  evalAlgM (App mx my) = Compose $ do f <- projF =<< getCompose mx
-                                      (getCompose . f) =<< getCompose my
+  evalAlgM (App mx my) = do f <- projF =<< getCompose mx
+                            (getCompose . f) =<< getCompose my
 
 instance (FunM Maybe :<: v) => EvalM Lam v where
-  evalAlgM (Lam f) = Compose . return $ iFunM $ f . Compose . return
+  evalAlgM (Lam f) = return $ iFunM f
 
 projC :: (Const :<: v) => Term v Int -> Maybe Int
 projC v = case project v of

@@ -48,7 +48,7 @@ smartConstructors fname = do
                 avar <- newName "a"
                 bvar <- newName "b"
                 ivar <- newName "i"
-                let targs' = init $ init targs
+                let targs' = init $ init $ init $ targs
                     vars = hvar:fvar:avar:bvar:ivar:targs'
                     h = varT hvar
                     f = varT fvar

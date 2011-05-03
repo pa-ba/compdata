@@ -82,4 +82,4 @@ instanceHDifunctor fname = do
                           if containsType tp (VarT conArg) then
                               [| hdimap $f $g |]
                           else
-                              [| hfmap $g |]
+                              [| fmap $g |]

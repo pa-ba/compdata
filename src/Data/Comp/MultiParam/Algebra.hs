@@ -27,6 +27,9 @@ module Data.Comp.MultiParam.Algebra (
 --      algM,
       freeM,
       cataM,
+      AlgM',
+      Compose(..),
+      freeM',
       cataM',
 
       -- * Term Homomorphisms
@@ -96,6 +99,7 @@ module Data.Comp.MultiParam.Algebra (
 
 import Prelude hiding (sequence, mapM)
 import Control.Monad hiding (sequence, mapM)
+import Data.Functor.Compose -- Functor composition
 import Data.Comp.MultiParam.Term
 import Data.Comp.MultiParam.Ops
 import Data.Comp.MultiParam.HDifunctor
@@ -162,12 +166,30 @@ cataM algm = run . coerceCxt
           run (Term t) = algm =<< hdimapM run t
           run (Place x) = return x
 
-{-| A generalisation of 'cataM' from terms over @f@ to contexts over @f@, where
-  the holes have the type of the monadic algebra carrier. -}
-cataM' :: forall m h f a. (HDitraversable f m a, Monad m)
-          => AlgM m f a -> NatM m (Cxt h f a a) a
+{-| This type represents a monadic algebra, but where the covariant argument is
+  also a monadic computation. -}
+type AlgM' m f a = NatM m (f a (Compose m a)) a
+
+{-| Construct a monadic catamorphism for contexts over @f@ with holes of type
+  @b@, from the given monadic algebra. -}
+freeM' :: forall m h f a b. (HDifunctor f, Monad m)
+          => AlgM' m f a -> NatM m b a -> NatM m (Cxt h f a b) a
+freeM' f g = run
+    where run :: NatM m (Cxt h f a b) a
+          run (Term t) = f $ hfmap (Compose . run) t
+          run (Hole x) = g x
+          run (Place p) = return p
+
+{-| Construct a monadic catamorphism from the given monadic algebra. -}
+cataM' :: forall m f a. (HDifunctor f, Monad m)
+          => AlgM' m f a -> NatM m (Term f) a
 {-# NOINLINE [1] cataM' #-}
-cataM' f = freeM f return
+cataM' algm = run . coerceCxt
+    where run :: NatM m (Cxt NoHole f a (K ())) a
+          run (Term t) = algm $ hfmap (Compose . run) t
+          run (Place x) = return x
+
+
 
 {-| This type represents a context function. -}
 type CxtFun f g = forall h a b. Cxt h f a b :-> Cxt h g a b
