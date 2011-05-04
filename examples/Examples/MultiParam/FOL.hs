@@ -68,16 +68,8 @@ data Forall :: (* -> *) -> (* -> *) -> * -> * where
 
 -- Derive boilerplate code using Template Haskell
 $(derive [instanceHDifunctor, smartConstructors]
-         [''Const, ''Var, ''Atom, ''NAtom,
+         [''Const, ''Var, ''TT, ''FF, ''Atom, ''NAtom,
           ''Not, ''Or, ''And, ''Impl, ''Exists, ''Forall])
-$(derive [instanceHDifunctor] [''TT, ''FF])
-
--- TODO: Fix deriving mechanism
-iTT :: (TT :<: f) => Cxt h f a b TFormula
-iTT = inject TT
-
-iFF :: (FF :<: f) => Cxt h f a b TFormula
-iFF = inject FF
 
 --------------------------------------------------------------------------------
 -- Pretty printing of terms and formulae

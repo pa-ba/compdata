@@ -2,7 +2,7 @@
   FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Examples.Multi.Eval
+-- Module      :  Examples.Multi.EvalI
 -- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
