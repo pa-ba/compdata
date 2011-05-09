@@ -96,18 +96,18 @@ project3 (Hole _) = Nothing
 project3 (Place _) = Nothing
 
 -- |Project a term to a term over a sub signature.
-deepProject :: (Ditraversable f Maybe a, Difunctor g, g :<: f)
+deepProject :: (Ditraversable f Maybe Any, Difunctor g, g :<: f)
             => Cxt h f a b -> Maybe (Cxt h g a b)
 deepProject = appSigFunM proj
 
 -- |Project a term to a term over a binary sub signature.
-deepProject2 :: (Ditraversable f Maybe a, Difunctor g1, Difunctor g2,
+deepProject2 :: (Ditraversable f Maybe Any, Difunctor g1, Difunctor g2,
                  g1 :<: f, g2 :<: f)
              => Cxt h f a b -> Maybe (Cxt h (g1 :+: g2) a b)
 deepProject2 = appSigFunM proj2
 
 -- |Project a term to a term over a ternary sub signature.
-deepProject3 :: (Ditraversable f Maybe a, Difunctor g1, Difunctor g2,
+deepProject3 :: (Ditraversable f Maybe Any, Difunctor g1, Difunctor g2,
                  Difunctor g3, g1 :<: f, g2 :<: f, g3 :<: f)
              => Cxt h f a b -> Maybe (Cxt h (g1 :+: g2 :+: g3) a b)
 deepProject3 = appSigFunM proj3

@@ -4,12 +4,11 @@
 
 module Param.DataTypes.Comp 
     (
-     module Param.DataTypes.Comp,
-     module Param.DataTypes 
+     module Param.DataTypes.Comp
     ) where
 
-import Param.DataTypes
 import Data.Comp.Param.Derive
+import Data.Comp.Param.Show
 import Data.Comp.Param
 --import Data.Comp.Arbitrary ()
 --import Data.Comp.Param.Show

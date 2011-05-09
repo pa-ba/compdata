@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes, FlexibleInstances, MultiParamTypeClasses,
-  FlexibleContexts, OverlappingInstances #-}
+  FlexibleContexts, OverlappingInstances  #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Ditraversable

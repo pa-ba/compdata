@@ -64,7 +64,7 @@ propAnn alg f' = ann p (alg f)
 {-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
   term homomorphism over the same signatures, but extended with annotations. -}
 propAnnM :: (DistAnn f p f', DistAnn g p g', Difunctor g, Difunctor g',
-             Monad m) => TermHomM m f g a -> TermHomM m f' g' a
+             Monad m) => TermHomM m f g -> TermHomM m f' g'
 propAnnM alg f' = liftM (ann p) (alg f)
     where (f,p) = projectA f'
 
