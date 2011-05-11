@@ -47,6 +47,9 @@ $(derive [instanceHFoldable, instanceHTraversable]
 -- Term evaluation algebra
 class Eval f where
   evalAlg :: Alg f I
+  evalAlg = I . evalAlg'
+  evalAlg' :: f I I i -> i
+  evalAlg' = unI . evalAlg
 
 $(derive [liftSum] [''Eval])
 
@@ -55,17 +58,17 @@ eval :: (HDifunctor f, Eval f) => Term f i -> i
 eval = unI . cata evalAlg
 
 instance Eval Const where
-  evalAlg (Const n) = I n
+  evalAlg' (Const n) = n
 
 instance Eval Op where
-  evalAlg (Add (I x) (I y))  = I (x + y)
-  evalAlg (Mult (I x) (I y)) = I (x * y)
+  evalAlg' (Add (I x) (I y))  = x + y
+  evalAlg' (Mult (I x) (I y)) = x * y
 
 instance Eval App where
-  evalAlg (App (I x) (I y)) = I (x y)
+  evalAlg' (App (I f) (I x)) = f x
 
 instance Eval Lam where
-  evalAlg (Lam f) = I (unI . f . I)
+  evalAlg' (Lam f) = unI . f . I
 
 -- Example: evalEx = 4
 evalEx :: Int

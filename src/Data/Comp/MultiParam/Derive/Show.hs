@@ -74,8 +74,7 @@ instanceShowHD fname = do
                           | a == conArg ->
                               [| do {v <- genVar;
                                      body <- pshow $ $(varE x) v;
-                                     vs <- pshow v;
-                                     return $ "\\" ++ vs ++ " -> " ++ body} |]
+                                     return $ "\\" ++ show v ++ " -> " ++ body} |]
                       SigT tp' _ ->
                           showHDB conArg coArg (x, tp')
                       _ ->
