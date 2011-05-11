@@ -29,7 +29,8 @@ module Data.Comp.Param.Term
      toCxt,
      constTerm,
      fmapCxt,
-     disequenceCxt
+     disequenceCxt,
+     dimapMCxt
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
@@ -107,7 +108,14 @@ fmapCxt f = run
           run (Hole b)  = Hole $ f b
 
 -- | This is an instance of 'disequence' for 'Cxt'.
+dimapMCxt :: Ditraversable f m a => (b -> m b') -> Cxt t f a b -> m (Cxt Hole f a b')
+dimapMCxt f = run
+              where run (Term t)  = liftM Term $ dimapM run t
+                    run (Place a) = return $ Place a
+                    run (Hole b)  = liftM Hole (f b)
+
+-- | This is an instance of 'disequence' for 'Cxt'.
 disequenceCxt :: Ditraversable f m a => Cxt t f a (m b) -> m (Cxt Hole f a b)
-disequenceCxt (Term t)  = liftM Term $ disequence $ fmap disequenceCxt t
+disequenceCxt (Term t)  = liftM Term $ dimapM disequenceCxt t
 disequenceCxt (Place a) = return $ Place a
 disequenceCxt (Hole b)  = liftM Hole b

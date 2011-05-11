@@ -51,6 +51,7 @@ module Data.Comp.Param.Algebra (
       sigFunM,
       termHom',
       appTermHomM,
+      appTermHomM',
       termHomM,
       termHomM',
       appSigFunM,
@@ -282,7 +283,7 @@ appTermHomM' :: forall f g m. (Ditraversable g m Any)
          => TermHomM m f g ->  CxtFunM m f g
 appTermHomM' f = coerceCxtFunM run
     where run :: CxtFunM' m f g
-          run (Term t)  = liftM appCxt . disequenceCxt . fmapCxt run =<< f t
+          run (Term t)  = liftM appCxt . dimapMCxt run =<< f t
           run (Place p) = return (Place p)
           run (Hole x) = return (Hole x)
             
