@@ -21,16 +21,21 @@ module Data.Comp.Param.Term
      NoHole,
      Any,
      Term,
+     Trm,
      Context,
      Const,
      simpCxt,
      coerceCxt,
      toCxt,
-     constTerm
+     constTerm,
+     fmapCxt,
+     disequenceCxt
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 import Data.Comp.Param.Difunctor
+import Data.Comp.Param.Ditraversable
+import Control.Monad
 import GHC.Prim (Any)
 import Unsafe.Coerce
 
@@ -57,7 +62,9 @@ data NoHole
   but the former avoids the impredicative typing extension, and works also in
   the cases where the codomain type is not a type constructor, e.g.
   @Any -> (Any,Any)@. -}
-type Context f = Cxt Hole f Any
+type Context = Cxt Hole
+
+type Trm f a = Cxt NoHole f a ()
 
 {-| A term is a context with no holes, where all occurrences of the
   contravariant parameter is fully parametric. Parametricity is \"emulated\"
@@ -65,7 +72,7 @@ type Context f = Cxt Hole f Any
   equivalent with @forall b. b -> T[b]@, but the former avoids the impredicative
   typing extension, and works also in the cases where the codomain type is not a
   type constructor, e.g. @Any -> (Any,Any)@. -}
-type Term f = Cxt NoHole f Any ()
+type Term f = Trm f Any
 
 {-| Convert a difunctorial value into a context. -}
 simpCxt :: Difunctor f => f a b -> Cxt Hole f a b
@@ -91,3 +98,16 @@ type Const f = f Any ()
   argument type of the difunctor @f@. -}
 constTerm :: Difunctor f => Const f -> Term f
 constTerm = Term . fmap (const undefined)
+
+-- | This is an instance of 'fmap' for 'Cxt'.
+fmapCxt :: Difunctor f => (b -> b') -> Cxt t f a b -> Cxt Hole f a b'
+fmapCxt f = run
+    where run (Term t) = Term $ fmap run t
+          run (Place a) = Place a
+          run (Hole b)  = Hole $ f b
+
+-- | This is an instance of 'disequence' for 'Cxt'.
+disequenceCxt :: Ditraversable f m a => Cxt t f a (m b) -> m (Cxt Hole f a b)
+disequenceCxt (Term t)  = liftM Term $ disequence $ fmap disequenceCxt t
+disequenceCxt (Place a) = return $ Place a
+disequenceCxt (Hole b)  = liftM Hole b

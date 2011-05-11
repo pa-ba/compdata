@@ -58,8 +58,8 @@ import Data.Comp.Term
 import Data.Comp.Algebra
 import Data.Comp.Ops
 
-import Control.Monad hiding (mapM)
-import Prelude hiding (mapM)
+import Control.Monad hiding (mapM,sequence)
+import Prelude hiding (mapM,sequence)
 
 
 import Data.Maybe
@@ -117,10 +117,8 @@ deepProject3 = appSigFunM proj3
 -- 'Traversable' rather than the whole signature.
 deepProject' :: forall g f h a. (Traversable g, g :<: f) => Cxt h f a
              -> Maybe (Cxt h g a)
-deepProject' val = do
-  v <- project val
-  v' <- mapM deepProject' v
-  return $ Term v'
+deepProject' = liftM Term . sequence . fmap deepProject' <=< project
+
 
 -- |A variant of 'deepProject2' where the sub signatures are required to be
 -- 'Traversable' rather than the whole signature.

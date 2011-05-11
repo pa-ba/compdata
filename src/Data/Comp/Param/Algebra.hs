@@ -131,7 +131,7 @@ cata' :: Difunctor f => Alg f a -> Cxt h f a a -> a
 cata' f = free f id
 
 {-| This function applies a whole context into another context. -}
-appCxt :: Difunctor f => Cxt Hole f a (Cxt h f a b) -> Cxt h f a b
+appCxt :: Difunctor f => Context f a (Cxt h f a b) -> Cxt h f a b
 appCxt (Term t) = Term (fmap appCxt t)
 appCxt (Hole x) = x
 appCxt (Place p) = Place p
@@ -179,7 +179,7 @@ type CxtFun f g = forall h a b. Cxt h f a b -> Cxt h g a b
 type SigFun f g = forall a b. f a b -> g a b
 
 {-| This type represents a term homomorphism. -}
-type TermHom f g = SigFun f (Cxt Hole g)
+type TermHom f g = SigFun f (Context g)
 
 {-| Apply a term homomorphism recursively to a term/context. -}
 appTermHom :: forall f g. (Difunctor f, Difunctor g)
@@ -199,6 +199,7 @@ compTermHom f g = appTermHom f . g
 {-| Compose an algebra with a term homomorphism to get a new algebra. -}
 compAlg :: (Difunctor f, Difunctor g) => Alg g a -> TermHom f g -> Alg f a
 compAlg alg talg = cata' alg . talg
+
 
 {-
 {-| Compose a term homomorphism with a coalgebra to get a cv-coalgebra. -}
@@ -242,11 +243,11 @@ type SigFunM m f g = forall a b. f a b -> m (g a b)
 type SigFunM' m f g = forall a b. f a (m b) -> m (g a b)
 
 {-| This type represents a monadic term homomorphism. -}
-type TermHomM m f g = SigFunM m f (Cxt Hole g)
+type TermHomM m f g = SigFunM m f (Context g)
 
 {-| This type represents a monadic term homomorphism. It is similar to
   'TermHomM' but has monadic values also in the domain. -}
-type TermHomM' m f g = SigFunM' m f (Cxt Hole g)
+type TermHomM' m f g = SigFunM' m f (Context g)
 
 {-| Lift the given signature function to a monadic signature function. Note that
   term homomorphisms are instances of signature functions. Hence this function
@@ -263,8 +264,9 @@ termHom' f = liftM  (Term . fmap Hole) . f
 termHomM :: (Difunctor g, Monad m) => SigFun f g -> TermHomM m f g
 termHomM f = sigFunM $ termHom f
 
-{-| Apply a monadic term homomorphism recursively to a term/context. -}
-appTermHomM :: forall f g m. (Ditraversable f m Any, Difunctor g, Monad m)
+-- | Apply a monadic term homomorphism recursively to a
+-- term/context. The monad is sequenced bottom-up.
+appTermHomM :: forall f g m. (Ditraversable f m Any, Difunctor g)
                => TermHomM m f g -> CxtFunM m f g
 {-# NOINLINE [1] appTermHomM #-}
 appTermHomM f = coerceCxtFunM run
@@ -272,6 +274,18 @@ appTermHomM f = coerceCxtFunM run
           run (Term t) = liftM appCxt (f =<< dimapM run t)
           run (Hole x) = return (Hole x)
           run (Place p) = return (Place p)
+
+
+-- | Apply a monadic term homomorphism recursively to a
+-- term/context. The monad is sequence top-down.
+appTermHomM' :: forall f g m. (Ditraversable g m Any)
+         => TermHomM m f g ->  CxtFunM m f g
+appTermHomM' f = coerceCxtFunM run
+    where run :: CxtFunM' m f g
+          run (Term t)  = liftM appCxt . disequenceCxt . fmapCxt run =<< f t
+          run (Place p) = return (Place p)
+          run (Hole x) = return (Hole x)
+            
 
 {-| This function constructs the unique monadic homomorphism from the
   initial term algebra to the given term algebra. -}
@@ -464,7 +478,7 @@ histoM alg = liftM projectTip . run . coerceCxt
   itself a binder, then the parameters bound by @f@ can be passed to the
   covariant argument, thereby making them available to sub terms. -}
 type CVCoalg f a = forall b. a -> [(a,b)]
-                 -> Either b (f b (Cxt Hole f b (a,[(a,b)])))
+                 -> Either b (f b (Context f b (a,[(a,b)])))
 
 {-| Construct a futumorphism from the given cv-coalgebra. -}
 futu :: forall f a. Difunctor f => CVCoalg f a -> a -> Term f
@@ -479,7 +493,7 @@ futu coa x = run (x,[])
 {-| This type represents a monadic cv-coalgebra over a difunctor @f@ and carrier
   @a@. -}
 type CVCoalgM m f a = forall b. a -> [(a,b)]
-                    -> m (Either b (f b (Cxt Hole f b (a,[(a,b)]))))
+                    -> m (Either b (f b (Context f b (a,[(a,b)]))))
 
 {-| Construct a monadic futumorphism from the given monadic cv-coalgebra. -}
 futuM :: forall f a m. (Ditraversable f m Any, Monad m) =>
@@ -495,7 +509,7 @@ futuM coa x = run (x,[])
 
 {-| This type represents a generalised cv-coalgebra over a difunctor @f@ and
   carrier @a@. -}
-type CVCoalg' f a = forall b. a -> [(a,b)] -> Cxt Hole f b (a,[(a,b)])
+type CVCoalg' f a = forall b. a -> [(a,b)] -> Context f b (a,[(a,b)])
 
 {-| Construct a futumorphism from the given generalised cv-coalgebra. -}
 futu' :: forall f a. Difunctor f => CVCoalg' f a -> a -> Term f
