@@ -61,7 +61,7 @@ $(derive [liftSum] [''PHOASTrans])
 
 -- default translation
 instance (f :<: g, Ditraversable f TransM Any) => PHOASTrans f g where
-  transAlg x =  liftM inject $ disequence $ dimap (return . Place) id x
+  transAlg x = liftM inject $ disequence $ dimap (return . Place) id x
 
 instance (Lam :<: g) => PHOASTrans Abs g where
   transAlg (Abs x b) = do env <- ask
