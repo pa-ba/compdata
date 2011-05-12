@@ -37,64 +37,29 @@ module Data.Comp.MultiParam.Algebra (
       SigFun,
       TermHom,
       appTermHom,
+      appTermHom',
       compTermHom,
       appSigFun,
+      appSigFun',
       compSigFun,
       termHom,
       compAlg,
---      compCoalg,
---      compCVCoalg,
 
       -- * Monadic Term Homomorphisms
       CxtFunM,
       SigFunM,
       TermHomM,
---      SigFunM',
---      TermHomM',
       sigFunM,
       termHom',
       appTermHomM,
+      appTermHomM',
       termHomM,
---      termHomM',
       appSigFunM,
---      appSigFunM',
+      appSigFunM',
       compTermHomM,
       compSigFunM,
       compAlgM,
-      compAlgM',
-
-{-      -- * Coalgebras & Anamorphisms
-      Coalg,
-      ana,
---      ana',
-      CoalgM,
-      anaM,
-
-      -- * R-Algebras & Paramorphisms
-      RAlg,
-      para,
-      RAlgM,
-      paraM,
-{-
-      -- * R-Coalgebras & Apomorphisms
-      RCoalg,
-      apo,
-      RCoalgM,
-      apoM,
--}
-      -- * CV-Algebras & Histomorphisms
-      CVAlg,
-      histo,
-      CVAlgM,
-      histoM,
-
-      -- * CV-Coalgebras & Futumorphisms
-      CVCoalg,
-      futu,
-      CVCoalg',
-      futu',
-      CVCoalgM,
-      futuM-}
+      compAlgM'
     ) where
 
 import Prelude hiding (sequence, mapM)
@@ -104,6 +69,8 @@ import Data.Comp.MultiParam.Term
 import Data.Comp.MultiParam.Ops
 import Data.Comp.MultiParam.HDifunctor
 import Data.Comp.MultiParam.HDitraversable
+
+import Unsafe.Coerce (unsafeCoerce)
 
 {-| This type represents an algebra over a difunctor @f@ and carrier @a@. -}
 type Alg f a = f a a :-> a
@@ -141,11 +108,6 @@ appCxt (Place p) = Place p
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
   the return type is monadic. -}
 type AlgM m f a = NatM m (f a a) a
-
-{-{-| Convert a monadic algebra into an ordinary algebra with a monadic
-  carrier. -}
-algM :: (HDitraversable f m a, Monad m) => AlgM m f a -> Alg f (m a)
-algM f x = disequence (hdimap return id x) >>= f-}
 
 {-| Construct a monadic catamorphism for contexts over @f@ with holes of type
   @b@, from the given monadic algebra. -}
@@ -189,16 +151,14 @@ cataM' algm = run . coerceCxt
           run (Term t) = algm $ hfmap (Compose . run) t
           run (Place x) = return x
 
-
-
-{-| This type represents a context function. -}
-type CxtFun f g = forall h a b. Cxt h f a b :-> Cxt h g a b
-
 {-| This type represents a signature function. -}
 type SigFun f g = forall a b. f a b :-> g a b
 
+{-| This type represents a context function. -}
+type CxtFun f g = forall h. SigFun (Cxt h f) (Cxt h g)
+
 {-| This type represents a term homomorphism. -}
-type TermHom f g = SigFun f (Cxt Hole g)
+type TermHom f g = SigFun f (Context g)
 
 {-| Apply a term homomorphism recursively to a term/context. -}
 appTermHom :: forall f g. (HDifunctor f, HDifunctor g)
@@ -207,6 +167,17 @@ appTermHom :: forall f g. (HDifunctor f, HDifunctor g)
 appTermHom f = run where
     run :: CxtFun f g
     run (Term t) = appCxt (f (hfmap run t))
+    run (Hole x) = Hole x
+    run (Place p) = Place p
+
+-- | Apply a term homomorphism recursively to a term/context. This is
+-- a top-down variant of 'appTermHom'.
+appTermHom' :: forall f g. (HDifunctor g)
+              => TermHom f g -> CxtFun f g
+{-# INLINE [1] appTermHom' #-}
+appTermHom' f = run where
+    run :: CxtFun f g
+    run (Term t) = appCxt (hfmapCxt run (f t))
     run (Hole x) = Hole x
     run (Place p) = Place p
 
@@ -219,22 +190,21 @@ compTermHom f g = appTermHom f . g
 compAlg :: (HDifunctor f, HDifunctor g) => Alg g a -> TermHom f g -> Alg f a
 compAlg alg talg = cata' alg . talg
 
-{-
-{-| Compose a term homomorphism with a coalgebra to get a cv-coalgebra. -}
-compCoalg :: TermHom f g -> Coalg f a -> CVCoalg' g a
-compCoalg hom coa = hom . coa
-
-{-| Compose a term homomorphism with a cv-coalgebra to get a new cv-coalgebra.
- -}
-compCVCoalg :: (Functor f, Functor g)
-  => TermHom f g -> CVCoalg' f a -> CVCoalg' g a
-compCVCoalg hom coa = appTermHom' hom . coa
-
--}
+{-| This function applies a signature function to the given context. -}
+appSigFun :: forall f g. (HDifunctor f) => SigFun f g -> CxtFun f g
+appSigFun f = run where
+    run :: CxtFun f g
+    run (Term t) = Term (f (hfmap run t))
+    run (Hole x) = Hole x
+    run (Place p) = Place p
 
 {-| This function applies a signature function to the given context. -}
-appSigFun :: forall f g. (HDifunctor f, HDifunctor g) => SigFun f g -> CxtFun f g
-appSigFun f = appTermHom $ termHom f
+appSigFun' :: forall f g. (HDifunctor g) => SigFun f g -> CxtFun f g
+appSigFun' f = run where
+    run :: CxtFun f g
+    run (Term t) = Term (hfmap run (f t))
+    run (Hole x) = Hole x
+    run (Place p) = Place p
 
 {-| This function composes two signature functions. -}
 compSigFun :: SigFun g h -> SigFun f g -> SigFun f h
@@ -244,81 +214,90 @@ compSigFun f g = f . g
 termHom :: HDifunctor g => SigFun f g -> TermHom f g
 termHom f = simpCxt . f
 
-{-| This type represents a monadic context function. -}
-type CxtFunM m f g a = forall h b. NatM m (Cxt h f a b) (Cxt h g a b)
-
 {-| This type represents a monadic signature function. -}
-type SigFunM m f g a = forall b. NatM m (f a b) (g a b)
+type SigFunM m f g = forall a b. NatM m (f a b) (g a b)
 
-{-{-| This type represents a monadic signature function. It is similar to
-  'SigFunM' but has monadic values also in the domain. -}
-type SigFunM' m f g a = forall b. f a (m b) -> m (g a b)-}
+{-| This type represents a monadic context function. -}
+type CxtFunM m f g = forall h . SigFunM m (Cxt h f) (Cxt h g)
+
+{-| This type represents a monadic context function. -}
+type CxtFunM' m f g = forall h b . NatM m (Cxt h f Any b) (Cxt h g Any b)
+
+
+coerceCxtFunM :: CxtFunM' m f g -> CxtFunM m f g
+coerceCxtFunM = unsafeCoerce
+
 
 {-| This type represents a monadic term homomorphism. -}
-type TermHomM m f g a = SigFunM m f (Cxt Hole g) a
+type TermHomM m f g = SigFunM m f (Cxt Hole g)
 
-{-{-| This type represents a monadic term homomorphism. It is similar to
-  'TermHomM' but has monadic values also in the domain. -}
-type TermHomM' m f g a = SigFunM' m f (Cxt Hole g) a-}
 
 {-| Lift the given signature function to a monadic signature function. Note that
   term homomorphisms are instances of signature functions. Hence this function
   also applies to term homomorphisms. -}
-sigFunM :: Monad m => SigFun f g -> SigFunM m f g a
+sigFunM :: Monad m => SigFun f g -> SigFunM m f g
 sigFunM f = return . f
 
 {-| Lift the give monadic signature function to a monadic term homomorphism. -}
 termHom' :: (HDifunctor f, HDifunctor g, Monad m)
-            => SigFunM m f g a -> TermHomM m f g a
+            => SigFunM m f g -> TermHomM m f g
 termHom' f = liftM  (Term . hfmap Hole) . f
 
 {-| Lift the given signature function to a monadic term homomorphism. -}
-termHomM :: (HDifunctor g, Monad m) => SigFun f g -> TermHomM m f g a
+termHomM :: (HDifunctor g, Monad m) => SigFun f g -> TermHomM m f g
 termHomM f = sigFunM $ termHom f
 
 {-| Apply a monadic term homomorphism recursively to a term/context. -}
-appTermHomM :: forall f g m a. (HDitraversable f m a, HDifunctor g, Monad m)
-               => TermHomM m f g a -> CxtFunM m f g a
+appTermHomM :: forall f g m. (HDitraversable f m Any, HDifunctor g, Monad m)
+               => TermHomM m f g -> CxtFunM m f g
 {-# NOINLINE [1] appTermHomM #-}
-appTermHomM f = run
-    where run :: CxtFunM m f g a
+appTermHomM f = coerceCxtFunM run
+    where run :: CxtFunM' m f g
           run (Term t) = liftM appCxt (f =<< hdimapM run t)
           run (Hole x) = return (Hole x)
           run (Place p) = return (Place p)
 
-{-{-| This function constructs the unique monadic homomorphism from the
-  initial term algebra to the given term algebra. -}
-termHomM' :: forall f g m a. (HDifunctor f, HDifunctor g, Monad m)
-             => TermHomM' m f g a -> CxtFunM m f g a
-termHomM' f = run 
-    where run :: CxtFunM m f g a
-          run (Term t) = liftM appCxt (f (fmap run t))
+-- | Apply a monadic term homomorphism recursively to a
+-- term/context. This is a top-down variant of 'appTermHomM'.
+appTermHomM' :: forall f g m. (HDitraversable g m Any, Monad m)
+               => TermHomM m f g -> CxtFunM m f g
+{-# NOINLINE [1] appTermHomM' #-}
+appTermHomM' f = coerceCxtFunM run
+    where run :: CxtFunM' m f g
+          run (Term t) = liftM appCxt (hdimapMCxt run =<<  f t)
           run (Hole x) = return (Hole x)
-          run (Place p) = return (Place p)-}
+          run (Place p) = return (Place p)
+
 
 {-| This function applies a monadic signature function to the given context. -}
-appSigFunM :: (HDitraversable f m a, HDifunctor g, Monad m)
-              => SigFunM m f g a -> CxtFunM m f g a
-appSigFunM f = appTermHomM $ termHom' f
-
-{-{-| This function applies a signature function to the given context. -}
-appSigFunM' :: forall f g m a. (HDitraversable f m a, HDifunctor g, Monad m)
-               => SigFunM' m f g a -> CxtFunM m f g a
-appSigFunM' f = run 
-    where run :: CxtFunM m f g a
-          run (Term t) = liftM Term (f (fmap run t))
+appSigFunM :: forall m f g. (HDitraversable f m Any, Monad m)
+              => SigFunM m f g -> CxtFunM m f g
+appSigFunM f = coerceCxtFunM run
+    where run :: CxtFunM' m f g
+          run (Term t) = liftM Term (f =<< hdimapM run t)
           run (Hole x) = return (Hole x)
-          run (Place p) = return (Place p)-}
+          run (Place p) = return (Place p)
+
+-- | This function applies a monadic signature function to the given
+-- context. This is a top-down variant of 'appSigFunM'.
+appSigFunM' :: forall m f g. (HDitraversable g m Any, Monad m)
+              => SigFunM m f g -> CxtFunM m f g
+appSigFunM' f = coerceCxtFunM run
+    where run :: CxtFunM' m f g
+          run (Term t) = liftM Term (hdimapM run =<< f t)
+          run (Hole x) = return (Hole x)
+          run (Place p) = return (Place p)
+
 
 {-| Compose two monadic term homomorphisms. -}
-compTermHomM :: (HDitraversable g m a, HDifunctor h, Monad m)
-                => TermHomM m g h a -> TermHomM m f g a -> TermHomM m f h a
+compTermHomM :: (HDitraversable g m Any, HDifunctor h, Monad m)
+                => TermHomM m g h -> TermHomM m f g -> TermHomM m f h
 compTermHomM f g = appTermHomM f <=< g
 
 {-| Compose a monadic algebra with a monadic term homomorphism to get a new
   monadic algebra. -}
 compAlgM :: (HDitraversable g m a, Monad m)
-            => AlgM m g a -> TermHomM m f g a -> AlgM m f a
+            => AlgM m g a -> TermHomM m f g -> AlgM m f a
 compAlgM alg talg = freeM alg return <=< talg
 
 {-| Compose a monadic algebra with a term homomorphism to get a new monadic
@@ -328,199 +307,9 @@ compAlgM' :: (HDitraversable g m a, Monad m) => AlgM m g a
 compAlgM' alg talg = freeM alg return . talg
 
 {-| This function composes two monadic signature functions. -}
-compSigFunM :: Monad m => SigFunM m g h a -> SigFunM m f g a -> SigFunM m f h a
+compSigFunM :: Monad m => SigFunM m g h -> SigFunM m f g -> SigFunM m f h
 compSigFunM f g a = g a >>= f
 
-
-----------------
--- Coalgebras --
-----------------
-{-
-{-| This type represents a coalgebra over a difunctor @f@ and carrier @a@. The
-  list of @(a,b)@s represent the parameters that may occur in the constructed
-  value. The first component represents the seed of the parameter,
-  and the second component is the (polymorphic) parameter itself. If @f@ is
-  itself a binder, then the parameters bound by @f@ can be passed to the
-  covariant argument, thereby making them available to sub terms. -}
-type Coalg f a = forall b. a -> [(a,b)] -> Either b (f b (a,[(a,b)]))
-
-{-| Construct an anamorphism from the given coalgebra. -}
-ana :: forall a f. HDifunctor f => Coalg f a -> a -> Term f
-ana f x = run (x,[])
-    where run (a,bs) = case f a bs of
-                         Left p -> Place p
-                         Right t -> Term $ fmap run t
-
-{-| This type represents a monadic coalgebra over a difunctor @f@ and carrier
-  @a@. -}
-type CoalgM m f a = forall b. a -> [(a,b)] -> m (Either b (f b (a,[(a,b)])))
-
-{-| Construct a monadic anamorphism from the given monadic coalgebra. -}
-anaM :: forall a m f. (HDitraversable f m Any, Monad m)
-     => CoalgM m f a -> a -> m (Term f)
-anaM f x = run (x,[])
-    where run (a,bs) = do c <- f a bs
-                          case c of
-                            Left p -> return $ Place p
-                            Right t -> liftM Term $ hdimapM run t
-
-
---------------------------------
--- R-Algebras & Paramorphisms --
---------------------------------
-{-
-{-| This type represents an r-algebra over a difunctor @f@ and carrier @a@. -}
-type RAlg f a = f a (Cxt NoHole f a (K ()), a) -> a
-
-{-| Construct a paramorphism from the given r-algebra. -}
-para :: forall f a. HDifunctor f => RAlg f a -> Term f -> a
-para f = run . coerceCxt
-    where run :: Cxt NoHole f a () -> a
-          run (Term t) = f $ fmap (\x -> (x, run x)) t
-          run (Place x) = x
-
-{-| This type represents a monadic r-algebra over a difunctor @f@ and carrier
-  @a@. -}
-type RAlgM m f a = f a (Cxt NoHole f a (), a) -> m a
-{-| Construct a monadic paramorphism from the given monadic r-algebra. -}
-paraM :: forall m f a. (HDitraversable f m a, Monad m)
-         => RAlgM m f a -> Term f -> m a
-paraM f = run . coerceCxt
-    where run :: Cxt NoHole f a () -> m a
-          run (Term t) = f =<< hdimapM (\x -> run x >>= \y -> return (x, y)) t
-          run (Place x) = return x
-
--}
---------------------------------
--- R-Coalgebras & Apomorphisms --
---------------------------------
-{-
-{-| This type represents an r-coalgebra over a difunctor @f@ and carrier @a@. -}
-type RCoalg f a = forall b. (a,[b]) -> (K b :+: f) b (Either (Cxt f a a) (a,[b]))
-
-{-| Construct an apomorphism from the given r-coalgebra. -}
-apo :: (Functor f) => RCoalg f a -> a -> Term f
-apo f = run 
-    where run = Term . fmap run' . f
-          run' (Left t) = t
-          run' (Right a) = run a
--- can also be defined in terms of anamorphisms (but less
--- efficiently):
--- apo f = ana run . Right
---     where run (Left (Term t)) = fmap Left t
---           run (Right a) = f a
-
-{-| This type represents a monadic r-coalgebra over a functor @f@ and carrier
-  @a@. -}
-type RCoalgM m f a = a -> m (f (Either (Term f) a))
-
-{-| Construct a monadic apomorphism from the given monadic r-coalgebra. -}
-apoM :: (Traversable f, Monad m) =>
-        RCoalgM m f a -> a -> m (Term f)
-apoM f = run 
-    where run a = do
-            t <- f a
-            t' <- mapM run' t
-            return $ Term t'
-          run' (Left t) = return t
-          run' (Right a) = run a
-
--- can also be defined in terms of anamorphisms (but less
--- efficiently):
--- apoM f = anaM run . Right
---     where run (Left (Term t)) = return $ fmap Left t
---           run (Right a) = f a
-
--}
-----------------------------------
--- CV-Algebras & Histomorphisms --
-----------------------------------
-
-{-| This type represents a cv-algebra over a difunctor @f@ and carrier @a@. -}
-type CVAlg f a f' = f a (Cxt NoHole f' a ()) -> a
-
--- | This function applies 'projectA' at the tip of the term.
-projectTip  :: DistAnn f a f' => Cxt NoHole f' a () -> a
-projectTip (Term v) = snd $ projectA v
-projectTip (Place p) = p
-
-{-| Construct a histomorphism from the given cv-algebra. -}
-histo :: forall f f' a. (HDifunctor f, DistAnn f a f')
-         => CVAlg f a f' -> Term f -> a
-histo alg = projectTip . cata run
-    where run :: Alg f (Cxt NoHole f' a ())
-          run v = Term $ injectA (alg v') v'
-              where v' = hdimap Place id v
-
-{-| This type represents a monadic cv-algebra over a functor @f@ and carrier
-  @a@. -}
-type CVAlgM m f a f' = f a (Cxt NoHole f' a ()) -> m a
-
-{-| Construct a monadic histomorphism from the given monadic cv-algebra. -}
-histoM :: forall f f' m a. (HDitraversable f m a, Monad m, DistAnn f a f')
-          => CVAlgM m f a f' -> Term f -> m a
-histoM alg = liftM projectTip . run . coerceCxt
-    where run (Term t) = do t' <- hdimapM run t
-                            r <- alg t'
-                            return $ Term $ injectA r t'
-          run (Place p) = return $ Place p
-
-
------------------------------------
--- CV-Coalgebras & Futumorphisms --
------------------------------------
-
-{-| This type represents a cv-coalgebra over a difunctor @f@ and carrier @a@.
-  The list of @(a,b)@s represent the parameters that may occur in the
-  constructed value. The first component represents the seed of the parameter,
-  and the second component is the (polymorphic) parameter itself. If @f@ is
-  itself a binder, then the parameters bound by @f@ can be passed to the
-  covariant argument, thereby making them available to sub terms. -}
-type CVCoalg f a = forall b. a -> [(a,b)]
-                 -> Either b (f b (Cxt Hole f b (a,[(a,b)])))
-
-{-| Construct a futumorphism from the given cv-coalgebra. -}
-futu :: forall f a. HDifunctor f => CVCoalg f a -> a -> Term f
-futu coa x = run (x,[])
-    where run (a,bs) = case coa a bs of
-                         Left p -> Place p
-                         Right t -> Term $ fmap run' t
-          run' (Term t) = Term $ fmap run' t
-          run' (Hole x) = run x
-          run' (Place p) = Place p
-
-{-| This type represents a monadic cv-coalgebra over a difunctor @f@ and carrier
-  @a@. -}
-type CVCoalgM m f a = forall b. a -> [(a,b)]
-                    -> m (Either b (f b (Cxt Hole f b (a,[(a,b)]))))
-
-{-| Construct a monadic futumorphism from the given monadic cv-coalgebra. -}
-futuM :: forall f a m. (HDitraversable f m Any, Monad m) =>
-         CVCoalgM m f a -> a -> m (Term f)
-futuM coa x = run (x,[])
-    where run (a,bs) = do c <- coa a bs
-                          case c of 
-                            Left p -> return $ Place p
-                            Right t -> liftM Term $ hdimapM run' t
-          run' (Term t) = liftM Term $ hdimapM run' t
-          run' (Hole x) = run x
-          run' (Place p) = return $ Place p
-
-{-| This type represents a generalised cv-coalgebra over a difunctor @f@ and
-  carrier @a@. -}
-type CVCoalg' f a = forall b. a -> [(a,b)] -> Cxt Hole f b (a,[(a,b)])
-
-{-| Construct a futumorphism from the given generalised cv-coalgebra. -}
-futu' :: forall f a. HDifunctor f => CVCoalg' f a -> a -> Term f
-futu' coa x = run (x,[])
-    where run (a,bs) = run' $ coa a bs
-          run' (Term t) = Term $ fmap run' t
-          run' (Hole x) = run x
-          run' (Place p) = Place p
--}
--------------------
--- rewrite rules --
--------------------
 
 #ifndef NO_RULES
 {-# RULES

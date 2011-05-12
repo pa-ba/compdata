@@ -238,17 +238,17 @@ compSigFun f g = f . g
 termHom :: Difunctor g => SigFun f g -> TermHom f g
 termHom f = simpCxt . f
 
+{-| This type represents a monadic signature function. -}
+type SigFunM m f g = forall a b. f a b -> m (g a b)
+
 {-| This type represents a monadic context function. -}
-type CxtFunM m f g = forall h a b. Cxt h f a b -> m (Cxt h g a b)
+type CxtFunM m f g = forall h . SigFunM m (Cxt h f) (Cxt h g)
 
 {-| This type represents a monadic context function. -}
 type CxtFunM' m f g = forall h b. Cxt h f Any b -> m (Cxt h g Any b)
 
 coerceCxtFunM :: CxtFunM' m f g -> CxtFunM m f g
 coerceCxtFunM = unsafeCoerce
-
-{-| This type represents a monadic signature function. -}
-type SigFunM m f g = forall a b. f a b -> m (g a b)
 
 {-| This type represents a monadic signature function. It is similar to
   'SigFunMD but has monadic values also in the domain. -}

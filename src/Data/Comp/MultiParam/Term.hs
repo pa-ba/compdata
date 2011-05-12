@@ -1,5 +1,5 @@
 {-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes,
-  MultiParamTypeClasses, TypeOperators #-}
+  MultiParamTypeClasses, TypeOperators, ScopedTypeVariables #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.MultiParam.Term
@@ -26,11 +26,15 @@ module Data.Comp.MultiParam.Term
      simpCxt,
      coerceCxt,
      toCxt,
-     constTerm
+     constTerm,
+     hfmapCxt,
+     hdimapMCxt
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 import Data.Comp.MultiParam.HDifunctor
+import Data.Comp.MultiParam.HDitraversable
+import Control.Monad 
 import Unsafe.Coerce
 
 {-| This data type represents contexts over a signature. Contexts are terms
@@ -60,7 +64,7 @@ data Any :: * -> *
   @forall b. b :-> T[b]@, but the former avoids the impredicative typing
   extension, and works also in the cases where the codomain type is not a type
   constructor, e.g. @Any i -> (Any i,Any i)@. -}
-type Context f = Cxt Hole f Any
+type Context = Cxt Hole
 
 {-| A term is a context with no holes, where all occurrences of the
   contravariant parameter is fully parametric. Parametricity is \"emulated\"
@@ -94,3 +98,21 @@ type Const f i = f Any (K ()) i
   argument type of the higher-order difunctor @f@. -}
 constTerm :: HDifunctor f => Const f :-> Term f
 constTerm = Term . hfmap (const undefined)
+
+-- | This is an instance of 'hfmap' for 'Cxt'.
+hfmapCxt :: forall h f a b b'. HDifunctor f
+         => (b :-> b') -> Cxt h f a b :-> Cxt h f a b'
+hfmapCxt f = run
+    where run :: Cxt h f a b :-> Cxt h f a b'
+          run (Term t) = Term $ hfmap run t
+          run (Place a) = Place a
+          run (Hole b)  = Hole $ f b
+
+-- | This is an instance of 'hdimapM' for 'Cxt'.
+hdimapMCxt :: forall h f a b b' m . HDitraversable f m a
+          => (NatM m b b') -> NatM m (Cxt h f a b) (Cxt h f a b')
+hdimapMCxt f = run
+    where run :: NatM m (Cxt h f a b) (Cxt h f a b')
+          run (Term t)  = liftM Term $ hdimapM run t
+          run (Place a) = return $ Place a
+          run (Hole b)  = liftM Hole (f b)

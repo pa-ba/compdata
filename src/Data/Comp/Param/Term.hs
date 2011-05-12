@@ -101,21 +101,21 @@ constTerm :: Difunctor f => Const f -> Term f
 constTerm = Term . fmap (const undefined)
 
 -- | This is an instance of 'fmap' for 'Cxt'.
-fmapCxt :: Difunctor f => (b -> b') -> Cxt t f a b -> Cxt Hole f a b'
+fmapCxt :: Difunctor f => (b -> b') -> Cxt h f a b -> Cxt h f a b'
 fmapCxt f = run
     where run (Term t) = Term $ fmap run t
           run (Place a) = Place a
           run (Hole b)  = Hole $ f b
 
--- | This is an instance of 'disequence' for 'Cxt'.
-dimapMCxt :: Ditraversable f m a => (b -> m b') -> Cxt t f a b -> m (Cxt Hole f a b')
+-- | This is an instance of 'dimamM' for 'Cxt'.
+dimapMCxt :: Ditraversable f m a => (b -> m b') -> Cxt h f a b -> m (Cxt h f a b')
 dimapMCxt f = run
               where run (Term t)  = liftM Term $ dimapM run t
                     run (Place a) = return $ Place a
                     run (Hole b)  = liftM Hole (f b)
 
 -- | This is an instance of 'disequence' for 'Cxt'.
-disequenceCxt :: Ditraversable f m a => Cxt t f a (m b) -> m (Cxt Hole f a b)
+disequenceCxt :: Ditraversable f m a => Cxt h f a (m b) -> m (Cxt h f a b)
 disequenceCxt (Term t)  = liftM Term $ dimapM disequenceCxt t
 disequenceCxt (Place a) = return $ Place a
 disequenceCxt (Hole b)  = liftM Hole b
