@@ -10,7 +10,8 @@
 -- Portability :  non-portable (GHC Extensions)
 --
 -- This module defines an abstract notion of (bound) variables in compositional
--- data types, and capture-avoiding substitution.
+-- data types, and scoped substitution. Capture-avoidance is /not/ taken into
+-- account.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Variables
@@ -70,7 +71,7 @@ varsToHoles t = cata alg t []
               let vars' = vars ++ bindsVars t in
               case isVar t of
                 Just v ->
-                    -- Check for capture-avoidance
+                    -- Check for scope
                     if v `elem` vars' then
                         Term $ fmap (\x -> x vars') t
                     else
