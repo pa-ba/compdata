@@ -43,32 +43,31 @@ liftA f v = f (remA v)
 {-| Transform a function with a domain constructed from a functor to a function
   with a domain constructed with the same functor, but with an additional
   annotation. -}
-liftA' :: (DistAnn s' p s, Functor s, Functor s')
+liftA' :: (DistAnn s' p s, Functor s')
        => (s' a -> Cxt h s' a) -> s a -> Cxt h s a
 liftA' f v = let (v',p) = projectA v
              in ann p (f v')
     
 {-| Strip the annotations from a term over a functor with annotations. -}
-stripA :: (Functor f, RemA g f, Functor g) => Cxt h g a -> Cxt h f a
+stripA :: (RemA g f, Functor g) => Cxt h g a -> Cxt h f a
 stripA = appSigFun remA
 
 {-| Lift a term homomorphism over signatures @f@ and @g@ to a term homomorphism
  over the same signatures, but extended with annotations. -}
-propAnn :: (DistAnn f p f', DistAnn g p g', Functor g, Functor g') 
-               => TermHom f g -> TermHom f' g'
-propAnn alg f' = ann p (alg f)
+propAnn :: (DistAnn f p f', DistAnn g p g', Functor g) 
+        => TermHom f g -> TermHom f' g'
+propAnn hom f' = ann p (hom f)
     where (f,p) = projectA f'
 
 {-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
   term homomorphism over the same signatures, but extended with annotations. -}
-propAnnM :: (DistAnn f p f', DistAnn g p g',
-                    Functor g, Functor g', Monad m) 
-               => TermHomM m f g -> TermHomM m f' g'
-propAnnM alg f' = liftM (ann p) (alg f)
+propAnnM :: (DistAnn f p f', DistAnn g p g', Functor g, Monad m) 
+         => TermHomM m f g -> TermHomM m f' g'
+propAnnM hom f' = liftM (ann p) (hom f)
     where (f,p) = projectA f'
 
 {-| Annotate each node of a term with a constant value. -}
-ann :: (DistAnn f p g, Functor f, Functor g) 
+ann :: (DistAnn f p g, Functor f) 
     => p -> Cxt h f a -> Cxt h g a
 ann c = appSigFun (injectA c)
 

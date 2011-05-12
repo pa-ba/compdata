@@ -30,6 +30,13 @@ module Data.Comp.Multi.Term
      ) where
 
 import Data.Comp.Multi.Functor
+import Data.Comp.Multi.Foldable
+import Data.Comp.Multi.Traversable
+import Data.Monoid
+
+import Control.Monad
+import Control.Applicative hiding (Const)
+
 import Unsafe.Coerce
 
 type Const (f :: (* -> *) -> * -> *) = f (K ())
@@ -78,6 +85,40 @@ instance (HFunctor f) => HFunctor (Cxt h f) where
     hfmap f (Hole x) = Hole (f x)
     hfmap f (Term t) = Term (hfmap (hfmap f) t)
 
+instance (HFoldable f) => HFoldable (Cxt h f) where
+    hfoldr = hfoldr' where
+        hfoldr'  :: forall a b. (a :=> b -> b) -> b -> Cxt h f a :=> b
+        hfoldr' op c a = run a c where
+              run :: (Cxt h f) a :=> b ->  b
+              run (Hole a) e = a `op` e
+              run (Term t) e = hfoldr run e t
+
+    hfoldl = hfoldl' where
+        hfoldl' :: forall a b. (b -> a :=> b) -> b -> Cxt h f a :=> b
+        hfoldl' op = run where
+              run :: b -> (Cxt h f) a :=> b
+              run e (Hole a) = e `op` a
+              run e (Term t) = hfoldl run e t
+
+    hfold (Hole (K a)) = a
+    hfold (Term t) = hfoldMap hfold t
+
+    hfoldMap = hfoldMap' where
+        hfoldMap' :: forall m a. Monoid m => (a :=> m) -> Cxt h f a :=> m
+        hfoldMap' f = run where
+              run :: Cxt h f a :=> m
+              run (Hole a) = f a
+              run (Term t) = hfoldMap run t
+
+instance (HTraversable f) => HTraversable (Cxt h f) where
+   hmapM = hmapM' where
+       hmapM' :: forall m a b. (Monad m) => NatM m a b -> NatM m (Cxt h f a) (Cxt h f b)
+       hmapM' f = run where
+             run :: NatM m (Cxt h f a) (Cxt h f b)
+             run (Hole x) = liftM Hole $ f x
+             run (Term t) = liftM Term $ hmapM run t
+   htraverse f (Hole x) = Hole <$> f x
+   htraverse f (Term t) = Term <$> htraverse (htraverse f) t
 
 simpCxt :: (HFunctor f) => f a i -> Context f a i
 simpCxt = Term . hfmap Hole

@@ -36,9 +36,6 @@ import Data.Comp.Multi.Functor
 
 import Control.Monad
 
-
-
-
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
 -- same functor but with an additional annotation.
@@ -49,14 +46,14 @@ liftA f v = f (remA v)
 -- | This function annotates each sub term of the given term with the
 -- given value (of type a).
 
-ann :: (DistAnn f p g, HFunctor f, HFunctor g) 
+ann :: (DistAnn f p g, HFunctor f) 
        => p -> Cxt h f a :-> Cxt h g a
 ann c = appSigFun (injectA c)
 
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
 -- same functor but with an additional annotation.
-liftA' :: (DistAnn s' p s, HFunctor s, HFunctor s')
+liftA' :: (DistAnn s' p s, HFunctor s')
        => (s' a :-> Cxt h s' a) -> s a :-> Cxt h s a
 liftA' f v = let (v' O.:&: p) = projectA v
              in ann p (f v')
@@ -64,19 +61,15 @@ liftA' f v = let (v' O.:&: p) = projectA v
 {-| This function strips the annotations from a term over a
 functor with annotations. -}
 
-stripA :: (HFunctor f, RemA g f, HFunctor g)
+stripA :: (RemA g f, HFunctor g)
        => Cxt h g a :-> Cxt h f a
 stripA = appSigFun remA
 
 
-propAnn :: (DistAnn f p f', DistAnn g p g', HFunctor g, HFunctor g') 
+propAnn :: (DistAnn f p f', DistAnn g p g', HFunctor g) 
                => TermHom f g -> TermHom f' g'
 propAnn alg f' = ann p (alg f)
     where (f O.:&: p) = projectA f'
-
-
-
-
 
 -- | This function is similar to 'project' but applies to signatures
 -- with an annotation which is then ignored.

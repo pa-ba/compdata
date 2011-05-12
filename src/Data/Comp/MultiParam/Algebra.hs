@@ -66,7 +66,6 @@ import Prelude hiding (sequence, mapM)
 import Control.Monad hiding (sequence, mapM)
 import Data.Functor.Compose -- Functor composition
 import Data.Comp.MultiParam.Term
-import Data.Comp.MultiParam.Ops
 import Data.Comp.MultiParam.HDifunctor
 import Data.Comp.MultiParam.HDitraversable
 
