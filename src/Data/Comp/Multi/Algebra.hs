@@ -25,7 +25,6 @@ module Data.Comp.Multi.Algebra (
       
       -- * Monadic Algebras & Catamorphisms
       AlgM,
---      algM,
       freeM,
       cataM,
       cataM',
@@ -43,8 +42,6 @@ module Data.Comp.Multi.Algebra (
       compSigFun,
       termHom,
       compAlg,
---      compCoalg,
---      compCVCoalg,
 
       -- * Monadic Term Homomorphisms
       CxtFunM,
@@ -65,7 +62,6 @@ module Data.Comp.Multi.Algebra (
       -- * Coalgebras & Anamorphisms
       Coalg,
       ana,
---      ana',
       CoalgM,
       anaM,
 
@@ -81,18 +77,10 @@ module Data.Comp.Multi.Algebra (
       RCoalgM,
       apoM,
 
-      -- * CV-Algebras & Histomorphisms
-      -- $l1
---      CVAlg,
---      histo,
---      CVAlgM,
---      histoM,
 
       -- * CV-Coalgebras & Futumorphisms
       CVCoalg,
       futu,
---      CVCoalg',
---      futu',
       CVCoalgM,
       futuM,
     ) where
@@ -423,15 +411,6 @@ apoM f = run
           run' :: NatM m (Term f :+: a)  (Term f)
           run' (Inl t) = return t
           run' (Inr a) = run a
-
-----------------------------------
--- CV-Algebras & Histomorphisms --
-----------------------------------
-
--- $l1 For this to work we need a more general version of @:&&:@ which is of
--- kind @((* -> *) -> * -> *) -> (* -> *) -> (* -> *) -> * -> *@,
--- i.e. one which takes a functor as second argument instead of a
--- type.
 
 -----------------------------------
 -- CV-Coalgebras & Futumorphisms --
