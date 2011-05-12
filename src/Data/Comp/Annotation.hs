@@ -49,7 +49,7 @@ liftA' f v = let (v',p) = projectA v
              in ann p (f v')
     
 {-| Strip the annotations from a term over a functor with annotations. -}
-stripA :: (RemA g f, Functor g) => Cxt h g a -> Cxt h f a
+stripA :: (RemA g f, Functor g) => CxtFun g f
 stripA = appSigFun remA
 
 {-| Lift a term homomorphism over signatures @f@ and @g@ to a term homomorphism
@@ -67,8 +67,7 @@ propAnnM hom f' = liftM (ann p) (hom f)
     where (f,p) = projectA f'
 
 {-| Annotate each node of a term with a constant value. -}
-ann :: (DistAnn f p g, Functor f) 
-    => p -> Cxt h f a -> Cxt h g a
+ann :: (DistAnn f p g, Functor f) => p -> CxtFun f g
 ann c = appSigFun (injectA c)
 
 {-| This function is similar to 'project' but applies to signatures

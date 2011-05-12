@@ -46,8 +46,7 @@ liftA f v = f (remA v)
 -- | This function annotates each sub term of the given term with the
 -- given value (of type a).
 
-ann :: (DistAnn f p g, HFunctor f) 
-       => p -> Cxt h f a :-> Cxt h g a
+ann :: (DistAnn f p g, HFunctor f) => p -> CxtFun f g
 ann c = appSigFun (injectA c)
 
 -- | This function transforms a function with a domain constructed
@@ -61,8 +60,7 @@ liftA' f v = let (v' O.:&: p) = projectA v
 {-| This function strips the annotations from a term over a
 functor with annotations. -}
 
-stripA :: (RemA g f, HFunctor g)
-       => Cxt h g a :-> Cxt h f a
+stripA :: (RemA g f, HFunctor g) => CxtFun g f
 stripA = appSigFun remA
 
 
