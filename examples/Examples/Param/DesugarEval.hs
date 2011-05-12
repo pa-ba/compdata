@@ -69,8 +69,11 @@ class Eval f v where
 $(derive [liftSum] [''Eval])
 
 -- Compose the evaluation algebra and the desugaring homomorphism to an algebra
-eval :: Term Sig' -> Term Value
-eval = cata (evalAlg `compAlg` (desugHom :: TermHom Sig' Sig))
+eval :: Term Sig -> Term Value
+eval = cata evalAlg
+
+evalDesug :: Term Sig' -> Term Value
+evalDesug = eval . desugar
 
 instance (Const :<: v) => Eval Const v where
   evalAlg (Const n) = iConst n
@@ -96,7 +99,7 @@ projF v = case project v of Just (Fun f) -> f
 
 -- |Evaluation of expressions to ground values.
 evalG :: Term Sig' -> Maybe (Term GValue)
-evalG = deepProject' . (eval :: Term Sig' -> Term Value)
+evalG = deepProject' . evalDesug
 
 -- Example: evalEx = Just (iConst 720)
 evalEx :: Maybe (Term GValue)

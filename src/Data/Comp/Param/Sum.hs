@@ -96,59 +96,45 @@ project3 (Hole _) = Nothing
 project3 (Place _) = Nothing
 
 -- |Project a term to a term over a sub signature.
-deepProject :: (Ditraversable f Maybe Any, Difunctor g, g :<: f)
+deepProject :: (Ditraversable f Maybe Any, g :<: f)
             => Cxt h f a b -> Maybe (Cxt h g a b)
+{-# INLINE deepProject #-}
 deepProject = appSigFunM proj
 
 -- |Project a term to a term over a binary sub signature.
-deepProject2 :: (Ditraversable f Maybe Any, Difunctor g1, Difunctor g2,
-                 g1 :<: f, g2 :<: f)
+deepProject2 :: (Ditraversable f Maybe Any, g1 :<: f, g2 :<: f)
              => Cxt h f a b -> Maybe (Cxt h (g1 :+: g2) a b)
+{-# INLINE deepProject2 #-}
 deepProject2 = appSigFunM proj2
 
 -- |Project a term to a term over a ternary sub signature.
-deepProject3 :: (Ditraversable f Maybe Any, Difunctor g1, Difunctor g2,
-                 Difunctor g3, g1 :<: f, g2 :<: f, g3 :<: f)
+deepProject3 :: (Ditraversable f Maybe Any, g1 :<: f, g2 :<: f, g3 :<: f)
              => Cxt h f a b -> Maybe (Cxt h (g1 :+: g2 :+: g3) a b)
+{-# INLINE deepProject3 #-}
 deepProject3 = appSigFunM proj3
 
 -- |A variant of 'deepProject' where the sub signature is required to be
 -- 'Traversable rather than the whole signature.
-deepProject' :: forall h g f a b. (Ditraversable g Maybe a, g :<: f)
-             => Cxt h f a b -> Maybe (Cxt h g a b)
-deepProject' (Term t) = do
-  v <- proj t
-  v' <- dimapM deepProject' v
-  return $ Term v'
-deepProject' (Hole x) = return $ Hole x
-deepProject' (Place p) = return $ Place p
+deepProject' :: (Ditraversable g Maybe Any, g :<: f)
+             => CxtFunM Maybe f g
+{-# INLINE deepProject' #-}
+deepProject' = appSigFunM' proj
 
 -- |A variant of 'deepProject2' where the sub signatures are required to be
 -- 'Traversable rather than the whole signature.
-deepProject2' :: forall h g1 g2 f a b. (Ditraversable g1 Maybe a,
-                                       Ditraversable g2 Maybe a,
-                                       g1 :<: f, g2 :<: f)
-              => Cxt h f a b -> Maybe (Cxt h (g1 :+: g2) a b)
-deepProject2' (Term t) = do
-  v <- proj2 t
-  v' <- dimapM deepProject2' v
-  return $ Term v'
-deepProject2' (Hole x) = return $ Hole x
-deepProject2' (Place p) = return $ Place p
+deepProject2' :: (Ditraversable (g1 :+: g2) Maybe Any,
+                  g1 :<: f, g2 :<: f)
+              => CxtFunM Maybe f (g1 :+: g2)
+{-# INLINE deepProject2' #-}
+deepProject2' = appSigFunM' proj2
 
 -- |A variant of 'deepProject3' where the sub signatures are required to be
 -- 'Traversable rather than the whole signature.
-deepProject3' :: forall h g1 g2 g3 f a b. (Ditraversable g1 Maybe a,
-                                          Ditraversable g2 Maybe a,
-                                          Ditraversable g3 Maybe a,
-                                          g1 :<: f, g2 :<: f, g3 :<: f)
-              => Cxt h f a b -> Maybe (Cxt h (g1 :+: g2 :+: g3) a b)
-deepProject3' (Term t) = do
-  v <- proj3 t
-  v' <- dimapM deepProject3' v
-  return $ Term v'
-deepProject3' (Hole x) = return $ Hole x
-deepProject3' (Place p) = return $ Place p
+deepProject3' :: (Ditraversable (g1 :+: g2 :+: g3) Maybe Any,
+                  g1 :<: f, g2 :<: f, g3 :<: f)
+              => CxtFunM Maybe f (g1 :+: g2 :+: g3)
+{-# INLINE deepProject3' #-}
+deepProject3' = appSigFunM' proj3
 
 {-| A variant of 'inj' for binary sum signatures.  -}
 inj2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) a b -> g a b
@@ -174,18 +160,20 @@ inject3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) a (Cxt h g a b)
 inject3 = Term . inj3
 
 -- |Inject a term over a sub signature to a term over larger signature.
-deepInject :: (Difunctor g, Difunctor f, g :<: f) => Cxt h g a b -> Cxt h f a b
+deepInject :: (Difunctor g, g :<: f) => CxtFun g f
+{-# INLINE deepInject #-}
 deepInject = appSigFun inj
 
 -- |Inject a term over a binary sub signature to a term over larger signature.
-deepInject2 :: (Difunctor f1, Difunctor f2, Difunctor g, f1 :<: g, f2 :<: g)
-            => Cxt h (f1 :+: f2) a b -> Cxt h g a b
+deepInject2 :: (Difunctor (f1 :+: f2), f1 :<: g, f2 :<: g)
+            => CxtFun (f1 :+: f2) g
+{-# INLINE deepInject2 #-}
 deepInject2 = appSigFun inj2
 
 -- |Inject a term over a ternary signature to a term over larger signature.
-deepInject3 :: (Difunctor f1, Difunctor f2, Difunctor f3, Difunctor g,
-                f1 :<: g, f2 :<: g, f3 :<: g)
-            => Cxt h (f1 :+: f2 :+: f3) a b -> Cxt h g a b
+deepInject3 :: (Difunctor (f1 :+: f2 :+: f3), f1 :<: g, f2 :<: g, f3 :<: g)
+            => CxtFun (f1 :+: f2 :+: f3) g
+{-# INLINE deepInject3 #-}
 deepInject3 =  appSigFun inj3
 
 injectConst :: (Difunctor g, g :<: f) => Const g -> Cxt h f Any a

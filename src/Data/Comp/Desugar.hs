@@ -29,6 +29,7 @@ $(derive [liftSum] [''Desugar])
 
 -- |Desugar a term.
 desugar :: (Desugar f g, Traversable f) => Term f -> Term g
+{-# INLINE desugar #-}
 desugar = appTermHom desugHom
 
 -- |Lift desugaring to annotated terms.

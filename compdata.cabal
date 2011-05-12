@@ -229,6 +229,8 @@ library
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers, ghc-prim
   hs-source-dirs:	src
   ghc-options:          -W
+  if flag(benchmark)
+    buildable:     False
 
 Executable test
   Main-is:		Data_Test.hs

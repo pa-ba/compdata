@@ -102,33 +102,37 @@ type Term f = Cxt NoHole f Nothing
 type PTerm f = forall h a . Cxt h f a
 
 instance Functor f => Functor (Cxt h f) where
-    fmap f (Hole v) = Hole (f v)
-    fmap f (Term t) = Term (fmap (fmap f) t)
+    fmap f = run
+        where run (Hole v) = Hole (f v)
+              run (Term t) = Term (fmap run t)
 
 instance (Foldable f) => Foldable (Cxt h f) where
-    foldr op e (Hole a) = a `op` e
-    foldr op e (Term t) = foldr op' e t
-        where op' c a = foldr op a c
+    foldr op c a = run a c
+        where run (Hole a) e = a `op` e
+              run (Term t) e = foldr run e t
 
-    foldl op e (Hole a) = e `op` a
-    foldl op e (Term t) = foldl op' e t
-        where op' = foldl op
+    foldl op = run
+        where run e (Hole a) = e `op` a
+              run e (Term t) = foldl run e t
 
     fold (Hole a) = a
     fold (Term t) = foldMap fold t
 
-    foldMap f (Hole a) = f a
-    foldMap f (Term t) = foldMap (foldMap f) t
+    foldMap f = run
+        where run (Hole a) = f a
+              run (Term t) = foldMap run t
 
 instance (Traversable f) => Traversable (Cxt h f) where
-    traverse f (Hole a) = Hole <$> f a
-    traverse f (Term t) = Term <$> traverse (traverse f) t
+    traverse f = run
+        where run (Hole a) = Hole <$> f a
+              run (Term t) = Term <$> traverse run t
                           
     sequenceA (Hole a) = Hole <$> a
     sequenceA (Term t) = Term <$> traverse sequenceA t
 
-    mapM f (Hole a) = liftM Hole $ f a
-    mapM f (Term t) = liftM Term $ mapM (mapM f) t
+    mapM f = run 
+        where run (Hole a) = liftM Hole $ f a
+              run (Term t) = liftM Term $ mapM run t
 
     sequence (Hole a) = liftM Hole a
     sequence (Term t) = liftM Term $ mapM sequence t

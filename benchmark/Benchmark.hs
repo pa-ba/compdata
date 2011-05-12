@@ -43,17 +43,18 @@ shortcutFusion = bgroup "shortcut-fusion" [
 standardBenchmarks :: (PExpr, SugarExpr, String) -> Benchmark
 standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (sExpr, aExpr,n)
     where getBench (sExpr, aExpr,n) = bgroup n [
-                 -- bench "Comp.desug" (nf A.desugExpr aExpr),
-                 -- bench "Comp.desugAlg" (nf A.desugExpr2 aExpr),
-                 -- bench "Standard.desug" (nf S.desug sExpr),
-                 bench "Comp.desugType" (nf A.desugType aExpr),
-                 bench "Comp.desugType'" (nf A.desugType' aExpr),
-                 bench "Standard.desugType" (nf S.desugType sExpr),
+                 bench "Comp.desug" (nf A.desugExpr aExpr),
+                 bench "Comp.desug'" (nf A.desugExpr' aExpr),
+                 bench "Comp.desugAlg" (nf A.desugExpr2 aExpr),
+                 bench "Standard.desug" (nf S.desug sExpr)
+                 -- bench "Comp.desugType" (nf A.desugType aExpr),
+                 -- bench "Comp.desugType'" (nf A.desugType' aExpr),
+                 -- bench "Standard.desugType" (nf S.desugType sExpr),
                  -- bench "Comp.typeSugar" (nf A.typeSugar aExpr),
                  -- bench "Standard.typeSugar" (nf S.typeSugar sExpr),
-                 bench "Comp.desugType2" (nf A.desugType2 aExpr),
-                 bench "Comp.desugType2'" (nf A.desugType2' aExpr),
-                 bench "Standard.desugType2" (nf S.desugType2 sExpr)
+                 -- bench "Comp.desugType2" (nf A.desugType2 aExpr),
+                 -- bench "Comp.desugType2'" (nf A.desugType2' aExpr),
+                 -- bench "Standard.desugType2" (nf S.desugType2 sExpr)
                  -- bench "Comp.typeSugar2" (nf A.typeSugar2 aExpr),
                  -- bench "Standard.typeSugar2" (nf S.typeSugar2 sExpr),
                  -- bench "Comp.desugEval" (nf A.desugEval aExpr),

@@ -99,47 +99,44 @@ project3 (Hole _) = Nothing
 project3 (Term t) = proj3 t
 
 -- |Project a term to a term over a sub signature.
-deepProject :: (Traversable f, Functor g, g :<: f) => Cxt h f a
+deepProject :: (Traversable f, g :<: f) => Cxt h f a
             -> Maybe (Cxt h g a)
+{-# INLINE deepProject #-}
 deepProject = appSigFunM proj
 
 -- |Project a term to a term over a binary sub signature.
-deepProject2 :: (Traversable f, Functor g1, Functor g2, g1 :<: f, g2 :<: f) => Cxt h f a -> Maybe (Cxt h (g1 :+: g2) a)
+deepProject2 :: (Traversable f, g1 :<: f, g2 :<: f) => Cxt h f a -> Maybe (Cxt h (g1 :+: g2) a)
+{-# INLINE deepProject2 #-}
 deepProject2 = appSigFunM proj2
 
 -- |Project a term to a term over a ternary sub signature.
-deepProject3 :: (Traversable f, Functor g1, Functor g2, Functor g3,
-                 g1 :<: f, g2 :<: f, g3 :<: f) => Cxt h f a
+deepProject3 :: (Traversable f, g1 :<: f, g2 :<: f, g3 :<: f) => Cxt h f a
              -> Maybe (Cxt h (g1 :+: g2 :+: g3) a)
+{-# INLINE deepProject3 #-}
 deepProject3 = appSigFunM proj3
 
 -- |A variant of 'deepProject' where the sub signature is required to be
 -- 'Traversable' rather than the whole signature.
 deepProject' :: forall g f h a. (Traversable g, g :<: f) => Cxt h f a
              -> Maybe (Cxt h g a)
-deepProject' = liftM Term . sequence . fmap deepProject' <=< project
+{-# INLINE deepProject' #-}
+deepProject' = appSigFunM' proj
 
 
 -- |A variant of 'deepProject2' where the sub signatures are required to be
 -- 'Traversable' rather than the whole signature.
-deepProject2' :: forall g1 g2 f h a. (Traversable g1, Traversable g2,
-                                      g1 :<: f, g2 :<: f) => Cxt h f a
-             -> Maybe (Cxt h (g1 :+: g2) a)
-deepProject2' val = do
-  v <- project2 val
-  v' <- mapM deepProject2' v
-  return $ Term v'
+deepProject2' :: (Traversable (g1 :+: g2), g1 :<: f, g2 :<: f)
+              => CxtFunM Maybe f (g1 :+: g2)
+{-# INLINE deepProject2' #-}
+deepProject2' = appSigFunM' proj2
 
 -- |A variant of 'deepProject3' where the sub signatures are required to be
 -- 'Traversable' rather than the whole signature.
-deepProject3' :: forall g1 g2 g3 f h a. (Traversable g1, Traversable g2,
-                                         Traversable g3, g1 :<: f, g2 :<: f,
-                                         g3 :<: f) => Cxt h f a
-             -> Maybe (Cxt h (g1 :+: g2 :+: g3) a)
-deepProject3' val = do
-  v <- project3 val
-  v' <- mapM deepProject3' v
-  return $ Term v'
+deepProject3' :: (Traversable (g1 :+: g2 :+: g3),
+                  g1 :<: f, g2 :<: f, g3 :<: f)
+              => CxtFunM Maybe f (g1 :+: g2 :+: g3)
+{-# INLINE deepProject3' #-}
+deepProject3' = appSigFunM' proj3
 
 {-| A variant of 'inj' for binary sum signatures.  -}
 inj2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) a -> g a
@@ -164,18 +161,20 @@ inject3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) (Cxt h g a) -> C
 inject3 = Term . inj3
 
 -- |Inject a term over a sub signature to a term over larger signature.
-deepInject  :: (Functor g, Functor f, g :<: f) => Cxt h g a -> Cxt h f a
+deepInject  :: (Functor g, g :<: f) => CxtFun g f
+{-# INLINE deepInject #-}
 deepInject = appSigFun inj
 
 -- |Inject a term over a binary sub signature to a term over larger signature.
-deepInject2 :: (Functor f1, Functor f2, Functor g, f1 :<: g, f2 :<: g)
-            => Cxt h (f1 :+: f2) a -> Cxt h g a
+deepInject2 :: (Functor (f1 :+: f2),f1 :<: g, f2 :<: g)
+            => CxtFun (f1 :+: f2) g
+{-# INLINE deepInject2 #-}
 deepInject2 = appSigFun inj2
 
 -- |Inject a term over a ternary signature to a term over larger signature.
-deepInject3 :: (Functor f1, Functor f2, Functor f3, Functor g,
-                f1 :<: g, f2 :<: g, f3 :<: g)
-            => Cxt h (f1 :+: f2 :+: f3) a -> Cxt h g a
+deepInject3 :: (Functor (f1 :+: f2 :+: f3), f1 :<: g, f2 :<: g, f3 :<: g)
+            => CxtFun (f1 :+: f2 :+: f3) g
+{-# INLINE deepInject3 #-}
 deepInject3 =  appSigFun inj3
 
 injectConst :: (Functor g, g :<: f) => Const g -> Cxt h f a
