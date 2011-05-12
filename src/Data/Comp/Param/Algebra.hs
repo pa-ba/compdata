@@ -426,30 +426,32 @@ paraM f = run . coerceCxt
 --------------------------------
 
 {-| This type represents an r-coalgebra over a difunctor @f@ and carrier @a@. -}
-type RCoalg f a = forall b. a -> [(a,b)] -> Either b (f b (a,[(a,b)]))
+type RCoalg f a = forall b. a -> [(a,b)] -> f b (Either (Trm f b) (a,[(a,b)]))
 
 {-| Construct an apomorphism from the given r-coalgebra. -}
-apo :: (Difunctor f) => RCoalg f a -> a -> Term f
+apo :: forall a f. (Difunctor f) => RCoalg f a -> a -> Term f
 apo coa x = run (x,[])
-    where run (a,bs) = case coa a bs of
-                         Left p -> Place p
-                         Right t -> Term $ fmap run t
+    where run :: (a,[(a,b)]) -> Trm f b
+          run (a,bs) = Term $ fmap run' (coa a bs)
+          run' :: Either (Trm f b) (a,[(a,b)]) -> Trm f b
+          run' (Left t) = t
+          run' (Right x) = run x
 
 
 
 {-| This type represents a monadic r-coalgebra over a functor @f@ and carrier
   @a@. -}
-type RCoalgM m f a = forall b. a -> [(a,b)] -> m (Either b (f b (a,[(a,b)])))
+type RCoalgM m f a = forall b. a -> [(a,b)] -> m (f b (Either (Trm f b) (a,[(a,b)])))
 
 {-| Construct a monadic apomorphism from the given monadic r-coalgebra. -}
-apoM :: (Ditraversable f m Any, Monad m) =>
+apoM :: forall f m a. (Ditraversable f m Any, Monad m) =>
         RCoalgM m f a -> a -> m (Term f)
-apoM coa x = run (x,[])
-    where run (a,bs) = do 
-            res <- coa a bs
-            case res of 
-              Left p -> return $ Place p
-              Right t -> liftM Term $ dimapM run t
+apoM coa x = run (x,[]) 
+    where run :: (a,[(a,Any)]) -> m (Term f)
+          run (a,bs) = liftM Term $ dimapM run' =<< (coa a bs)
+          run' :: Either (Term f) (a,[(a,Any)]) -> m (Term f)
+          run' (Left t) = return t
+          run' (Right x) = run x
 
 
 ----------------------------------
