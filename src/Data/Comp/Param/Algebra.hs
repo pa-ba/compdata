@@ -41,8 +41,6 @@ module Data.Comp.Param.Algebra (
       compSigFun,
       termHom,
       compAlg,
---      compCoalg,
---      compCVCoalg,
 
       -- * Monadic Term Homomorphisms
       CxtFunM,
@@ -67,7 +65,6 @@ module Data.Comp.Param.Algebra (
       -- * Coalgebras & Anamorphisms
       Coalg,
       ana,
---      ana',
       CoalgM,
       anaM,
 
@@ -76,13 +73,13 @@ module Data.Comp.Param.Algebra (
       para,
       RAlgM,
       paraM,
-{-
+
       -- * R-Coalgebras & Apomorphisms
       RCoalg,
       apo,
       RCoalgM,
       apoM,
--}
+
       -- * CV-Algebras & Histomorphisms
       CVAlg,
       histo,
@@ -214,19 +211,6 @@ compTermHom f g = appTermHom f . g
 compAlg :: (Difunctor f, Difunctor g) => Alg g a -> TermHom f g -> Alg f a
 compAlg alg talg = cata' alg . talg
 
-
-{-
-{-| Compose a term homomorphism with a coalgebra to get a cv-coalgebra. -}
-compCoalg :: TermHom f g -> Coalg f a -> CVCoalg' g a
-compCoalg hom coa = hom . coa
-
-{-| Compose a term homomorphism with a cv-coalgebra to get a new cv-coalgebra.
- -}
-compCVCoalg :: (Functor f, Functor g)
-  => TermHom f g -> CVCoalg' f a -> CVCoalg' g a
-compCVCoalg hom coa = appTermHom' hom . coa
-
--}
 
 {-| This function applies a signature function to the given context. -}
 appSigFun :: forall f g. (Difunctor f) => SigFun f g -> CxtFun f g
@@ -440,44 +424,34 @@ paraM f = run . coerceCxt
 --------------------------------
 -- R-Coalgebras & Apomorphisms --
 --------------------------------
-{-
+
 {-| This type represents an r-coalgebra over a difunctor @f@ and carrier @a@. -}
-type RCoalg f a = forall b. (a,[b]) -> (K b :+: f) b (Either (Cxt f a a) (a,[b]))
+type RCoalg f a = forall b. a -> [(a,b)] -> Either b (f b (a,[(a,b)]))
 
 {-| Construct an apomorphism from the given r-coalgebra. -}
-apo :: (Functor f) => RCoalg f a -> a -> Term f
-apo f = run 
-    where run = Term . fmap run' . f
-          run' (Left t) = t
-          run' (Right a) = run a
--- can also be defined in terms of anamorphisms (but less
--- efficiently):
--- apo f = ana run . Right
---     where run (Left (Term t)) = fmap Left t
---           run (Right a) = f a
+apo :: (Difunctor f) => RCoalg f a -> a -> Term f
+apo coa x = run (x,[])
+    where run (a,bs) = case coa a bs of
+                         Left p -> Place p
+                         Right t -> Term $ fmap run t
+
+
 
 {-| This type represents a monadic r-coalgebra over a functor @f@ and carrier
   @a@. -}
-type RCoalgM m f a = a -> m (f (Either (Term f) a))
+type RCoalgM m f a = forall b. a -> [(a,b)] -> m (Either b (f b (a,[(a,b)])))
 
 {-| Construct a monadic apomorphism from the given monadic r-coalgebra. -}
-apoM :: (Traversable f, Monad m) =>
+apoM :: (Ditraversable f m Any, Monad m) =>
         RCoalgM m f a -> a -> m (Term f)
-apoM f = run 
-    where run a = do
-            t <- f a
-            t' <- mapM run' t
-            return $ Term t'
-          run' (Left t) = return t
-          run' (Right a) = run a
+apoM coa x = run (x,[])
+    where run (a,bs) = do 
+            res <- coa a bs
+            case res of 
+              Left p -> return $ Place p
+              Right t -> liftM Term $ dimapM run t
 
--- can also be defined in terms of anamorphisms (but less
--- efficiently):
--- apoM f = anaM run . Right
---     where run (Left (Term t)) = return $ fmap Left t
---           run (Right a) = f a
 
--}
 ----------------------------------
 -- CV-Algebras & Histomorphisms --
 ----------------------------------
