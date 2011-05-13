@@ -49,7 +49,7 @@ type Sig' = Const :+: Lam :+: App :+: Op
 -- Derive boilerplate code using Template Haskell
 $(derive [instanceDifunctor, instanceEqD, instanceShowD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op, ''Abs, ''Var])
-$(derive [instanceFoldable, instanceTraversable]
+$(derive [instanceDitraversable]
          [''Const, ''App, ''Op, ''Abs, ''Var])
 
 type TransM = Reader (Map VarId Any)

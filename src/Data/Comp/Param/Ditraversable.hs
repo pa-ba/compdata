@@ -22,7 +22,6 @@ import Prelude hiding (mapM, sequence, foldr)
 import Data.Maybe (fromJust)
 import Data.Comp.Param.Any
 import Data.Comp.Param.Difunctor
-import Data.Traversable
 import Test.QuickCheck.Gen
 import Data.Functor.Identity
 import Control.Monad.Reader hiding (mapM, sequence)
@@ -41,11 +40,6 @@ class (Difunctor f, Monad m) => Ditraversable f m a where
     disequence :: f a (m b) -> m (f a b)
     disequence = dimapM id
 
-{-| If a difunctor is 'Traversable' for a given contravariant argument @a@, then
-  it is 'Ditraversable' for all 'Monad's @m@ with the same @a@. -}
-instance (Difunctor f, Monad m, Traversable (f a)) => Ditraversable f m a where
-    dimapM = mapM
-    disequence = sequence
 
 instance Ditraversable (->) Gen a where
     dimapM f s = MkGen run

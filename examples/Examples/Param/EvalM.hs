@@ -44,7 +44,7 @@ type GValue = Const
 -- Derive boilerplate code using Template Haskell
 $(derive [instanceDifunctor, instanceEqD, instanceShowD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op])
-$(derive [instanceFoldable, instanceTraversable]
+$(derive [instanceDitraversable]
          [''Const, ''App, ''Op])
 $(derive [smartConstructors] [''FunM])
 

@@ -27,10 +27,8 @@ module Data.Comp.Param.Derive
      module Data.Comp.Param.Derive.Show,
      -- ** Difunctor
      module Data.Comp.Param.Derive.Difunctor,
-     -- ** Foldable
-     module Data.Comp.Derive.Foldable,
-     -- ** Traversable
-     module Data.Comp.Derive.Traversable,
+     -- ** Ditraversable
+     module Data.Comp.Param.Derive.Ditraversable,
      -- ** Smart Constructors
      module Data.Comp.Param.Derive.SmartConstructors,
      -- ** Smart Constructors w/ Annotations
@@ -44,8 +42,7 @@ import Data.Comp.Param.Derive.Equality
 import Data.Comp.Param.Derive.Ordering
 import Data.Comp.Param.Derive.Show
 import Data.Comp.Param.Derive.Difunctor
-import Data.Comp.Derive.Foldable
-import Data.Comp.Derive.Traversable
+import Data.Comp.Param.Derive.Ditraversable
 import Data.Comp.Param.Derive.SmartConstructors
 import Data.Comp.Param.Derive.SmartAConstructors
 import Data.Comp.Param.Derive.LiftSum
