@@ -242,6 +242,7 @@ library
                         Data.Comp.Multi.Derive.LiftSum,
 
                         Data.Comp.Param.Derive.Difunctor,
+                        Data.Comp.Param.Derive.Ditraversable,
                         Data.Comp.Param.Derive.Equality,
                         Data.Comp.Param.Derive.Ordering,
                         Data.Comp.Param.Derive.Show,
