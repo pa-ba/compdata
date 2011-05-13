@@ -34,10 +34,10 @@ module Data.Comp.Param.Term
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
+import Data.Comp.Param.Any
 import Data.Comp.Param.Difunctor
 import Data.Comp.Param.Ditraversable
 import Control.Monad
-import GHC.Prim (Any)
 import Unsafe.Coerce
 
 {-| This data type represents contexts over a signature. Contexts are terms

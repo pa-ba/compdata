@@ -19,8 +19,8 @@ module Data.Comp.Param.Ditraversable
     ) where
 
 import Prelude hiding (mapM, sequence, foldr)
-import GHC.Prim (Any)
 import Data.Maybe (fromJust)
+import Data.Comp.Param.Any
 import Data.Comp.Param.Difunctor
 import Data.Traversable
 import Test.QuickCheck.Gen

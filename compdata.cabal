@@ -16,7 +16,7 @@ Description:
   well by leveraging Haskell's type class machinery.
   .
   Building on that foundation, this library provides additional
-  extensions and (run-time) optimisations which makes compositional data types
+  extensions and (run-time) optimisations which make compositional data types
   usable for practical implementations. In particular, it
   provides an excellent framework for manipulating and analysing
   abstract syntax trees in a type-safe manner. Thus, it is perfectly
@@ -122,6 +122,7 @@ extra-source-files:
   examples/EvalM.hs
   examples/DesugarEval.hs
   examples/DesugarPos.hs
+  examples/Automata.hs,
   examples/Multi/Eval.hs
   examples/Multi/EvalI.hs
   examples/Multi/EvalM.hs
@@ -151,38 +152,62 @@ flag benchmark
 
 
 library
-  Exposed-Modules:      Data.Comp, Data.Comp.Annotation, Data.Comp.Sum,
-                        Data.Comp.Term, Data.Comp.Algebra, Data.Comp.Equality,
-                        Data.Comp.Ordering, Data.Comp.DeepSeq, Data.Comp.Generic
-                        Data.Comp.TermRewriting, Data.Comp.Automata,
-                        Data.Comp.Arbitrary, Data.Comp.Show, Data.Comp.Variables,
-                        Data.Comp.Decompose, Data.Comp.Unification,
-                        Data.Comp.Derive, Data.Comp.Matching, Data.Comp.Desugar,
+  Exposed-Modules:      Data.Comp,
+                        Data.Comp.Annotation,
+                        Data.Comp.Sum,
+                        Data.Comp.Term,
+                        Data.Comp.Algebra,
+                        Data.Comp.Equality,
+                        Data.Comp.Ordering,
+                        Data.Comp.DeepSeq,
+                        Data.Comp.Generic
+                        Data.Comp.TermRewriting,
+                        Data.Comp.Arbitrary,
+                        Data.Comp.Show,
+                        Data.Comp.Variables,
+                        Data.Comp.Decompose,
+                        Data.Comp.Unification,
+                        Data.Comp.Derive,
+                        Data.Comp.Matching,
+                        Data.Comp.Desugar,
+
                         Data.Comp.Multi,
-                        Data.Comp.Multi.Term, Data.Comp.Multi.Sum,
+                        Data.Comp.Multi.Term,
+                        Data.Comp.Multi.Sum,
                         Data.Comp.Multi.Functor,
-                        Data.Comp.Multi.Foldable, Data.Comp.Multi.Traversable,
+                        Data.Comp.Multi.Foldable,
+                        Data.Comp.Multi.Traversable,
                         Data.Comp.Multi.Algebra,
-                        Data.Comp.Multi.Annotation, Data.Comp.Multi.Show,
-                        Data.Comp.Multi.Equality, Data.Comp.Multi.Variables,
-                        Data.Comp.Multi.Ops, Data.Comp.Ops,
+                        Data.Comp.Multi.Annotation,
+                        Data.Comp.Multi.Show,
+                        Data.Comp.Multi.Equality,
+                        Data.Comp.Multi.Variables,
+                        Data.Comp.Multi.Ops,
+                        Data.Comp.Ops,
                         Data.Comp.Multi.Derive
                         Data.Comp.Multi.Generic,
                         Data.Comp.Multi.Desugar,
-                        Data.Comp.Param, Data.Comp.Param.Term,
+
+                        Data.Comp.Param,
+                        Data.Comp.Param.Term,
                         Data.Comp.Param.FreshM,
-                        Data.Comp.Param.Sum, Data.Comp.Param.Difunctor,
+                        Data.Comp.Param.Any,
+                        Data.Comp.Param.Sum,
+                        Data.Comp.Param.Difunctor,
                         Data.Comp.Param.Ditraversable,
                         Data.Comp.Param.Algebra,
-                        Data.Comp.Param.Annotation, Data.Comp.Param.Ops
+                        Data.Comp.Param.Annotation,
+                        Data.Comp.Param.Ops
                         Data.Comp.Param.Equality
                         Data.Comp.Param.Ordering
                         Data.Comp.Param.Show
                         Data.Comp.Param.Derive,
                         Data.Comp.Param.Desugar
 
-                        Data.Comp.MultiParam, Data.Comp.MultiParam.Term,
+                        Data.Comp.MultiParam,
+                        Data.Comp.MultiParam.Term,
                         Data.Comp.MultiParam.FreshM,
+                        Data.Comp.MultiParam.Any,
                         Data.Comp.MultiParam.Sum,
                         Data.Comp.MultiParam.HDifunctor,
                         Data.Comp.MultiParam.HDitraversable,
@@ -195,14 +220,18 @@ library
                         Data.Comp.MultiParam.Derive,
                         Data.Comp.MultiParam.Desugar
 
-  Other-Modules:        Data.Comp.Derive.Utils, Data.Comp.Derive.Equality,
-                        Data.Comp.Derive.Ordering, Data.Comp.Derive.Arbitrary,
-                        Data.Comp.Derive.Show, Data.Comp.Derive.DeepSeq,
+  Other-Modules:        Data.Comp.Derive.Utils,
+                        Data.Comp.Derive.Equality,
+                        Data.Comp.Derive.Ordering,
+                        Data.Comp.Derive.Arbitrary,
+                        Data.Comp.Derive.Show,
+                        Data.Comp.Derive.DeepSeq,
                         Data.Comp.Derive.SmartConstructors,
                         Data.Comp.Derive.SmartAConstructors,
                         Data.Comp.Derive.LiftSum,
                         Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable,
+
                         Data.Comp.Multi.Derive.Functor,
                         Data.Comp.Multi.Derive.Foldable,
                         Data.Comp.Multi.Derive.Traversable,
@@ -211,6 +240,7 @@ library
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Multi.Derive.SmartAConstructors
                         Data.Comp.Multi.Derive.LiftSum,
+
                         Data.Comp.Param.Derive.Difunctor,
                         Data.Comp.Param.Derive.Equality,
                         Data.Comp.Param.Derive.Ordering,
@@ -218,6 +248,7 @@ library
                         Data.Comp.Param.Derive.SmartConstructors,
                         Data.Comp.Param.Derive.SmartAConstructors,
                         Data.Comp.Param.Derive.LiftSum
+
                         Data.Comp.MultiParam.Derive.HDifunctor,
                         Data.Comp.MultiParam.Derive.Equality,
                         Data.Comp.MultiParam.Derive.Ordering,
@@ -226,7 +257,7 @@ library
                         Data.Comp.MultiParam.Derive.SmartAConstructors,
                         Data.Comp.MultiParam.Derive.LiftSum
 
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers, ghc-prim
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers
   hs-source-dirs:	src
   ghc-options:          -W
   if flag(benchmark)
@@ -234,7 +265,7 @@ library
 
 Executable test
   Main-is:		Data_Test.hs
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq, transformers, ghc-prim
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq, transformers
   hs-source-dirs:	src testsuite/tests examples
   ghc-options:          -fhpc
   if !flag(test)
@@ -242,7 +273,7 @@ Executable test
 
 Executable benchmark
   Main-is:		Benchmark.hs
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers, ghc-prim
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
   hs-source-dirs:	src benchmark
   ghc-options:          -W -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.

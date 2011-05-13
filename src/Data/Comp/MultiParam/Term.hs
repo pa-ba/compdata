@@ -1,5 +1,5 @@
-{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes,
-  MultiParamTypeClasses, TypeOperators, ScopedTypeVariables #-}
+{-# LANGUAGE GADTs, KindSignatures, RankNTypes, MultiParamTypeClasses,
+  TypeOperators, ScopedTypeVariables, EmptyDataDecls #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.MultiParam.Term
@@ -32,6 +32,7 @@ module Data.Comp.MultiParam.Term
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
+import Data.Comp.MultiParam.Any
 import Data.Comp.MultiParam.HDifunctor
 import Data.Comp.MultiParam.HDitraversable
 import Control.Monad 
@@ -54,9 +55,6 @@ data Hole
 
 {-| Phantom type used to define 'Term'. -}
 data NoHole
-
-{-| Generalisation of 'GHC.Prim.Any' to functors. -}
-data Any :: * -> *
 
 {-| A context may contain holes, but must be parametric in the bound
   parameters. Parametricity is \"emulated\" using the empty functor @Any@,

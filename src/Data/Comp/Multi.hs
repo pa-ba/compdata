@@ -3,7 +3,7 @@
 -- Module      :  Data.Comp.Multi
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
--- Maintainer  :  Patrick Bahr <paba@diku.dk>
+-- Maintainer  :  Patrick Bahr <paba@diku.dk>, Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --

@@ -3,7 +3,7 @@
 -- Module      :  Data.Comp.Param
 -- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
--- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
+-- Maintainer  :  Patrick Bahr <paba@diku.dk>, Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
