@@ -39,6 +39,8 @@ module Data.Comp.Param.Algebra (
       appSigFun,
       appSigFun',
       compSigFun,
+      compTermHomSigFun,
+      compSigFunTermHom,
       termHom,
       compAlg,
 
@@ -233,6 +235,27 @@ appSigFun' f = run
 {-| This function composes two signature functions. -}
 compSigFun :: SigFun g h -> SigFun f g -> SigFun f h
 compSigFun f g = f . g
+
+{-| This function composes a term homomorphism and a signature function. -}
+compTermHomSigFun :: TermHom g h -> SigFun f g -> TermHom f h
+compTermHomSigFun f g = f . g
+
+{-| This function composes a term homomorphism and a signature function. -}
+compSigFunTermHom :: (Difunctor g) => SigFun g h -> TermHom f g -> TermHom f h
+compSigFunTermHom f g = appSigFun f . g
+
+{-| This function composes a term homomorphism and a signature function. -}
+appSigFunTermHom :: forall f g h. (Difunctor g, Difunctor f)
+                 => SigFun g h -> TermHom f g -> CxtFun f h
+appSigFunTermHom f g = run where
+    run :: CxtFun f h
+    run (Term t) = run' $ g $ fmap run t
+    run (Place a) = Place a
+    run (Hole h) = Hole h
+    run' :: Context g a (Cxt h' h a b) -> Cxt h' h a b
+    run' (Term t) = Term $ f $ fmap run' t
+    run' (Place a) = Place a
+    run' (Hole h) = h
 
 {-| Lifts the given signature function to the canonical term homomorphism. -}
 termHom :: Difunctor g => SigFun f g -> TermHom f g
@@ -557,6 +580,15 @@ futu' coa x = run (x,[])
 
   "appTermHom/appTermHom" forall (a :: TermHom g h) (h :: TermHom f g) x.
     appTermHom a (appTermHom h x) = appTermHom (compTermHom a h) x;
+    
+  "appSigFun/appSigFun" forall (f :: SigFun g h) (g :: SigFun f g) x.
+    appSigFun f (appSigFun g x) = appSigFun (compSigFun f g) x;
+
+  "appTermHom/appSigFun" forall (f :: TermHom g h) (g :: SigFun f g) x.
+    appTermHom f (appSigFun g x) = appTermHom (compTermHomSigFun f g) x;
+    
+  "appSigFun/appTermHom" forall (f :: SigFun g h) (g :: TermHom f g) x.
+    appSigFun f (appTermHom g x) = appSigFunTermHom f g x;
  #-}
 
 {-
