@@ -1,7 +1,7 @@
 {-# LANGUAGE RankNTypes #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Automata
+-- Module      :  Examples.Automata
 -- Copyright   :  (c) 2010-2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -12,7 +12,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Automata where
+module Examples.Automata where
 
 import Data.Comp
 import Data.Maybe
