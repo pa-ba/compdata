@@ -43,6 +43,7 @@ module Data.Comp.Param.Algebra (
       compSigFunTermHom,
       termHom,
       compAlg,
+      compAlgSigFun,
 
       -- * Monadic Term Homomorphisms
       CxtFunM,
@@ -123,7 +124,7 @@ free f g = run
 cata :: forall f a. Difunctor f => Alg f a -> Term f -> a 
 {-# NOINLINE [1] cata #-}
 cata f = run . coerceCxt
-    where run :: Cxt NoHole f a () -> a
+    where run :: Trm f a -> a
           run (Term t) = f (fmap run t)
           run (Place x) = x
 
@@ -163,7 +164,7 @@ cataM :: forall m f a. (Ditraversable f m a, Monad m)
          => AlgM m f a -> Term f -> m a
 {-# NOINLINE [1] cataM #-}
 cataM algm = run . coerceCxt
-    where run :: Cxt NoHole f a () -> m a
+    where run :: Trm f a  -> m a
           run (Term t) = algm =<< dimapM run t
           run (Place x) = return x
 
@@ -213,9 +214,13 @@ compTermHom f g = appTermHom f . g
 compAlg :: (Difunctor f, Difunctor g) => Alg g a -> TermHom f g -> Alg f a
 compAlg alg talg = cata' alg . talg
 
+compAlgSigFun  :: Alg g a -> SigFun f g -> Alg f a
+compAlgSigFun alg sig = alg . sig
+
 
 {-| This function applies a signature function to the given context. -}
 appSigFun :: forall f g. (Difunctor f) => SigFun f g -> CxtFun f g
+{-# NOINLINE [1] appSigFun #-}
 appSigFun f = run
     where run (Term t) = Term $ f $ fmap run t
           run (Place x) = Place x
@@ -227,6 +232,7 @@ appSigFun f = run
 -- | This function applies a signature function to the given
 -- context. This is a top-bottom variant of 'appSigFun'.
 appSigFun' :: forall f g. (Difunctor g) => SigFun f g -> CxtFun f g
+{-# NOINLINE [1] appSigFun' #-}
 appSigFun' f = run
     where run (Term t) = Term $ fmap run $ f t
           run (Place x) = Place x
@@ -244,18 +250,6 @@ compTermHomSigFun f g = f . g
 compSigFunTermHom :: (Difunctor g) => SigFun g h -> TermHom f g -> TermHom f h
 compSigFunTermHom f g = appSigFun f . g
 
-{-| This function composes a term homomorphism and a signature function. -}
-appSigFunTermHom :: forall f g h. (Difunctor g, Difunctor f)
-                 => SigFun g h -> TermHom f g -> CxtFun f h
-appSigFunTermHom f g = run where
-    run :: CxtFun f h
-    run (Term t) = run' $ g $ fmap run t
-    run (Place a) = Place a
-    run (Hole h) = Hole h
-    run' :: Context g a (Cxt h' h a b) -> Cxt h' h a b
-    run' (Term t) = Term $ f $ fmap run' t
-    run' (Place a) = Place a
-    run' (Hole h) = h
 
 {-| Lifts the given signature function to the canonical term homomorphism. -}
 termHom :: Difunctor g => SigFun f g -> TermHom f g
@@ -423,23 +417,23 @@ anaM f x = run (x,[])
 --------------------------------
 
 {-| This type represents an r-algebra over a difunctor @f@ and carrier @a@. -}
-type RAlg f a = f a (Cxt NoHole f a (), a) -> a
+type RAlg f a = f a (Trm f a, a) -> a
 
 {-| Construct a paramorphism from the given r-algebra. -}
 para :: forall f a. Difunctor f => RAlg f a -> Term f -> a
 para f = run . coerceCxt
-    where run :: Cxt NoHole f a () -> a
+    where run :: Trm f a -> a
           run (Term t) = f $ fmap (\x -> (x, run x)) t
           run (Place x) = x
 
 {-| This type represents a monadic r-algebra over a difunctor @f@ and carrier
   @a@. -}
-type RAlgM m f a = f a (Cxt NoHole f a (), a) -> m a
+type RAlgM m f a = f a (Trm f a, a) -> m a
 {-| Construct a monadic paramorphism from the given monadic r-algebra. -}
 paraM :: forall m f a. (Ditraversable f m a, Monad m)
          => RAlgM m f a -> Term f -> m a
 paraM f = run . coerceCxt
-    where run :: Cxt NoHole f a () -> m a
+    where run :: Trm f a -> m a
           run (Term t) = f =<< dimapM (\x -> run x >>= \y -> return (x, y)) t
           run (Place x) = return x
 
@@ -488,10 +482,10 @@ apoM coa x = run (x,[])
 ----------------------------------
 
 {-| This type represents a cv-algebra over a difunctor @f@ and carrier @a@. -}
-type CVAlg f a f' = f a (Cxt NoHole f' a ()) -> a
+type CVAlg f a f' = f a (Trm f' a) -> a
 
 -- | This function applies 'projectA' at the tip of the term.
-projectTip  :: DistAnn f a f' => Cxt NoHole f' a () -> a
+projectTip  :: DistAnn f a f' => Trm f' a -> a
 projectTip (Term v) = snd $ projectA v
 projectTip (Place p) = p
 
@@ -499,13 +493,13 @@ projectTip (Place p) = p
 histo :: forall f f' a. (Difunctor f, DistAnn f a f')
          => CVAlg f a f' -> Term f -> a
 histo alg = projectTip . cata run
-    where run :: Alg f (Cxt NoHole f' a ())
+    where run :: Alg f (Trm f' a)
           run v = Term $ injectA (alg v') v'
               where v' = dimap Place id v
 
 {-| This type represents a monadic cv-algebra over a functor @f@ and carrier
   @a@. -}
-type CVAlgM m f a f' = f a (Cxt NoHole f' a ()) -> m a
+type CVAlgM m f a f' = f a (Trm f' a) -> m a
 
 {-| Construct a monadic histomorphism from the given monadic cv-algebra. -}
 histoM :: forall f f' m a. (Ditraversable f m a, Monad m, DistAnn f a f')
@@ -569,6 +563,36 @@ futu' coa x = run (x,[])
           run' (Hole x) = run x
           run' (Place p) = Place p
 
+-------------------------------------------
+-- functions only used for rewrite rules --
+-------------------------------------------
+
+appAlgTermHomM :: forall m g f d . (Monad m, Ditraversable g m d)
+               => AlgM m g d -> TermHomM m f g -> Term f -> m d
+appAlgTermHomM alg hom = run . coerceCxt where 
+    run :: Trm f d -> m d
+    run (Term t) = run' =<< hom t
+    run (Place a) = return a
+    run' :: Context g d (Trm f d) -> m d
+    run' (Term t) = alg =<< dimapM run' t
+    run' (Place a) = return a
+    run' (Hole x) = run x
+
+-- | This function applies a signature function after a term homomorphism.
+appSigFunTermHom :: forall f g h. (Difunctor g, Difunctor f)
+                 => SigFun g h -> TermHom f g -> CxtFun f h
+{-# NOINLINE [1] appSigFunTermHom #-}
+appSigFunTermHom f g = run where
+    run :: CxtFun f h
+    run (Term t) = run' $ g $ fmap run t
+    run (Place a) = Place a
+    run (Hole h) = Hole h
+    run' :: Context g a (Cxt h' h a b) -> Cxt h' h a b
+    run' (Term t) = Term $ f $ fmap run' t
+    run' (Place a) = Place a
+    run' (Hole h) = h
+
+
 -------------------
 -- rewrite rules --
 -------------------
@@ -577,6 +601,13 @@ futu' coa x = run (x,[])
 {-# RULES
   "cata/appTermHom" forall (a :: Alg g d) (h :: TermHom f g) x.
     cata a (appTermHom h x) = cata (compAlg a h) x;
+
+  "cata/appSigFun" forall (a :: Alg g d) (h :: SigFun f g) x.
+    cata a (appSigFun h x) = cata (compAlgSigFun a h) x;
+
+  "cata/appSigFunTermHom" forall (f :: Alg f3 d) (g :: SigFun f2 f3)
+                                      (h :: TermHom f1 f2) x.
+    cata f (appSigFunTermHom g h x) = cata (compAlg f (compSigFunTermHom g h)) x;
 
   "appTermHom/appTermHom" forall (a :: TermHom g h) (h :: TermHom f g) x.
     appTermHom a (appTermHom h x) = appTermHom (compTermHom a h) x;
@@ -589,19 +620,42 @@ futu' coa x = run (x,[])
     
   "appSigFun/appTermHom" forall (f :: SigFun g h) (g :: TermHom f g) x.
     appSigFun f (appTermHom g x) = appSigFunTermHom f g x;
+    
+  "appSigFunTermHom/appSigFun" forall (f :: SigFun f3 f4) (g :: TermHom f2 f3)
+                                      (h :: SigFun f1 f2) x.
+    appSigFunTermHom f g (appSigFun h x)
+    = appSigFunTermHom f (compTermHomSigFun g h) x;
+
+  "appSigFunTermHom/appTermHom" forall (f :: SigFun f3 f4) (g :: TermHom f2 f3)
+                                      (h :: TermHom f1 f2) x.
+    appSigFunTermHom f g (appTermHom h x)
+    = appSigFunTermHom f (compTermHom g h) x;
+
+  "appSigFun/appSigFunTermHom" forall (f :: SigFun f3 f4) (g :: SigFun f2 f3)
+                                      (h :: TermHom f1 f2) x.
+    appSigFun f (appSigFunTermHom g h x) = appSigFunTermHom (compSigFun f g) h x;
+
+  "appTermHom/appSigFunTermHom" forall (f :: TermHom f3 f4) (g :: SigFun f2 f3)
+                                      (h :: TermHom f1 f2) x.
+    appTermHom f (appSigFunTermHom g h x) = appTermHom (compTermHom (compTermHomSigFun f g) h) x;
+
+  "appSigFunTermHom/appSigFunTermHom" forall (f1 :: SigFun f4 f5) (f2 :: TermHom f3 f4)
+                                             (f3 :: SigFun f2 f3) (f4 :: TermHom f1 f2) x.
+    appSigFunTermHom f1 f2 (appSigFunTermHom f3 f4 x)
+      = appSigFunTermHom f1 (compTermHom (compTermHomSigFun f2 f3) f4) x;
  #-}
 
 {-
   The following rules are disabled as they are not typeable:
+-}
 {-# RULES 
-  "cataM/appTermHomM" forall (a :: AlgM m g) (h :: TermHomM m f g) x.
-     appTermHomM h x >>= cataM a = cataM (compAlgM a h) x;
+  "cataM/appTermHomM" forall (a :: AlgM m g d) (h :: TermHomM m f g) x.
+     appTermHomM h x >>= cataM a =  appAlgTermHomM a h x;
 
   "cataM/appTermHom" forall (a :: AlgM m g d) (h :: TermHom f g) x.
-     cataM a (appTermHom h x) = cataM (compAlgM' a h) x;
+     cataM a (appTermHom h x) = appAlgTermHomM a (return . h) x;
 
-  "appTermHomM/appTermHomM" forall (a :: TermHomM m g h) (h :: TermHomM m f g) x.
-    appTermHomM h x >>= appTermHomM a = appTermHomM (compTermHomM a h) x;
+  -- "appTermHomM/appTermHomM" forall (a :: TermHomM m g h) (h :: TermHomM m f g) x.
+  --    appTermHomM h x >>= appTermHomM a = appTermHomM (compTermHomM a h) x;
  #-}
--}
 #endif
