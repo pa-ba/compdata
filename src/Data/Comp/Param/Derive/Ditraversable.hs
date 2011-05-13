@@ -20,10 +20,9 @@ module Data.Comp.Param.Derive.Ditraversable
 
 import Data.Comp.Derive.Utils
 import Data.Comp.Param.Ditraversable
-import Data.Traversable (traverse,mapM)
+import Data.Traversable (mapM)
 import Language.Haskell.TH
 import Data.Maybe
-import Control.Applicative
 import Control.Monad hiding (mapM)
 import Prelude hiding (mapM)
 
@@ -56,7 +55,7 @@ instanceDitraversable fname = do
   return [InstanceD context classType [mapMDecl,sequenceDecl]]
       where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
             checksAarg aArg (_,args) = when (any (`containsType` aArg) args) $
-                                       error $ "Ditraversable instance cannot be derived if contravariant type variable a is used; please provide a custom instance for " ++ show fname
+                                       fail $ "Ditraversable instance cannot be derived if contravariant type variable a is used; please provide a custom instance for " ++ show fname
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
@@ -68,13 +67,7 @@ instanceDitraversable fname = do
                    return (conE constr, mkCPat constr varNs,
                            \f g -> filterVars args varNs (\ d x -> f d (varE x)) (g . varE),
                            any (not . null) args, map varE varNs, catMaybes $ filterVars args varNs (curry Just) (const Nothing))
-            traverseClause (con, pat,vars',hasFargs,_,_) =
-                do fn <- newName "f"
-                   let f = varE fn
-                       fp = if hasFargs then VarP fn else WildP
-                       vars = vars' (\d x -> iter d [|traverse|] f `appE` x) (\x -> [|pure $x|])
-                   body <- foldl (\ x y -> [|$x <*> $y|]) [|pure $con|] vars
-                   return $ Clause [fp, pat] (NormalB body) []
+
             -- Note: the monadic versions are not defined
             -- applicatively, as this results in a considerable
             -- performance penalty (by factor 2)!
