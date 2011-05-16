@@ -87,7 +87,7 @@ simpCxt = Term . fmap Hole
 coerceCxt :: Cxt h f Any b -> forall a. Cxt h f a b
 coerceCxt = unsafeCoerce
 
-toCxt :: Difunctor f => Cxt NoHole f a b -> Cxt h f a b
+toCxt :: Difunctor f => Trm f a -> Cxt h f a b
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
 

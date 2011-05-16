@@ -43,7 +43,7 @@ instance (ShowHD f, PShow a) => PShow (Cxt h f Var a) where
 {-| Printing of terms. -}
 instance (HDifunctor f, ShowHD f) => Show (Term f i) where
     show = evalFreshM . pshow .
-           (coerceCxt :: Term f i -> Cxt NoHole f Var (K ()) i)
+           (coerceCxt :: Term f i -> Trm f Var i)
 
 instance (ShowHD f, PShow (K p)) => ShowHD (f :&: p) where
     showHD (x :&: p) = do sx <- showHD x

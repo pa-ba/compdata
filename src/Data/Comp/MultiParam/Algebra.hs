@@ -88,7 +88,7 @@ free f g = run
 cata :: forall f a. HDifunctor f => Alg f a -> Term f :-> a 
 {-# NOINLINE [1] cata #-}
 cata f = run . coerceCxt
-    where run :: Cxt NoHole f a (K ()) :-> a
+    where run :: Trm f a :-> a
           run (Term t) = f (hfmap run t)
           run (Place x) = x
 
@@ -123,7 +123,7 @@ cataM :: forall m f a. (HDitraversable f m a, Monad m)
          => AlgM m f a -> NatM m (Term f) a
 {-# NOINLINE [1] cataM #-}
 cataM algm = run . coerceCxt
-    where run :: NatM m (Cxt NoHole f a (K ())) a
+    where run :: NatM m (Trm f a) a
           run (Term t) = algm =<< hdimapM run t
           run (Place x) = return x
 
@@ -146,7 +146,7 @@ cataM' :: forall m f a. (HDifunctor f, Monad m)
           => AlgM' m f a -> NatM m (Term f) a
 {-# NOINLINE [1] cataM' #-}
 cataM' algm = run . coerceCxt
-    where run :: NatM m (Cxt NoHole f a (K ())) a
+    where run :: NatM m (Trm f a) a
           run (Term t) = algm $ hfmap (Compose . run) t
           run (Place x) = return x
 

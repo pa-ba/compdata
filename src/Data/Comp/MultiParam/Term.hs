@@ -21,6 +21,7 @@ module Data.Comp.MultiParam.Term
      NoHole,
      Any,
      Term,
+     Trm,
      Context,
      Const,
      simpCxt,
@@ -64,13 +65,16 @@ data NoHole
   constructor, e.g. @Any i -> (Any i,Any i)@. -}
 type Context = Cxt Hole
 
+
+type Trm f a = Cxt NoHole f a (K ())
+
 {-| A term is a context with no holes, where all occurrences of the
   contravariant parameter is fully parametric. Parametricity is \"emulated\"
   using the empty functor @Any@, e.g. a function of type @Any :-> T[Any]@ is
   equivalent with @forall b. b :-> T[b]@, but the former avoids the
   impredicative typing extension, and works also in the cases where the
   codomain type is not a type constructor, e.g. @Any i -> (Any i,Any i)@. -}
-type Term f = Cxt NoHole f Any (K ())
+type Term f = Trm f Any
 
 {-| Convert a difunctorial value into a context. -}
 simpCxt :: HDifunctor f => f a b :-> Cxt Hole f a b
@@ -84,7 +88,7 @@ simpCxt = Term . hfmap Hole
 coerceCxt :: Cxt h f Any b i -> forall a. Cxt h f a b i
 coerceCxt = unsafeCoerce
 
-toCxt :: HDifunctor f => Cxt NoHole f a b :-> Cxt h f a b
+toCxt :: HDifunctor f => Trm f a :-> Cxt h f a b
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
 
