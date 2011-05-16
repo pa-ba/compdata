@@ -414,10 +414,6 @@ compAlgSigFunM' alg talg = alg . talg
 compSigFunM :: Monad m => SigFunM m g h -> SigFunM m f g -> SigFunM m f h
 compSigFunM f g = f <=< g
 
-{-| This function composes two monadic signature functions. -}
-compSigFunM' :: Monad m => SigFunM m g h -> SigFun f g -> SigFunM m f h
-compSigFunM' f g = f . g
-
 
 ----------------
 -- Coalgebras --
@@ -913,7 +909,7 @@ appSigFunTermHomM f g = coerceCxtFunM run where
      appSigFunM' a (appTermHom h x) = appTermHomM' (compSigFunTermHomM' a (sigFunM h)) x;
 
   "appSigFunM'/appSigFun" forall (a :: SigFunM m g h) (h :: SigFun f g) x.
-     appSigFunM' a (appSigFun h x) = appSigFunM' (compSigFunM' a h) x;
+     appSigFunM' a (appSigFun h x) = appSigFunM' (compSigFunM a (sigFunM h)) x;
 
   "appSigFunM/appTermHom'" forall (a :: SigFunM m g h) (h :: TermHom f g) x.
      appSigFunM a (appTermHom' h x) = appSigFunTermHomM a (sigFunM h) x;
