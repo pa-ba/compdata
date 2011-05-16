@@ -674,8 +674,14 @@ appTermHomTermHomM f g = coerceCxtFunM run where
   "cataM/appTermHomM" forall (a :: AlgM m g d) (h :: TermHomM m f g) x.
      appTermHomM h x >>= cataM a =  appAlgTermHomM a h x;
 
+  "cataM/appTermHomM'" forall (a :: AlgM m g d) (h :: TermHomM m f g) x.
+     appTermHomM' h x >>= cataM a = appAlgTermHomM a h x;
+
   "cataM/appSigFunM" forall (a :: AlgM m g d) (h :: SigFunM m f g) x.
      appSigFunM h x >>= cataM a =  appAlgSigFunM a h x;
+
+  "cataM/appSigFunM'" forall (a :: AlgM m g d) (h :: SigFunM m f g) x.
+     appSigFunM' h x >>= cataM a = appAlgSigFunM a h x;
 
   "cataM/appTermHom" forall (a :: AlgM m g d) (h :: TermHom f g) x.
      cataM a (appTermHom h x) = appAlgTermHomM a (return . h) x;
