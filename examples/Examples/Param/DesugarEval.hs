@@ -99,7 +99,7 @@ projF v = case project v of Just (Fun f) -> f
 
 -- |Evaluation of expressions to ground values.
 evalG :: Term Sig' -> Maybe (Term GValue)
-evalG = deepProject' . evalDesug
+evalG = deepProject . evalDesug
 
 -- Example: evalEx = Just (iConst 720)
 evalEx :: Maybe (Term GValue)

@@ -95,7 +95,7 @@ projF v = case project v of
 
 -- |Evaluation of expressions to ground values.
 evalMG :: Term Sig i -> Maybe (Term GValue i)
-evalMG = deepProject' <=< (evalM :: Term Sig i -> Maybe (Term Value i))
+evalMG = deepProject <=< (evalM :: Term Sig i -> Maybe (Term Value i))
 
 -- Example: evalEx = Just (iConst 12) (3 * (2 + 2) = 12)
 evalMEx :: Maybe (Term GValue Int)

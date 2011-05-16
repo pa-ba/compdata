@@ -29,9 +29,6 @@ module Data.Comp.Sum
      deepProject,
      deepProject2,
      deepProject3,
-     deepProject',
-     deepProject2',
-     deepProject3',
 
      -- * Injections for Signatures and Terms
      inj2,
@@ -98,45 +95,30 @@ project3 :: (g1 :<: f, g2 :<: f, g3 :<: f) => Cxt h f a
 project3 (Hole _) = Nothing
 project3 (Term t) = proj3 t
 
--- |Project a term to a term over a sub signature.
-deepProject :: (Traversable f, g :<: f) => Cxt h f a
-            -> Maybe (Cxt h g a)
-{-# INLINE deepProject #-}
-deepProject = appSigFunM proj
-
--- |Project a term to a term over a binary sub signature.
-deepProject2 :: (Traversable f, g1 :<: f, g2 :<: f) => Cxt h f a -> Maybe (Cxt h (g1 :+: g2) a)
-{-# INLINE deepProject2 #-}
-deepProject2 = appSigFunM proj2
-
--- |Project a term to a term over a ternary sub signature.
-deepProject3 :: (Traversable f, g1 :<: f, g2 :<: f, g3 :<: f) => Cxt h f a
-             -> Maybe (Cxt h (g1 :+: g2 :+: g3) a)
-{-# INLINE deepProject3 #-}
-deepProject3 = appSigFunM proj3
-
--- |A variant of 'deepProject' where the sub signature is required to be
--- 'Traversable' rather than the whole signature.
-deepProject' :: forall g f h a. (Traversable g, g :<: f) => Cxt h f a
+-- | Tries to coerce a term/context to a term/context over a
+-- sub-signature.
+deepProject :: forall g f h a. (Traversable g, g :<: f) => Cxt h f a
              -> Maybe (Cxt h g a)
-{-# INLINE deepProject' #-}
-deepProject' = appSigFunM' proj
+{-# INLINE deepProject #-}
+deepProject = appSigFunM' proj
 
 
--- |A variant of 'deepProject2' where the sub signatures are required to be
--- 'Traversable' rather than the whole signature.
-deepProject2' :: (Traversable (g1 :+: g2), g1 :<: f, g2 :<: f)
+-- | This is a variant of 'deepProject' that can be used if the target
+-- signature cannot be derived as being a sub-signature of the source
+-- signature directly but its decomposition into two summands can.
+deepProject2 :: (Traversable (g1 :+: g2), g1 :<: f, g2 :<: f)
               => CxtFunM Maybe f (g1 :+: g2)
-{-# INLINE deepProject2' #-}
-deepProject2' = appSigFunM' proj2
+{-# INLINE deepProject2 #-}
+deepProject2 = appSigFunM' proj2
 
--- |A variant of 'deepProject3' where the sub signatures are required to be
--- 'Traversable' rather than the whole signature.
-deepProject3' :: (Traversable (g1 :+: g2 :+: g3),
+-- | This is a variant of 'deepProject' that can be used if the target
+-- signature cannot be derived as being a sub-signature of the source
+-- signature directly but its decomposition into three summands can.
+deepProject3 :: (Traversable (g1 :+: g2 :+: g3),
                   g1 :<: f, g2 :<: f, g3 :<: f)
               => CxtFunM Maybe f (g1 :+: g2 :+: g3)
-{-# INLINE deepProject3' #-}
-deepProject3' = appSigFunM' proj3
+{-# INLINE deepProject3 #-}
+deepProject3 = appSigFunM' proj3
 
 {-| A variant of 'inj' for binary sum signatures.  -}
 inj2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) a -> g a

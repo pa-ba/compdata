@@ -28,9 +28,6 @@ module Data.Comp.Multi.Sum
      deepProject,
      deepProject2,
      deepProject3,
-     deepProject',
-     deepProject2',
-     deepProject3',
 
      -- * Injections for Signatures and Terms
      inj2,
@@ -93,33 +90,24 @@ project3 :: (g1 :<: f, g2 :<: f, g3 :<: f) =>
 project3 (Hole _) = Nothing
 project3 (Term t) = proj3 t
 
--- |Project a term to a term over a sub signature.
-deepProject :: (HTraversable f, g :<: f)  => CxtFunM Maybe f g
-deepProject = appSigFunM proj
+-- | Tries to coerce a term/context to a term/context over a
+-- sub-signature.
+deepProject :: (HTraversable g, g :<: f)  => CxtFunM Maybe f g
+deepProject = appSigFunM' proj
 
--- |Project a term to a term over a binary sub signature.
-deepProject2 :: (HTraversable f, g1 :<: f, g2 :<: f)
+-- | This is a variant of 'deepProject' that can be used if the target
+-- signature cannot be derived as being a sub-signature of the source
+-- signature directly but its decomposition into two summands can.
+deepProject2 :: (HTraversable (g1 :+: g2), g1 :<: f, g2 :<: f)
              => CxtFunM Maybe f (g1 :+: g2)
-deepProject2 = appSigFunM proj2
+deepProject2 = appSigFunM' proj2
 
--- |Project a term to a term over a ternary sub signature.
-deepProject3 :: (HTraversable f, g1 :<: f, g2 :<: f, g3 :<: f)
+-- | This is a variant of 'deepProject' that can be used if the target
+-- signature cannot be derived as being a sub-signature of the source
+-- signature directly but its decomposition into three summands can.
+deepProject3 :: (HTraversable (g1 :+: g2 :+: g3), g1 :<: f, g2 :<: f, g3 :<: f)
               => CxtFunM Maybe f (g1 :+: g2 :+: g3)
-deepProject3 = appSigFunM proj3
-
--- |Project a term to a term over a sub signature.
-deepProject' :: (HTraversable g, g :<: f)  => CxtFunM Maybe f g
-deepProject' = appSigFunM' proj
-
--- |Project a term to a term over a binary sub signature.
-deepProject2' :: (HTraversable (g1 :+: g2), g1 :<: f, g2 :<: f)
-             => CxtFunM Maybe f (g1 :+: g2)
-deepProject2' = appSigFunM' proj2
-
--- |Project a term to a term over a ternary sub signature.
-deepProject3' :: (HTraversable (g1 :+: g2 :+: g3), g1 :<: f, g2 :<: f, g3 :<: f)
-              => CxtFunM Maybe f (g1 :+: g2 :+: g3)
-deepProject3' = appSigFunM' proj3
+deepProject3 = appSigFunM' proj3
 
 {-| A variant of 'inj' for binary sum signatures.  -}
 inj2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) a :-> g a

@@ -92,7 +92,7 @@ projF v = do FunM f <- project v
 
 -- |Evaluation of expressions to ground values.
 evalMG :: Term Sig -> Maybe (Term GValue)
-evalMG = deepProject' <=< (evalM :: Term Sig -> Maybe (Term Value))
+evalMG = deepProject <=< (evalM :: Term Sig -> Maybe (Term Value))
 
 -- Example: evalEx = Just (iConst 12) (3 * (2 + 2) = 12)
 evalMEx :: Maybe (Term GValue)
