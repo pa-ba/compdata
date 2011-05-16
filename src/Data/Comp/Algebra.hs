@@ -593,17 +593,42 @@ futu' coa = run
 -- functions only used for rewrite rules --
 -------------------------------------------
 
+appTermHomSigFun :: (Functor g, Functor h) => TermHom g h -> SigFun f g -> CxtFun f h
+appTermHomSigFun hom sig = run where
+    run (Term t) = appCxt $ hom $ fmap run $ sig t
+    run (Hole h) = Hole h
+
+appSigFunSigFun :: Functor g => SigFun g h -> SigFun f g -> CxtFun f h
+appSigFunSigFun g f = run where
+    run (Term t) = Term $ g $ fmap run $ f t
+    run (Hole h) = Hole h
+
+appAlgSigFun :: forall g f d . (Functor g)
+               => Alg g d -> SigFun f g -> Term f -> d
+appAlgSigFun alg sig = run where 
+    run :: Term f -> d
+    run (Term t) = alg $ fmap run $ sig t
+
+appAlgTermHom :: forall f g d . (Functor g) => Alg g d -> TermHom f g -> Term f -> d
+appAlgTermHom alg hom = run where
+    run :: Term f -> d
+    run (Term t) = run' $ hom t
+    run' :: Context g (Term f) -> d
+    run' (Term t) = alg $ fmap run' t
+    run' (Hole x) = run x
+
+
 -- | This function applies a signature function after a term homomorphism.
-appSigFunTermHom :: forall f g h. (Functor g, Functor f)
+appSigFunTermHom :: forall f g h. (Functor g)
                  => SigFun g h -> TermHom f g -> CxtFun f h
 {-# NOINLINE [1] appSigFunTermHom #-}
 appSigFunTermHom f g = run where
     run :: CxtFun f h
-    run (Term t) = run' $ g $ fmap run t
+    run (Term t) = run' $ g $ t
     run (Hole h) = Hole h
-    run' :: Context g (Cxt h' h b) -> Cxt h' h b
+    run' :: Context g (Cxt h' f b) -> Cxt h' h b
     run' (Term t) = Term $ f $ fmap run' t
-    run' (Hole h) = h
+    run' (Hole h) = run h
 
 -- | This function applies the given algebra bottom-up while applying
 -- the given term homomorphism top-down. Thereby we have no
@@ -645,28 +670,75 @@ appTermHomTermHomM f g = run where
   "cata/appTermHom" forall (a :: Alg g d) (h :: TermHom f g) x.
     cata a (appTermHom h x) = cata (compAlg a h) x;
 
-  "cata/appSigFun" forall (f :: Alg g a) (g :: SigFun f g) x.
-    cata f (appSigFun g x) = cata (compAlgSigFun f g) x;
+  "cata/appTermHom'" forall (a :: Alg g d) (h :: TermHom f g) x.
+    cata a (appTermHom' h x) = appAlgTermHom a h x;
+
+  "cata/appSigFun" forall (a :: Alg g d) (h :: SigFun f g) x.
+    cata a (appSigFun h x) = cata (compAlgSigFun a h) x;
+
+  "cata/appSigFun'" forall (a :: Alg g d) (h :: SigFun f g) x.
+    cata a (appSigFun' h x) = appAlgSigFun a h x;
 
   "cata/appSigFunTermHom" forall (f :: Alg f3 d) (g :: SigFun f2 f3)
                                       (h :: TermHom f1 f2) x.
-    cata f (appSigFunTermHom g h x) = cata (compAlg f (compSigFunTermHom g h)) x;
+    cata f (appSigFunTermHom g h x) = appAlgTermHom (compAlgSigFun f g) h x;
 
   "appTermHom/appTermHom" forall (a :: TermHom g h) (h :: TermHom f g) x.
     appTermHom a (appTermHom h x) = appTermHom (compTermHom a h) x;
 
+  "appTermHom'/appTermHom'" forall (a :: TermHom g h) (h :: TermHom f g) x.
+    appTermHom' a (appTermHom' h x) = appTermHom' (compTermHom a h) x;
+
+  "appTermHom'/appTermHom" forall (a :: TermHom g h) (h :: TermHom f g) x.
+    appTermHom' a (appTermHom h x) = appTermHom (compTermHom a h) x;
+
+  "appTermHom/appTermHom'" forall (a :: TermHom g h) (h :: TermHom f g) x.
+    appTermHom a (appTermHom' h x) = appTermHom' (compTermHom a h) x;
+    
   "appSigFun/appSigFun" forall (f :: SigFun g h) (g :: SigFun f g) x.
     appSigFun f (appSigFun g x) = appSigFun (compSigFun f g) x;
+
+  "appSigFun'/appSigFun'" forall (f :: SigFun g h) (g :: SigFun f g) x.
+    appSigFun' f (appSigFun' g x) = appSigFun' (compSigFun f g) x;
+
+  "appSigFun/appSigFun'" forall (f :: SigFun g h) (g :: SigFun f g) x.
+    appSigFun f (appSigFun' g x) = appSigFunSigFun f g x;
+
+  "appSigFun'/appSigFun" forall (f :: SigFun g h) (g :: SigFun f g) x.
+    appSigFun' f (appSigFun g x) = appSigFun (compSigFun f g) x;
 
   "appTermHom/appSigFun" forall (f :: TermHom g h) (g :: SigFun f g) x.
     appTermHom f (appSigFun g x) = appTermHom (compTermHomSigFun f g) x;
 
+  "appTermHom/appSigFun'" forall (f :: TermHom g h) (g :: SigFun f g) x.
+    appTermHom f (appSigFun' g x) = appTermHomSigFun f g x;
+
+  "appTermHom'/appSigFun'" forall (f :: TermHom g h) (g :: SigFun f g) x.
+    appTermHom' f (appSigFun' g x) = appTermHomSigFun f g x;
+
+  "appTermHom'/appSigFun" forall (f :: TermHom g h) (g :: SigFun f g) x.
+    appTermHom' f (appSigFun g x) = appTermHom (compTermHomSigFun f g) x;
+    
   "appSigFun/appTermHom" forall (f :: SigFun g h) (g :: TermHom f g) x.
     appSigFun f (appTermHom g x) = appSigFunTermHom f g x;
+
+  "appSigFun'/appTermHom'" forall (f :: SigFun g h) (g :: TermHom f g) x.
+    appSigFun' f (appTermHom' g x) = appTermHom' (compSigFunTermHom f g) x;
+
+  "appSigFun/appTermHom'" forall (f :: SigFun g h) (g :: TermHom f g) x.
+    appSigFun f (appTermHom' g x) = appSigFunTermHom f g x;
+
+  "appSigFun'/appTermHom" forall (f :: SigFun g h) (g :: TermHom f g) x.
+    appSigFun' f (appTermHom g x) = appTermHom (compSigFunTermHom f g) x;
     
   "appSigFunTermHom/appSigFun" forall (f :: SigFun f3 f4) (g :: TermHom f2 f3)
                                       (h :: SigFun f1 f2) x.
     appSigFunTermHom f g (appSigFun h x)
+    = appSigFunTermHom f (compTermHomSigFun g h) x;
+
+  "appSigFunTermHom/appSigFun'" forall (f :: SigFun f3 f4) (g :: TermHom f2 f3)
+                                      (h :: SigFun f1 f2) x.
+    appSigFunTermHom f g (appSigFun' h x)
     = appSigFunTermHom f (compTermHomSigFun g h) x;
 
   "appSigFunTermHom/appTermHom" forall (f :: SigFun f3 f4) (g :: TermHom f2 f3)
@@ -674,13 +746,26 @@ appTermHomTermHomM f g = run where
     appSigFunTermHom f g (appTermHom h x)
     = appSigFunTermHom f (compTermHom g h) x;
 
+  "appSigFunTermHom/appTermHom'" forall (f :: SigFun f3 f4) (g :: TermHom f2 f3)
+                                      (h :: TermHom f1 f2) x.
+    appSigFunTermHom f g (appTermHom' h x)
+    = appSigFunTermHom f (compTermHom g h) x;
+
   "appSigFun/appSigFunTermHom" forall (f :: SigFun f3 f4) (g :: SigFun f2 f3)
                                       (h :: TermHom f1 f2) x.
     appSigFun f (appSigFunTermHom g h x) = appSigFunTermHom (compSigFun f g) h x;
 
+  "appSigFun'/appSigFunTermHom" forall (f :: SigFun f3 f4) (g :: SigFun f2 f3)
+                                      (h :: TermHom f1 f2) x.
+    appSigFun' f (appSigFunTermHom g h x) = appSigFunTermHom (compSigFun f g) h x;
+
   "appTermHom/appSigFunTermHom" forall (f :: TermHom f3 f4) (g :: SigFun f2 f3)
                                       (h :: TermHom f1 f2) x.
-    appTermHom f (appSigFunTermHom g h x) = appTermHom (compTermHom (compTermHomSigFun f g) h) x;
+    appTermHom f (appSigFunTermHom g h x) = appTermHom' (compTermHom (compTermHomSigFun f g) h) x;
+
+  "appTermHom'/appSigFunTermHom" forall (f :: TermHom f3 f4) (g :: SigFun f2 f3)
+                                      (h :: TermHom f1 f2) x.
+    appTermHom' f (appSigFunTermHom g h x) = appTermHom' (compTermHom (compTermHomSigFun f g) h) x;
 
   "appSigFunTermHom/appSigFunTermHom" forall (f1 :: SigFun f4 f5) (f2 :: TermHom f3 f4)
                                              (f3 :: SigFun f2 f3) (f4 :: TermHom f1 f2) x.
