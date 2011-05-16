@@ -210,6 +210,7 @@ compTermHom :: (Difunctor g, Difunctor h)
                => TermHom g h -> TermHom f g -> TermHom f h
 compTermHom f g = appTermHom f . g
 
+
 {-| Compose an algebra with a term homomorphism to get a new algebra. -}
 compAlg :: (Difunctor f, Difunctor g) => Alg g a -> TermHom f g -> Alg f a
 compAlg alg talg = cata' alg . talg
@@ -573,27 +574,8 @@ futu' coa x = run (x,[])
 -- functions only used for rewrite rules --
 -------------------------------------------
 
-
-appTermHomSigFun :: (Difunctor g, Difunctor h) => TermHom g h -> SigFun f g -> CxtFun f h
-appTermHomSigFun hom sig = run where
-    run (Term t) = appCxt $ hom $ fmap run $ sig t
-    run (Place a) = Place a
-    run (Hole h) = Hole h
-
-appSigFunSigFun :: Difunctor g => SigFun g h -> SigFun f g -> CxtFun f h
-appSigFunSigFun g f = run where
-    run (Term t) = Term $ g $ fmap run $ f t
-    run (Place a) = Place a
-    run (Hole h) = Hole h
-
-appAlgSigFun :: forall g f d . (Difunctor g)
-               => Alg g d -> SigFun f g -> Term f -> d
-appAlgSigFun alg sig = run . coerceCxt where 
-    run :: Trm f d -> d
-    run (Term t) = alg $ fmap run $ sig t
-    run (Place a) = a
-
 appAlgTermHom :: forall f g d . (Difunctor g) => Alg g d -> TermHom f g -> Term f -> d
+{-# NOINLINE [1] appAlgTermHom #-}
 appAlgTermHom alg hom = run . coerceCxt where
     run :: Trm f d -> d
     run (Term t) = run' $ hom t
@@ -602,6 +584,21 @@ appAlgTermHom alg hom = run . coerceCxt where
     run' (Term t) = alg $ fmap run' t
     run' (Place a) = a
     run' (Hole x) = run x
+
+
+-- | This function applies a signature function after a term homomorphism.
+appSigFunTermHom :: forall f g h. (Difunctor g)
+                 => SigFun g h -> TermHom f g -> CxtFun f h
+{-# NOINLINE [1] appSigFunTermHom #-}
+appSigFunTermHom f g = run where
+    run :: CxtFun f h
+    run (Term t) = run' $ g t
+    run (Place a) = Place a
+    run (Hole h) = Hole h
+    run' :: Context g a (Cxt h' f a b) -> Cxt h' h a b
+    run' (Term t) = Term $ f $ fmap run' t
+    run' (Place a) = Place a
+    run' (Hole h) = run h
 
 appAlgTermHomM :: forall m g f d . (Monad m, Ditraversable g m d)
                => AlgM m g d -> TermHomM m f g -> Term f -> m d
@@ -621,19 +618,6 @@ appAlgSigFunM alg sig = run . coerceCxt where
     run (Term t) = alg =<< dimapM run =<< sig t
     run (Place a) = return a
 
--- | This function applies a signature function after a term homomorphism.
-appSigFunTermHom :: forall f g h. (Difunctor g)
-                 => SigFun g h -> TermHom f g -> CxtFun f h
-{-# NOINLINE [1] appSigFunTermHom #-}
-appSigFunTermHom f g = run where
-    run :: CxtFun f h
-    run (Term t) = run' $ g t
-    run (Place a) = Place a
-    run (Hole h) = Hole h
-    run' :: Context g a (Cxt h' f a b) -> Cxt h' h a b
-    run' (Term t) = Term $ f $ fmap run' t
-    run' (Place a) = Place a
-    run' (Hole h) = run h
 
 appTermHomTermHomM :: forall m f g h . (Ditraversable g m Any, Difunctor h)
                    => TermHomM m g h -> TermHom f g -> CxtFunM m f h
@@ -664,11 +648,28 @@ appTermHomTermHomM f g = coerceCxtFunM run where
     cata a (appSigFun h x) = cata (compAlgSigFun a h) x;
 
   "cata/appSigFun'" forall (a :: Alg g d) (h :: SigFun f g) x.
-    cata a (appSigFun' h x) = appAlgSigFun a h x;
+    cata a (appSigFun' h x) = appAlgTermHom a (termHom h) x;
 
   "cata/appSigFunTermHom" forall (f :: Alg f3 d) (g :: SigFun f2 f3)
                                       (h :: TermHom f1 f2) x.
     cata f (appSigFunTermHom g h x) = appAlgTermHom (compAlgSigFun f g) h x;
+
+  "appAlgTermHom/appTermHom" forall (a :: Alg h d) (f :: TermHom f g) (h :: TermHom g h) x.
+    appAlgTermHom a h (appTermHom f x) = cata (compAlg a (compTermHom h f)) x;
+
+  "appAlgTermHom/appTermHom'" forall (a :: Alg h d) (f :: TermHom f g) (h :: TermHom g h) x.
+    appAlgTermHom a h (appTermHom' f x) = appAlgTermHom a (compTermHom h f) x;
+
+  "appAlgTermHom/appSigFun" forall (a :: Alg h d) (f :: SigFun f g) (h :: TermHom g h) x.
+    appAlgTermHom a h (appSigFun f x) = cata (compAlg a (compTermHomSigFun h f)) x;
+
+  "appAlgTermHom/appSigFun'" forall (a :: Alg h d) (f :: SigFun f g) (h :: TermHom g h) x.
+    appAlgTermHom a h (appSigFun' f x) = appAlgTermHom a (compTermHomSigFun h f) x;
+
+  "appAlgTermHom/appSigFunTermHom" forall (a :: Alg i d) (f :: TermHom f g) (g :: SigFun g h)
+                                          (h :: TermHom h i) x.
+    appAlgTermHom a h (appSigFunTermHom g f x)
+      = appAlgTermHom a (compTermHom (compTermHomSigFun h g) f) x;
 
   "appTermHom/appTermHom" forall (a :: TermHom g h) (h :: TermHom f g) x.
     appTermHom a (appTermHom h x) = appTermHom (compTermHom a h) x;
@@ -689,7 +690,7 @@ appTermHomTermHomM f g = coerceCxtFunM run where
     appSigFun' f (appSigFun' g x) = appSigFun' (compSigFun f g) x;
 
   "appSigFun/appSigFun'" forall (f :: SigFun g h) (g :: SigFun f g) x.
-    appSigFun f (appSigFun' g x) = appSigFunSigFun f g x;
+    appSigFun f (appSigFun' g x) = appSigFunTermHom f (termHom g) x;
 
   "appSigFun'/appSigFun" forall (f :: SigFun g h) (g :: SigFun f g) x.
     appSigFun' f (appSigFun g x) = appSigFun (compSigFun f g) x;
@@ -698,10 +699,10 @@ appTermHomTermHomM f g = coerceCxtFunM run where
     appTermHom f (appSigFun g x) = appTermHom (compTermHomSigFun f g) x;
 
   "appTermHom/appSigFun'" forall (f :: TermHom g h) (g :: SigFun f g) x.
-    appTermHom f (appSigFun' g x) = appTermHomSigFun f g x;
+    appTermHom f (appSigFun' g x) =  appTermHom' (compTermHomSigFun f g) x;
 
   "appTermHom'/appSigFun'" forall (f :: TermHom g h) (g :: SigFun f g) x.
-    appTermHom' f (appSigFun' g x) = appTermHomSigFun f g x;
+    appTermHom' f (appSigFun' g x) =  appTermHom' (compTermHomSigFun f g) x;
 
   "appTermHom'/appSigFun" forall (f :: TermHom g h) (g :: SigFun f g) x.
     appTermHom' f (appSigFun g x) = appTermHom (compTermHomSigFun f g) x;
