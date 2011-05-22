@@ -231,6 +231,8 @@ library
                         Data.Comp.Derive.LiftSum,
                         Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable,
+                        Data.Comp.Derive.Injections,
+                        Data.Comp.Derive.Projections,
 
                         Data.Comp.Multi.Derive.Functor,
                         Data.Comp.Multi.Derive.Foldable,
