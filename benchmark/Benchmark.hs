@@ -46,7 +46,8 @@ standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (
                  bench "Comp.desug" (nf A.desugExpr aExpr),
                  bench "Comp.desug'" (nf A.desugExpr' aExpr),
                  bench "Comp.desugAlg" (nf A.desugExpr2 aExpr),
-                 bench "Standard.desug" (nf S.desug sExpr)
+                 bench "Standard.desug" (nf S.desug sExpr),
+                 bench "Standard.desug'" (nf S.desug' sExpr)
                  -- bench "Comp.desugType" (nf A.desugType aExpr),
                  -- bench "Comp.desugType'" (nf A.desugType' aExpr),
                  -- bench "Standard.desugType" (nf S.desugType sExpr),
