@@ -31,9 +31,9 @@ import Data.Comp.Multi.Ops ((:+:)(..))
 liftSum :: Name -> Q [Dec]
 liftSum fname = do
   ClassI (ClassD _ name targs _ decs) _ <- abstractNewtypeQ $ reify fname
-  targs' <- newNames (length targs - 1) "x"
-  f <- newName "f"
-  g <- newName "g"
+  let targs' = map tyVarBndrName $ tail targs
+  let f = mkName "f"
+  let g = mkName "g"
   let cxt = [ClassP name (map VarT $ f : targs'),
              ClassP name (map VarT $ g : targs')]
   let tp = ConT name `AppT` ((ConT ''(:+:) `AppT` VarT f) `AppT` VarT g)

@@ -16,10 +16,11 @@
 
 module Data.Comp.Sum
     (
-     (:<:)(..),
+     (:<:),
      (:+:),
 
      -- * Projections for Signatures and Terms
+     proj,
      proj2,
      proj3,
      proj4,
@@ -51,6 +52,7 @@ module Data.Comp.Sum
      deepProject10,
 
      -- * Injections for Signatures and Terms
+     inj,
      inj2,
      inj3,
      inj4,
@@ -109,17 +111,18 @@ import qualified Data.Map as Map
 
 $(liftM concat $ mapM projn [2..10])
 
--- |Project the outermost layer of a term to a sub signature.
+-- |Project the outermost layer of a term to a sub signature. If the signature
+-- @g@ is compound of /n/ atomic signatures, use @project@/n/ instead.
 project :: (g :<: f) => Cxt h f a -> Maybe (g (Cxt h f a))
 project (Hole _) = Nothing
 project (Term t) = proj t
 
 $(liftM concat $ mapM projectn [2..10])
 
--- | Tries to coerce a term/context to a term/context over a
--- sub-signature.
-deepProject :: forall g f h a. (Traversable g, g :<: f) => Cxt h f a
-             -> Maybe (Cxt h g a)
+-- | Tries to coerce a term/context to a term/context over a sub-signature. If
+-- the signature @g@ is compound of /n/ atomic signatures, use
+-- @deepProject@/n/ instead.
+deepProject :: (Traversable g, g :<: f) => CxtFunM Maybe f g
 {-# INLINE deepProject #-}
 deepProject = appSigFunM' proj
 
@@ -136,14 +139,17 @@ $(liftM concat $ mapM deepProjectn [2..10])
 
 $(liftM concat $ mapM injn [2..10])
 
--- |Inject a term where the outermost layer is a sub signature.
+-- |Inject a term where the outermost layer is a sub signature. If the signature
+-- @g@ is compound of /n/ atomic signatures, use @inject@/n/ instead.
 inject :: (g :<: f) => g (Cxt h f a) -> Cxt h f a
 inject = Term . inj
 
 $(liftM concat $ mapM injectn [2..10])
 
--- |Inject a term over a sub signature to a term over larger signature.
-deepInject  :: (Functor g, g :<: f) => CxtFun g f
+-- |Inject a term over a sub signature to a term over larger signature. If the
+-- signature @g@ is compound of /n/ atomic signatures, use @deepInject@/n/
+-- instead.
+deepInject :: (Functor g, g :<: f) => CxtFun g f
 {-# INLINE deepInject #-}
 deepInject = appSigFun inj
 
@@ -173,7 +179,6 @@ projectConst :: (Functor g, g :<: f) => Cxt h f a -> Maybe (Const g)
 projectConst = fmap (fmap (const ())) . project
 
 {-| This function injects a whole context into another context. -}
-
 injectCxt :: (Functor g, g :<: f) => Cxt h' g (Cxt h f a) -> Cxt h f a
 injectCxt = cata' inject
 

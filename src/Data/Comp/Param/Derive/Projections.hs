@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Derive.Projections
+-- Module      :  Data.Comp.Param.Derive.Projections
 -- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
@@ -12,7 +12,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Derive.Projections
+module Data.Comp.Param.Derive.Projections
     (
      projn,
      projectn,
@@ -21,60 +21,66 @@ module Data.Comp.Derive.Projections
 
 import Language.Haskell.TH hiding (Cxt)
 import Control.Monad (liftM)
-import Data.Traversable (Traversable)
-import Data.Comp.Term
-import Data.Comp.Algebra (CxtFunM, appSigFunM')
-import Data.Comp.Ops ((:+:)(..), (:<:)(..))
+import Data.Comp.Param.Ditraversable (Ditraversable)
+import Data.Comp.Param.Term
+import Data.Comp.Param.Algebra (CxtFunM, appSigFunM')
+import Data.Comp.Param.Ops ((:+:)(..), (:<:)(..))
 
 projn :: Int -> Q [Dec]
 projn n = do
   let p = mkName $ "proj" ++ show n
   let gvars = map (\n -> mkName $ 'g' : show n) [1..n]
   let avar = mkName "a"
+  let bvar = mkName "b"
   let xvar = mkName "x"
-  let d = [funD p [clause [varP xvar] (normalB $ genDecl xvar gvars avar) []]]
-  sequence $ (sigD p $ genSig gvars avar) : d
-    where genSig gvars avar = do
+  let d = [funD p [clause [varP xvar] (normalB $ genDecl xvar gvars avar bvar) []]]
+  sequence $ (sigD p $ genSig gvars avar bvar) : d
+    where genSig gvars avar bvar = do
             let fvar = mkName "f"
             let cxt = map (\g -> classP ''(:<:) [varT g, varT fvar]) gvars
             let tp = foldl1 (\a g -> conT ''(:+:) `appT` g `appT` a)
                             (map varT gvars)
-            let tp' = arrowT `appT` (varT fvar `appT` varT avar)
+            let tp' = arrowT `appT` (varT fvar `appT` varT avar `appT`
+                                     varT bvar)
                              `appT` (conT ''Maybe `appT`
-                                     (tp `appT` varT avar))
-            forallT (map PlainTV $ fvar : avar : gvars) (sequence cxt) tp'
-          genDecl x [g] a =
+                                     (tp `appT` varT avar `appT` varT bvar))
+            forallT (map PlainTV $ fvar : avar : bvar : gvars)
+                    (sequence cxt) tp'
+          genDecl x [g] a b =
             [| liftM inj (proj $(varE x)
-                          :: Maybe ($(varT g `appT` varT a))) |]
-          genDecl x (g:gs) a =
+                          :: Maybe ($(varT g `appT` varT a `appT` varT b))) |]
+          genDecl x (g:gs) a b =
             [| case (proj $(varE x)
-                         :: Maybe ($(varT g `appT` varT a))) of
+                         :: Maybe ($(varT g `appT` varT a `appT` varT b))) of
                  Just y -> Just $ inj y
-                 _ -> $(genDecl x gs a) |]
-          genDecl _ _ _ = error "genDecl called with empty list"
+                 _ -> $(genDecl x gs a b) |]
+          genDecl _ _ _ _ = error "genDecl called with empty list"
 
 projectn :: Int -> Q [Dec]
 projectn n = do
   let p = mkName ("project" ++ show n)
   let gvars = map (\n -> mkName $ 'g' : show n) [1..n]
   let avar = mkName "a"
+  let bvar = mkName "b"
   let xvar = mkName "x"
   let d = [funD p [clause [varP xvar] (normalB $ genDecl xvar n) []]]
-  sequence $ (sigD p $ genSig gvars avar) : d
-    where genSig gvars avar = do
+  sequence $ (sigD p $ genSig gvars avar bvar) : d
+    where genSig gvars avar bvar = do
             let fvar = mkName "f"
             let hvar = mkName "h"
             let cxt = map (\g -> classP ''(:<:) [varT g, varT fvar]) gvars
             let tp = foldl1 (\a g -> conT ''(:+:) `appT` g `appT` a)
                             (map varT gvars)
             let tp' = conT ''Cxt `appT` varT hvar `appT` varT fvar
-                                 `appT` varT avar
+                                 `appT` varT avar `appT` varT bvar
             let tp'' = arrowT `appT` tp'
-                              `appT` (conT ''Maybe `appT` (tp `appT` tp'))
-            forallT (map PlainTV $ hvar : fvar : avar : gvars)
+                              `appT` (conT ''Maybe `appT`
+                                      (tp `appT` varT avar `appT` tp'))
+            forallT (map PlainTV $ hvar : fvar : avar : bvar : gvars)
                     (sequence cxt) tp''
           genDecl x n = [| case $(varE x) of
                              Hole _ -> Nothing
+                             Place _ -> Nothing
                              Term t -> $(varE $ mkName $ "proj" ++ show n) t |]
 
 deepProjectn :: Int -> Q [Dec]
@@ -88,7 +94,7 @@ deepProjectn n = do
             let cxt = map (\g -> classP ''(:<:) [varT g, varT fvar]) gvars
             let tp = foldl1 (\a g -> conT ''(:+:) `appT` g `appT` a)
                             (map varT gvars)
-            let cxt' = classP ''Traversable [tp]
+            let cxt' = classP ''Ditraversable [tp, conT ''Maybe, conT ''Any]
             let tp' = conT ''CxtFunM `appT` conT ''Maybe
                                      `appT` varT fvar `appT` tp
             forallT (map PlainTV $ fvar : gvars) (sequence $ cxt' : cxt) tp'

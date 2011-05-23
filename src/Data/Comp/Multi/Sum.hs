@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, GADTs, ScopedTypeVariables, IncoherentInstances,
-  RankNTypes, FlexibleContexts #-}
+  RankNTypes, FlexibleContexts, TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Sum
@@ -16,28 +16,72 @@
 
 module Data.Comp.Multi.Sum
     (
-     (:<:)(..),
+     (:<:),
      (:+:),
 
      -- * Projections for Signatures and Terms
+     proj,
      proj2,
      proj3,
+     proj4,
+     proj5,
+     proj6,
+     proj7,
+     proj8,
+     proj9,
+     proj10,
      project,
      project2,
      project3,
+     project4,
+     project5,
+     project6,
+     project7,
+     project8,
+     project9,
+     project10,
      deepProject,
      deepProject2,
      deepProject3,
+     deepProject4,
+     deepProject5,
+     deepProject6,
+     deepProject7,
+     deepProject8,
+     deepProject9,
+     deepProject10,
 
      -- * Injections for Signatures and Terms
+     inj,
      inj2,
      inj3,
+     inj4,
+     inj5,
+     inj6,
+     inj7,
+     inj8,
+     inj9,
+     inj10,
      inject,
      inject2,
      inject3,
+     inject4,
+     inject5,
+     inject6,
+     inject7,
+     inject8,
+     inject9,
+     inject10,
      deepInject,
      deepInject2,
      deepInject3,
+     deepInject4,
+     deepInject5,
+     deepInject6,
+     deepInject7,
+     deepInject8,
+     deepInject9,
+     deepInject10,
 
      -- * Injections and Projections for Constants
      injectConst,
@@ -55,97 +99,64 @@ import Data.Comp.Multi.Traversable
 import Data.Comp.Multi.Ops
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Algebra
+import Data.Comp.Multi.Derive.Projections
+import Data.Comp.Multi.Derive.Injections
 import Control.Monad (liftM)
 
-{-| A variant of 'proj' for binary sum signatures.  -}
-proj2 :: forall f g1 g2 a i. (g1 :<: f, g2 :<: f) =>
-          f a i -> Maybe (((g1 :+: g2) a) i)
-proj2 x = case proj x of
-             Just (y :: g1 a i) -> Just $ inj y
-             _ -> liftM inj (proj x :: Maybe (g2 a i))
+$(liftM concat $ mapM projn [2..10])
 
-{-| A variant of 'proj' for ternary sum signatures.  -}
-proj3 :: forall f g1 g2 g3 a i. (g1 :<: f, g2 :<: f, g3 :<: f) =>
-          f a i -> Maybe (((g1 :+: g2 :+: g3) a) i)
-proj3 x = case proj x of
-             Just (y :: g1 a i) -> Just $ inj y
-             _ -> case proj x of
-                    Just (y :: g2 a i) -> Just $ inj y
-                    _ -> liftM inj (proj x :: Maybe (g3 a i))
-
--- |Project the outermost layer of a term to a sub signature.
-project :: (g :<: f) => NatM Maybe (Cxt h f a)  (g (Cxt h f a))
+-- |Project the outermost layer of a term to a sub signature. If the signature
+-- @g@ is compound of /n/ atomic signatures, use @project@/n/ instead.
+project :: (g :<: f) => NatM Maybe (Cxt h f a) (g (Cxt h f a))
 project (Hole _) = Nothing
 project (Term t) = proj t
 
--- |Project the outermost layer of a term to a binary sub signature.
-project2 :: (g1 :<: f, g2 :<: f) =>
-             NatM Maybe (Cxt h f a) ((g1 :+: g2) (Cxt h f a))
-project2 (Hole _) = Nothing
-project2 (Term t) = proj2 t
+$(liftM concat $ mapM projectn [2..10])
 
--- |Project the outermost layer of a term to a ternary sub signature.
-project3 :: (g1 :<: f, g2 :<: f, g3 :<: f) =>
-             NatM Maybe (Cxt h f a) ((g1 :+: g2 :+: g3) (Cxt h f a))
-project3 (Hole _) = Nothing
-project3 (Term t) = proj3 t
-
--- | Tries to coerce a term/context to a term/context over a
--- sub-signature.
+-- | Tries to coerce a term/context to a term/context over a sub-signature. If
+-- the signature @g@ is compound of /n/ atomic signatures, use
+-- @deepProject@/n/ instead.
 deepProject :: (HTraversable g, g :<: f)  => CxtFunM Maybe f g
+{-# INLINE deepProject #-}
 deepProject = appSigFunM' proj
 
--- | This is a variant of 'deepProject' that can be used if the target
--- signature cannot be derived as being a sub-signature of the source
--- signature directly but its decomposition into two summands can.
-deepProject2 :: (HTraversable (g1 :+: g2), g1 :<: f, g2 :<: f)
-             => CxtFunM Maybe f (g1 :+: g2)
-deepProject2 = appSigFunM' proj2
+$(liftM concat $ mapM deepProjectn [2..10])
+{-# INLINE deepProject2 #-}
+{-# INLINE deepProject3 #-}
+{-# INLINE deepProject4 #-}
+{-# INLINE deepProject5 #-}
+{-# INLINE deepProject6 #-}
+{-# INLINE deepProject7 #-}
+{-# INLINE deepProject8 #-}
+{-# INLINE deepProject9 #-}
+{-# INLINE deepProject10 #-}
 
--- | This is a variant of 'deepProject' that can be used if the target
--- signature cannot be derived as being a sub-signature of the source
--- signature directly but its decomposition into three summands can.
-deepProject3 :: (HTraversable (g1 :+: g2 :+: g3), g1 :<: f, g2 :<: f, g3 :<: f)
-              => CxtFunM Maybe f (g1 :+: g2 :+: g3)
-deepProject3 = appSigFunM' proj3
+$(liftM concat $ mapM injn [2..10])
 
-{-| A variant of 'inj' for binary sum signatures.  -}
-inj2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) a :-> g a
-inj2 (Inl x) = inj x
-inj2 (Inr y) = inj y
-
-{-| A variant of 'inj' for ternary sum signatures.  -}
-inj3 :: (f1 :<: g, f2 :<: g, f3 :<: g) => (f1 :+: f2 :+: f3) a :-> g a
-inj3 (Inl x) = inj x
-inj3 (Inr y) = inj2 y
-
--- |Inject a term where the outermost layer is a sub signature.
+-- |Inject a term where the outermost layer is a sub signature. If the signature
+-- @g@ is compound of /n/ atomic signatures, use @inject@/n/ instead.
 inject :: (g :<: f) => g (Cxt h f a) :-> Cxt h f a
 inject = Term . inj
 
--- |Inject a term where the outermost layer is a binary sub signature.
-inject2 :: (f1 :<: g, f2 :<: g) => (f1 :+: f2) (Cxt h g a) :-> Cxt h g a
-inject2 = Term . inj2
+$(liftM concat $ mapM injectn [2..10])
 
--- |Inject a term where the outermost layer is a ternary sub signature.
-inject3 :: (f1 :<: g, f2 :<: g, f3 :<: g)
-         => (f1 :+: f2 :+: f3) (Cxt h g a) :-> Cxt h g a
-inject3 = Term . inj3
-
--- |Inject a term over a sub signature to a term over larger signature.
-deepInject :: (HFunctor g, HFunctor f, g :<: f) => Cxt h g a :-> Cxt h f a
+-- |Inject a term over a sub signature to a term over larger signature. If the
+-- signature @g@ is compound of /n/ atomic signatures, use @deepInject@/n/
+-- instead.
+deepInject :: (HFunctor g, g :<: f) => CxtFun g f
+{-# INLINE deepInject #-}
 deepInject = appSigFun inj
 
--- |Inject a term over a binary sub signature to a term over larger signature.
-deepInject2 :: (HFunctor f1, HFunctor f2, HFunctor g, f1 :<: g, f2 :<: g)
-             => Cxt h (f1 :+: f2) a :-> Cxt h g a
-deepInject2 = appSigFun inj2
-
--- |Inject a term over a ternary sub signature to a term over larger signature.
-deepInject3 :: (HFunctor f1, HFunctor f2, HFunctor f3, HFunctor g,
-                 f1 :<: g, f2 :<: g, f3 :<: g)
-             => Cxt h (f1 :+: f2 :+: f3) a :-> Cxt h g a
-deepInject3 = appSigFun inj3
+$(liftM concat $ mapM deepInjectn [2..10])
+{-# INLINE deepInject2 #-}
+{-# INLINE deepInject3 #-}
+{-# INLINE deepInject4 #-}
+{-# INLINE deepInject5 #-}
+{-# INLINE deepInject6 #-}
+{-# INLINE deepInject7 #-}
+{-# INLINE deepInject8 #-}
+{-# INLINE deepInject9 #-}
+{-# INLINE deepInject10 #-}
 
 -- | This function injects a whole context into another context.
 injectCxt :: (HFunctor g, g :<: f) => Cxt h' g (Cxt h f a) :-> Cxt h f a
