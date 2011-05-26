@@ -1,5 +1,5 @@
 {-# LANGUAGE RankNTypes, MultiParamTypeClasses, FlexibleInstances,
-FlexibleContexts, UndecidableInstances, TemplateHaskell, TypeOperators, ImplicitParams #-}
+FlexibleContexts, UndecidableInstances, TemplateHaskell, TypeOperators, ImplicitParams, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.GTermHom
@@ -28,13 +28,25 @@ type Transducer q f g = forall a. f (q,a) -> (q, Context g a)
 algebra.  -}
 
 duttAlg :: (Functor g)  => Transducer q f g -> Alg f (q, Term g)
-duttAlg trans = fmap injectCxt . trans 
+duttAlg trans = fmap appCxt . trans 
 
 {-| This function runs the given Transducer transition function on the given
 term.  -}
 
 runTransducer :: (Functor f, Functor g) => Transducer q f g -> Term f -> (q, Term g)
 runTransducer = cata . duttAlg
+
+
+runTransducer' :: (Functor f, Functor g) => (a -> q) -> Transducer q f g -> Context f a -> (q, Context g a)
+runTransducer' st trans = run where
+    run (Hole a) = (st a, Hole a)
+    run (Term t) = fmap appCxt $ trans $ fmap run t
+    
+compTransducer :: (Functor f, Functor g, Functor h)
+               => Transducer q2 g h -> Transducer q1 f g -> Transducer (q1,q2) f h
+compTransducer t2 t1 x = ((q1,q2), fmap snd c2) where
+    (q1, c1) = t1 $ fmap (\((q1,q2),a) -> (q1,(q2,a))) x
+    (q2, c2) = runTransducer' fst t2 c1
 
 type GTermHom q f g = forall a . (?state :: a -> q) => f a -> Context g a
 
@@ -46,6 +58,10 @@ toTransducer alg f t = (q, c)
 
 gTermHom :: (Functor f, Functor g) => Alg f q -> GTermHom q f g -> Term f -> (q,Term g)
 gTermHom alg h = runTransducer (toTransducer alg h)
+
+gTermHom' :: (Functor f, Functor g) => (a -> q) -> Alg f q -> GTermHom q f g -> Context f a -> (q, Context g a)
+gTermHom' st alg h = runTransducer' st (toTransducer alg h)
+          
 
 data Str a = Str
 data Base a = Char | List a
