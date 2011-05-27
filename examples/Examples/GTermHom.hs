@@ -22,45 +22,45 @@ import Data.Comp.Derive
 {-| This function represents transition functions of
 deterministic bottom-up tree transducers (DUTTs).  -}
 
-type Transducer q f g = forall a. f (q,a) -> (q, Context g a)
+type UpTrans q f g = forall a. f (q,a) -> (q, Context g a)
 
-{-| This function transforms a Transducer transition function into an
+{-| This function transforms a UpTrans transition function into an
 algebra.  -}
 
-duttAlg :: (Functor g)  => Transducer q f g -> Alg f (q, Term g)
+duttAlg :: (Functor g)  => UpTrans q f g -> Alg f (q, Term g)
 duttAlg trans = fmap appCxt . trans 
 
-{-| This function runs the given Transducer transition function on the given
+{-| This function runs the given UpTrans transition function on the given
 term.  -}
 
-runTransducer :: (Functor f, Functor g) => Transducer q f g -> Term f -> (q, Term g)
-runTransducer = cata . duttAlg
+runUpTrans :: (Functor f, Functor g) => UpTrans q f g -> Term f -> (q, Term g)
+runUpTrans = cata . duttAlg
 
 
-runTransducer' :: (Functor f, Functor g) => (a -> q) -> Transducer q f g -> Context f a -> (q, Context g a)
-runTransducer' st trans = run where
+runUpTrans' :: (Functor f, Functor g) => (a -> q) -> UpTrans q f g -> Context f a -> (q, Context g a)
+runUpTrans' st trans = run where
     run (Hole a) = (st a, Hole a)
     run (Term t) = fmap appCxt $ trans $ fmap run t
     
-compTransducer :: (Functor f, Functor g, Functor h)
-               => Transducer q2 g h -> Transducer q1 f g -> Transducer (q1,q2) f h
-compTransducer t2 t1 x = ((q1,q2), fmap snd c2) where
+compUpTrans :: (Functor f, Functor g, Functor h)
+               => UpTrans q2 g h -> UpTrans q1 f g -> UpTrans (q1,q2) f h
+compUpTrans t2 t1 x = ((q1,q2), fmap snd c2) where
     (q1, c1) = t1 $ fmap (\((q1,q2),a) -> (q1,(q2,a))) x
-    (q2, c2) = runTransducer' fst t2 c1
+    (q2, c2) = runUpTrans' fst t2 c1
 
-type GTermHom q f g = forall a . (?state :: a -> q) => f a -> Context g a
+type GTermHom q f g = forall a . (?below :: a -> q, ?above :: q) => f a -> Context g a
 
-toTransducer :: (Functor f, Functor g) => Alg f q -> GTermHom q f g -> Transducer q f g
-toTransducer alg f t = (q, c)
+toUpTrans :: (Functor f, Functor g) => Alg f q -> GTermHom q f g -> UpTrans q f g
+toUpTrans alg f t = (q, c)
     where q = alg $ fmap fst t
-          c =  fmap snd $ (let ?state = fst in f t)
+          c =  fmap snd $ (let ?below = fst; ?above = q in f t)
 
 
 gTermHom :: (Functor f, Functor g) => Alg f q -> GTermHom q f g -> Term f -> (q,Term g)
-gTermHom alg h = runTransducer (toTransducer alg h)
+gTermHom alg h = runUpTrans (toUpTrans alg h)
 
 gTermHom' :: (Functor f, Functor g) => (a -> q) -> Alg f q -> GTermHom q f g -> Context f a -> (q, Context g a)
-gTermHom' st alg h = runTransducer' st (toTransducer alg h)
+gTermHom' st alg h = runUpTrans' st (toUpTrans alg h)
           
 
 data Str a = Str
@@ -90,7 +90,7 @@ instance (Str :<: f, Functor f) =>  StringType Str f where
 instance (Str :<:  f, Base :<: f, Functor f) =>  StringType Base f where
     strTypeHom Char = iChar
     strTypeHom (List t)
-               | ?state t  = iStr 
+               | ?below t  = iStr 
                | otherwise = iList $ Hole t
 
 
