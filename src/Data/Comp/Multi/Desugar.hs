@@ -28,12 +28,12 @@ class (HFunctor f, HFunctor g) => Desugar f g where
 $(derive [liftSum] [''Desugar])
 
 -- |Desugar a term.
-desugar :: (Desugar f g, HFunctor f) => Term f :-> Term g
+desugar :: Desugar f g => Term f :-> Term g
 desugar = appTermHom desugHom
 
 -- |Lift desugaring to annotated terms.
-desugarA :: (HFunctor f, HFunctor f', HFunctor g, HFunctor g',
-             DistAnn f p f', DistAnn g p g', Desugar f g) => Term f' :-> Term g'
+desugarA :: (HFunctor f', HFunctor g', DistAnn f p f', DistAnn g p g',
+             Desugar f g) => Term f' :-> Term g'
 desugarA = appTermHom (propAnn desugHom)
 
 -- |Default desugaring instance.

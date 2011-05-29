@@ -28,13 +28,13 @@ class (Difunctor f, Difunctor g) => Desugar f g where
 $(derive [liftSum] [''Desugar])
 
 -- |Desugar a term.
-desugar :: (Desugar f g, Difunctor f) => Term f -> Term g
+desugar :: Desugar f g => Term f -> Term g
 {-# INLINE desugar #-}
 desugar = appTermHom desugHom
 
 -- |Lift desugaring to annotated terms.
-desugarA :: (Difunctor f, Difunctor f', Difunctor g, Difunctor g',
-             DistAnn f p f', DistAnn g p g', Desugar f g) => Term f' -> Term g'
+desugarA :: (Difunctor f', Difunctor g', DistAnn f p f', DistAnn g p g',
+             Desugar f g) => Term f' -> Term g'
 desugarA = appTermHom (propAnn desugHom)
 
 -- |Default desugaring instance.
