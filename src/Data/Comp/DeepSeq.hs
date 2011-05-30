@@ -38,4 +38,4 @@ instance (NFDataF f, NFData a) => NFData (Cxt h f a) where
 instance NFData Nothing where
 
 $(derive [liftSum] [''NFDataF])
-$(derive [instanceNFDataF] [''Maybe, ''[], ''(,)])
+$(derive [makeNFDataF] [''Maybe, ''[], ''(,)])

@@ -15,7 +15,7 @@
 module Data.Comp.Param.Derive.Ordering
     (
      OrdD(..),
-     instanceOrdD
+     makeOrdD
     ) where
 
 import Data.Comp.Param.FreshM
@@ -31,8 +31,8 @@ compList = fromMaybe EQ . find (/= EQ)
 
 {-| Derive an instance of 'OrdD' for a type constructor of any parametric
   kind taking at least two arguments. -}
-instanceOrdD :: Name -> Q [Dec]
-instanceOrdD fname = do
+makeOrdD :: Name -> Q [Dec]
+makeOrdD fname = do
   -- Comments below apply to the example where name = T, args = [a,b,c], and
   -- constrs = [(X,[c]), (Y,[a,c]), (Z,[b -> c])], i.e. the data type
   -- declaration: T a b c = X c | Y a c | Z (b -> c)

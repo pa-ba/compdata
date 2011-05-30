@@ -15,7 +15,7 @@
 module Data.Comp.Derive.DeepSeq
     (
      NFDataF(..),
-     instanceNFDataF
+     makeNFDataF
     ) where
 
 
@@ -31,8 +31,8 @@ class NFDataF f where
 
 {-| Derive an instance of 'NFDataF' for a type constructor of any first-order
   kind taking at least one argument. -}
-instanceNFDataF :: Name -> Q [Dec]
-instanceNFDataF fname = do
+makeNFDataF :: Name -> Q [Dec]
+makeNFDataF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = (map (VarT . tyVarBndrName) (init args))

@@ -15,7 +15,7 @@
 module Data.Comp.Multi.Derive.Traversable
     (
      HTraversable,
-     instanceHTraversable
+     makeHTraversable
     ) where
 
 import Data.Comp.Derive.Utils
@@ -39,8 +39,8 @@ iter' n f e = run n f e
 
 {-| Derive an instance of 'HTraversable' for a type constructor of any
   higher-order kind taking at least two arguments. -}
-instanceHTraversable :: Name -> Q [Dec]
-instanceHTraversable fname = do
+makeHTraversable :: Name -> Q [Dec]
+makeHTraversable fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       fArg = VarT . tyVarBndrName $ last args'

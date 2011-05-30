@@ -69,11 +69,11 @@ data Sugar e = Neg e
              | Impl e e
                deriving (Eq, Functor)
 
-$(derive [instanceNFData, instanceArbitrary] [''Proj])
+$(derive [makeNFData, makeArbitrary] [''Proj])
 
 $(derive
-  [instanceFoldable, instanceTraversable,
-   instanceEqF, instanceNFDataF, instanceArbitraryF, smartConstructors]
+  [makeFoldable, makeTraversable,
+   makeEqF, makeNFDataF, makeArbitraryF, smartConstructors]
   [''Value, ''Op, ''Sugar, ''ValueT])
 
 showBinOp :: String -> String -> String -> String

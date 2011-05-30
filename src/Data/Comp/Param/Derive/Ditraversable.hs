@@ -15,7 +15,7 @@
 module Data.Comp.Param.Derive.Ditraversable
     (
      Ditraversable,
-     instanceDitraversable
+     makeDitraversable
     ) where
 
 import Data.Comp.Derive.Utils
@@ -36,8 +36,8 @@ iter' n f e = run n f e
 
 {-| Derive an instance of 'Traversable' for a type constructor of any
   first-order kind taking at least one argument. -}
-instanceDitraversable :: Name -> Q [Dec]
-instanceDitraversable fname = do
+makeDitraversable :: Name -> Q [Dec]
+makeDitraversable fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   monadType <- varT =<< newName "m"
   domainType <- varT =<< newName "d"

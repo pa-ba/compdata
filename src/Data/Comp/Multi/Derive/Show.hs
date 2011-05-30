@@ -16,7 +16,7 @@ module Data.Comp.Multi.Derive.Show
     (
      HShowF(..),
      KShow(..),
-     instanceHShowF
+     makeHShowF
     ) where
 
 import Data.Comp.Derive.Utils
@@ -41,8 +41,8 @@ showConstr con args = "(" ++ con ++ " " ++ unwords args ++ ")"
 
 {-| Derive an instance of 'HShowF' for a type constructor of any higher-order
   kind taking at least two arguments. -}
-instanceHShowF :: Name -> Q [Dec]
-instanceHShowF fname = do
+makeHShowF :: Name -> Q [Dec]
+makeHShowF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       fArg = VarT . tyVarBndrName $ last args'

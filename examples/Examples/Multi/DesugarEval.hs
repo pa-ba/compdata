@@ -49,8 +49,8 @@ type Sig' = Sugar :+: Op :+: Value
 type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 
 -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-$(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
-          instanceHEqF, instanceHShowF, smartConstructors]
+$(derive [makeHFunctor, makeHTraversable, makeHFoldable,
+          makeHEqF, makeHShowF, smartConstructors]
          [''Value, ''Op, ''Sugar])
 
 instance (Op :<: v, Value :<: v, HFunctor v) => Desugar Sugar v where

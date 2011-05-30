@@ -15,7 +15,7 @@
 module Data.Comp.MultiParam.Derive.Ordering
     (
      OrdHD(..),
-     instanceOrdHD
+     makeOrdHD
     ) where
 
 import Data.Comp.MultiParam.FreshM
@@ -31,8 +31,8 @@ compList = fromMaybe EQ . find (/= EQ)
 
 {-| Derive an instance of 'OrdHD' for a type constructor of any parametric
   kind taking at least three arguments. -}
-instanceOrdHD :: Name -> Q [Dec]
-instanceOrdHD fname = do
+makeOrdHD :: Name -> Q [Dec]
+makeOrdHD fname = do
   TyConI (DataD _ name args constrs _) <- abstractNewtypeQ $ reify fname
   let args' = init args
   -- covariant argument

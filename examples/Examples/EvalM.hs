@@ -31,8 +31,8 @@ data Op e = Add e e | Mult e e | Fst e | Snd e
 type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell
-$(derive [instanceFunctor, instanceTraversable, instanceFoldable,
-          instanceEqF, instanceShowF, smartConstructors]
+$(derive [makeFunctor, makeTraversable, makeFoldable,
+          makeEqF, makeShowF, smartConstructors]
          [''Value, ''Op])
 
 -- Monadic term evaluation algebra

@@ -16,7 +16,7 @@ data Tree l e = Leaf l
 data Pair a e = Pair a e
 
 $(derive
-  [instanceFunctor, instanceFoldable, instanceShowF, instanceEqF, instanceArbitraryF]
+  [makeFunctor, makeFoldable, makeShowF, makeEqF, makeArbitraryF]
   [''Tree, ''Pair])
 
 $(derive

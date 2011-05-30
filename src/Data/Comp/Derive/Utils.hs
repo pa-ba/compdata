@@ -104,7 +104,7 @@ tupleTypes n m = map tupleTypeName [n..m]
  'ShowF' for a signature @Exp@, use derive as follows (requires Template
  Haskell):
 
- > $(derive [instanceFunctor, instanceShowF] [''Exp])
+ > $(derive [makeFunctor, makeShowF] [''Exp])
  -}
 derive :: [Name -> Q [Dec]] -> [Name] -> Q [Dec]
 derive ders names = liftM concat $ sequence [der name | der <- ders, name <- names]

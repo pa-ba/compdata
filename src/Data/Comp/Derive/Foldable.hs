@@ -15,7 +15,7 @@
 module Data.Comp.Derive.Foldable
     (
      Foldable,
-     instanceFoldable
+     makeFoldable
     ) where
 
 import Data.Comp.Derive.Utils
@@ -38,8 +38,8 @@ iter' n f e = run n f e
 
 {-| Derive an instance of 'Foldable' for a type constructor of any first-order
   kind taking at least one argument. -}
-instanceFoldable :: Name -> Q [Dec]
-instanceFoldable fname = do
+makeFoldable :: Name -> Q [Dec]
+makeFoldable fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = (map (VarT . tyVarBndrName) (init args))

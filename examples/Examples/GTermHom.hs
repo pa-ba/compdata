@@ -68,7 +68,7 @@ data Base a = Char | List a
 
 type Typ = Str :+: Base
 
-$(derive [instanceFunctor,smartConstructors, instanceShowF] [''Str,''Base])
+$(derive [makeFunctor,smartConstructors, makeShowF] [''Str,''Base])
 
 class StringType f g where
     strTypeHom :: GTermHom Bool f g

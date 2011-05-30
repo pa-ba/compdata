@@ -39,9 +39,9 @@ data Op :: (* -> *) -> (* -> *) -> * -> * where
 type Sig = Const :+: Lam :+: App :+: Op
 
 -- Derive boilerplate code using Template Haskell
-$(derive [instanceHDifunctor, instanceEqHD, instanceShowHD, smartConstructors]
+$(derive [makeHDifunctor, makeEqHD, makeShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op])
-$(derive [instanceHFoldable, instanceHTraversable]
+$(derive [makeHFoldable, makeHTraversable]
          [''Const, ''App, ''Op])
 
 -- Term evaluation algebra

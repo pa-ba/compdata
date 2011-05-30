@@ -15,7 +15,7 @@
 module Data.Comp.Multi.Derive.Functor
     (
      HFunctor,
-     instanceHFunctor
+     makeHFunctor
     ) where
 
 import Data.Comp.Derive.Utils
@@ -31,8 +31,8 @@ iter n f e = iter (n-1) f (f `appE` e)
 
 {-| Derive an instance of 'HFunctor' for a type constructor of any higher-order
   kind taking at least two arguments. -}
-instanceHFunctor :: Name -> Q [Dec]
-instanceHFunctor fname = do
+makeHFunctor :: Name -> Q [Dec]
+makeHFunctor fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       fArg = VarT . tyVarBndrName $ last args'

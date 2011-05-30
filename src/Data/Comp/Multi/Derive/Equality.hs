@@ -15,7 +15,7 @@ module Data.Comp.Multi.Derive.Equality
     (
      HEqF(..),
      KEq(..),
-     instanceHEqF
+     makeHEqF
     ) where
 
 import Data.Comp.Derive.Utils
@@ -44,8 +44,8 @@ instance KEq a => Eq (A a) where
 
 {-| Derive an instance of 'HEqF' for a type constructor of any higher-order
   kind taking at least two arguments. -}
-instanceHEqF :: Name -> Q [Dec]
-instanceHEqF fname = do
+makeHEqF :: Name -> Q [Dec]
+makeHEqF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       argNames = (map (VarT . tyVarBndrName) (init args'))

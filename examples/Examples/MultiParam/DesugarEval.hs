@@ -56,9 +56,9 @@ type Value = Const :+: Fun
 type GValue = Const
 
 -- Derive boilerplate code using Template Haskell
-$(derive [instanceHDifunctor, instanceEqHD, instanceShowHD, smartConstructors]
+$(derive [makeHDifunctor, makeEqHD, makeShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op, ''IfThenElse, ''Sug])
-$(derive [instanceHFoldable, instanceHTraversable]
+$(derive [makeHFoldable, makeHTraversable]
          [''Const, ''App, ''Op])
 $(derive [smartConstructors] [''Fun])
 

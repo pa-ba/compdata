@@ -73,4 +73,4 @@ eqMod s t
           unit' = fmap (const ())
           args = toList s `zip` toList t
 
-$(derive [instanceEqF] $ (''Maybe) : tupleTypes 2 10)
+$(derive [makeEqF] $ (''Maybe) : tupleTypes 2 10)

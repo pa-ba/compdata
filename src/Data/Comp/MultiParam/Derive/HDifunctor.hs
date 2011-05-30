@@ -15,7 +15,7 @@
 module Data.Comp.MultiParam.Derive.HDifunctor
     (
      HDifunctor,
-     instanceHDifunctor
+     makeHDifunctor
     ) where
 
 import Data.Comp.Derive.Utils
@@ -24,8 +24,8 @@ import Language.Haskell.TH
 
 {-| Derive an instance of 'HDifunctor' for a type constructor of any parametric
   kind taking at least three arguments. -}
-instanceHDifunctor :: Name -> Q [Dec]
-instanceHDifunctor fname = do
+makeHDifunctor :: Name -> Q [Dec]
+makeHDifunctor fname = do
   TyConI (DataD _ name args constrs _) <- abstractNewtypeQ $ reify fname
   let args' = init args
   -- covariant argument

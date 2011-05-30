@@ -15,19 +15,19 @@
 module Data.Comp.Derive.Arbitrary
     (
      ArbitraryF(..),
-     instanceArbitraryF,
+     makeArbitraryF,
      Arbitrary(..),
-     instanceArbitrary
+     makeArbitrary
     )where
 
 import Test.QuickCheck
 import Data.Comp.Derive.Utils hiding (derive)
 import Language.Haskell.TH
-import Data.DeriveTH
+import qualified Data.DeriveTH as D
 
 {-| Derive an instance of 'Arbitrary' for a type constructor. -}
-instanceArbitrary :: Name -> Q [Dec]
-instanceArbitrary = derive makeArbitrary
+makeArbitrary :: Name -> Q [Dec]
+makeArbitrary = D.derive D.makeArbitrary
 
 {-| Signature arbitration. An instance @ArbitraryF f@ gives rise to an instance
   @Arbitrary (Term f)@. -}
@@ -43,8 +43,8 @@ class ArbitraryF f where
   first-order kind taking at least one argument. It is necessary that
   all types that are used by the data type definition are themselves
   instances of 'Arbitrary'. -}
-instanceArbitraryF :: Name -> Q [Dec]
-instanceArbitraryF dt = do
+makeArbitraryF :: Name -> Q [Dec]
+makeArbitraryF dt = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify dt
   let argNames = (map (VarT . tyVarBndrName) (tail args))
       complType = foldl AppT (ConT name) argNames

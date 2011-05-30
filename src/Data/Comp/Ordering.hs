@@ -53,4 +53,4 @@ instance (OrdF f, OrdF g) => OrdF (f :+: g) where
     compareF (Inl x) (Inl y) = compareF x y
     compareF (Inr x) (Inr y) = compareF x y
 
-$(derive [instanceOrdF] $ [''Maybe, ''[]] ++ tupleTypes 2 10)
+$(derive [makeOrdF] $ [''Maybe, ''[]] ++ tupleTypes 2 10)

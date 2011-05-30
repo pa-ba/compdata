@@ -15,7 +15,7 @@
 module Data.Comp.Derive.Traversable
     (
      Traversable,
-     instanceTraversable
+     makeTraversable
     ) where
 
 import Data.Comp.Derive.Utils
@@ -38,8 +38,8 @@ iter' n f e = run n f e
 
 {-| Derive an instance of 'Traversable' for a type constructor of any
   first-order kind taking at least one argument. -}
-instanceTraversable :: Name -> Q [Dec]
-instanceTraversable fname = do
+makeTraversable :: Name -> Q [Dec]
+makeTraversable fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = (map (VarT . tyVarBndrName) (init args))
