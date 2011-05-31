@@ -75,6 +75,10 @@ Description:
      lifted to generalised parametric data types, which enables support for
      typed parametric higher-order abstract syntax (PHOAS). This extension
      resides in the module "Data.Comp.MultiParam".
+  .
+
+  Examples of using (generalised) (parametric) compositional data types are
+  bundled with the package in the libray @examples@.
 
 Category:            	Generics
 License:		BSD3
