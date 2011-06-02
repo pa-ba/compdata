@@ -59,8 +59,8 @@ runUpTrans = cata . upAlg
 
 -- | This function generalises 'runUpTrans' to contexts. Therefore,
 -- additionally, a transition function for the holes is needed.
-runUpTrans' :: (Functor f, Functor g) => (a -> q) -> UpTrans q f g -> Context f a -> (q, Context g a)
-runUpTrans' st trans = run where
+runUpTrans' :: (Functor f, Functor g) => UpTrans q f g -> (a -> q) -> Context f a -> (q, Context g a)
+runUpTrans' trans st = run where
     run (Hole a) = (st a, Hole a)
     run (Term t) = fmap appCxt $ trans $ fmap run t
 
@@ -69,7 +69,7 @@ compUpTrans :: (Functor f, Functor g, Functor h)
                => UpTrans q2 g h -> UpTrans q1 f g -> UpTrans (q1,q2) f h
 compUpTrans t2 t1 x = ((q1,q2), fmap snd c2) where
     (q1, c1) = t1 $ fmap (\((q1,q2),a) -> (q1,(q2,a))) x
-    (q2, c2) = runUpTrans' fst t2 c1
+    (q2, c2) = runUpTrans' t2 fst c1
 
 -- | This function turns constructs a DUTT from a given generalised
 -- term homomorphism with the state propagated by the given DUTA.
@@ -85,8 +85,8 @@ upTermHom alg h = runUpTrans (toUpTrans alg h)
 
 -- | This function generalised 'upTermHom' to contexts. To this end
 -- also a transition function for holes is required.
-upTermHom' :: (Functor f, Functor g) => (a -> q) -> UpState f q -> GTermHom q f g -> Context f a -> (q, Context g a)
-upTermHom' st alg h = runUpTrans' st (toUpTrans alg h)
+upTermHom' :: (Functor f, Functor g) => UpState f q -> GTermHom q f g -> (a -> q) -> Context f a -> (q, Context g a)
+upTermHom' alg h = runUpTrans' (toUpTrans alg h)
 
 
 -- | This type represents transition functions of deterministic
@@ -95,10 +95,21 @@ upTermHom' st alg h = runUpTrans' st (toUpTrans alg h)
 type DownTrans q f g = forall a. (q, f a) -> Context g (q,a)
 
 -- | This function runs the given DDTT on the given tree.
-runDownTrans :: (Functor f, Functor g) => DownTrans q f g -> q -> Cxt h f a -> (Cxt h g a)
+runDownTrans :: (Functor f, Functor g) => DownTrans q f g -> q -> Cxt h f a -> Cxt h g a
 runDownTrans tr q t = run (q,t) where
     run (q,Term t) = appCxt $ fmap run $  tr (q, t)
     run (_,Hole a)      = Hole a
+
+-- | This function runs the given DDTT on the given tree.
+runDownTrans' :: (Functor f, Functor g) => DownTrans q f g -> q -> Cxt h f a -> Cxt h g (q,a)
+runDownTrans' tr q t = run (q,t) where
+    run (q,Term t) = appCxt $ fmap run $  tr (q, t)
+    run (q,Hole a)      = Hole (q,a)
+
+-- | This function composes two DDTTs.
+compDownTrans :: (Functor f, Functor g, Functor h)
+              => DownTrans p g h -> DownTrans q f g -> DownTrans (q,p) f h
+compDownTrans t2 t1 ((q,p), t) = fmap (\(p, (q, a)) -> ((q,p),a)) $ runDownTrans' t2 p (t1 (q, t))
 
 
 -- | This type represents transition functions of deterministic
@@ -128,16 +139,10 @@ toDownTrans st f (q, s) = c
 -- | This function applies a given generalised term homomorphism with
 -- a state space propagated by the given DUTA to a term.
 downTermHom :: (Zippable f, Functor g)
-            => q -> DownState f q -> GTermHom q f g -> Term f -> Term g
-downTermHom q st h = runDownTrans (toDownTrans st h) q
+            => DownState f q -> GTermHom q f g -> q -> Term f -> Term g
+downTermHom st h = runDownTrans (toDownTrans st h)
 
 
--- | This type represents the transition functions of deterministic
--- bidirectional tree transducers (DBTT), i.e. tree transducers with a
--- two state spaces. One is propagated bottom-up like in a DUTT, the
--- other is propagated top-down like in a DDTT.
-type BiTrans u d f g = forall a .  (d, f (u,a)) -> (u, Context g (d, a))
-          
 -------------
 -- Example --
 -------------
