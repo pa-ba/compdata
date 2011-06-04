@@ -46,6 +46,12 @@ type UpTrans q f g = forall a. f (q,a) -> (q, Context g a)
 -- bottom-up tree acceptors (DUTAs).
 type UpState f q = Alg f q
 
+-- | This function combines the product DUTA of the two given DUTAs.
+prodUpState :: Functor f => UpState f p -> UpState f q -> UpState f (p,q)
+prodUpState sp sq t = (p,q) where
+    p = sp $ fmap fst t
+    q = sq $ fmap snd t
+
 -- | This function transforms DUTT transition function into an
 -- algebra.
 
@@ -115,6 +121,23 @@ compDownTrans t2 t1 ((q,p), t) = fmap (\(p, (q, a)) -> ((q,p),a)) $ runDownTrans
 -- | This type represents transition functions of deterministic
 -- top-down tree acceptors (DDTAs).
 type DownState f q = forall a. Ord a => (q, f a) -> Map a q
+
+-- | This type is needed to construct the product of two DDTAs.
+data ProdState p q = LState p
+                   | RState q
+                   | BState p q
+
+-- | This function constructs the product DDTA of the given two DDTAs.
+prodDownState :: DownState f p -> DownState f q -> DownState f (p,q)
+prodDownState sp sq ((p,q),t) = Map.map final $ Map.unionWith combine ps qs
+    where ps = Map.map LState $ sp (p, t)
+          qs = Map.map RState $ sq (q, t)
+          combine (LState p) (RState q) = BState p q
+          combine (RState q) (LState p) = BState p q
+          combine _ _                   = error "unexpected merging"
+          final (LState p) = (p, q)
+          final (RState q) = (p, q)
+          final (BState p q) = (p,q)
 
 -- | This type is used for applying a DDTAs.
 newtype Numbered a = Numbered (a, Int)
