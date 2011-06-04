@@ -15,7 +15,7 @@
 module Data.Comp.Multi.Derive.Foldable
     (
      HFoldable,
-     instanceHFoldable
+     makeHFoldable
     )where
 
 import Data.Comp.Derive.Utils
@@ -45,8 +45,8 @@ iterSp n f g e = run n e
 
 {-| Derive an instance of 'HFoldable' for a type constructor of any higher-order
   kind taking at least two arguments. -}
-instanceHFoldable :: Name -> Q [Dec]
-instanceHFoldable fname = do
+makeHFoldable :: Name -> Q [Dec]
+makeHFoldable fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       fArg = VarT . tyVarBndrName $ last args'

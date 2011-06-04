@@ -31,8 +31,8 @@ data Op e = Add e e | Mult e e | Fst e | Snd e
 type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell
-$(derive [instanceFunctor, instanceShowF,
-          instanceEqF, smartConstructors] [''Value, ''Op])
+$(derive [makeFunctor, makeShowF,
+          makeEqF, smartConstructors] [''Value, ''Op])
 
 -- Term evaluation algebra
 class Eval f v where

@@ -67,7 +67,7 @@ data Forall :: (* -> *) -> (* -> *) -> * -> * where
                Forall :: (a TTerm -> e TFormula) -> Forall a e TFormula
 
 -- Derive boilerplate code using Template Haskell
-$(derive [instanceHDifunctor, smartConstructors]
+$(derive [makeHDifunctor, smartConstructors]
          [''Const, ''Var, ''TT, ''FF, ''Atom, ''NAtom,
           ''Not, ''Or, ''And, ''Impl, ''Exists, ''Forall])
 

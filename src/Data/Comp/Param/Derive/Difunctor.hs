@@ -15,7 +15,7 @@
 module Data.Comp.Param.Derive.Difunctor
     (
      Difunctor,
-     instanceDifunctor
+     makeDifunctor
     ) where
 
 import Data.Comp.Derive.Utils
@@ -24,8 +24,8 @@ import Language.Haskell.TH
 
 {-| Derive an instance of 'Difunctor' for a type constructor of any parametric
   kind taking at least two arguments. -}
-instanceDifunctor :: Name -> Q [Dec]
-instanceDifunctor fname = do
+makeDifunctor :: Name -> Q [Dec]
+makeDifunctor fname = do
   -- Comments below apply to the example where name = T, args = [a,b,c], and
   -- constrs = [(X,[c]), (Y,[a,c]), (Z,[b -> c])], i.e. the data type
   -- declaration: T a b c = X c | Y a c | Z (b -> c)

@@ -15,7 +15,7 @@
 module Data.Comp.MultiParam.Derive.Equality
     (
      EqHD(..),
-     instanceEqHD
+     makeEqHD
     ) where
 
 import Data.Comp.Derive.Utils
@@ -26,8 +26,8 @@ import Language.Haskell.TH hiding (Cxt, match)
 
 {-| Derive an instance of 'EqHD' for a type constructor of any parametric
   kind taking at least three arguments. -}
-instanceEqHD :: Name -> Q [Dec]
-instanceEqHD fname = do
+makeEqHD :: Name -> Q [Dec]
+makeEqHD fname = do
   TyConI (DataD _ name args constrs _) <- abstractNewtypeQ $ reify fname
   let args' = init args
   -- covariant argument

@@ -15,7 +15,7 @@
 module Data.Comp.Param.Derive.Equality
     (
      EqD(..),
-     instanceEqD
+     makeEqD
     ) where
 
 import Data.Comp.Derive.Utils
@@ -26,8 +26,8 @@ import Language.Haskell.TH hiding (Cxt, match)
 
 {-| Derive an instance of 'EqD' for a type constructor of any parametric
   kind taking at least two arguments. -}
-instanceEqD :: Name -> Q [Dec]
-instanceEqD fname = do
+makeEqD :: Name -> Q [Dec]
+makeEqD fname = do
   -- Comments below apply to the example where name = T, args = [a,b,c], and
   -- constrs = [(X,[c]), (Y,[a,c]), (Z,[b -> c])], i.e. the data type
   -- declaration: T a b c = X c | Y a c | Z (b -> c)

@@ -14,7 +14,7 @@
 module Data.Comp.Derive.Equality
     (
      EqF(..),
-     instanceEqF
+     makeEqF
     ) where
 
 import Data.Comp.Derive.Utils
@@ -29,8 +29,8 @@ class EqF f where
 
 {-| Derive an instance of 'EqF' for a type constructor of any first-order kind
   taking at least one argument. -}
-instanceEqF :: Name -> Q [Dec]
-instanceEqF fname = do
+makeEqF :: Name -> Q [Dec]
+makeEqF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let argNames = (map (VarT . tyVarBndrName) (init args))
       complType = foldl AppT (ConT name) argNames

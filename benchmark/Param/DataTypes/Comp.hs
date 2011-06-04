@@ -63,11 +63,11 @@ data Sugar a e = Neg e
                | Impl e e
 data SugarLet a e = Let e (a -> e)
 
-$(derive [instanceDifunctor, instanceFoldable, instanceTraversable,
-          instanceEqD, instanceShowD, smartConstructors]
+$(derive [makeDifunctor, makeFoldable, makeTraversable,
+          makeEqD, makeShowD, smartConstructors]
          [''Value, ''Op, ''Sugar, ''ValueT])
 
-$(derive [instanceDifunctor, instanceEqD, instanceShowD, smartConstructors]
+$(derive [makeDifunctor, makeEqD, makeShowD, smartConstructors]
          [''Lam, ''SugarLet])
 
 {-

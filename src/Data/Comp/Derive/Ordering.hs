@@ -14,7 +14,7 @@
 module Data.Comp.Derive.Ordering
     (
      OrdF(..),
-     instanceOrdF
+     makeOrdF
     ) where
 
 import Data.Comp.Derive.Equality
@@ -35,8 +35,8 @@ compList = fromMaybe EQ . find (/= EQ)
 
 {-| Derive an instance of 'OrdF' for a type constructor of any first-order kind
   taking at least one argument. -}
-instanceOrdF :: Name -> Q [Dec]
-instanceOrdF fname = do
+makeOrdF :: Name -> Q [Dec]
+makeOrdF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let argNames = (map (VarT . tyVarBndrName) (init args))
       complType = foldl AppT (ConT name) argNames

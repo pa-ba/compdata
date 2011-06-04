@@ -59,7 +59,7 @@ The following language extensions are needed in order to run the example:
 > type Sig = Op :+: Value
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-> $(derive [instanceHFunctor, instanceHShowF, instanceHEqF, smartConstructors] 
+> $(derive [makeHFunctor, makeHShowF, makeHEqF, smartConstructors] 
 >          [''Value, ''Op])
 > 
 > -- Term evaluation algebra
@@ -122,8 +122,8 @@ The following language extensions are needed in order to run the example:
 > type Sig = Op :+: Value
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-> $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
->           instanceHEqF, instanceHShowF, smartConstructors]
+> $(derive [makeHFunctor, makeHTraversable, makeHFoldable,
+>           makeHEqF, makeHShowF, smartConstructors]
 >          [''Value, ''Op])
 > 
 > -- Monadic term evaluation algebra
@@ -191,7 +191,7 @@ The following language extensions are needed in order to run the example:
 > type Sig = Op :+: Value
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-> $(derive [instanceHFunctor, instanceHShowF, instanceHEqF, smartConstructors] 
+> $(derive [makeHFunctor, makeHShowF, makeHEqF, smartConstructors] 
 >          [''Value, ''Op])
 > 
 > -- Term evaluation algebra
@@ -259,8 +259,8 @@ The following language extensions are needed in order to run the example:
 > type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-> $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
->           instanceHEqF, instanceHShowF, smartConstructors]
+> $(derive [makeHFunctor, makeHTraversable, makeHFoldable,
+>           makeHEqF, makeHShowF, smartConstructors]
 >          [''Value, ''Op, ''Sugar])
 > 
 > -- Term homomorphism for desugaring of terms
@@ -358,8 +358,8 @@ The following language extensions are needed in order to run the example:
 > type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 > 
 > -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-> $(derive [instanceHFunctor, instanceHTraversable, instanceHFoldable,
->           instanceHEqF, instanceHShowF, smartConstructors]
+> $(derive [makeHFunctor, makeHTraversable, makeHFoldable,
+>           makeHEqF, makeHShowF, smartConstructors]
 >          [''Value, ''Op, ''Sugar])
 > 
 > -- Term homomorphism for desugaring of terms

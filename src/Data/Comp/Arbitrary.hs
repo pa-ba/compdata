@@ -66,4 +66,4 @@ instance (ArbitraryF f , ArbitraryF g) => ArbitraryF (f :+: g) where
     shrinkF (Inr val) = map Inr (shrinkF val)
 
 
-$(derive [instanceArbitraryF] $ [''Maybe,''[]] ++ tupleTypes 2 10)
+$(derive [makeArbitraryF] $ [''Maybe,''[]] ++ tupleTypes 2 10)

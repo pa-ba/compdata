@@ -16,7 +16,7 @@ module Data.Comp.MultiParam.Derive.Show
     (
      PShow(..),
      ShowHD(..),
-     instanceShowHD
+     makeShowHD
     ) where
 
 import Data.Comp.Derive.Utils
@@ -35,8 +35,8 @@ class ShowHD f where
 
 {-| Derive an instance of 'ShowHD' for a type constructor of any parametric
   kind taking at least three arguments. -}
-instanceShowHD :: Name -> Q [Dec]
-instanceShowHD fname = do
+makeShowHD :: Name -> Q [Dec]
+makeShowHD fname = do
   TyConI (DataD _ name args constrs _) <- abstractNewtypeQ $ reify fname
   let args' = init args
   -- covariant argument

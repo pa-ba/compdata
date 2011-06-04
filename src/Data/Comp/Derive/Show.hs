@@ -15,7 +15,7 @@
 module Data.Comp.Derive.Show
     (
      ShowF(..),
-     instanceShowF
+     makeShowF
     ) where
 
 import Data.Comp.Derive.Utils
@@ -32,8 +32,8 @@ showConstr con args = "(" ++ con ++ " " ++ unwords args ++ ")"
 
 {-| Derive an instance of 'ShowF' for a type constructor of any first-order kind
   taking at least one argument. -}
-instanceShowF :: Name -> Q [Dec]
-instanceShowF fname = do
+makeShowF :: Name -> Q [Dec]
+makeShowF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = (map (VarT . tyVarBndrName) (init args))

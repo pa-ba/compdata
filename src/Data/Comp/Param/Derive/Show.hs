@@ -16,7 +16,7 @@ module Data.Comp.Param.Derive.Show
     (
      PShow(..),
      ShowD(..),
-     instanceShowD
+     makeShowD
     ) where
 
 import Data.Comp.Derive.Utils
@@ -35,8 +35,8 @@ class ShowD f where
 
 {-| Derive an instance of 'ShowD' for a type constructor of any parametric
   kind taking at least two arguments. -}
-instanceShowD :: Name -> Q [Dec]
-instanceShowD fname = do
+makeShowD :: Name -> Q [Dec]
+makeShowD fname = do
   -- Comments below apply to the example where name = T, args = [a,b,c], and
   -- constrs = [(X,[c]), (Y,[a,c]), (Z,[b -> c])], i.e. the data type
   -- declaration: T a b c = X c | Y a c | Z (b -> c)

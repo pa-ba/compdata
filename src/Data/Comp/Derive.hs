@@ -26,7 +26,7 @@ module Data.Comp.Derive
      module Data.Comp.Derive.Ordering,
      -- ** Functor
      Functor,
-     instanceFunctor,
+     makeFunctor,
      -- ** Foldable
      module Data.Comp.Derive.Foldable,
      -- ** Traversable
@@ -34,7 +34,7 @@ module Data.Comp.Derive
      -- ** Arbitrary
      module Data.Comp.Derive.Arbitrary,
      NFData(..),
-     instanceNFData,
+     makeNFData,
      -- ** DeepSeq
      module Data.Comp.Derive.DeepSeq,
      -- ** Smart Constructors
@@ -61,13 +61,13 @@ import Data.Comp.Derive.LiftSum
 import Language.Haskell.TH
 
 import qualified Data.DeriveTH as D
-import Data.Derive.All
+import qualified Data.Derive.All as A
 
 {-| Derive an instance of 'Functor' for a type constructor of any first-order
   kind taking at least one argument. -}
-instanceFunctor :: Name -> Q [Dec]
-instanceFunctor = D.derive makeFunctor
+makeFunctor :: Name -> Q [Dec]
+makeFunctor = D.derive A.makeFunctor
 
 {-| Derive an instance of 'NFData' for a type constructor. -}
-instanceNFData :: Name -> Q [Dec]
-instanceNFData = D.derive makeNFData
+makeNFData :: Name -> Q [Dec]
+makeNFData = D.derive A.makeNFData

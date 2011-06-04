@@ -50,7 +50,7 @@ data Sugar e t where
     Impl :: e Bool -> e Bool -> Sugar e Bool
 
 $(derive
-  [instanceHFunctor, instanceHFoldable, instanceHTraversable, instanceHEqF, smartHConstructors]
+  [makeHFunctor, makeHFoldable, makeHTraversable, makeHEqF, smartHConstructors]
   [''ValueT, ''Value, ''Op, ''Sugar])
 
 
