@@ -23,12 +23,34 @@ import qualified Data.Map as Map
 import Control.Monad
 import Data.Comp.Derive
 
+-- | An instance @a :< b@ means that @a@ is a component of @b@. @a@
+-- can be extracted from @b@ via the method 'ex'.
+class a :< b where
+    ex :: b -> a
+
+instance a :< a where
+    ex = id
+
+instance a :< (a,b) where
+    ex = fst
+
+instance (a :< b) => a :< (a',b) where
+    ex = ex . snd
+
+-- | This function provides access to components of the states from
+-- "below".
+below :: (?below :: a -> q, p :< q) => a -> p
+below = ex . ?below
+
+-- | This function provides access to components of the state from
+-- "above"
+above :: (?above :: q, p :< q) => p
+above = ex ?above
 
 -- | This type represents generalised term homomorphisms. Generalised
 -- term homomorphisms have access to a state that is provided
 -- (separately) by a DUTA or a DDTA (or both).
 type GTermHom q f g = forall a . (?below :: a -> q, ?above :: q) => f a -> Context g a
-
 
 class Functor f => Zippable f where
     fzip :: f a -> [b] -> Maybe (f (a,b))
@@ -178,7 +200,7 @@ type Typ = Str :+: Base
 $(derive [instanceFunctor,smartConstructors, instanceShowF] [''Str,''Base])
 
 class StringType f g where
-    strTypeHom :: GTermHom Bool f g
+    strTypeHom :: (Bool :< q) => GTermHom q f g
 
 $(derive [liftSum] [''StringType])
 
@@ -197,7 +219,7 @@ instance (Str :<: f, Functor f) =>  StringType Str f where
 instance (Str :<:  f, Base :<: f, Functor f) =>  StringType Base f where
     strTypeHom Char = iChar
     strTypeHom (List t)
-               | ?below t  = iStr 
+               | below t  = iStr 
                | otherwise = iList $ Hole t
 
 
