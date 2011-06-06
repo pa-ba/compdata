@@ -122,29 +122,30 @@ extra-source-files:
   benchmark/Functions/Standard/Inference.hs
   benchmark/Functions/Standard.hs
   -- example files
-  examples/Eval.hs
-  examples/EvalM.hs
-  examples/DesugarEval.hs
-  examples/DesugarPos.hs
-  examples/Automata.hs,
-  examples/Multi/Eval.hs
-  examples/Multi/EvalI.hs
-  examples/Multi/EvalM.hs
-  examples/Multi/DesugarEval.hs
-  examples/Multi/DesugarPos.hs
-  examples/Param/Eval.hs
-  examples/Param/EvalM.hs
-  examples/Param/EvalAlgM.hs
-  examples/Param/DesugarEval.hs
-  examples/Param/DesugarPos.hs
-  examples/Param/Parsing.hs
-  examples/MultiParam/Eval.hs
-  examples/MultiParam/EvalI.hs
-  examples/MultiParam/EvalM.hs
-  examples/MultiParam/EvalAlgM.hs
-  examples/MultiParam/DesugarEval.hs
-  examples/MultiParam/DesugarPos.hs
-  examples/MultiParam/FOL.hs
+  examples/Examples/GTermHom.hs
+  examples/Examples/Eval.hs
+  examples/Examples/EvalM.hs
+  examples/Examples/DesugarEval.hs
+  examples/Examples/DesugarPos.hs
+  examples/Examples/Automata.hs,
+  examples/Examples/Multi/Eval.hs
+  examples/Examples/Multi/EvalI.hs
+  examples/Examples/Multi/EvalM.hs
+  examples/Examples/Multi/DesugarEval.hs
+  examples/Examples/Multi/DesugarPos.hs
+  examples/Examples/Param/Eval.hs
+  examples/Examples/Param/EvalM.hs
+  examples/Examples/Param/EvalAlgM.hs
+  examples/Examples/Param/DesugarEval.hs
+  examples/Examples/Param/DesugarPos.hs
+  examples/Examples/Param/Parsing.hs
+  examples/Examples/MultiParam/Eval.hs
+  examples/Examples/MultiParam/EvalI.hs
+  examples/Examples/MultiParam/EvalM.hs
+  examples/Examples/MultiParam/EvalAlgM.hs
+  examples/Examples/MultiParam/DesugarEval.hs
+  examples/Examples/MultiParam/DesugarPos.hs
+  examples/Examples/MultiParam/FOL.hs
 
 flag test
   description: Build test executable.
