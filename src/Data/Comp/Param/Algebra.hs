@@ -797,16 +797,16 @@ appSigFunTermHomM f g = coerceCxtFunM run where
  #-}
 
 {-# RULES 
-  "cataM/appTermHomM" forall (a :: AlgM m g d) (h :: TermHomM m f g) x.
+  "cataM/appTermHomM" forall (a :: AlgM Maybe g d) (h :: TermHomM Maybe f g) x.
      appTermHomM h x >>= cataM a =  appAlgTermHomM a h x;
 
-  "cataM/appTermHomM'" forall (a :: AlgM m g d) (h :: TermHomM m f g) x.
+  "cataM/appTermHomM'" forall (a :: AlgM Maybe g d) (h :: TermHomM Maybe f g) x.
      appTermHomM' h x >>= cataM a = appAlgTermHomM a h x;
 
-  "cataM/appSigFunM" forall (a :: AlgM m g d) (h :: SigFunM m f g) x.
+  "cataM/appSigFunM" forall (a :: AlgM Maybe g d) (h :: SigFunM Maybe f g) x.
      appSigFunM h x >>= cataM a =  appAlgTermHomM a (termHomM h) x;
 
-  "cataM/appSigFunM'" forall (a :: AlgM m g d) (h :: SigFunM m f g) x.
+  "cataM/appSigFunM'" forall (a :: AlgM Maybe g d) (h :: SigFunM Maybe f g) x.
      appSigFunM' h x >>= cataM a = appAlgTermHomM a (termHomM h) x;
 
   "cataM/appTermHom" forall (a :: AlgM m g d) (h :: TermHom f g) x.
@@ -827,28 +827,28 @@ appSigFunTermHomM f g = coerceCxtFunM run where
   "cataM/appSigFunTermHom" forall (a :: AlgM m h d) (g :: SigFun g h) (f :: TermHom f g) x.
      cataM a (appSigFunTermHom g f x) = appAlgTermHomM a (sigFunM $ compSigFunTermHom g f) x;
 
-  "appTermHomM/appTermHomM" forall (a :: TermHomM m g h) (h :: TermHomM m f g) x.
+  "appTermHomM/appTermHomM" forall (a :: TermHomM Maybe g h) (h :: TermHomM Maybe f g) x.
      appTermHomM h x >>= appTermHomM a = appTermHomM (compTermHomM a h) x;
 
-  "appTermHomM/appSigFunM" forall (a :: TermHomM m g h) (h :: SigFunM m f g) x.
+  "appTermHomM/appSigFunM" forall (a :: TermHomM Maybe g h) (h :: SigFunM Maybe f g) x.
      appSigFunM h x >>= appTermHomM a = appTermHomM (compTermHomSigFunM a h) x;
 
-  "appTermHomM/appTermHomM'" forall (a :: TermHomM m g h) (h :: TermHomM m f g) x.
+  "appTermHomM/appTermHomM'" forall (a :: TermHomM Maybe g h) (h :: TermHomM Maybe f g) x.
      appTermHomM' h x >>= appTermHomM a = appTermHomTermHomM a h x;
 
-  "appTermHomM/appSigFunM'" forall (a :: TermHomM m g h) (h :: SigFunM m f g) x.
+  "appTermHomM/appSigFunM'" forall (a :: TermHomM Maybe g h) (h :: SigFunM Maybe f g) x.
      appSigFunM' h x >>= appTermHomM a = appTermHomTermHomM a (termHomM h) x;
 
-  "appTermHomM'/appTermHomM" forall (a :: TermHomM m g h) (h :: TermHomM m f g) x.
+  "appTermHomM'/appTermHomM" forall (a :: TermHomM Maybe g h) (h :: TermHomM Maybe f g) x.
      appTermHomM h x >>= appTermHomM' a = appTermHomM' (compTermHomM' a h) x;
 
-  "appTermHomM'/appSigFunM" forall (a :: TermHomM m g h) (h :: SigFunM m f g) x.
+  "appTermHomM'/appSigFunM" forall (a :: TermHomM Maybe g h) (h :: SigFunM Maybe f g) x.
      appSigFunM h x >>= appTermHomM' a = appTermHomM' (compTermHomSigFunM a h) x;
 
-  "appTermHomM'/appTermHomM'" forall (a :: TermHomM m g h) (h :: TermHomM m f g) x.
+  "appTermHomM'/appTermHomM'" forall (a :: TermHomM Maybe g h) (h :: TermHomM Maybe f g) x.
      appTermHomM' h x >>= appTermHomM' a = appTermHomM' (compTermHomM' a h) x;
 
-  "appTermHomM'/appSigFunM'" forall (a :: TermHomM m g h) (h :: SigFunM m f g) x.
+  "appTermHomM'/appSigFunM'" forall (a :: TermHomM Maybe g h) (h :: SigFunM Maybe f g) x.
      appSigFunM' h x >>= appTermHomM' a = appTermHomM' (compTermHomSigFunM a h) x;
 
   "appTermHomM/appTermHom" forall (a :: TermHomM m g h) (h :: TermHom f g) x.
@@ -875,28 +875,28 @@ appSigFunTermHomM f g = coerceCxtFunM run where
   "appTermHomM'/appSigFun'" forall (a :: TermHomM m g h) (h :: SigFun f g) x.
      appTermHomM' a (appSigFun' h x) = appTermHomM' (compTermHomSigFunM a (sigFunM h)) x;
 
-  "appSigFunM/appTermHomM" forall (a :: SigFunM m g h) (h :: TermHomM m f g) x.
+  "appSigFunM/appTermHomM" forall (a :: SigFunM Maybe g h) (h :: TermHomM Maybe f g) x.
      appTermHomM h x >>= appSigFunM a = appSigFunTermHomM a h x;
 
-  "appSigFunHomM/appSigFunM" forall (a :: SigFunM m g h) (h :: SigFunM m f g) x.
+  "appSigFunHomM/appSigFunM" forall (a :: SigFunM Maybe g h) (h :: SigFunM Maybe f g) x.
      appSigFunM h x >>= appSigFunM a = appSigFunM (compSigFunM a h) x;
 
-  "appSigFunM/appTermHomM'" forall (a :: SigFunM m g h) (h :: TermHomM m f g) x.
+  "appSigFunM/appTermHomM'" forall (a :: SigFunM Maybe g h) (h :: TermHomM Maybe f g) x.
      appTermHomM' h x >>= appSigFunM a = appSigFunTermHomM a h x;
 
-  "appSigFunM/appSigFunM'" forall (a :: SigFunM m g h) (h :: SigFunM m f g) x.
+  "appSigFunM/appSigFunM'" forall (a :: SigFunM Maybe g h) (h :: SigFunM Maybe f g) x.
      appSigFunM' h x >>= appSigFunM a = appSigFunTermHomM a (termHomM h) x;
 
-  "appSigFunM'/appTermHomM" forall (a :: SigFunM m g h) (h :: TermHomM m f g) x.
+  "appSigFunM'/appTermHomM" forall (a :: SigFunM Maybe g h) (h :: TermHomM Maybe f g) x.
      appTermHomM h x >>= appSigFunM' a = appTermHomM' (compSigFunTermHomM' a h) x;
 
-  "appSigFunM'/appSigFunM" forall (a :: SigFunM m g h) (h :: SigFunM m f g) x.
+  "appSigFunM'/appSigFunM" forall (a :: SigFunM Maybe g h) (h :: SigFunM Maybe f g) x.
      appSigFunM h x >>= appSigFunM' a = appSigFunM' (compSigFunM a h) x;
 
-  "appSigFunM'/appTermHomM'" forall (a :: SigFunM m g h) (h :: TermHomM m f g) x.
+  "appSigFunM'/appTermHomM'" forall (a :: SigFunM Maybe g h) (h :: TermHomM Maybe f g) x.
      appTermHomM' h x >>= appSigFunM' a = appTermHomM' (compSigFunTermHomM' a h) x;
 
-  "appSigFunM'/appSigFunM'" forall (a :: SigFunM m g h) (h :: SigFunM m f g) x.
+  "appSigFunM'/appSigFunM'" forall (a :: SigFunM Maybe g h) (h :: SigFunM Maybe f g) x.
      appSigFunM' h x >>= appSigFunM' a = appSigFunM' (compSigFunM a h) x;
 
   "appSigFunM/appTermHom" forall (a :: SigFunM m g h) (h :: TermHom f g) x.
