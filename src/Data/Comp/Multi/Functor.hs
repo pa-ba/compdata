@@ -27,10 +27,10 @@ module Data.Comp.Multi.Functor
      ) where
 
 -- | The identity Functor.
-data I a = I {unI :: a}
+newtype I a = I {unI :: a}
 
 -- | The parametrised constant functor.
-data K a b = K {unK :: a}
+newtype K a i = K {unK :: a}
 
 instance Functor (K a) where
     fmap _ (K x) = K x
