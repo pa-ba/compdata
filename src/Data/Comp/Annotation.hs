@@ -55,14 +55,14 @@ stripA = appSigFun remA
 {-| Lift a term homomorphism over signatures @f@ and @g@ to a term homomorphism
  over the same signatures, but extended with annotations. -}
 propAnn :: (DistAnn f p f', DistAnn g p g', Functor g) 
-        => TermHom f g -> TermHom f' g'
+        => Hom f g -> Hom f' g'
 propAnn hom f' = ann p (hom f)
     where (f,p) = projectA f'
 
 {-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
   term homomorphism over the same signatures, but extended with annotations. -}
 propAnnM :: (DistAnn f p f', DistAnn g p g', Functor g, Monad m) 
-         => TermHomM m f g -> TermHomM m f' g'
+         => HomM m f g -> HomM m f' g'
 propAnnM hom f' = liftM (ann p) (hom f)
     where (f,p) = projectA f'
 

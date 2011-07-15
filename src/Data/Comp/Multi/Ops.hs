@@ -99,7 +99,7 @@ infixr 7 :&:
 -- 
 -- @data (f :&: a) (g ::  * -> *) e = f g e :&: a e@
 -- 
--- This is too general, however, for example for 'productHTermHom'.
+-- This is too general, however, for example for 'productHHom'.
 
 data (f :&: a) (g ::  * -> *) e = f g e :&: a
 

@@ -33,7 +33,7 @@ import Control.Monad
 
 {-| This type represents /recursive program schemes/.  -}
 
-type RPS f g  = TermHom f g
+type RPS f g  = Hom f g
 
 type Var = Int
 

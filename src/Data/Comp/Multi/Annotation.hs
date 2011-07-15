@@ -65,7 +65,7 @@ stripA = appSigFun remA
 
 
 propAnn :: (DistAnn f p f', DistAnn g p g', HFunctor g) 
-               => TermHom f g -> TermHom f' g'
+               => Hom f g -> Hom f' g'
 propAnn alg f' = ann p (alg f)
     where (f O.:&: p) = projectA f'
 

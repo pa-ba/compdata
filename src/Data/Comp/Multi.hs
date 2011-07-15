@@ -265,7 +265,7 @@ The following language extensions are needed in order to run the example:
 > 
 > -- Term homomorphism for desugaring of terms
 > class (HFunctor f, HFunctor g) => Desugar f g where
->   desugHom :: TermHom f g
+>   desugHom :: Hom f g
 >   desugHom = desugHom' . hfmap Hole
 >   desugHom' :: Alg f (Context g a)
 >   desugHom' x = appCxt (desugHom x)
@@ -312,7 +312,7 @@ The following language extensions are needed in order to run the example:
 > -- Compose the evaluation algebra and the desugaring homomorphism to an
 > -- algebra
 > eval :: Term Sig' :-> Term Value
-> eval = cata (evalAlg `compAlg` (desugHom :: TermHom Sig' Sig))
+> eval = cata (evalAlg `compAlg` (desugHom :: Hom Sig' Sig))
 > 
 > -- Example: evalEx = iPair (iConst 2) (iConst 1)
 > evalEx :: Term Value (Int,Int)
@@ -364,7 +364,7 @@ The following language extensions are needed in order to run the example:
 > 
 > -- Term homomorphism for desugaring of terms
 > class (HFunctor f, HFunctor g) => Desugar f g where
->   desugHom :: TermHom f g
+>   desugHom :: Hom f g
 >   desugHom = desugHom' . hfmap Hole
 >   desugHom' :: Alg f (Context g a)
 >   desugHom' x = appCxt (desugHom x)
@@ -387,7 +387,7 @@ The following language extensions are needed in order to run the example:
 > 
 > -- Lift the desugaring term homomorphism to a catamorphism
 > desug :: Term Sig' :-> Term Sig
-> desug = appTermHom desugHom
+> desug = appHom desugHom
 > 
 > -- Example: desugEx = iPair (iConst 2) (iConst 1)
 > desugEx :: Term Sig (Int,Int)
@@ -395,7 +395,7 @@ The following language extensions are needed in order to run the example:
 > 
 > -- Lift desugaring to terms annotated with source positions
 > desugP :: Term SigP' :-> Term SigP
-> desugP = appTermHom (propAnn desugHom)
+> desugP = appHom (propAnn desugHom)
 > 
 > iSwapP :: (DistAnn f p f', Sugar :<: f) => p -> Term f' (a,b) -> Term f' (b,a)
 > iSwapP p x = Term (injectA p $ inj $ Swap x)

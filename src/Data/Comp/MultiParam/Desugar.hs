@@ -20,7 +20,7 @@ import Data.Comp.MultiParam.Derive
 
 -- |The desugaring term homomorphism.
 class (HDifunctor f, HDifunctor g) => Desugar f g where
-    desugHom :: TermHom f g
+    desugHom :: Hom f g
     desugHom = desugHom' . hfmap Hole
     desugHom' :: f a (Cxt h g a b) :-> Cxt h g a b
     desugHom' x = appCxt (desugHom x)
@@ -29,12 +29,12 @@ $(derive [liftSum] [''Desugar])
 
 -- |Desugar a term.
 desugar :: Desugar f g => Term f :-> Term g
-desugar = appTermHom desugHom
+desugar = appHom desugHom
 
 -- |Lift desugaring to annotated terms.
 desugarA :: (HDifunctor f', HDifunctor g', DistAnn f p f', DistAnn g p g',
              Desugar f g) => Term f' :-> Term g'
-desugarA = appTermHom (propAnn desugHom)
+desugarA = appHom (propAnn desugHom)
 
 -- |Default desugaring instance.
 instance (HDifunctor f, HDifunctor g, f :<: g) => Desugar f g where

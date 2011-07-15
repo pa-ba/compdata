@@ -35,10 +35,10 @@ module Data.Comp.MultiParam.Algebra (
       -- * Term Homomorphisms
       CxtFun,
       SigFun,
-      TermHom,
-      appTermHom,
-      appTermHom',
-      compTermHom,
+      Hom,
+      appHom,
+      appHom',
+      compHom,
       appSigFun,
       appSigFun',
       compSigFun,
@@ -48,15 +48,15 @@ module Data.Comp.MultiParam.Algebra (
       -- * Monadic Term Homomorphisms
       CxtFunM,
       SigFunM,
-      TermHomM,
+      HomM,
       sigFunM,
       termHom',
-      appTermHomM,
-      appTermHomM',
+      appHomM,
+      appHomM',
       termHomM,
       appSigFunM,
       appSigFunM',
-      compTermHomM,
+      compHomM,
       compSigFunM,
       compAlgM,
       compAlgM'
@@ -157,36 +157,36 @@ type SigFun f g = forall a b. f a b :-> g a b
 type CxtFun f g = forall h. SigFun (Cxt h f) (Cxt h g)
 
 {-| This type represents a term homomorphism. -}
-type TermHom f g = SigFun f (Context g)
+type Hom f g = SigFun f (Context g)
 
 {-| Apply a term homomorphism recursively to a term/context. -}
-appTermHom :: forall f g. (HDifunctor f, HDifunctor g)
-              => TermHom f g -> CxtFun f g
-{-# INLINE [1] appTermHom #-}
-appTermHom f = run where
+appHom :: forall f g. (HDifunctor f, HDifunctor g)
+              => Hom f g -> CxtFun f g
+{-# INLINE [1] appHom #-}
+appHom f = run where
     run :: CxtFun f g
     run (Term t) = appCxt (f (hfmap run t))
     run (Hole x) = Hole x
     run (Place p) = Place p
 
 -- | Apply a term homomorphism recursively to a term/context. This is
--- a top-down variant of 'appTermHom'.
-appTermHom' :: forall f g. (HDifunctor g)
-              => TermHom f g -> CxtFun f g
-{-# INLINE [1] appTermHom' #-}
-appTermHom' f = run where
+-- a top-down variant of 'appHom'.
+appHom' :: forall f g. (HDifunctor g)
+              => Hom f g -> CxtFun f g
+{-# INLINE [1] appHom' #-}
+appHom' f = run where
     run :: CxtFun f g
     run (Term t) = appCxt (hfmapCxt run (f t))
     run (Hole x) = Hole x
     run (Place p) = Place p
 
 {-| Compose two term homomorphisms. -}
-compTermHom :: (HDifunctor g, HDifunctor h)
-               => TermHom g h -> TermHom f g -> TermHom f h
-compTermHom f g = appTermHom f . g
+compHom :: (HDifunctor g, HDifunctor h)
+               => Hom g h -> Hom f g -> Hom f h
+compHom f g = appHom f . g
 
 {-| Compose an algebra with a term homomorphism to get a new algebra. -}
-compAlg :: (HDifunctor f, HDifunctor g) => Alg g a -> TermHom f g -> Alg f a
+compAlg :: (HDifunctor f, HDifunctor g) => Alg g a -> Hom f g -> Alg f a
 compAlg alg talg = cata' alg . talg
 
 {-| This function applies a signature function to the given context. -}
@@ -210,7 +210,7 @@ compSigFun :: SigFun g h -> SigFun f g -> SigFun f h
 compSigFun f g = f . g
 
 {-| Lifts the given signature function to the canonical term homomorphism. -}
-termHom :: HDifunctor g => SigFun f g -> TermHom f g
+termHom :: HDifunctor g => SigFun f g -> Hom f g
 termHom f = simpCxt . f
 
 {-| This type represents a monadic signature function. -}
@@ -228,7 +228,7 @@ coerceCxtFunM = unsafeCoerce
 
 
 {-| This type represents a monadic term homomorphism. -}
-type TermHomM m f g = SigFunM m f (Cxt Hole g)
+type HomM m f g = SigFunM m f (Cxt Hole g)
 
 
 {-| Lift the given signature function to a monadic signature function. Note that
@@ -239,29 +239,29 @@ sigFunM f = return . f
 
 {-| Lift the give monadic signature function to a monadic term homomorphism. -}
 termHom' :: (HDifunctor f, HDifunctor g, Monad m)
-            => SigFunM m f g -> TermHomM m f g
+            => SigFunM m f g -> HomM m f g
 termHom' f = liftM  (Term . hfmap Hole) . f
 
 {-| Lift the given signature function to a monadic term homomorphism. -}
-termHomM :: (HDifunctor g, Monad m) => SigFun f g -> TermHomM m f g
+termHomM :: (HDifunctor g, Monad m) => SigFun f g -> HomM m f g
 termHomM f = sigFunM $ termHom f
 
 {-| Apply a monadic term homomorphism recursively to a term/context. -}
-appTermHomM :: forall f g m. (HDitraversable f m Any, HDifunctor g, Monad m)
-               => TermHomM m f g -> CxtFunM m f g
-{-# NOINLINE [1] appTermHomM #-}
-appTermHomM f = coerceCxtFunM run
+appHomM :: forall f g m. (HDitraversable f m Any, HDifunctor g, Monad m)
+               => HomM m f g -> CxtFunM m f g
+{-# NOINLINE [1] appHomM #-}
+appHomM f = coerceCxtFunM run
     where run :: CxtFunM' m f g
           run (Term t) = liftM appCxt (f =<< hdimapM run t)
           run (Hole x) = return (Hole x)
           run (Place p) = return (Place p)
 
 -- | Apply a monadic term homomorphism recursively to a
--- term/context. This is a top-down variant of 'appTermHomM'.
-appTermHomM' :: forall f g m. (HDitraversable g m Any, Monad m)
-               => TermHomM m f g -> CxtFunM m f g
-{-# NOINLINE [1] appTermHomM' #-}
-appTermHomM' f = coerceCxtFunM run
+-- term/context. This is a top-down variant of 'appHomM'.
+appHomM' :: forall f g m. (HDitraversable g m Any, Monad m)
+               => HomM m f g -> CxtFunM m f g
+{-# NOINLINE [1] appHomM' #-}
+appHomM' f = coerceCxtFunM run
     where run :: CxtFunM' m f g
           run (Term t) = liftM appCxt (hdimapMCxt run =<<  f t)
           run (Hole x) = return (Hole x)
@@ -289,20 +289,20 @@ appSigFunM' f = coerceCxtFunM run
 
 
 {-| Compose two monadic term homomorphisms. -}
-compTermHomM :: (HDitraversable g m Any, HDifunctor h, Monad m)
-                => TermHomM m g h -> TermHomM m f g -> TermHomM m f h
-compTermHomM f g = appTermHomM f <=< g
+compHomM :: (HDitraversable g m Any, HDifunctor h, Monad m)
+                => HomM m g h -> HomM m f g -> HomM m f h
+compHomM f g = appHomM f <=< g
 
 {-| Compose a monadic algebra with a monadic term homomorphism to get a new
   monadic algebra. -}
 compAlgM :: (HDitraversable g m a, Monad m)
-            => AlgM m g a -> TermHomM m f g -> AlgM m f a
+            => AlgM m g a -> HomM m f g -> AlgM m f a
 compAlgM alg talg = freeM alg return <=< talg
 
 {-| Compose a monadic algebra with a term homomorphism to get a new monadic
   algebra. -}
 compAlgM' :: (HDitraversable g m a, Monad m) => AlgM m g a
-          -> TermHom f g -> AlgM m f a
+          -> Hom f g -> AlgM m f a
 compAlgM' alg talg = freeM alg return . talg
 
 {-| This function composes two monadic signature functions. -}
@@ -312,23 +312,23 @@ compSigFunM f g a = g a >>= f
 
 #ifndef NO_RULES
 {-# RULES
-  "cata/appTermHom" forall (a :: Alg g d) (h :: TermHom f g) x.
-    cata a (appTermHom h x) = cata (compAlg a h) x;
+  "cata/appHom" forall (a :: Alg g d) (h :: Hom f g) x.
+    cata a (appHom h x) = cata (compAlg a h) x;
 
-  "appTermHom/appTermHom" forall (a :: TermHom g h) (h :: TermHom f g) x.
-    appTermHom a (appTermHom h x) = appTermHom (compTermHom a h) x;
+  "appHom/appHom" forall (a :: Hom g h) (h :: Hom f g) x.
+    appHom a (appHom h x) = appHom (compHom a h) x;
  #-}
 
 {-
 {-# RULES 
-  "cataM/appTermHomM" forall (a :: AlgM m g d) (h :: TermHomM m f g d) x.
-     appTermHomM h x >>= cataM a = cataM (compAlgM a h) x;
+  "cataM/appHomM" forall (a :: AlgM m g d) (h :: HomM m f g d) x.
+     appHomM h x >>= cataM a = cataM (compAlgM a h) x;
 
-  "cataM/appTermHom" forall (a :: AlgM m g d) (h :: TermHom f g) x.
-     cataM a (appTermHom h x) = cataM (compAlgM' a h) x;
+  "cataM/appHom" forall (a :: AlgM m g d) (h :: Hom f g) x.
+     cataM a (appHom h x) = cataM (compAlgM' a h) x;
 
-  "appTermHomM/appTermHomM" forall (a :: TermHomM m g h b) (h :: TermHomM m f g b) x.
-    appTermHomM h x >>= appTermHomM a = appTermHomM (compTermHomM a h) x;
+  "appHomM/appHomM" forall (a :: HomM m g h b) (h :: HomM m f g b) x.
+    appHomM h x >>= appHomM a = appHomM (compHomM a h) x;
  #-}
 
 {-# RULES
