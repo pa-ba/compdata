@@ -43,10 +43,10 @@ smartConstructors fname = do
                     function = [funD sname [clause pats (normalB [|inject $val|]) []]]
                 sequence $ sig ++ function
               genSig targs tname sname 0 = (:[]) $ do
-                fvar <- newName "f"
-                hvar <- newName "h"
-                avar <- newName "a"
-                let targs' = init targs
+                let fvar = mkName "f"
+                    hvar = mkName "h"
+                    avar = mkName "a"
+                    targs' = init targs
                     vars = fvar:hvar:avar:targs'
                     f = varT fvar
                     h = varT hvar

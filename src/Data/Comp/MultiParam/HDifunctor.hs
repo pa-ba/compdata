@@ -30,10 +30,10 @@ module Data.Comp.MultiParam.HDifunctor
 import Data.Comp.Multi.Functor (HFunctor (..))
 
 -- | The identity functor.
-data I a = I {unI :: a}
+newtype I a = I {unI :: a}
 
 -- | The parametrised constant functor.
-data K a i = K {unK :: a}
+newtype K a i = K {unK :: a}
 
 instance Functor I where
     fmap f (I x) = I (f x)
