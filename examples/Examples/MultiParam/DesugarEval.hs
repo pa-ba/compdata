@@ -75,7 +75,7 @@ $(derive [liftSum] [''Eval])
 
 -- Compose the evaluation algebra and the desugaring homomorphism to an algebra
 eval :: Term Sig' :-> Term Value
-eval = cata (evalAlg `compAlg` (desugHom :: TermHom Sig' Sig))
+eval = cata (evalAlg `compAlg` (desugHom :: Hom Sig' Sig))
 
 instance (Const :<: v) => Eval Const v where
   evalAlg (Const n) = iConst n

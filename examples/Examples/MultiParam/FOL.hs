@@ -150,7 +150,7 @@ type Stage1 = Const :+: TT :+: FF :+: Atom :+: Not :+: Or :+: And :+:
               Exists :+: Forall
 
 class ElimImp f where
-    elimImpHom :: TermHom f Stage1
+    elimImpHom :: Hom f Stage1
 
 $(derive [liftSum] [''ElimImp])
 
@@ -161,7 +161,7 @@ instance ElimImp Impl where
     elimImpHom (Impl f1 f2) = iNot (Hole f1) `iOr` (Hole f2)
 
 elimImp :: Term Input :-> Term Stage1
-elimImp = appTermHom elimImpHom
+elimImp = appHom elimImpHom
 
 foodFact1 :: Term Stage1 TFormula
 foodFact1 = elimImp foodFact
@@ -174,7 +174,7 @@ type Stage2 = Const :+: TT :+: FF :+: Atom :+: NAtom :+: Or :+: And :+:
               Exists :+: Forall
 
 class Dualize f where
-    dualizeHom :: TermHom f Stage2
+    dualizeHom :: Hom f Stage2
 
 $(derive [liftSum] [''Dualize])
 
@@ -206,7 +206,7 @@ instance Dualize Forall where
     dualizeHom (Forall f) = iExists (Hole . f)
 
 dualize :: Term Stage2 :-> Term Stage2
-dualize = appTermHom dualizeHom
+dualize = appHom dualizeHom
 
 class PushNot f where
     pushNotAlg :: Alg f (Term Stage2)

@@ -58,7 +58,7 @@ desugEx = desugar (iSwap $ iPair (iConst 1) (iConst 2) :: Term Sig')
 
 -- Lift desugaring to terms annotated with source positions
 desugP :: Term SigP' -> Term SigP
-desugP = appTermHom (propAnn desugHom)
+desugP = appHom (propAnn desugHom)
 
 -- Example: desugPEx = iAPair (Pos 1 0)
 --                            (iASnd (Pos 1 0) (iAPair (Pos 1 1)

@@ -81,7 +81,7 @@ projP v = case project v of Just (Pair x y) -> (x,y)
 -- Compose the evaluation algebra and the desugaring homomorphism to an
 -- algebra
 eval :: Term Sig' :-> Term Value
-eval = cata (evalAlg `compAlg` (desugHom :: TermHom Sig' Sig))
+eval = cata (evalAlg `compAlg` (desugHom :: Hom Sig' Sig))
 
 -- Example: evalEx = iPair (iConst 2) (iConst 1)
 evalEx :: Term Value (Int,Int)

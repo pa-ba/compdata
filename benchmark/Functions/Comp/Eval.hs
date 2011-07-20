@@ -245,7 +245,7 @@ evalSugar :: SugarExpr -> Err ValueExpr
 evalSugar = eval
 
 desugEvalAlg  :: AlgM Err SugarSig ValueExpr
-desugEvalAlg = evalAlg  `compAlgM'` (desugAlg :: TermHom SugarSig ExprSig)
+desugEvalAlg = evalAlg  `compAlgM'` (desugAlg :: Hom SugarSig ExprSig)
 
 
 desugEval' :: SugarExpr -> Err ValueExpr
@@ -262,7 +262,7 @@ evalSugar2 = eval2
 
 
 desugEval2Alg  :: Alg SugarSig ValueExpr
-desugEval2Alg = eval2Alg  `compAlg` (desugAlg :: TermHom SugarSig ExprSig)
+desugEval2Alg = eval2Alg  `compAlg` (desugAlg :: Hom SugarSig ExprSig)
 
 
 desugEval2' :: SugarExpr -> ValueExpr

@@ -72,7 +72,7 @@ evalSugar :: SugarExpr :-> ValueExpr
 evalSugar = eval
 
 desugarEvalAlg  :: Alg SugarSig ValueExpr
-desugarEvalAlg = evalAlg  `compAlg` (desugarAlg :: TermHom SugarSig ExprSig)
+desugarEvalAlg = evalAlg  `compAlg` (desugarAlg :: Hom SugarSig ExprSig)
 
 desugarEval' :: SugarExpr :-> ValueExpr
 desugarEval' e = cata desugarEvalAlg e

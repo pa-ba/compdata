@@ -17,7 +17,7 @@ import Data.Comp.Multi
 -- de-sugar
 
 class (HFunctor e, HFunctor f) => Desugar f e where
-    desugarAlg :: HTermHom f e
+    desugarAlg :: HHom f e
     desugarAlg = desugarAlg' . hfmap HHole
     desugarAlg' :: HAlg f (HContext e a)
     desugarAlg' x = appHCxt $ desugarAlg x
@@ -26,7 +26,7 @@ desugarExpr :: SugarExpr :-> Expr
 desugarExpr = desugar
 
 desugar :: Desugar f e => HTerm f :-> HTerm e
-desugar = appHTermHom desugarAlg
+desugar = appHHom desugarAlg
 
 instance (Desugar f e, Desugar g e) => Desugar (g :++: f) e where
     desugarAlg (HInl v) = desugarAlg v
