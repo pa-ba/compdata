@@ -77,7 +77,7 @@ size :: Foldable f => Cxt h f a -> Int
 size (Hole {}) = 0
 size (Term t) = foldl (\s x -> s + size x) 1 t
 
--- | This function computes the generic depth of the given term.
-depth :: Foldable f => Cxt h f a -> Int
-depth (Hole {}) = 0
-depth (Term t) = 1 + foldl (\s x -> s + size x) 0 t
+-- | This function computes the generic height of the given term.
+height :: Foldable f => Cxt h f a -> Int
+height (Hole {}) = 0
+height (Term t) = 1 + foldl (\s x -> s + size x) 0 t
