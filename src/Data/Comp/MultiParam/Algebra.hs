@@ -42,7 +42,7 @@ module Data.Comp.MultiParam.Algebra (
       appSigFun,
       appSigFun',
       compSigFun,
-      termHom,
+      hom,
       compAlg,
 
       -- * Monadic Term Homomorphisms
@@ -50,10 +50,10 @@ module Data.Comp.MultiParam.Algebra (
       SigFunM,
       HomM,
       sigFunM,
-      termHom',
+      hom',
       appHomM,
       appHomM',
-      termHomM,
+      homM,
       appSigFunM,
       appSigFunM',
       compHomM,
@@ -210,8 +210,8 @@ compSigFun :: SigFun g h -> SigFun f g -> SigFun f h
 compSigFun f g = f . g
 
 {-| Lifts the given signature function to the canonical term homomorphism. -}
-termHom :: HDifunctor g => SigFun f g -> Hom f g
-termHom f = simpCxt . f
+hom :: HDifunctor g => SigFun f g -> Hom f g
+hom f = simpCxt . f
 
 {-| This type represents a monadic signature function. -}
 type SigFunM m f g = forall a b. NatM m (f a b) (g a b)
@@ -238,13 +238,13 @@ sigFunM :: Monad m => SigFun f g -> SigFunM m f g
 sigFunM f = return . f
 
 {-| Lift the give monadic signature function to a monadic term homomorphism. -}
-termHom' :: (HDifunctor f, HDifunctor g, Monad m)
+hom' :: (HDifunctor f, HDifunctor g, Monad m)
             => SigFunM m f g -> HomM m f g
-termHom' f = liftM  (Term . hfmap Hole) . f
+hom' f = liftM  (Term . hfmap Hole) . f
 
 {-| Lift the given signature function to a monadic term homomorphism. -}
-termHomM :: (HDifunctor g, Monad m) => SigFun f g -> HomM m f g
-termHomM f = sigFunM $ termHom f
+homM :: (HDifunctor g, Monad m) => SigFun f g -> HomM m f g
+homM f = sigFunM $ hom f
 
 {-| Apply a monadic term homomorphism recursively to a term/context. -}
 appHomM :: forall f g m. (HDitraversable f m Any, HDifunctor g, Monad m)

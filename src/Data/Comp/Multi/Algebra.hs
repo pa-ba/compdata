@@ -40,7 +40,7 @@ module Data.Comp.Multi.Algebra (
       appSigFun,
       appSigFun',
       compSigFun,
-      termHom,
+      hom,
       compAlg,
 
       -- * Monadic Term Homomorphisms
@@ -48,10 +48,10 @@ module Data.Comp.Multi.Algebra (
       SigFunM,
       HomM,
       sigFunM,
-      termHom',
+      hom',
       appHomM,
       appHomM',
-      termHomM,
+      homM,
       appSigFunM,
       appSigFunM',
       compHomM,
@@ -221,8 +221,8 @@ compSigFun :: SigFun g h -> SigFun f g -> SigFun f h
 compSigFun f g = f . g
 
 -- | Lifts the given signature function to the canonical term homomorphism.
-termHom :: (HFunctor g) => SigFun f g -> Hom f g
-termHom f = simpCxt . f
+hom :: (HFunctor g) => SigFun f g -> Hom f g
+hom f = simpCxt . f
 
 -- | This type represents monadic signature functions.
 type SigFunM m f g = forall a. NatM m (f a) (g a)
@@ -244,15 +244,15 @@ sigFunM f = return . f
 
 -- | This function lifts the give monadic signature function to a
 -- monadic term algebra.
-termHom' :: (HFunctor f, HFunctor g, Monad m) =>
+hom' :: (HFunctor f, HFunctor g, Monad m) =>
             SigFunM m f g -> HomM m f g
-termHom' f = liftM  (Term . hfmap Hole) . f
+hom' f = liftM  (Term . hfmap Hole) . f
 
 -- | This function lifts the given signature function to a monadic
 -- term algebra.
 
-termHomM :: (HFunctor g, Monad m) => SigFun f g -> HomM m f g
-termHomM f = sigFunM $ termHom f
+homM :: (HFunctor g, Monad m) => SigFun f g -> HomM m f g
+homM f = sigFunM $ hom f
 
 -- | This function applies the given monadic term homomorphism to the
 -- given term/context.

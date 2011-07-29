@@ -41,7 +41,7 @@ module Data.Comp.Param.Algebra (
       compSigFun,
       compHomSigFun,
       compSigFunHom,
-      termHom,
+      hom,
       compAlg,
       compAlgSigFun,
 
@@ -54,8 +54,8 @@ module Data.Comp.Param.Algebra (
       sigFunM,
       appHomM,
       appHomM',
-      termHomM,
-      termHomMD,
+      homM,
+      homMD,
       appSigFunM,
       appSigFunM',
       appSigFunMD,
@@ -229,7 +229,7 @@ appSigFun f = run
           run (Place x) = Place x
           run (Hole x) = Hole x
 -- implementation via term homomorphisms
---  appSigFun f = appHom $ termHom f
+--  appSigFun f = appHom $ hom f
 
 
 -- | This function applies a signature function to the given
@@ -255,8 +255,8 @@ compSigFunHom f g = appSigFun f . g
 
 
 {-| Lifts the given signature function to the canonical term homomorphism. -}
-termHom :: Difunctor g => SigFun f g -> Hom f g
-termHom f = simpCxt . f
+hom :: Difunctor g => SigFun f g -> Hom f g
+hom f = simpCxt . f
 
 {-| This type represents a monadic signature function. -}
 type SigFunM m f g = forall a b. f a b -> m (g a b)
@@ -290,8 +290,8 @@ sigFunM f = return . f
 
 
 {-| Lift the given signature function to a monadic term homomorphism. -}
-termHomM :: (Difunctor g, Monad m) => SigFunM m f g -> HomM m f g
-termHomM f = liftM simpCxt . f
+homM :: (Difunctor g, Monad m) => SigFunM m f g -> HomM m f g
+homM f = liftM simpCxt . f
 
 -- | Apply a monadic term homomorphism recursively to a
 -- term/context. The monad is sequenced bottom-up.
@@ -318,9 +318,9 @@ appHomM' f = coerceCxtFunM run
 
 {-| This function constructs the unique monadic homomorphism from the
   initial term algebra to the given term algebra. -}
-termHomMD :: forall f g m. (Difunctor f, Difunctor g, Monad m)
+homMD :: forall f g m. (Difunctor f, Difunctor g, Monad m)
              => HomMD m f g -> CxtFunM m f g
-termHomMD f = run 
+homMD f = run 
     where run :: CxtFunM m f g
           run (Term t) = liftM appCxt (f (fmap run t))
           run (Hole x) = return (Hole x)
@@ -335,7 +335,7 @@ appSigFunM f = coerceCxtFunM run
           run (Place x) = return $ Place x
           run (Hole x) = return $ Hole x
 -- implementation via term homomorphisms
---  appSigFunM f = appHomM $ termHom' f
+--  appSigFunM f = appHomM $ hom' f
 
 -- | This function applies a monadic signature function to the given
 -- context. This is a 'top-down variant of 'appSigFunM'.
@@ -683,7 +683,7 @@ appSigFunHomM f g = coerceCxtFunM run where
     cata a (appSigFun h x) = cata (compAlgSigFun a h) x;
 
   "cata/appSigFun'" forall (a :: Alg g d) (h :: SigFun f g) x.
-    cata a (appSigFun' h x) = appAlgHom a (termHom h) x;
+    cata a (appSigFun' h x) = appAlgHom a (hom h) x;
 
   "cata/appSigFunHom" forall (f :: Alg f3 d) (g :: SigFun f2 f3)
                                       (h :: Hom f1 f2) x.
@@ -725,7 +725,7 @@ appSigFunHomM f g = coerceCxtFunM run where
     appSigFun' f (appSigFun' g x) = appSigFun' (compSigFun f g) x;
 
   "appSigFun/appSigFun'" forall (f :: SigFun g h) (g :: SigFun f g) x.
-    appSigFun f (appSigFun' g x) = appSigFunHom f (termHom g) x;
+    appSigFun f (appSigFun' g x) = appSigFunHom f (hom g) x;
 
   "appSigFun'/appSigFun" forall (f :: SigFun g h) (g :: SigFun f g) x.
     appSigFun' f (appSigFun g x) = appSigFun (compSigFun f g) x;
@@ -804,10 +804,10 @@ appSigFunHomM f g = coerceCxtFunM run where
      appHomM' h x >>= cataM a = appAlgHomM a h x;
 
   "cataM/appSigFunM" forall (a :: AlgM Maybe g d) (h :: SigFunM Maybe f g) x.
-     appSigFunM h x >>= cataM a =  appAlgHomM a (termHomM h) x;
+     appSigFunM h x >>= cataM a =  appAlgHomM a (homM h) x;
 
   "cataM/appSigFunM'" forall (a :: AlgM Maybe g d) (h :: SigFunM Maybe f g) x.
-     appSigFunM' h x >>= cataM a = appAlgHomM a (termHomM h) x;
+     appSigFunM' h x >>= cataM a = appAlgHomM a (homM h) x;
 
   "cataM/appHom" forall (a :: AlgM m g d) (h :: Hom f g) x.
      cataM a (appHom h x) = appAlgHomM a (sigFunM h) x;
@@ -816,13 +816,13 @@ appSigFunHomM f g = coerceCxtFunM run where
      cataM a (appHom' h x) = appAlgHomM a (sigFunM h) x;
 
   "cataM/appSigFun" forall (a :: AlgM m g d) (h :: SigFun f g) x.
-     cataM a (appSigFun h x) = appAlgHomM a (sigFunM $ termHom h) x;
+     cataM a (appSigFun h x) = appAlgHomM a (sigFunM $ hom h) x;
 
   "cataM/appSigFun'" forall (a :: AlgM m g d) (h :: SigFun f g) x.
-     cataM a (appSigFun' h x) = appAlgHomM a (sigFunM $ termHom h) x;
+     cataM a (appSigFun' h x) = appAlgHomM a (sigFunM $ hom h) x;
 
   "cataM/appSigFun" forall (a :: AlgM m g d) (h :: SigFun f g) x.
-     cataM a (appSigFun h x) = appAlgHomM a (sigFunM $ termHom h) x;
+     cataM a (appSigFun h x) = appAlgHomM a (sigFunM $ hom h) x;
 
   "cataM/appSigFunHom" forall (a :: AlgM m h d) (g :: SigFun g h) (f :: Hom f g) x.
      cataM a (appSigFunHom g f x) = appAlgHomM a (sigFunM $ compSigFunHom g f) x;
@@ -837,7 +837,7 @@ appSigFunHomM f g = coerceCxtFunM run where
      appHomM' h x >>= appHomM a = appHomHomM a h x;
 
   "appHomM/appSigFunM'" forall (a :: HomM Maybe g h) (h :: SigFunM Maybe f g) x.
-     appSigFunM' h x >>= appHomM a = appHomHomM a (termHomM h) x;
+     appSigFunM' h x >>= appHomM a = appHomHomM a (homM h) x;
 
   "appHomM'/appHomM" forall (a :: HomM Maybe g h) (h :: HomM Maybe f g) x.
      appHomM h x >>= appHomM' a = appHomM' (compHomM' a h) x;
@@ -855,7 +855,7 @@ appSigFunHomM f g = coerceCxtFunM run where
      appHomM a (appHom h x) = appHomHomM a (sigFunM h) x;
 
   "appHomM/appSigFun" forall (a :: HomM m g h) (h :: SigFun f g) x.
-     appHomM a (appSigFun h x) = appHomHomM a (sigFunM $ termHom h) x;
+     appHomM a (appSigFun h x) = appHomHomM a (sigFunM $ hom h) x;
 
   "appHomM'/appHom" forall (a :: HomM m g h) (h :: Hom f g) x.
      appHomM' a (appHom h x) = appHomM' (compHomM' a (sigFunM h)) x;
@@ -867,7 +867,7 @@ appSigFunHomM f g = coerceCxtFunM run where
      appHomM a (appHom' h x) = appHomHomM a (sigFunM h) x;
 
   "appHomM/appSigFun'" forall (a :: HomM m g h) (h :: SigFun f g) x.
-     appHomM a (appSigFun' h x) = appHomHomM a (sigFunM $ termHom h) x;
+     appHomM a (appSigFun' h x) = appHomHomM a (sigFunM $ hom h) x;
 
   "appHomM'/appHom'" forall (a :: HomM m g h) (h :: Hom f g) x.
      appHomM' a (appHom' h x) = appHomM' (compHomM' a (sigFunM h)) x;
@@ -885,7 +885,7 @@ appSigFunHomM f g = coerceCxtFunM run where
      appHomM' h x >>= appSigFunM a = appSigFunHomM a h x;
 
   "appSigFunM/appSigFunM'" forall (a :: SigFunM Maybe g h) (h :: SigFunM Maybe f g) x.
-     appSigFunM' h x >>= appSigFunM a = appSigFunHomM a (termHomM h) x;
+     appSigFunM' h x >>= appSigFunM a = appSigFunHomM a (homM h) x;
 
   "appSigFunM'/appHomM" forall (a :: SigFunM Maybe g h) (h :: HomM Maybe f g) x.
      appHomM h x >>= appSigFunM' a = appHomM' (compSigFunHomM' a h) x;
@@ -903,7 +903,7 @@ appSigFunHomM f g = coerceCxtFunM run where
      appSigFunM a (appHom h x) = appSigFunHomM a (sigFunM h) x;
 
   "appSigFunM/appSigFun" forall (a :: SigFunM m g h) (h :: SigFun f g) x.
-     appSigFunM a (appSigFun h x) = appSigFunHomM a (sigFunM $ termHom h) x;
+     appSigFunM a (appSigFun h x) = appSigFunHomM a (sigFunM $ hom h) x;
 
   "appSigFunM'/appHom" forall (a :: SigFunM m g h) (h :: Hom f g) x.
      appSigFunM' a (appHom h x) = appHomM' (compSigFunHomM' a (sigFunM h)) x;
@@ -915,7 +915,7 @@ appSigFunHomM f g = coerceCxtFunM run where
      appSigFunM a (appHom' h x) = appSigFunHomM a (sigFunM h) x;
 
   "appSigFunM/appSigFun'" forall (a :: SigFunM m g h) (h :: SigFun f g) x.
-     appSigFunM a (appSigFun' h x) = appSigFunHomM a (sigFunM $ termHom h) x;
+     appSigFunM a (appSigFun' h x) = appSigFunHomM a (sigFunM $ hom h) x;
 
   "appSigFunM'/appHom'" forall (a :: SigFunM m g h) (h :: Hom f g) x.
      appSigFunM' a (appHom' h x) = appHomM' (compSigFunHomM' a (sigFunM h)) x;
