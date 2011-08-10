@@ -78,7 +78,7 @@ type Term f = Trm f Any
 {-| Convert a difunctorial value into a context. -}
 simpCxt :: Difunctor f => f a b -> Cxt Hole f a b
 {-# INLINE simpCxt #-}
-simpCxt = Term . fmap Hole
+simpCxt = Term . difmap Hole
 
 {-| Cast a \"pseudo-parametric\" context over a signature to a parametric
   context over the same signature. The usage of 'unsafeCoerce' is safe, because
@@ -98,12 +98,12 @@ type Const f = f Any ()
   argument is indeed a constant, i.e. does not have a value for the
   argument type of the difunctor @f@. -}
 constTerm :: Difunctor f => Const f -> Term f
-constTerm = Term . fmap (const undefined)
+constTerm = Term . difmap (const undefined)
 
 -- | This is an instance of 'fmap' for 'Cxt'.
 fmapCxt :: Difunctor f => (b -> b') -> Cxt h f a b -> Cxt h f a b'
 fmapCxt f = run
-    where run (Term t) = Term $ fmap run t
+    where run (Term t) = Term $ difmap run t
           run (Place a) = Place a
           run (Hole b)  = Hole $ f b
 

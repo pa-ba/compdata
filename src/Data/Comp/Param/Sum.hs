@@ -159,7 +159,7 @@ $(liftM concat $ mapM deepInjectn [2..10])
 {-# INLINE deepInject10 #-}
 
 injectConst :: (Difunctor g, g :<: f) => Const g -> Cxt h f Any a
-injectConst = inject . fmap (const undefined)
+injectConst = inject . difmap (const undefined)
 
 injectConst2 :: (Difunctor f1, Difunctor f2, Difunctor g, f1 :<: g, f2 :<: g)
              => Const (f1 :+: f2) -> Cxt h g Any a
@@ -171,11 +171,11 @@ injectConst3 :: (Difunctor f1, Difunctor f2, Difunctor f3, Difunctor g,
 injectConst3 = inject3 . fmap (const undefined)
 
 projectConst :: (Difunctor g, g :<: f) => Cxt h f Any a -> Maybe (Const g)
-projectConst = fmap (fmap (const ())) . project
+projectConst = fmap (difmap (const ())) . project
 
 {-| This function injects a whole context into another context. -}
 injectCxt :: (Difunctor g, g :<: f) => Cxt h g a (Cxt h f a b) -> Cxt h f a b
-injectCxt (Term t) = inject $ fmap injectCxt t
+injectCxt (Term t) = inject $ difmap injectCxt t
 injectCxt (Hole x) = x
 injectCxt (Place p) = Place p
 

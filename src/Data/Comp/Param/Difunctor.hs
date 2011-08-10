@@ -16,7 +16,8 @@
 
 module Data.Comp.Param.Difunctor
     (
-     Difunctor (..)
+     Difunctor (..),
+     difmap
     ) where
 
 -- | This class represents difunctors, i.e. binary type constructors that are
@@ -28,5 +29,8 @@ class Difunctor f where
 instance Difunctor (->) where
     dimap f g h = g . h . f
 
+difmap :: Difunctor f => (a -> b) -> f c a -> f c b
+difmap = dimap id
+
 instance Difunctor f => Functor (f a) where
-    fmap = dimap id
+    fmap = difmap
