@@ -80,4 +80,4 @@ size (Term t) = foldl (\s x -> s + size x) 1 t
 -- | This function computes the generic height of the given term.
 height :: Foldable f => Cxt h f a -> Int
 height (Hole {}) = 0
-height (Term t) = 1 + foldl (\s x -> s + size x) 0 t
+height (Term t) = 1 + foldl (\s x -> s `max` height x) 0 t
