@@ -90,7 +90,7 @@ projC v = case project v of
 projF :: (FunM Maybe :<: v)
          => Term v (i -> j) -> Maybe (Term v i -> Compose Maybe (Term v) j)
 projF v = case project v of
-            Just (FunM f :: FunM Maybe a (Term v) (i -> j)) -> return f
+            Just (FunM f :: FunM Maybe Any (Term v) (i -> j)) -> return f
             _ -> Nothing
 
 -- |Evaluation of expressions to ground values.
