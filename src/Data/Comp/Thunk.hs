@@ -14,9 +14,24 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Thunk where
+module Data.Comp.Thunk
+    (Thunk (..)
+    ,TermT
+    ,CxtT
+    ,thunk
+    ,dethunk
+    ,dethunk'
+    ,deepDethunk
+    ,eval
+    ,eval2
+    ,deepEval
+    ,deepEval2
+    ,(#>)
+    ,(#>>)
+    ,AlgT) where
 
 import Data.Comp.Term
+import Data.Comp.Algebra
 import Data.Comp.Ops
 import Data.Comp.Sum
 import Data.Comp.Derive
@@ -65,11 +80,22 @@ dethunk :: Monad m => TermT m f -> m (f (TermT m f))
 dethunk (Term (Inl (Thunk m))) = m >>= dethunk
 dethunk (Term (Inr t)) = return t
 
+dethunk' :: Monad m => TermT m f -> m (TermT m f)
+dethunk' = liftM inject . dethunk
+
 -- | This function inspects the topmost non-thunk node (using
 -- 'dethunk') according to the given function.
 eval :: Monad m => (f (TermT m f) -> TermT m f) -> TermT m f -> TermT m f
-eval cont (Term (Inl (Thunk m))) = thunk $ liftM cont $ dethunk =<< m 
+eval cont (Term (Inl (Thunk m))) = thunk $ cont' =<< dethunk =<< m 
+    where cont' = return . cont
+    -- alt: where cont' x = liftM inject $ dethunk $ cont x
 eval cont (Term (Inr t)) = cont t
+
+infixl 1 #>
+
+-- | Variant of 'eval' with flipped argument positions
+(#>) :: Monad m => TermT m f -> (f (TermT m f) -> TermT m f) -> TermT m f
+(#>) = flip eval
 
 -- | This function inspects the topmost non-thunk nodes of two terms
 -- (using 'dethunk') according to the given function.
@@ -89,9 +115,19 @@ deepEval cont v = case deepProject v of
                     Just v' -> cont v'
                     _ -> thunk $ liftM cont $ deepDethunk v 
 
+infixl 1 #>>
+
+-- | Variant of 'deepEval' with flipped argument positions
+(#>>) :: (Monad m, Traversable f) => TermT m f -> (Term f -> TermT m f) -> TermT m f
+(#>>) = flip deepEval
+
 -- | This function inspects two terms (using 'deepDethunk') according
 -- to the given function.
 deepEval2 :: (Monad m, Traversable f) =>
              (Term f -> Term f -> TermT m f)
           -> TermT m f -> TermT m f -> TermT m f
 deepEval2 cont x y = (\ x' -> cont x' `deepEval` y ) `deepEval` x
+
+-- | This type represents algebras which have terms with thunks as
+-- carrier.
+type AlgT m f g = Alg f (TermT m g)
