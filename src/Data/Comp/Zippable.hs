@@ -1,6 +1,6 @@
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Examples.Zippable
+-- Module      :  Data.Comp.Zippable
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -10,8 +10,8 @@
 --
 --------------------------------------------------------------------------------
 
-module Examples.Zippable
-    ( module Examples.Zippable
+module Data.Comp.Zippable
+    ( module Data.Comp.Zippable
     , module Data.Stream ) where
 
 import Data.Stream (Stream(..), (<:>))
@@ -24,10 +24,10 @@ class Functor f => Zippable f where
     fzipWith :: (a -> b -> c) -> Stream a -> f b -> f c
     fzipWith f s l = fmap (uncurry f) (fzip s l)
 
-
 -- | This type is used for applying a DDTAs.
 newtype Numbered a = Numbered (Int, a)
 
+unNumbered :: Numbered a -> a
 unNumbered (Numbered (_, x)) = x
 
 instance Eq (Numbered a) where
@@ -36,9 +36,15 @@ instance Eq (Numbered a) where
 instance Ord (Numbered a) where
     compare (Numbered (i,_))  (Numbered (j,_)) = i `compare` j
 
+
 number :: Zippable f => f a -> f (Numbered a)
 number t = fzipWith (curry Numbered) (nums 0) t
+    where nums x = x `Cons` nums (x+1)
+
+number' :: Zippable f => f a -> f (Int, a)
+number' t = fzipWith num (nums 0) t
     where nums x = x <:> nums (x+1)
+          num n a = (n,a)
 
 instance Zippable [] where
     fzip (Cons x xs) (y:ys) = (x,y) : fzip xs ys

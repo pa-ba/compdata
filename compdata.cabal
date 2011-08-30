@@ -175,6 +175,9 @@ library
                         Data.Comp.Derive,
                         Data.Comp.Matching,
                         Data.Comp.Desugar,
+                        Data.Comp.Automata,
+                        Data.Comp.Automata.Product,
+                        Data.Comp.Zippable,
 
                         Data.Comp.Multi,
                         Data.Comp.Multi.Term,
@@ -238,6 +241,7 @@ library
                         Data.Comp.Derive.Traversable,
                         Data.Comp.Derive.Injections,
                         Data.Comp.Derive.Projections,
+                        Data.Comp.Automata.Product.Derive,
 
                         Data.Comp.Multi.Derive.Functor,
                         Data.Comp.Multi.Derive.Foldable,
@@ -271,7 +275,7 @@ library
                         Data.Comp.MultiParam.Derive.Injections,
                         Data.Comp.MultiParam.Derive.Projections
 
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers, Stream
   hs-source-dirs:	src
   ghc-options:          -W
   if flag(benchmark)

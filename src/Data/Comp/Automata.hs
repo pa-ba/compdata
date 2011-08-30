@@ -1,9 +1,7 @@
-{-# LANGUAGE RankNTypes, MultiParamTypeClasses, FlexibleInstances,
-  FlexibleContexts, UndecidableInstances, TemplateHaskell, TypeOperators,
-  ImplicitParams, GADTs, IncoherentInstances, ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes, FlexibleContexts, ImplicitParams, GADTs, ScopedTypeVariables #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Examples.QHom
+-- Module      :  Data.Comp.Automata
 -- Copyright   :  (c) 2010-2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -17,33 +15,30 @@
 --
 --------------------------------------------------------------------------------
 
-module Examples.QHom where
+module Data.Comp.Automata
+    ( module Data.Comp.Automata,
+      module Data.Comp.Automata.Product
+    ) where
 
-import Examples.Zippable
-import Data.Comp
+import Data.Comp.Zippable
+import Data.Comp.Automata.Product
+import Data.Comp.Term
+import Data.Comp.Algebra
 import Data.Comp.Show ()
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Control.Monad
-import Data.Comp.Derive
 
--- | An instance @a :< b@ means that @a@ is a component of @b@. @a@
--- can be extracted from @b@ via the method 'ex'.
-class a :< b where
-    ex :: b -> a
-    up :: a -> b -> b
+infix 1 |->
+infixr 0 &
 
-instance a :< a where
-    ex = id
-    up = const
+(&) :: Ord k => Map k v -> Map k v -> Map k v
+(&) = Map.union
 
-instance a :< (a,b) where
-    ex = fst
-    up x (_,y) = (x,y)
+(|->) :: k -> a -> Map k a
+(|->) = Map.singleton
 
-instance (a :< b) => a :< (a',b) where
-    ex = ex . snd
-    up  y (x,y') = (x,up y y')
+o :: Map k a
+o = Map.empty
 
 -- | This function provides access to components of the states from
 -- "below".
@@ -58,43 +53,41 @@ above = ex ?above
 -- | Turns the explicit parameters @?above@ and @?below@ into explicit
 -- ones.
 explicit :: q -> (a -> q) -> ((?above :: q, ?below :: a -> q) => b) -> b
-explicit ab be x = x
-    where ?above = ab
-          ?below = be
+explicit ab be x = x where ?above = ab; ?below = be
 
 
 -- | This type represents stateful term homomorphisms. Stateful term
 -- homomorphisms have access to a state that is provided (separately)
 -- by a DUTA or a DDTA (or both).
-type QHom q f g = forall a . (?below :: a -> q, ?above :: q) => f a -> Context g a
+type QHom f q g = forall a . (?below :: a -> q, ?above :: q) => f a -> Context g a
 
 
 -- | This type represents transition functions of deterministic
 -- bottom-up tree transducers (DUTTs).
 
-type UpTrans q f g = forall a. f (q,a) -> (q, Context g a)
+type UpTrans f q g = forall a. f (q,a) -> (q, Context g a)
 
 -- | This function transforms DUTT transition function into an
 -- algebra.
 
-upAlg :: (Functor g)  => UpTrans q f g -> Alg f (q, Term g)
+upAlg :: (Functor g)  => UpTrans f q g -> Alg f (q, Term g)
 upAlg trans = fmap appCxt . trans 
 
 -- | This function runs the given DUTT on the given term.
 
-runUpTrans :: (Functor f, Functor g) => UpTrans q f g -> Term f -> (q, Term g)
+runUpTrans :: (Functor f, Functor g) => UpTrans f q g -> Term f -> (q, Term g)
 runUpTrans = cata . upAlg
 
 -- | This function generalises 'runUpTrans' to contexts. Therefore,
 -- additionally, a transition function for the holes is needed.
-runUpTrans' :: (Functor f, Functor g) => UpTrans q f g -> Context f (q,a) -> (q, Context g a)
+runUpTrans' :: (Functor f, Functor g) => UpTrans f q g -> Context f (q,a) -> (q, Context g a)
 runUpTrans' trans = run where
     run (Hole (q,a)) = (q, Hole a)
     run (Term t) = fmap appCxt $ trans $ fmap run t
 
 -- | This function composes two DUTTs. (see TATA, Theorem 6.4.5)
 compUpTrans :: (Functor f, Functor g, Functor h)
-               => UpTrans q2 g h -> UpTrans q1 f g -> UpTrans (q1,q2) f h
+               => UpTrans g p h -> UpTrans f q g -> UpTrans f (q,p) h
 compUpTrans t2 t1 x = ((q1,q2), c2) where
     (q1, c1) = t1 $ fmap (\((q1,q2),a) -> (q1,(q2,a))) x
     (q2, c2) = runUpTrans' t2 c1
@@ -102,6 +95,10 @@ compUpTrans t2 t1 x = ((q1,q2), c2) where
 -- | This type represents transition functions of deterministic
 -- bottom-up tree acceptors (DUTAs).
 type UpState f q = Alg f q
+
+-- | Changes the state space of the DUTA using the given isomorphism.
+tagUpState :: (Functor f) => (q -> p) -> (p -> q) -> UpState f q -> UpState f p
+tagUpState i o s = i . s . fmap o
 
 -- | This combinator runs the given DUTA on a term returning the final
 -- state of the run.
@@ -115,57 +112,61 @@ prodUpState sp sq t = (p,q) where
     q = sq $ fmap snd t
 
 
--- | This function turns constructs a DUTT from a given stateful term
+-- | This function constructs a DUTT from a given stateful term
 -- homomorphism with the state propagated by the given DUTA.
-toUpTrans :: (Functor f, Functor g) => UpState f q -> QHom q f g -> UpTrans q f g
-toUpTrans alg f t = (q, c)
-    where q = alg $ fmap fst t
-          c =  fmap snd $ explicit q fst f t
+upTrans :: (Functor f, Functor g) => UpState f q -> QHom f q g -> UpTrans f q g
+upTrans st f t = (q, c)
+    where q = st $ fmap fst t
+          c = fmap snd $ explicit q fst f t
 
 -- | This function applies a given stateful term homomorphism with
 -- a state space propagated by the given DUTA to a term.
-upHom :: (Functor f, Functor g) => UpState f q -> QHom q f g -> Term f -> (q,Term g)
-upHom alg h = runUpTrans (toUpTrans alg h)
+runUpHom :: (Functor f, Functor g) => UpState f q -> QHom f q g -> Term f -> (q,Term g)
+runUpHom alg h = runUpTrans (upTrans alg h)
 
 
 -- | This type represents transition functions of generalised
 -- deterministic bottom-up tree acceptors (GDUTAs) which have access
 -- to an extended state space.
-type GUpState f q p = forall a . (?below :: a -> p, ?above :: p, q :< p) => f a -> q
+type DUpState f p q = forall a . (?below :: a -> p, ?above :: p, q :< p) => f a -> q
 
 -- | This combinator turns an arbitrary DUTA into a GDUTA.
-gUpState :: Functor f => UpState f q -> GUpState f q p
-gUpState f = f . fmap below
+dUpState :: Functor f => UpState f q -> DUpState f p q
+dUpState f = f . fmap below
 
 -- | This combinator turns a GDUTA with the smallest possible state
 -- space into a DUTA.
-upState :: GUpState f q q -> UpState f q
-upState f s = res
-    where res = explicit res id f s
+upState :: DUpState f q q -> UpState f q
+upState f s = res where res = explicit res id f s
 
 -- | This combinator runs a GDUTA on a term.
-runGUpState :: Functor f => GUpState f q q -> Term f -> q
-runGUpState = runUpState . upState
+runDUpState :: Functor f => DUpState f q q -> Term f -> q
+runDUpState = runUpState . upState
 
 -- | This combinator constructs the product of two GDUTA.
-prodGUpState :: (p :< pq, q :< pq)
-             => GUpState f p pq -> GUpState f q pq -> GUpState f (p,q) pq
-prodGUpState sp sq t = (sp t, sq t)
+prodDUpState :: (p :< c, q :< c)
+             => DUpState f c p -> DUpState f c q -> DUpState f c (p,q)
+prodDUpState sp sq t = (sp t, sq t)
+
+(<*>) :: (p :< c, q :< c)
+             => DUpState f c p -> DUpState f c q -> DUpState f c (p,q)
+(<*>) = prodDUpState
+
 
 
 -- | This type represents transition functions of deterministic
 -- top-down tree transducers (DDTTs).
 
-type DownTrans q f g = forall a. (q, f a) -> Context g (q,a)
+type DownTrans f q g = forall a. (q, f a) -> Context g (q,a)
 
--- | This function runs the given DDTT on the given tree.
-runDownTrans :: (Functor f, Functor g) => DownTrans q f g -> q -> Cxt h f a -> Cxt h g a
+-- | Thsis function runs the given DDTT on the given tree.
+runDownTrans :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f a -> Cxt h g a
 runDownTrans tr q t = run (q,t) where
     run (q,Term t) = appCxt $ fmap run $  tr (q, t)
     run (_,Hole a)      = Hole a
 
 -- | This function runs the given DDTT on the given tree.
-runDownTrans' :: (Functor f, Functor g) => DownTrans q f g -> q -> Cxt h f a -> Cxt h g (q,a)
+runDownTrans' :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f a -> Cxt h g (q,a)
 runDownTrans' tr q t = run (q,t) where
     run (q,Term t) = appCxt $ fmap run $  tr (q, t)
     run (q,Hole a)      = Hole (q,a)
@@ -173,7 +174,7 @@ runDownTrans' tr q t = run (q,t) where
 -- | This function composes two DDTTs. (see Z. Fülöp, H. Vogler
 -- "Syntax-Directed Semantics", Theorem 3.39)
 compDownTrans :: (Functor f, Functor g, Functor h)
-              => DownTrans p g h -> DownTrans q f g -> DownTrans (q,p) f h
+              => DownTrans g p h -> DownTrans f q g -> DownTrans f (q,p) h
 compDownTrans t2 t1 ((q,p), t) = fmap (\(p, (q, a)) -> ((q,p),a)) $ runDownTrans' t2 p (t1 (q, t))
 
 
@@ -181,6 +182,10 @@ compDownTrans t2 t1 ((q,p), t) = fmap (\(p, (q, a)) -> ((q,p),a)) $ runDownTrans
 -- top-down tree acceptors (DDTAs).
 type DownState f q = forall a. Ord a => (q, f a) -> Map a q
 
+
+-- | Changes the state space of the DDTA using the given isomorphism.
+tagDownState :: (q -> p) -> (p -> q) -> DownState f q -> DownState f p
+tagDownState i o t (q,s) = fmap i $ t (o q,s)
 
 -- | This function constructs the product DDTA of the given two DDTAs.
 prodDownState :: DownState f p -> DownState f q -> DownState f (p,q)
@@ -193,7 +198,7 @@ data ProdState p q = LState p
                    | BState p q
 -- | This function constructs the pointwise product of two maps each
 -- with a default value.
-prodMap :: (Ord a) => p -> q -> Map a p -> Map a q -> Map a (p,q)
+prodMap :: (Ord i) => p -> q -> Map i p -> Map i q -> Map i (p,q)
 prodMap p q mp mq = Map.map final $ Map.unionWith combine ps qs
     where ps = Map.map LState mp
           qs = Map.map RState mq
@@ -204,103 +209,58 @@ prodMap p q mp mq = Map.map final $ Map.unionWith combine ps qs
           final (RState q) = (p, q)
           final (BState p q) = (p,q)
 
-appMap :: (Zippable f) => (forall a . Ord a => f a -> Map a q)
+-- | Apply the given state mapping to the given functorial value by
+-- adding the state to the corresponding index if it is in the map and
+-- otherwise adding the provided default state.
+appMap :: Zippable f => (forall i . Ord i => f i -> Map i q)
                        -> q -> f b -> f (q,b)
 appMap qmap q s = fmap qfun s'
     where s' = number s
           qfun k@(Numbered (_,a)) = (Map.findWithDefault q k (qmap s') ,a)
 
--- | This function constructs a DDTT from a given stateful term
--- homomorphism with the state propagated by the given DDTA.
-toDownTrans :: Zippable f => DownState f q -> QHom q f g -> DownTrans q f g
-toDownTrans st f (q, s) = explicit q fst f (appMap (curry st q) q s)
+-- | This function constructs a DDTT from a given stateful term-- homomorphism with the state propagated by the given DDTA.
+downTrans :: Zippable f => DownState f q -> QHom f q g -> DownTrans f q g
+downTrans st f (q, s) = explicit q fst f (appMap (curry st q) q s)
 
 
 -- | This function applies a given stateful term homomorphism with a
 -- state space propagated by the given DDTA to a term.
-downHom :: (Zippable f, Functor g)
-            => DownState f q -> QHom q f g -> q -> Term f -> Term g
-downHom st h = runDownTrans (toDownTrans st h)
+runDownHom :: (Zippable f, Functor g)
+            => DownState f q -> QHom f q g -> q -> Term f -> Term g
+runDownHom st h = runDownTrans (downTrans st h)
 
 -- | This type represents transition functions of generalised
 -- deterministic top-down tree acceptors (GDDTAs) which have access
 -- to an extended state space.
-type GDownState f q p = forall a . (Ord a, ?below :: a -> p, ?above :: p, q :< p)
-                                => f a -> Map a q
+type DDownState f p q = forall i . (Ord i, ?below :: i -> p, ?above :: p, q :< p)
+                                => f i -> Map i q
 
 -- | This combinator turns an arbitrary DDTA into a GDDTA.
-gDownState :: Functor f => DownState f q -> GDownState f q p
-gDownState f t = f (above,t)
+dDownState :: Functor f => DownState f q -> DDownState f p q
+dDownState f t = f (above,t)
 
 -- | This combinator turns a GDDTA with the smallest possible state
 -- space into a DDTA.
-downState :: GDownState f q q -> DownState f q
+downState :: DDownState f q q -> DownState f q
 downState f (q,s) = res
     where res = explicit q bel f s
           bel k = Map.findWithDefault q k res
 
 
 -- | This combinator constructs the product of two GDDTA.
-prodGDownState :: (p :< pq, q :< pq, Functor f)
-               => GDownState f p pq -> GDownState f q pq -> GDownState f (p,q) pq
-prodGDownState sp sq t = prodMap above above (sp t) (sq t)
+prodDDownState :: (p :< c, q :< c, Functor f)
+               => DDownState f c p -> DDownState f c q -> DDownState f c (p,q)
+prodDDownState sp sq t = prodMap above above (sp t) (sq t)
 
--- type GState f u d q = forall a . (Ord a, ?below :: a -> q, ?above :: q, u :< q, d :< q)
---                                => f a -> (u, Map a d)
-runGState :: forall f d u . Zippable f => 
-             GUpState f u (d,u) -> GDownState f d (d,u) -> d -> Term f -> u
-runGState up down = run where
-    run :: d -> Term f -> u
-    run d (Term t) = u where
-        t' :: f (Numbered (d,u))
+(>*<) :: (p :< c, q :< c, Functor f)
+         => DDownState f c p -> DDownState f c q -> DDownState f c (p,q)
+(>*<) = prodDDownState
+
+runDState :: Zippable f => DUpState f (u,d) u -> DDownState f (u,d) d -> d -> Term f -> u
+runDState up down d (Term t) = u where
         t' = fmap bel $ number t
-        bel :: Numbered (Term f) -> Numbered (d,u)
         bel (Numbered (i,s)) = 
             let d' = Map.findWithDefault d (Numbered (i,undefined)) m
-            in Numbered (i, (d', run d' s))
-        m :: Map (Numbered (d,u)) d
-        m = explicit (d,u) unNumbered down t'
-        u :: u
-        u = explicit (d,u) unNumbered up t'
-        
-    
--------------
--- Example --
--------------
-
-data Str a = Str
-data Base a = Char | List a
-
-type Typ = Str :+: Base
-
-$(derive [makeFunctor,smartConstructors, makeShowF] [''Str,''Base])
-
-class StringType f g where
-    strTypeHom :: (Bool :< q) => QHom q f g
-
-$(derive [liftSum] [''StringType])
-
-strType :: (Base :<: f, Functor f, Functor g, StringType f g)
-        => Term f -> Term g
-strType = snd . upHom isCharAlg strTypeHom
-
-isCharAlg :: (Base :<: f) => Alg f Bool
-isCharAlg t = case proj t of
-                Just Char -> True
-                _ -> False
-    
-instance (Str :<: f, Functor f) =>  StringType Str f where
-    strTypeHom = simpCxt . inj
-
-instance (Str :<:  f, Base :<: f, Functor f) =>  StringType Base f where
-    strTypeHom Char = iChar
-    strTypeHom (List t)
-               | below t  = iStr 
-               | otherwise = iList $ Hole t
-
-
-ex1 :: Term Typ
-ex1 = iList iChar
-
-runEx1 :: Term Typ
-runEx1 = strType ex1
+            in Numbered (i, (runDState up down d' s, d'))
+        m = explicit (u,d) unNumbered down t'
+        u = explicit (u,d) unNumbered up t'
