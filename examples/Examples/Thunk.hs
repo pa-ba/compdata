@@ -18,6 +18,7 @@
 module Examples.Thunk where
 
 import Data.Comp
+import Data.Comp.Zippable
 import Data.Comp.Thunk
 import Data.Comp.Derive
 import Data.Comp.Show()
@@ -35,6 +36,10 @@ $(derive [makeFunctor, makeTraversable, makeFoldable,
           makeEqF, makeShowF, smartConstructors]
          [''Value, ''Op])
 
+instance Zippable Value where
+    fzip (Cons x (Cons y _)) (Pair x' y') = Pair (x,x') (y,y')
+    fzip _ (Const i) = Const i
+
 -- Monadic term evaluation algebra
 class EvalT f v where
   evalAlgT :: AlgT Maybe f v
@@ -49,8 +54,15 @@ evalT = deepDethunk . cata evalAlgT
 
 instance (Value :<: v) => EvalT Value v where
 -- make pairs strict in both components
---  evalAlgT (Pair x y) = thunk $ liftM2 iPair (dethunk' x) (dethunk' y)
-  evalAlgT x = inject x
+--  evalAlgT x@Pair{} = strict x
+-- or explicitly:
+--  evalAlgT (Pair x y) = thunk $ liftM2 iPair (dethunk' x) (dethunk' )y
+--  evalAlgT x = inject x
+
+-- or only partially strict
+  evalAlgT = strictAt spec where
+      spec (Pair a b) = [b]
+      spec _          = []
 
 instance (Value :<: v) => EvalT Op v where
   evalAlgT (Add x y) = thunk $ do

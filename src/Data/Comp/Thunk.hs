@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, FlexibleContexts #-}
+{-# LANGUAGE TypeOperators, FlexibleContexts, RankNTypes #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -28,13 +28,18 @@ module Data.Comp.Thunk
     ,deepEval2
     ,(#>)
     ,(#>>)
-    ,AlgT) where
+    ,AlgT
+    ,strict
+    ,strictAt) where
 
 import Data.Comp.Term
 import Data.Comp.Algebra
 import Data.Comp.Ops
 import Data.Comp.Sum
 import Data.Comp.Derive
+import Data.Comp.Zippable
+
+import qualified Data.Set as Set
 
 import Data.Foldable
 import Data.Traversable
@@ -131,3 +136,25 @@ deepEval2 cont x y = (\ x' -> cont x' `deepEval` y ) `deepEval` x
 -- | This type represents algebras which have terms with thunks as
 -- carrier.
 type AlgT m f g = Alg f (TermT m g)
+
+-- | This combinator makes the evaluation of the given functor
+-- application strict by evaluating all thunks of immediate subterms.
+strict :: (f :<: g, Traversable f, Monad m) => f (TermT m g) -> TermT m g
+strict x = thunk $ liftM inject $ mapM dethunk' x
+
+-- | This type represents position representations for a functor
+-- @f@. It is a function that extracts a number of components (of
+-- polymorphic type @a@) from a functorial value and puts it into a
+-- list.
+type Pos f = forall a . Ord a => f a -> [a]
+
+-- | This combinator is a variant of 'strict' that only makes a subset
+-- of the arguments of a functor application strict. The first
+-- argument of this combinator specifies which positions are supposed
+-- to be strict.
+strictAt :: (f :<: g, Traversable f, Zippable f, Monad m) => Pos f ->  f (TermT m g) -> TermT m g
+strictAt p s = thunk $ liftM inject $ mapM run s'
+    where s'  = number s
+          isStrict e = Set.member e $ Set.fromList $ p s'
+          run e | isStrict e = dethunk' $ unNumbered e
+                | otherwise  = return $ unNumbered e
