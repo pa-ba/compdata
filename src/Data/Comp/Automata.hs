@@ -236,7 +236,7 @@ type DDownState f p q = forall i . (Ord i, ?below :: i -> p, ?above :: p, q :< p
                                 => f i -> Map i q
 
 -- | This combinator turns an arbitrary DDTA into a GDDTA.
-dDownState :: Functor f => DownState f q -> DDownState f p q
+dDownState :: DownState f q -> DDownState f p q
 dDownState f t = f (above,t)
 
 -- | This combinator turns a GDDTA with the smallest possible state
@@ -248,7 +248,7 @@ downState f (q,s) = res
 
 
 -- | This combinator constructs the product of two GDDTA.
-prodDDownState :: (p :< c, q :< c, Functor f)
+prodDDownState :: (p :< c, q :< c)
                => DDownState f c p -> DDownState f c q -> DDownState f c (p,q)
 prodDDownState sp sq t = prodMap above above (sp t) (sq t)
 
