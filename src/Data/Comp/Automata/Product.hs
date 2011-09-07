@@ -17,11 +17,11 @@ import Data.Comp.Automata.Product.Derive
 
 
 instance a :< a where
-    ex = id
+    pr = id
     up = const
 
 $(genAllInsts 7)
 
 instance (c :< b) => c :< (a,b) where
-    ex = ex . snd
+    pr = pr . snd
     up z (x,y) = (x,up z y)

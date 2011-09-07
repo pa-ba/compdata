@@ -14,7 +14,7 @@
 --------------------------------------------------------------------------------
 
 module Examples.Automata.MHom
-    ( module Examples.GTermHom
+    ( module Examples.Automata.MHom
     , module Data.Stream ) where
 
 import Data.Comp.Zippable
@@ -30,30 +30,30 @@ import Data.Comp.Derive
 -- | An instance @a :< b@ means that @a@ is a component of @b@. @a@
 -- can be extracted from @b@ via the method 'ex'.
 class p :< q where
-    ex :: q a -> p a
+    pr :: q a -> p a
     up :: p a -> q a -> q a
 
 instance q :< q where
-    ex = id
+    pr = id
     up = const
 
 instance p :< p :*: q where
-    ex = ffst
+    pr = ffst
     up x (_ :*: y) = x :*: y
 
 instance (p :< q) => p :< (p' :*: q) where
-    ex = ex . fsnd
+    pr = pr . fsnd
     up  y (x :*: y') = x :*: up y y'
 
 -- | This function provides access to components of the states from
 -- "below".
 below :: (?below :: i -> q a, p :< q) => i -> p a
-below = ex . ?below
+below = pr . ?below
 
 -- | This function provides access to components of the state from
 -- "above"
 above :: (?above :: q a, p :< q) => p a
-above = ex ?above
+above = pr ?above
 
 hole :: (?get :: i -> a) => i -> Context f a
 hole = Hole . ?get
@@ -131,7 +131,7 @@ toUpTrans :: (Functor f, Functor g, Functor q)
           => UpState f q -> MHom q f g -> UpTrans q f g
 toUpTrans st f t = (fmap Hole q, c)
     where q = st t
-          c = explicit q (ex . fst) snd f t
+          c = explicit q (pr . fst) snd f t
 
 -- | This function applies a given generalised term homomorphism with
 -- a state space propagated by the given DUTA to a term.

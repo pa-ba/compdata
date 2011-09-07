@@ -43,12 +43,12 @@ o = Map.empty
 -- | This function provides access to components of the states from
 -- "below".
 below :: (?below :: a -> q, p :< q) => a -> p
-below = ex . ?below
+below = pr . ?below
 
 -- | This function provides access to components of the state from
 -- "above"
 above :: (?above :: q, p :< q) => p
-above = ex ?above
+above = pr ?above
 
 -- | Turns the explicit parameters @?above@ and @?below@ into explicit
 -- ones.

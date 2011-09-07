@@ -55,7 +55,7 @@ type Code = [Instr]
 type DUpState f q p = (q :< p) => f p -> q
 
 dUpState :: Functor f => UpState f q -> DUpState f q p
-dUpState st = st . fmap ex
+dUpState st = st . fmap pr
 
 
 heightSt :: UpState Sig Int
@@ -64,7 +64,7 @@ heightSt (Plus x y) = 1 + max x y
 
 codeSt :: (Int :< q) => DUpState Sig Code q
 codeSt (Const x) = [Acc x]
-codeSt (Plus x y) = ex x ++ [Store a] ++ ex y ++ [Add a] where a = ex y
+codeSt (Plus x y) = pr x ++ [Store a] ++ pr y ++ [Add a] where a = pr y
 
 -- | This combinator constructs the product of two GDUTA.
 (<*>) :: (p :< pq, q :< pq)

@@ -18,7 +18,7 @@ import Language.Haskell.TH
 -- | An instance @a :< b@ means that @a@ is a component of @b@. @a@
 -- can be extracted from @b@ via the method 'ex'.
 class a :< b where
-    ex :: b -> a
+    pr :: b -> a
     up :: a -> b -> b
 
 data Dir = L | R
@@ -57,7 +57,7 @@ genEx :: [Dir] -> DecQ
 genEx dir = do
   n <- newName "x"
   p <- genPat n dir
-  return $ FunD (mkName "ex") [Clause [p] (NormalB (VarE n)) []]
+  return $ FunD (mkName "pr") [Clause [p] (NormalB (VarE n)) []]
 
 genUp :: [Dir] -> DecQ
 genUp dir = do
