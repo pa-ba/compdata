@@ -15,8 +15,7 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Thunk
-    (Thunk (..)
-    ,TermT
+    (TermT
     ,CxtT
     ,thunk
     ,dethunk
@@ -41,48 +40,27 @@ import Data.Comp.Zippable
 
 import qualified Data.Set as Set
 
-import Data.Foldable
 import Data.Traversable
-import Control.Applicative
 import Control.Monad hiding (sequence,mapM)
 
 import Prelude hiding (foldr, foldl,foldr1, foldl1,sequence,mapM)
 
 
-data Thunk m a = Thunk (m a)
-
 -- | This type represents terms with thunks.
-type TermT m f = Term (Thunk m :+: f)
+type TermT m f = Term (m :+: f)
 
 -- | This type represents contexts with thunks.
-type CxtT  m h f a = Cxt h (Thunk m :+: f) a
-
-instance Functor m => Functor (Thunk m) where
-    fmap f (Thunk x) = Thunk $ fmap f x
-
-instance Foldable m => Foldable (Thunk m) where
-    fold (Thunk x) = fold x
-    foldMap f (Thunk x) = foldMap f x
-    foldr f e (Thunk x) = foldr f e x
-    foldl f e (Thunk x) = foldl f e x
-    foldr1 f (Thunk x) = foldr1 f x
-    foldl1 f (Thunk x) = foldl1 f x
-
-instance Traversable m => Traversable (Thunk m) where
-    sequence (Thunk x) = liftM Thunk $ sequence x
-    mapM f (Thunk x)   = liftM Thunk $ mapM f x
-    sequenceA (Thunk x)    = Thunk <$> sequenceA x
-    traverse f (Thunk x)    = Thunk <$> traverse f x
+type CxtT  m h f a = Cxt h  (m :+: f) a
 
 
 -- | This function turns a monadic computation into a thunk.
-thunk :: (Thunk m :<: f) => m (Cxt h f a) -> Cxt h f a
-thunk = inject . Thunk
+thunk :: (m :<: f) => m (Cxt h f a) -> Cxt h f a
+thunk = inject
 
 -- | This function evaluates all thunks until a non-thunk node is
 -- found.
 dethunk :: Monad m => TermT m f -> m (f (TermT m f))
-dethunk (Term (Inl (Thunk m))) = m >>= dethunk
+dethunk (Term (Inl m)) = m >>= dethunk
 dethunk (Term (Inr t)) = return t
 
 dethunk' :: Monad m => TermT m f -> m (TermT m f)
@@ -91,7 +69,7 @@ dethunk' = liftM inject . dethunk
 -- | This function inspects the topmost non-thunk node (using
 -- 'dethunk') according to the given function.
 eval :: Monad m => (f (TermT m f) -> TermT m f) -> TermT m f -> TermT m f
-eval cont (Term (Inl (Thunk m))) = thunk $ cont' =<< dethunk =<< m 
+eval cont (Term (Inl m)) = thunk $ cont' =<< dethunk =<< m 
     where cont' = return . cont
     -- alt: where cont' x = liftM inject $ dethunk $ cont x
 eval cont (Term (Inr t)) = cont t

@@ -61,7 +61,7 @@ instance (Value :<: v) => EvalT Value v where
 
 -- or only partially strict
   evalAlgT = strictAt spec where
-      spec (Pair a b) = [b]
+      spec (Pair _ b) = [b]
       spec _          = []
 
 instance (Value :<: v) => EvalT Op v where
