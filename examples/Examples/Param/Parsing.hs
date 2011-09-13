@@ -50,15 +50,15 @@ type Sig' = Const :+: Lam :+: App :+: Op
 $(derive [makeDifunctor, makeDitraversable, makeEqD, makeShowD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op, ''Abs, ''Var])
 
-type TransM = Reader (Map VarId Any)
+type TransM f = Reader (Map VarId (Term f))
 
 class PHOASTrans f g where
-  transAlg :: Alg f (TransM (Term g))
+  transAlg :: Alg f (TransM g (Term g))
 
 $(derive [liftSum] [''PHOASTrans])
 
 -- default translation
-instance (f :<: g, Ditraversable f TransM Any) => PHOASTrans f g where
+instance (f :<: g, Ditraversable f (TransM g) Any) => PHOASTrans f g where
   transAlg x = liftM inject $ disequence $ dimap (return . Place) id x
 
 instance (Lam :<: g) => PHOASTrans Abs g where
@@ -66,11 +66,11 @@ instance (Lam :<: g) => PHOASTrans Abs g where
                           return $ iLam $ \y -> runReader b (Map.insert x y env)
 
 instance PHOASTrans Var g where
-  transAlg (Var x) = liftM (Place . fromJust) $ asks $ Map.lookup x
+  transAlg (Var x) = liftM fromJust $ asks $ Map.lookup x
 
 trans :: Term Sig -> Term Sig'
 trans x = runReader (cata transAlg x) Map.empty
 
--- Example: evalEx = iLam $ \a -> iApp (iLam $ \b -> iLam $ \c -> hole b) (hole a)
+-- Example: evalEx = iLam $ \a -> iApp (iLam $ \b -> iLam $ \c -> b) a
 transEx :: Term Sig'
 transEx = trans $ iAbs "y" $ (iAbs "x" $ iAbs "y" $ iVar "x") `iApp` (iVar "y")

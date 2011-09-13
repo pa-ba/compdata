@@ -46,7 +46,6 @@ $(derive [makeDifunctor, makeEqD, makeShowD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op])
 $(derive [makeDitraversable]
          [''Const, ''App, ''Op])
-$(derive [smartConstructors] [''FunM])
 
 -- Term evaluation algebra. Note that we cannot use @AlgM Maybe f (Term v)@
 -- because that would force @FunM@ to have the type @e -> e@ rather than
@@ -80,7 +79,7 @@ instance (FunM Maybe :<: v) => EvalM App v where
                             f =<< my
 
 instance (FunM Maybe :<: v) => EvalM Lam v where
-  evalAlgM (Lam f) = return $ iFunM $ f . return
+  evalAlgM (Lam f) = return $ inject $ FunM $ f . return
 
 projC :: (Const :<: v) => Term v -> Maybe Int
 projC v = do Const n <- project v
@@ -96,6 +95,5 @@ evalMG = deepProject <=< (evalM :: Term Sig -> Maybe (Term Value))
 
 -- Example: evalEx = Just (iConst 12) (3 * (2 + 2) = 12)
 evalMEx :: Maybe (Term GValue)
-evalMEx = evalMG $ (iLam $ \x -> iLam $ \y ->
-                                 Place y `iMult` (Place x `iAdd` Place x))
+evalMEx = evalMG $ (iLam $ \x -> iLam $ \y -> y `iMult` (x `iAdd` x))
                    `iApp` iConst 2 `iApp` iConst 3

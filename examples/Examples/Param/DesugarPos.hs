@@ -53,19 +53,17 @@ $(derive [makeDifunctor, makeEqD, makeShowD,
 instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
   => Desugar Sug f where
   desugHom' (Neg x)   = iConst (-1) `iMult` x
-  desugHom' (Let x y) = iLam y `iApp` x
-  desugHom' Fix       = iLam $ \f ->
-                           (iLam $ \x -> Place f `iApp` (Place x `iApp` Place x))
-                           `iApp`
-                           (iLam $ \x -> Place f `iApp` (Place x `iApp` Place x))
+  desugHom' (Let x y) = inject (Lam y) `iApp` x
+  desugHom' Fix       = iLam $ \f -> (iLam $ \x -> f `iApp` (x `iApp` x)) `iApp`
+                                     (iLam $ \x -> f `iApp` (x `iApp` x))
 
 -- Example: desugPEx == iAApp (Pos 1 0)
---          (iALam (Pos 1 0) Place)
+--          (iALam (Pos 1 0) id)
 --          (iALam (Pos 1 1) $ \f ->
 --               iAApp (Pos 1 1)
 --                     (iALam (Pos 1 1) $ \x ->
---                          iAApp (Pos 1 1) (Place f) (iAApp (Pos 1 1) (Place x) (Place x)))
+--                          iAApp (Pos 1 1) f (iAApp (Pos 1 1) x x))
 --                     (iALam (Pos 1 1) $ \x ->
---                          iAApp (Pos 1 1) (Place f) (iAApp (Pos 1 1) (Place x) (Place x))))
+--                          iAApp (Pos 1 1) f (iAApp (Pos 1 1) x  x)))
 desugPEx :: Term SigP
-desugPEx = desugarA (iALet (Pos 1 0) (iAFix (Pos 1 1)) Place :: Term SigP')
+desugPEx = desugarA (iALet (Pos 1 0) (iAFix (Pos 1 1)) id :: Term SigP')

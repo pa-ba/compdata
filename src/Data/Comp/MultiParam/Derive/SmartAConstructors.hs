@@ -8,7 +8,8 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Automatically derive smart constructors with annotations.
+-- Automatically derive smart constructors with annotations for higher-order
+-- difunctors.
 --
 --------------------------------------------------------------------------------
 
@@ -21,13 +22,13 @@ import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
 import Data.Comp.MultiParam.Ops
 import Data.Comp.MultiParam.Term
+import Data.Comp.MultiParam.HDifunctor
 
 import Control.Monad
 
-{-| Derive smart constructors with products for a type constructor of any
-  parametric kind taking at least three arguments. The smart constructors are
-  similar to the ordinary constructors, but an 'injectA' is automatically
-  inserted. -}
+{-| Derive smart constructors with annotations for a higher-order difunctor. The
+ smart constructors are similar to the ordinary constructors, but a
+ 'injectA . hdimap Place id' is automatically inserted. -}
 smartAConstructors :: Name -> Q [Dec]
 smartAConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
@@ -42,6 +43,6 @@ smartAConstructors fname = do
                 let pats = map varP (varPr : varNs)
                     vars = map varE varNs
                     val = appE [|injectA $(varE varPr)|] $
-                          appE [|inj|] $ foldl appE (conE name) vars
+                          appE [|inj . hdimap Place id|] $ foldl appE (conE name) vars
                     function = [funD sname [clause pats (normalB [|Term $val|]) []]]
                 sequence function

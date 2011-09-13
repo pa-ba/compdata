@@ -64,12 +64,12 @@ $(derive [makeHDifunctor, makeEqHD, makeShowHD,
 instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, HDifunctor f)
   => Desugar Sug f where
   desugHom' (Neg x)   = iConst (-1) `iMult` x
-  desugHom' (Let x y) = iLam y `iApp` x
+  desugHom' (Let x y) = inject (Lam y) `iApp` x
 
 -- Example: desugPEx == iAApp (Pos 1 0)
--- (iALam (Pos 1 0) $ \x -> iAMult (Pos 1 2) (iAConst (Pos 1 2) (-1)) (Place x))
+-- (iALam (Pos 1 0) $ \x -> iAMult (Pos 1 2) (iAConst (Pos 1 2) (-1)) x)
 -- (iAConst (Pos 1 1) 6)
 desugPEx :: Term SigP Int
 desugPEx = desugarA (iALet (Pos 1 0)
                            (iAConst (Pos 1 1) 6)
-                           (\x -> iANeg (Pos 1 2) $ Place x :: Term SigP' Int))
+                           (\x -> iANeg (Pos 1 2) x :: Term SigP' Int))

@@ -60,12 +60,11 @@ $(derive [makeHDifunctor, makeEqHD, makeShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op, ''IfThenElse, ''Sug])
 $(derive [makeHFoldable, makeHTraversable]
          [''Const, ''App, ''Op])
-$(derive [smartConstructors] [''Fun])
 
 instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, HDifunctor f)
   => Desugar Sug f where
   desugHom' (Neg x)   = iConst (-1) `iMult` x
-  desugHom' (Let x y) = iLam y `iApp` x
+  desugHom' (Let x y) = inject (Lam y) `iApp` x
 
 -- Term evaluation algebra
 class Eval f v where
@@ -88,7 +87,7 @@ instance (Fun :<: v) => Eval App v where
   evalAlg (App x y) = (projF x) y
 
 instance (Fun :<: v) => Eval Lam v where
-  evalAlg (Lam f) = iFun f
+  evalAlg (Lam f) = inject $ Fun f
 
 instance (Const :<: v) => Eval IfThenElse v where
   evalAlg (IfThenElse c v1 v2) = if projC c /= 0 then v1 else v2
@@ -105,4 +104,4 @@ evalG = deepProject . (eval :: Term Sig' :-> Term Value)
 
 -- Example: evalEx = Just (iConst -6)
 evalEx :: Maybe (Term GValue Int)
-evalEx = evalG $ iLet (iConst 6) $ \x -> iNeg $ Place x
+evalEx = evalG $ iLet (iConst 6) $ \x -> iNeg x

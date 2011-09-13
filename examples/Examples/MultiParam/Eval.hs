@@ -57,7 +57,6 @@ $(derive [makeHDifunctor, makeEqHD, makeShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op])
 $(derive [makeHFoldable, makeHTraversable]
          [''Const, ''App, ''Op])
-$(derive [smartConstructors] [''Fun])
 
 -- Term evaluation algebra
 class Eval f v where
@@ -80,7 +79,7 @@ instance (Fun :<: v) => Eval App v where
   evalAlg (App x y) = (projF x) y
 
 instance (Fun :<: v) => Eval Lam v where
-  evalAlg (Lam f) = iFun f
+  evalAlg (Lam f) = inject $ Fun f
 
 projC :: (Const :<: v) => Term v Int -> Int
 projC v = case project v of Just (Const n) -> n
@@ -94,4 +93,4 @@ evalG = deepProject . (eval :: Term Sig :-> Term Value)
 
 -- Example: evalEx = Just (iConst 4)
 evalEx :: Maybe (Term GValue Int)
-evalEx = evalG $ (iLam $ \x -> Place x `iAdd` Place x) `iApp` iConst 2
+evalEx = evalG $ (iLam $ \x -> x `iAdd` x) `iApp` iConst 2

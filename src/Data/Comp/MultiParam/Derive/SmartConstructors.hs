@@ -8,7 +8,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Automatically derive smart constructors for parametric types.
+-- Automatically derive smart constructors for higher-order difunctors.
 --
 --------------------------------------------------------------------------------
 
@@ -21,11 +21,12 @@ import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
 import Data.Comp.MultiParam.Sum
 import Data.Comp.MultiParam.Term
+import Data.Comp.MultiParam.HDifunctor
 import Control.Monad
 
-{-| Derive smart constructors for a type constructor of any parametric kind
- taking at least three arguments. The smart constructors are similar to the
- ordinary constructors, but an 'inject' is automatically inserted. -}
+{-| Derive smart constructors for a higher-order difunctor. The smart
+ constructors are similar to the ordinary constructors, but a
+ 'inject . hdimap Place id' is automatically inserted. -}
 smartConstructors :: Name -> Q [Dec]
 smartConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
@@ -47,7 +48,7 @@ smartConstructors fname = do
                     vars = map varE varNs
                     val = foldl appE (conE name) vars
                     sig = genSig targs tname sname args miTp
-                    function = [funD sname [clause pats (normalB [|inject $val|]) []]]
+                    function = [funD sname [clause pats (normalB [|inject (hdimap Place id $val)|]) []]]
                 sequence $ sig ++ function
               genSig targs tname sname 0 miTp = (:[]) $ do
                 hvar <- newName "h"

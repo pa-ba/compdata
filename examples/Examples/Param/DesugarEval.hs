@@ -51,16 +51,13 @@ $(derive [makeDifunctor, makeEqD, makeShowD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op, ''IfThenElse, ''Sug])
 $(derive [makeDitraversable]
          [''Const, ''App, ''Op])
-$(derive [smartConstructors] [''Fun])
 
 instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
   => Desugar Sug f where
   desugHom' (Neg x)   = iConst (-1) `iMult` x
-  desugHom' (Let x y) = iLam y `iApp` x
-  desugHom' Fix       = iLam $ \f ->
-                           (iLam $ \x -> Place f `iApp` (Place x `iApp` Place x))
-                           `iApp`
-                           (iLam $ \x -> Place f `iApp` (Place x `iApp` Place x))
+  desugHom' (Let x y) = inject (Lam y) `iApp` x
+  desugHom' Fix       = iLam $ \f -> (iLam $ \x -> f `iApp` (x `iApp` x)) `iApp`
+                                     (iLam $ \x -> f `iApp` (x `iApp` x))
 
 -- Term evaluation algebra
 class Eval f v where
@@ -86,7 +83,7 @@ instance (Fun :<: v) => Eval App v where
   evalAlg (App x y) = (projF x) y
 
 instance (Fun :<: v) => Eval Lam v where
-  evalAlg (Lam f) = iFun f
+  evalAlg (Lam f) = inject $ Fun f
 
 instance (Const :<: v) => Eval IfThenElse v where
   evalAlg (IfThenElse c v1 v2) = if projC c /= 0 then v1 else v2
@@ -109,7 +106,4 @@ fact :: Term Sig'
 fact = iFix `iApp`
        (iLam $ \f ->
           iLam $ \n ->
-              iIfThenElse
-              (Place n)
-              (Place n `iMult` (Place f `iApp` (Place n `iAdd` iConst (-1))))
-              (iConst 1))
+              iIfThenElse n  (n `iMult` (f `iApp` (n `iAdd` iConst (-1)))) (iConst 1))
