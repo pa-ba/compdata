@@ -11,10 +11,23 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Zippable
-    ( module Data.Comp.Zippable
-    , module Data.Stream ) where
+    ( Zippable
+    , Numbered(..)
+    , unNumbered
+    , number
+    , number'
+    , Stream(..)
+    , (<:>)) where
 
-import Data.Stream (Stream(..), (<:>))
+-- import Data.Stream (Stream(..), (<:>))
+
+data Stream a = Cons a (Stream a) deriving (Eq, Ord)
+
+infixr 5 <:>
+-- | The @ \<:\> @ operator is an infix version of the 'Cons'
+-- constructor.
+(<:>) :: a -> Stream a -> Stream a
+(<:>) = Cons
 
 -- | Instances of this class provide a generalisation of the zip
 -- function on the list functor.

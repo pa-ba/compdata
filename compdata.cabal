@@ -122,7 +122,6 @@ extra-source-files:
   benchmark/Functions/Standard/Inference.hs
   benchmark/Functions/Standard.hs
   -- example files
-  examples/Examples/GTermHom.hs
   examples/Examples/Eval.hs
   examples/Examples/EvalM.hs
   examples/Examples/DesugarEval.hs
@@ -275,7 +274,7 @@ library
                         Data.Comp.MultiParam.Derive.Injections,
                         Data.Comp.MultiParam.Derive.Projections
 
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers, Stream
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers
   hs-source-dirs:	src
   ghc-options:          -W
   if flag(benchmark)
