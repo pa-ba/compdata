@@ -49,7 +49,8 @@ makeEqD fname = do
              else
                  [clause [wildP,wildP] (normalB [|return False|]) []]
   eqDDecl <- funD 'eqD (map (eqDClause conArg coArg) constrs' ++ defC)
-  return [InstanceD [] classType [eqDDecl]]
+  let context = map (\arg -> ClassP ''Eq [arg]) argNames
+  return [InstanceD context classType [eqDDecl]]
       where eqDClause :: Name -> Name -> (Name,[Type]) -> ClauseQ
             eqDClause conArg coArg (constr, args) = do
               varXs <- newNames (length args) "x"

@@ -48,7 +48,8 @@ makeShowHD fname = do
   let classType = AppT (ConT ''ShowHD) complType
   constrs' :: [(Name,[Type])] <- mapM normalConExp constrs
   showHDDecl <- funD 'showHD (map (showHDClause conArg coArg) constrs')
-  return [InstanceD [] classType [showHDDecl]]
+  let context = map (\arg -> ClassP ''Show [arg]) argNames
+  return [InstanceD context classType [showHDDecl]]
       where showHDClause :: Name -> Name -> (Name,[Type]) -> ClauseQ
             showHDClause conArg coArg (constr, args) = do
               varXs <- newNames (length args) "x"

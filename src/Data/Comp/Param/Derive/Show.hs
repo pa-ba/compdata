@@ -54,7 +54,8 @@ makeShowD fname = do
   -- constrs' = [(X,[c]), (Y,[a,c]), (Z,[b -> c])]
   constrs' :: [(Name,[Type])] <- mapM normalConExp constrs
   showDDecl <- funD 'showD (map (showDClause conArg coArg) constrs')
-  return [InstanceD [] classType [showDDecl]]
+  let context = map (\arg -> ClassP ''Show [arg]) argNames
+  return [InstanceD context classType [showDDecl]]
       where showDClause :: Name -> Name -> (Name,[Type]) -> ClauseQ
             showDClause conArg coArg (constr, args) = do
               varXs <- newNames (length args) "x"
