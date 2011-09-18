@@ -48,5 +48,5 @@ evalAlgMTest = EvalAlgM.evalMEx == Just (EvalAlgM.iConst 5)
 desugarEvalTest = DesugarEval.evalEx == Just (DesugarEval.iConst (-6))
 desugarPosTest = DesugarPos.desugPEx ==
                  DesugarPos.iAApp (DesugarPos.Pos 1 0)
-                                  (DesugarPos.iALam (DesugarPos.Pos 1 0) $ \x -> DesugarPos.iAMult (DesugarPos.Pos 1 2) (DesugarPos.iAConst (DesugarPos.Pos 1 2) (-1)) (Place x))
+                                  (DesugarPos.iALam (DesugarPos.Pos 1 0) $ \x -> DesugarPos.iAMult (DesugarPos.Pos 1 2) (DesugarPos.iAConst (DesugarPos.Pos 1 2) (-1)) x)
                                   (DesugarPos.iAConst (DesugarPos.Pos 1 1) 6)

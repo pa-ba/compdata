@@ -72,5 +72,4 @@ instance Eval Lam where
 
 -- Example: evalEx = 4
 evalEx :: Int
-evalEx = eval $ ((iLam $ \x -> Place x `iAdd` Place x) `iApp` iConst 2
-                 :: Term Sig Int)
+evalEx = eval $ ((iLam $ \x -> x `iAdd` x) `iApp` iConst 2 :: Term Sig Int)
