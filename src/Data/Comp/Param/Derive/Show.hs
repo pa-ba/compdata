@@ -14,7 +14,6 @@
 --------------------------------------------------------------------------------
 module Data.Comp.Param.Derive.Show
     (
-     PShow(..),
      ShowD(..),
      makeShowD
     ) where
@@ -23,15 +22,17 @@ import Data.Comp.Derive.Utils
 import Data.Comp.Param.FreshM
 import Control.Monad
 import Language.Haskell.TH hiding (Cxt, match)
-
--- |Printing of parametric values.
-class PShow a where
-    pshow :: a -> FreshM String
+import qualified Data.Traversable as T
 
 {-| Signature printing. An instance @ShowD f@ gives rise to an instance
   @Show (Term f)@. -}
 class ShowD f where
-    showD :: PShow a => f Var a -> FreshM String
+    showD :: f Var (FreshM String) -> FreshM String
+
+newtype Dummy = Dummy String
+
+instance Show Dummy where
+  show (Dummy s) = s
 
 {-| Derive an instance of 'ShowD' for a type constructor of any parametric
   kind taking at least two arguments. -}
@@ -76,11 +77,11 @@ makeShowD fname = do
                 | otherwise =
                     case tp of
                       VarT a
-                          | a == coArg -> [| pshow $(varE x) |]
+                          | a == coArg -> [| $(varE x) |]
                       AppT (AppT ArrowT (VarT a)) _
                           | a == conArg ->
                               [| do {v <- genVar;
-                                     body <- pshow $ $(varE x) v;
+                                     body <- $(varE x) v;
                                      return $ "\\" ++ show v ++ " -> " ++ body} |]
                       SigT tp' _ ->
                           showDB conArg coArg (x, tp')
@@ -88,4 +89,4 @@ makeShowD fname = do
                           if containsType tp (VarT conArg) then
                               [| showD $(varE x) |]
                           else
-                              [| pshow $(varE x) |]
+                              [| liftM show $ T.mapM (liftM Dummy) $(varE x) |]

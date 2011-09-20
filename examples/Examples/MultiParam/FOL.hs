@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, FlexibleInstances,
   FlexibleContexts, UndecidableInstances, GADTs, KindSignatures,
-  OverlappingInstances, TypeSynonymInstances #-}
+  OverlappingInstances, TypeSynonymInstances, EmptyDataDecls #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.MultiParam.FOL
@@ -77,7 +77,7 @@ $(derive [makeHDifunctor, smartConstructors]
 
 instance ShowHD Const where
     showHD (Const f t) = do
-      ts <- mapM pshow t
+      ts <- mapM unK t
       return $ f ++ "(" ++ concat (intersperse ", " ts) ++ ")"
 
 instance ShowHD Var where
@@ -91,40 +91,38 @@ instance ShowHD FF where
 
 instance ShowHD Atom where
     showHD (Atom p t) = do
-      ts <- mapM pshow t
+      ts <- mapM unK t
       return $ p ++ "(" ++ concat (intersperse ", " ts) ++ ")"
 
 instance ShowHD NAtom where
     showHD (NAtom p t) = do
-      ts <- mapM pshow t
+      ts <- mapM unK t
       return $ "not " ++ p ++ "(" ++ concat (intersperse ", " ts) ++ ")"
 
 instance ShowHD Not where
-    showHD (Not f) = liftM (\x -> "not (" ++ x ++ ")") (pshow f)
+    showHD (Not f) = liftM (\x -> "not (" ++ x ++ ")") (unK f)
 
 instance ShowHD Or where
     showHD (Or f1 f2) =
-        liftM2 (\x y -> "(" ++ x ++ ") or (" ++ y ++ ")") (pshow f1) (pshow f2)
+        liftM2 (\x y -> "(" ++ x ++ ") or (" ++ y ++ ")") (unK f1) (unK f2)
 
 instance ShowHD And where
     showHD (And f1 f2) =
-        liftM2 (\x y -> "(" ++ x ++ ") and (" ++ y ++ ")") (pshow f1) (pshow f2)
+        liftM2 (\x y -> "(" ++ x ++ ") and (" ++ y ++ ")") (unK f1) (unK f2)
 
 instance ShowHD Impl where
     showHD (Impl f1 f2) =
-        liftM2 (\x y -> "(" ++ x ++ ") -> (" ++ y ++ ")") (pshow f1) (pshow f2)
+        liftM2 (\x y -> "(" ++ x ++ ") -> (" ++ y ++ ")") (unK f1) (unK f2)
 
 instance ShowHD Exists where
     showHD (Exists f) = do x <- genVar
-                           x' <- pshow x
-                           b <- pshow $ f x
-                           return $ "exists " ++ x' ++ ". " ++ b
+                           b <- unK $ f x
+                           return $ "exists " ++ show x ++ ". " ++ b
 
 instance ShowHD Forall where
     showHD (Forall f) = do x <- genVar
-                           x' <- pshow x
-                           b <- pshow $ f x
-                           return $ "forall " ++ x' ++ ". " ++ b
+                           b <- unK $ f x
+                           return $ "forall " ++ show x ++ ". " ++ b
 
 --------------------------------------------------------------------------------
 -- Stage 0
@@ -135,12 +133,12 @@ type Input = Const :+: TT :+: FF :+: Atom :+: Not :+: Or :+: And :+:
 
 foodFact :: Term Input TFormula
 foodFact =
-    (iExists $ \p -> iAtom "Person" [Place p] `iAnd`
-                     (iForall $ \f -> iAtom "Food" [Place f] `iImpl`
-                                      iAtom "Eats" [Place p,Place f])) `iImpl`
-    iNot (iExists $ \f -> iAtom "Food" [Place f] `iAnd`
-                          iNot (iExists $ \p -> iAtom "Person" [Place p] `iAnd`
-                                                iAtom "Eats" [Place p,Place f]))
+    (iExists $ \p -> iAtom "Person" [p] `iAnd`
+                     (iForall $ \f -> iAtom "Food" [f] `iImpl`
+                                      iAtom "Eats" [p,f])) `iImpl`
+    iNot (iExists $ \f -> iAtom "Food" [f] `iAnd`
+                          iNot (iExists $ \p -> iAtom "Person" [p] `iAnd`
+                                                iAtom "Eats" [p,f]))
 
 --------------------------------------------------------------------------------
 -- Stage 1
@@ -149,16 +147,19 @@ foodFact =
 type Stage1 = Const :+: TT :+: FF :+: Atom :+: Not :+: Or :+: And :+:
               Exists :+: Forall
 
-class ElimImp f where
+class HDifunctor f => ElimImp f where
     elimImpHom :: Hom f Stage1
+    elimImpHom = elimImpHom' . hfmap Hole
+    elimImpHom' :: f a (Cxt h Stage1 a b) :-> Cxt h Stage1 a b
+    elimImpHom' = appCxt .elimImpHom
 
 $(derive [liftSum] [''ElimImp])
 
-instance (f :<: Stage1) => ElimImp f where
+instance (HDifunctor f, f :<: Stage1) => ElimImp f where
     elimImpHom = simpCxt . inj
 
 instance ElimImp Impl where
-    elimImpHom (Impl f1 f2) = iNot (Hole f1) `iOr` (Hole f2)
+    elimImpHom' (Impl f1 f2) = iNot f1 `iOr` f2
 
 elimImp :: Term Input :-> Term Stage1
 elimImp = appHom elimImpHom
@@ -173,37 +174,40 @@ foodFact1 = elimImp foodFact
 type Stage2 = Const :+: TT :+: FF :+: Atom :+: NAtom :+: Or :+: And :+:
               Exists :+: Forall
 
-class Dualize f where
+class HDifunctor f => Dualize f where
     dualizeHom :: Hom f Stage2
+    dualizeHom = dualizeHom' . hfmap Hole
+    dualizeHom' :: f a (Cxt h Stage2 a b) :-> Cxt h Stage2 a b
+    dualizeHom' = appCxt . dualizeHom
 
 $(derive [liftSum] [''Dualize])
 
 instance Dualize Const where
-    dualizeHom (Const f t) = iConst f $ map Hole t
+    dualizeHom' (Const f t) = iConst f t
 
 instance Dualize TT where
-    dualizeHom TT = iFF
+    dualizeHom' TT = iFF
 
 instance Dualize FF where
-    dualizeHom FF = iTT
+    dualizeHom' FF = iTT
 
 instance Dualize Atom where
-    dualizeHom (Atom p t) = iNAtom p $ map Hole t
+    dualizeHom' (Atom p t) = iNAtom p t
 
 instance Dualize NAtom where
-    dualizeHom (NAtom p t) = iAtom p $ map Hole t
+    dualizeHom' (NAtom p t) = iAtom p t
 
 instance Dualize Or where
-    dualizeHom (Or f1 f2) = Hole f1 `iAnd` Hole f2
+    dualizeHom' (Or f1 f2) = f1 `iAnd` f2
 
 instance Dualize And where
-    dualizeHom (And f1 f2) = Hole f1 `iOr` Hole f2
+    dualizeHom' (And f1 f2) = f1 `iOr` f2
 
 instance Dualize Exists where
-    dualizeHom (Exists f) = iForall (Hole . f)
+    dualizeHom' (Exists f) = inject $ Forall f
 
 instance Dualize Forall where
-    dualizeHom (Forall f) = iExists (Hole . f)
+    dualizeHom' (Forall f) = inject $ Exists f
 
 dualize :: Term Stage2 :-> Term Stage2
 dualize = appHom dualizeHom
@@ -235,10 +239,10 @@ instance PushNot And where
     pushNotAlg (And f1 f2) = f1 `iAnd` f2
 
 instance PushNot Exists where
-    pushNotAlg (Exists f) = iExists (f . Place)
+    pushNotAlg (Exists f) = iExists f
 
 instance PushNot Forall where
-    pushNotAlg (Forall f) = iForall (f . Place)
+    pushNotAlg (Forall f) = iForall f
 
 pushNotInwards :: Term Stage1 :-> Term Stage2
 pushNotInwards = cata pushNotAlg
@@ -314,9 +318,7 @@ instance Skolem Forall where
     skolemAlg (Forall f) = do
       supply <- freshes
       xs <- ask
-      return $ iForall $ \x -> evalS (getCompose $ f (Place x))
-                                     (Place x : xs)
-                                     supply
+      return $ iForall $ \x -> evalS (getCompose $ f x) (x : xs) supply
 
 instance Skolem Exists where
     skolemAlg (Exists f) = do uniq <- fresh

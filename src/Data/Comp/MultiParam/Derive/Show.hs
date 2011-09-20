@@ -14,24 +14,26 @@
 --------------------------------------------------------------------------------
 module Data.Comp.MultiParam.Derive.Show
     (
-     PShow(..),
      ShowHD(..),
      makeShowHD
     ) where
 
 import Data.Comp.Derive.Utils
 import Data.Comp.MultiParam.FreshM
+import Data.Comp.MultiParam.HDifunctor
 import Control.Monad
 import Language.Haskell.TH hiding (Cxt, match)
-
--- |Printing of parametric values.
-class PShow a where
-    pshow :: a i -> FreshM String
+import qualified Data.Traversable as T
 
 {-| Signature printing. An instance @ShowHD f@ gives rise to an instance
   @Show (Term f i)@. -}
 class ShowHD f where
-    showHD :: PShow a => f Var a i -> FreshM String
+    showHD :: f Var (K (FreshM String)) i -> FreshM String
+
+newtype Dummy = Dummy String
+
+instance Show Dummy where
+  show (Dummy s) = s
 
 {-| Derive an instance of 'ShowHD' for a type constructor of any parametric
   kind taking at least three arguments. -}
@@ -70,16 +72,16 @@ makeShowHD fname = do
                 | otherwise =
                     case tp of
                       AppT (VarT a) _ 
-                          | a == coArg -> [| pshow $(varE x) |]
+                          | a == coArg -> [| unK $(varE x) |]
                       AppT (AppT ArrowT (AppT (VarT a) _)) _
                           | a == conArg ->
                               [| do {v <- genVar;
-                                     body <- pshow $ $(varE x) v;
-                                     return $ "\\" ++ varShow v ++ " -> " ++ body} |]
+                                     body <- (unK . $(varE x)) v;
+                                     return $ "\\" ++ show v ++ " -> " ++ body} |]
                       SigT tp' _ ->
                           showHDB conArg coArg (x, tp')
                       _ ->
                           if containsType tp (VarT conArg) then
                               [| showHD $(varE x) |]
                           else
-                              [| pshow $(varE x) |]
+                              [| liftM show $ T.mapM (liftM Dummy . unK) $(varE x) |]

@@ -14,7 +14,6 @@
 --------------------------------------------------------------------------------
 module Data.Comp.MultiParam.Show
     (
-     PShow(..),
      ShowHD(..)
     ) where
 
@@ -24,28 +23,20 @@ import Data.Comp.MultiParam.Ops
 import Data.Comp.MultiParam.Derive
 import Data.Comp.MultiParam.FreshM
 
-instance Show a => PShow (K a) where
-    pshow = return . show . unK
-
 -- Lift ShowHD to sums
 $(derive [liftSum] [''ShowHD])
 
-instance PShow Var where
-    pshow = return . varShow
-
 {-| From an 'ShowHD' higher-order difunctor an 'ShowHD' instance of the
   corresponding term type can be derived. -}
-instance (ShowHD f, PShow a) => PShow (Cxt h f Var a) where
-    pshow (Term t) = showHD t
-    pshow (Hole h) = pshow h
-    pshow (Place p) = pshow p
+instance (HDifunctor f, ShowHD f) => ShowHD (Cxt h f) where
+    showHD (Term t) = showHD $ hfmap (K . showHD) t
+    showHD (Hole h) = unK h
+    showHD (Place p) = return $ show p
 
 {-| Printing of terms. -}
 instance (HDifunctor f, ShowHD f) => Show (Term f i) where
-    show = evalFreshM . pshow .
-           (coerceCxt :: Term f i -> Trm f Var i)
+    show = evalFreshM . showHD . toCxt . coerceCxt
 
-instance (ShowHD f, PShow (K p)) => ShowHD (f :&: p) where
+instance (ShowHD f, Show p) => ShowHD (f :&: p) where
     showHD (x :&: p) = do sx <- showHD x
-                          sp <- pshow $ K p
-                          return $ sx ++ " :&: " ++ sp
+                          return $ sx ++ " :&: " ++ show p

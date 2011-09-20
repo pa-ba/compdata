@@ -57,7 +57,7 @@ instance OrdHD f => OrdHD (Cxt h f) where
     compareHD (Place _) _ = return GT
 
 instance POrd Var where
-    pcompare x y = return $ varCompare x y
+    pcompare x y = return $ compare (varCoerce x) y
 
 instance (OrdHD f, POrd a) => POrd (Cxt h f Var a) where
     pcompare = compareHD
