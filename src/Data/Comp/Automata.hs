@@ -27,6 +27,8 @@ module Data.Comp.Automata
     -- ** Top-Down State Propagation
     , downTrans
     , runDownHom
+    -- ** Bidirectional State Propagation
+    , runQHom
     -- * Deterministic Bottom-Up Tree Transducers
     , UpTrans
     , runUpTrans
@@ -301,15 +303,21 @@ downState f (q,s) = res
           bel k = Map.findWithDefault q k res
 
 
--- | This combinator constructs the product of two GDDTA.
+-- | This combinator constructs the product of two dependant top-down
+-- state transformations.
 prodDDownState :: (p :< c, q :< c)
                => DDownState f c p -> DDownState f c q -> DDownState f c (p,q)
 prodDDownState sp sq t = prodMap above above (sp t) (sq t)
 
+-- | This is a synonym for 'prodDDownState'.
 (>*<) :: (p :< c, q :< c, Functor f)
          => DDownState f c p -> DDownState f c q -> DDownState f c (p,q)
 (>*<) = prodDDownState
 
+
+-- | This combinator combines a bottom-up and a top-down state
+-- transformations. Both state transformations can depend mutually
+-- recursive on each other.
 runDState :: Zippable f => DUpState f (u,d) u -> DDownState f (u,d) d -> d -> Term f -> u
 runDState up down d (Term t) = u where
         t' = fmap bel $ number t
@@ -318,3 +326,20 @@ runDState up down d (Term t) = u where
             in Numbered (i, (runDState up down d' s, d'))
         m = explicit (u,d) unNumbered down t'
         u = explicit (u,d) unNumbered up t'
+
+-- | This combinator runs a stateful term homomorphisms with a state
+-- space produced both on a bottom-up and a top-down state
+-- transformation.
+runQHom :: (Zippable f, Functor g) =>
+           DUpState f (u,d) u -> DDownState f (u,d) d -> 
+           QHom f (u,d) g ->
+           d -> Term f -> (u, Term g)
+runQHom up down trans d (Term t) = (u,t'') where
+        t' = fmap bel $ number t
+        bel (Numbered (i,s)) = 
+            let d' = Map.findWithDefault d (Numbered (i,undefined)) m
+                (u', s') = runQHom up down trans d' s
+            in Numbered (i, ((u', d'),s'))
+        m = explicit (u,d) (fst . unNumbered) down t'
+        u = explicit (u,d) (fst . unNumbered) up t'
+        t'' = appCxt $ fmap (snd . unNumbered) $  explicit (u,d) (fst . unNumbered) trans t'
