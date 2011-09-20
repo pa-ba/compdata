@@ -23,6 +23,9 @@ module Data.Comp.Annotation
      liftA',
      stripA,
      propAnn,
+     propAnnQ,
+     propAnnUp,
+     propAnnDown,
      propAnnM,
      ann,
      project'
@@ -67,6 +70,23 @@ propAnn hom f' = ann p (hom f)
 propAnnQ :: (DistAnn f p f', DistAnn g p g', Functor g) 
         => QHom f q g -> QHom f' q g'
 propAnnQ hom f' = ann p (hom f)
+    where (f,p) = projectA f'
+
+-- | Lift a bottom-up tree transducer over signatures @f@ and @g@ to a
+-- bottom-up tree transducer over the same signatures, but extended
+-- with annotations.
+propAnnUp :: (DistAnn f p f', DistAnn g p g', Functor g) 
+        => UpTrans f q g -> UpTrans f' q g'
+propAnnUp trans f' = (q, ann p t)
+    where (f,p) = projectA f'
+          (q,t) = trans f
+
+-- | Lift a top-down tree transducer over signatures @f@ and @g@ to a
+-- top-down tree transducer over the same signatures, but extended
+-- with annotations.
+propAnnDown :: (DistAnn f p f', DistAnn g p g', Functor g) 
+        => DownTrans f q g -> DownTrans f' q g'
+propAnnDown trans (q, f') = ann p (trans (q, f))
     where (f,p) = projectA f'
 
 {-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
