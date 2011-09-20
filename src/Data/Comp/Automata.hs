@@ -16,8 +16,55 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Automata
-    ( module Data.Comp.Automata,
-      module Data.Comp.Automata.Product
+    ( module Data.Comp.Automata.Product
+    -- * Stateful Term Homomorphisms
+    , QHom
+    , below
+    , above
+    -- ** Bottom-Up State Propagation
+    , upTrans
+    , runUpHom
+    -- ** Top-Down State Propagation
+    , downTrans
+    , runDownHom
+    -- * Deterministic Bottom-Up Tree Transducers
+    , UpTrans
+    , runUpTrans
+    , compUpTrans
+    -- * Deterministic Bottom-Up Tree State Transformations
+    -- ** Monolithic State
+    , UpState
+    , tagUpState
+    , runUpState
+    , prodUpState
+    -- ** Modular State
+    , DUpState
+    , dUpState
+    , upState
+    , runDUpState
+    , prodDUpState
+    , (<*>)
+    -- * Deterministic Top-Down Tree Transducers
+    , DownTrans
+    , runDownTrans
+    , compDownTrans
+    -- * Deterministic Top-Down Tree State Transformations
+    -- ** Monolithic State
+    , DownState
+    , tagDownState
+    , prodDownState
+    -- ** Modular State
+    , DDownState
+    , dDownState
+    , downState
+    , prodDDownState
+    , (>*<)
+    -- * Bidirectional Tree State Transformations
+    , runDState
+    -- * Operators for Finite Mappings
+    , (&)
+    , (|->)
+    , o
     ) where
 
 import Data.Comp.Zippable
@@ -28,15 +75,22 @@ import Data.Comp.Show ()
 import Data.Map (Map)
 import qualified Data.Map as Map
 
+
+-- The following are operators to specify finite mappings.
+
+
 infix 1 |->
 infixr 0 &
 
+-- | left-biased union of two mappings.
 (&) :: Ord k => Map k v -> Map k v -> Map k v
 (&) = Map.union
 
+-- | This operator constructs a singleton mapping.
 (|->) :: k -> a -> Map k a
 (|->) = Map.singleton
 
+-- | This is the empty mapping.
 o :: Map k a
 o = Map.empty
 
