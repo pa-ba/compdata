@@ -50,7 +50,8 @@ makeOrdD fname = do
   -- constrs' = [(X,[c]), (Y,[a,c]), (Z,[b -> c])]
   constrs' :: [(Name,[Type])] <- mapM normalConExp constrs
   compareDDecl <- funD 'compareD (compareDClauses conArg coArg constrs')
-  return [InstanceD [] classType [compareDDecl]]
+  let context = map (\arg -> ClassP ''Ord [arg]) argNames
+  return [InstanceD context classType [compareDDecl]]
       where compareDClauses :: Name -> Name -> [(Name,[Type])] -> [ClauseQ]
             compareDClauses _ _ [] = []
             compareDClauses conArg coArg constrs = 
