@@ -24,6 +24,7 @@ module Data.Comp.Automata
     -- ** Bottom-Up State Propagation
     , upTrans
     , runUpHom
+    , runUpHomSt
     -- ** Top-Down State Propagation
     , downTrans
     , runDownHom
@@ -130,8 +131,14 @@ upAlg trans = fmap appCxt . trans
 
 -- | This function runs the given DUTT on the given term.
 
-runUpTrans :: (Functor f, Functor g) => UpTrans f q g -> Term f -> (q, Term g)
-runUpTrans = cata . upAlg
+runUpTrans :: (Functor f, Functor g) => UpTrans f q g -> Term f -> Term g
+runUpTrans trans = snd . runUpTransSt trans
+
+-- | This function is a variant of 'runUpTrans' that additionally
+-- returns the final state of the run.
+
+runUpTransSt :: (Functor f, Functor g) => UpTrans f q g -> Term f -> (q, Term g)
+runUpTransSt = cata . upAlg
 
 -- | This function generalises 'runUpTrans' to contexts. Therefore,
 -- additionally, a transition function for the holes is needed.
@@ -176,8 +183,13 @@ upTrans st f t = (q, c)
 
 -- | This function applies a given stateful term homomorphism with
 -- a state space propagated by the given DUTA to a term.
-runUpHom :: (Functor f, Functor g) => UpState f q -> QHom f q g -> Term f -> (q,Term g)
-runUpHom alg h = runUpTrans (upTrans alg h)
+runUpHom :: (Functor f, Functor g) => UpState f q -> QHom f q g -> Term f -> Term g
+runUpHom st hom = snd . runUpHomSt st hom
+
+-- | This is a variant of 'runUpHom' that also returns the final state
+-- of the run.
+runUpHomSt :: (Functor f, Functor g) => UpState f q -> QHom f q g -> Term f -> (q,Term g)
+runUpHomSt alg h = runUpTransSt (upTrans alg h)
 
 
 -- | This type represents transition functions of generalised

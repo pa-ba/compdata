@@ -193,6 +193,6 @@ remLetHom t = case proj t of
 
 -- | Removes unnecessary let bindings.
 remLet :: (Let :<: f, Functor f, VarsSt f) => Term f -> Term f
-remLet = snd . runUpHom varsSt remLetHom
+remLet = runUpHom varsSt remLetHom
 
 exLet = remLet (iLet "x" (iConst 3) (iConst 2 `iPlus` iVar "y") :: Term CoreLet)

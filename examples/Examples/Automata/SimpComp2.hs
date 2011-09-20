@@ -84,7 +84,7 @@ remLetHom (LetIn v _ y) | not (v `Set.member` below y) = Hole y
 remLetHom  t = simpCxt t
 
 remLet :: Term Sig -> Term Sig
-remLet = snd . runUpHom fvSt remLetHom
+remLet = runUpHom fvSt remLetHom
 
 ldepthSt :: DownState Sig Int
 ldepthSt (d,LetIn _ _ b) = b |-> d + 1
