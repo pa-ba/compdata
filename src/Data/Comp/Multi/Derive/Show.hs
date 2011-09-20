@@ -8,15 +8,15 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Automatically derive instances of @HShowF@.
+-- Automatically derive instances of @ShowHF@.
 --
 --------------------------------------------------------------------------------
 
 module Data.Comp.Multi.Derive.Show
     (
-     HShowF(..),
+     ShowHF(..),
      KShow(..),
-     makeHShowF
+     makeShowHF
     ) where
 
 import Data.Comp.Derive.Utils
@@ -24,13 +24,13 @@ import Data.Comp.Multi.Functor
 import Data.Comp.Multi.Algebra
 import Language.Haskell.TH
 
-{-| Signature printing. An instance @HShowF f@ gives rise to an instance
+{-| Signature printing. An instance @ShowHF f@ gives rise to an instance
   @KShow (HTerm f)@. -}
-class HShowF f where
-    hshowF :: Alg f (K String)
-    hshowF = K . hshowF'
-    hshowF' :: f (K String) :=> String
-    hshowF' = unK . hshowF
+class ShowHF f where
+    showHF :: Alg f (K String)
+    showHF = K . showHF'
+    showHF' :: f (K String) :=> String
+    showHF' = unK . showHF
 
 class KShow a where
     kshow :: a i -> K String i
@@ -39,19 +39,19 @@ showConstr :: String -> [String] -> String
 showConstr con [] = con
 showConstr con args = "(" ++ con ++ " " ++ unwords args ++ ")"
 
-{-| Derive an instance of 'HShowF' for a type constructor of any higher-order
+{-| Derive an instance of 'ShowHF' for a type constructor of any higher-order
   kind taking at least two arguments. -}
-makeHShowF :: Name -> Q [Dec]
-makeHShowF fname = do
+makeShowHF :: Name -> Q [Dec]
+makeShowHF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       fArg = VarT . tyVarBndrName $ last args'
       argNames = (map (VarT . tyVarBndrName) (init args'))
       complType = foldl AppT (ConT name) argNames
       preCond = map (ClassP ''Show . (: [])) argNames
-      classType = AppT (ConT ''HShowF) complType
+      classType = AppT (ConT ''ShowHF) complType
   constrs' <- mapM normalConExp constrs
-  showFDecl <- funD 'hshowF (showFClauses fArg constrs')
+  showFDecl <- funD 'showHF (showFClauses fArg constrs')
   return [InstanceD preCond classType [showFDecl]]
       where showFClauses fArg = map (genShowFClause fArg)
             filterFarg fArg ty x = (containsType ty fArg, varE x)

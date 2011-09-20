@@ -32,7 +32,7 @@ type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell
 $(derive [makeFunctor, makeShowF,
-          makeEqF, smartConstructors] [''Value, ''Op])
+          makeEqF, makeOrdF, smartConstructors] [''Value, ''Op])
 
 -- Term evaluation algebra
 class Eval f v where

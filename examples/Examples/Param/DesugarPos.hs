@@ -46,7 +46,7 @@ type Sig' = Sug :+: Sug
 type SigP' = Sug :&: Pos :+: SigP
 
 -- Derive boilerplate code using Template Haskell
-$(derive [makeDifunctor, makeEqD, makeShowD,
+$(derive [makeDifunctor, makeEqD, makeOrdD, makeShowD,
           smartConstructors, smartAConstructors]
          [''Const, ''Lam, ''App, ''Op, ''Sug])
 

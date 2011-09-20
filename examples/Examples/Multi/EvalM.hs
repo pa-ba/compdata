@@ -38,7 +38,7 @@ type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell (GHC 7 needed)
 $(derive [makeHFunctor, makeHTraversable, makeHFoldable,
-          makeHEqF, makeHShowF, smartConstructors]
+          makeEqHF, makeOrdHF, makeShowHF, smartConstructors]
          [''Value, ''Op])
 
 -- Monadic term evaluation algebra

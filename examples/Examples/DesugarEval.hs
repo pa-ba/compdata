@@ -37,7 +37,7 @@ type Sig' = Sugar :+: Op :+: Value
 
 -- Derive boilerplate code using Template Haskell
 $(derive [makeFunctor, makeTraversable, makeFoldable,
-          makeEqF, makeShowF, smartConstructors]
+          makeEqF, makeShowF, makeOrdF, smartConstructors]
          [''Value, ''Op, ''Sugar])
 
 instance (Op :<: f, Value :<: f, Functor f) => Desugar Sugar f where

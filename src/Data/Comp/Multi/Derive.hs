@@ -21,8 +21,10 @@ module Data.Comp.Multi.Derive
 
      -- ** HShowF
      module Data.Comp.Multi.Derive.Show,
-     -- ** HEqF
+     -- ** EqHF
      module Data.Comp.Multi.Derive.Equality,
+     -- ** OrdHF
+     module Data.Comp.Multi.Derive.Ordering,
      -- ** HFunctor
      module Data.Comp.Multi.Derive.Functor,
      -- ** HFoldable
@@ -39,6 +41,7 @@ module Data.Comp.Multi.Derive
 
 import Data.Comp.Derive.Utils (derive)
 import Data.Comp.Multi.Derive.Equality
+import Data.Comp.Multi.Derive.Ordering
 import Data.Comp.Multi.Derive.Show
 import Data.Comp.Multi.Derive.Functor
 import Data.Comp.Multi.Derive.Foldable

@@ -188,6 +188,7 @@ library
                         Data.Comp.Multi.Annotation,
                         Data.Comp.Multi.Show,
                         Data.Comp.Multi.Equality,
+                        Data.Comp.Multi.Ordering,
                         Data.Comp.Multi.Variables,
                         Data.Comp.Multi.Ops,
                         Data.Comp.Ops,
@@ -246,6 +247,7 @@ library
                         Data.Comp.Multi.Derive.Foldable,
                         Data.Comp.Multi.Derive.Traversable,
                         Data.Comp.Multi.Derive.Equality,
+                        Data.Comp.Multi.Derive.Ordering,
                         Data.Comp.Multi.Derive.Show,
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Multi.Derive.SmartAConstructors

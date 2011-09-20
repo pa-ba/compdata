@@ -17,7 +17,7 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Multi.Show
-    ( HShowF(..)
+    ( ShowHF(..)
     ) where
 
 import Data.Comp.Multi.Term
@@ -31,17 +31,17 @@ instance KShow Nothing where
 instance KShow (K String) where
     kshow = id
 
-instance (HShowF f, HFunctor f) => HShowF (Cxt h f) where
-    hshowF (Hole s) = s
-    hshowF (Term t) = hshowF $ hfmap hshowF t
+instance (ShowHF f, HFunctor f) => ShowHF (Cxt h f) where
+    showHF (Hole s) = s
+    showHF (Term t) = showHF $ hfmap showHF t
 
-instance (HShowF f, HFunctor f, KShow a) => KShow (Cxt h f a) where
-    kshow = free hshowF kshow
+instance (ShowHF f, HFunctor f, KShow a) => KShow (Cxt h f a) where
+    kshow = free showHF kshow
 
 instance (KShow f) => Show (f i) where
     show = unK . kshow
 
-instance (HShowF f, Show p) => HShowF (f :&: p) where
-    hshowF (v :&: p) =  K $ unK (hshowF v) ++ " :&: " ++ show p
+instance (ShowHF f, Show p) => ShowHF (f :&: p) where
+    showHF (v :&: p) =  K $ unK (showHF v) ++ " :&: " ++ show p
 
-$(derive [liftSum] [''HShowF])
+$(derive [liftSum] [''ShowHF])

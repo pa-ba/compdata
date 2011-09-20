@@ -35,8 +35,8 @@ tests = testGroup "Generalised Compositional Data Types" [
 -- Properties
 --------------------------------------------------------------------------------
 
-instance (HEqF f, Eq p) => HEqF (f :&: p) where
-    heqF (v1 :&: p1) (v2 :&: p2) = p1 == p2 && v1 `heqF` v2
+instance (EqHF f, Eq p) => EqHF (f :&: p) where
+    eqHF (v1 :&: p1) (v2 :&: p2) = p1 == p2 && v1 `eqHF` v2
 
 evalTest = Eval.evalEx == Eval.iConst 2
 evalITest = EvalI.evalIEx == 2

@@ -36,7 +36,7 @@ data Op e l where
 type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-$(derive [makeHFunctor, makeHShowF, makeHEqF, smartConstructors] 
+$(derive [makeHFunctor, makeShowHF, makeEqHF, makeOrdHF, smartConstructors] 
          [''Value, ''Op])
 
 -- Term evaluation algebra

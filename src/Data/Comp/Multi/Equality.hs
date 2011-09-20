@@ -15,7 +15,7 @@
 --------------------------------------------------------------------------------
 module Data.Comp.Multi.Equality
     (
-     HEqF(..),
+     EqHF(..),
      KEq(..),
      heqMod
     ) where
@@ -23,32 +23,46 @@ module Data.Comp.Multi.Equality
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Ops
-import Data.Comp.Multi.Derive
-
 import Data.Comp.Multi.Functor
 import Data.Comp.Multi.Foldable
+
+class KEq f where
+    keq :: f i -> f j -> Bool
+
+{-| Signature equality. An instance @EqHF f@ gives rise to an instance
+  @KEq (HTerm f)@. -}
+class EqHF f where
+    eqHF :: KEq g => f g i -> f g j -> Bool
+
+instance Eq a => KEq (K a) where
+    keq (K x) (K y) = x == y
+
+instance KEq a => Eq (A a) where
+     A x == A y = x `keq`  y
 
 {-|
   'EqF' is propagated through sums.
 -}
 
-instance (HEqF f, HEqF g) => HEqF (f :+: g) where
-    heqF (Inl x) (Inl y) = heqF x y
-    heqF (Inr x) (Inr y) = heqF x y
-    heqF _ _ = False
+instance (EqHF f, EqHF g) => EqHF (f :+: g) where
+    eqHF (Inl x) (Inl y) = eqHF x y
+    eqHF (Inr x) (Inr y) = eqHF x y
+    eqHF _ _ = False
 
 {-|
   From an 'EqF' functor an 'Eq' instance of the corresponding
   term type can be derived.
 -}
-instance (HEqF f) => HEqF (Cxt h f) where
+instance (EqHF f) => EqHF (Cxt h f) where
+    eqHF (Term e1) (Term e2) = e1 `eqHF` e2
+    eqHF (Hole h1) (Hole h2) = h1 `keq` h2
+    eqHF _ _ = False
 
-    heqF (Term e1) (Term e2) = e1 `heqF` e2
-    heqF (Hole h1) (Hole h2) = h1 `keq` h2
-    heqF _ _ = False
+instance (EqHF f, KEq a) => KEq (Cxt h f a) where
+    keq = eqHF
 
-instance (HEqF f, KEq a)  => KEq (Cxt h f a) where
-    keq = heqF
+instance (EqHF f, KEq a) => Eq (Cxt h f a i) where
+    (==) = keq
 
 instance KEq Nothing where
     keq _ = undefined
@@ -60,9 +74,9 @@ sense, 'eqMod' returns a 'Just' value containing a list of pairs
 consisting of corresponding components of the two functorial
 values. -}
 
-heqMod :: (HEqF f, HFunctor f, HFoldable f) => f a i -> f b i -> Maybe [(A a, A b)]
+heqMod :: (EqHF f, HFunctor f, HFoldable f) => f a i -> f b i -> Maybe [(A a, A b)]
 heqMod s t
-    | unit s `heqF` unit' t = Just args
+    | unit s `eqHF` unit' t = Just args
     | otherwise = Nothing
     where unit = hfmap (const $ K ())
           unit' = hfmap (const $ K ())
