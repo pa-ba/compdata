@@ -73,7 +73,6 @@ import Data.Comp.Zippable
 import Data.Comp.Automata.Product
 import Data.Comp.Term
 import Data.Comp.Algebra
-import Data.Comp.Show ()
 import Data.Map (Map)
 import qualified Data.Map as Map
 

@@ -32,6 +32,7 @@ import Data.Comp.Term
 import Data.Comp.Sum
 import Data.Comp.Ops
 import Data.Comp.Algebra
+import Data.Comp.Automata
 import Control.Monad
 
 {-| Transform a function with a domain constructed from a functor to a function
@@ -57,6 +58,15 @@ stripA = appSigFun remA
 propAnn :: (DistAnn f p f', DistAnn g p g', Functor g) 
         => Hom f g -> Hom f' g'
 propAnn hom f' = ann p (hom f)
+    where (f,p) = projectA f'
+
+
+-- | Lift a stateful term homomorphism over signatures @f@ and @g@ to
+-- a stateful term homomorphism over the same signatures, but extended with
+-- annotations.
+propAnnQ :: (DistAnn f p f', DistAnn g p g', Functor g) 
+        => QHom f q g -> QHom f' q g'
+propAnnQ hom f' = ann p (hom f)
     where (f,p) = projectA f'
 
 {-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
