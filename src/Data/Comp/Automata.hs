@@ -34,6 +34,8 @@ module Data.Comp.Automata
     , UpTrans
     , runUpTrans
     , compUpTrans
+    , compUpTransHom
+    , compHomUpTrans
     -- * Deterministic Bottom-Up Tree State Transformations
     -- ** Monolithic State
     , UpState
@@ -51,6 +53,8 @@ module Data.Comp.Automata
     , DownTrans
     , runDownTrans
     , compDownTrans
+    , compDownTransHom
+    , compHomDownTrans
     -- * Deterministic Top-Down Tree State Transformations
     -- ** Monolithic State
     , DownState
@@ -117,6 +121,17 @@ explicit ab be x = x where ?above = ab; ?below = be
 -- by a DUTA or a DDTA (or both).
 type QHom f q g = forall a . (?below :: a -> q, ?above :: q) => f a -> Context g a
 
+-- -- | This type represents (pure, i.e. stateless) homomorphism by
+-- -- universally quantifying over the state type.
+-- type PHom f g = forall q . QHom f q g
+
+-- -- | This combinator runs a stateless homomorphism. (use
+-- -- 'Data.Comp.Algebra.appHom' instead).
+-- runPHom :: forall f g . (Functor f, Functor g) => PHom f g -> CxtFun f g
+-- runPHom hom = run where
+--     run :: CxtFun f g
+--     run (Hole x) = Hole x
+--     run (Term t) = appCxt (explicit () (const ()) hom (fmap run t))
 
 -- | This type represents transition functions of deterministic
 -- bottom-up tree transducers (DUTTs).
@@ -153,6 +168,16 @@ compUpTrans :: (Functor f, Functor g, Functor h)
 compUpTrans t2 t1 x = ((q1,q2), c2) where
     (q1, c1) = t1 $ fmap (\((q1,q2),a) -> (q1,(q2,a))) x
     (q2, c2) = runUpTrans' t2 c1
+
+
+-- | This combinator composes a DUTT followed by a homomorphism.
+compHomUpTrans :: (Functor g, Functor h) => Hom g h -> UpTrans f q g -> UpTrans f q h
+compHomUpTrans hom trans x = (q, appHom hom x') where
+    (q, x') = trans x
+
+-- | This combinator composes a homomorphism followed by a DUTT.
+compUpTransHom :: (Functor g, Functor h) => UpTrans g q h -> Hom f g -> UpTrans f q h
+compUpTransHom trans hom x  = runUpTrans' trans . hom $ x
 
 -- | This type represents transition functions of deterministic
 -- bottom-up tree acceptors (DUTAs).
@@ -243,6 +268,17 @@ runDownTrans' tr q t = run (q,t) where
 compDownTrans :: (Functor f, Functor g, Functor h)
               => DownTrans g p h -> DownTrans f q g -> DownTrans f (q,p) h
 compDownTrans t2 t1 ((q,p), t) = fmap (\(p, (q, a)) -> ((q,p),a)) $ runDownTrans' t2 p (t1 (q, t))
+
+
+-- | This function composes a homomorphism after a DDTT.
+compHomDownTrans :: (Functor g, Functor h)
+              => Hom g h -> DownTrans f q g -> DownTrans f q h
+compHomDownTrans hom trans = appHom hom . trans
+
+-- | This function composes a DDTT after a homomorphism.
+compDownTransHom :: (Functor g, Functor h)
+              => DownTrans g q h -> Hom f g -> DownTrans f q h
+compDownTransHom trans hom (q,t) = runDownTrans' trans q (hom t)
 
 
 -- | This type represents transition functions of deterministic
