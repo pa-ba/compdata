@@ -16,7 +16,8 @@
 module Data.Comp.Param.Ordering
     (
      POrd(..),
-     OrdD(..)
+     OrdD(..),
+     compList
     ) where
 
 import Data.Comp.Param.Term
@@ -25,10 +26,22 @@ import Data.Comp.Param.Ops
 import Data.Comp.Param.Difunctor
 import Data.Comp.Param.FreshM
 import Data.Comp.Param.Equality
+import Data.Maybe (fromMaybe)
+import Data.List (find)
+import Control.Monad (liftM)
 
 -- |Ordering of parametric values.
 class PEq a => POrd a where
     pcompare :: a -> a -> FreshM Ordering
+
+instance POrd a => POrd [a] where
+    pcompare l1 l2
+        | length l1 < length l2 = return LT
+        | length l1 > length l2 = return GT
+        | otherwise = liftM compList $ mapM (uncurry pcompare) $ zip l1 l2
+
+compList :: [Ordering] -> Ordering
+compList = fromMaybe EQ . find (/= EQ)
 
 instance Ord a => POrd a where
     pcompare x y = return $ compare x y

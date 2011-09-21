@@ -21,13 +21,8 @@ module Data.Comp.Param.Derive.Ordering
 import Data.Comp.Param.FreshM
 import Data.Comp.Param.Ordering
 import Data.Comp.Derive.Utils
-import Data.Maybe
-import Data.List
 import Language.Haskell.TH hiding (Cxt)
 import Control.Monad (liftM)
-
-compList :: [Ordering] -> Ordering
-compList = fromMaybe EQ . find (/= EQ)
 
 {-| Derive an instance of 'OrdD' for a type constructor of any parametric
   kind taking at least two arguments. -}
@@ -84,8 +79,8 @@ makeOrdD fname = do
                           | a == coArg -> [| pcompare $(varE x) $(varE y) |]
                       AppT (AppT ArrowT (VarT a)) _
                           | a == conArg ->
-                              [| do {v <- genVar;
-                                     pcompare ($(varE x) v) ($(varE y) v)} |]
+                              [| do {v <- getVar;
+                                     step (pcompare ($(varE x) v) ($(varE y) v))} |]
                       SigT tp' _ ->
                           eqDB conArg coArg (x, y, tp')
                       _ ->

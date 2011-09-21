@@ -16,15 +16,16 @@ module Data.Comp.MultiParam.FreshM
     (
      FreshM,
      Var,
-     genVar,
+     getVar,
+     step,
      varCoerce,
      evalFreshM
     ) where
 
-import Control.Monad.State
+import Control.Monad.Reader
 
 -- |Monad for generating fresh (abstract) variables.
-newtype FreshM a = FreshM (State [String] a)
+newtype FreshM a = FreshM{unFreshM :: Reader [String] a}
     deriving Monad
 
 -- |Abstract notion of a variable (the constructor is hidden).
@@ -41,16 +42,17 @@ instance Ord (Var i) where
 varCoerce :: Var i -> Var j
 varCoerce (Var x) = Var x
 
--- |Generate a fresh variable.
-genVar :: FreshM (Var i)
-genVar = FreshM $ do xs <- get
-                     case xs of
-                       (x : xs') -> do {put xs'; return $ Var x}
-                       _ -> fail "Unexpected empty list"
+-- |Get the current variable.
+getVar :: FreshM (Var i)
+getVar = FreshM $ asks (Var . head)
+
+-- |Use the next available variable in the monadic computation.
+step :: FreshM a -> FreshM a
+step = FreshM . local tail . unFreshM
 
 -- |Evaluate a computation that uses fresh variables.
 evalFreshM :: FreshM a -> a
-evalFreshM (FreshM m) = evalState m vars
+evalFreshM (FreshM m) = runReader m vars
     where baseVars = ['a'..'z']
           vars = map (:[]) baseVars ++ vars' 1
           vars' n = map (: show n) baseVars ++ vars' (n + 1)

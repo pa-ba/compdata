@@ -78,9 +78,9 @@ makeOrdHD fname = do
                           | a == coArg -> [| pcompare $(varE x) $(varE y) |]
                       AppT (AppT ArrowT (AppT (VarT a) _)) _
                           | a == conArg ->
-                              [| do {v <- genVar;
-                                     pcompare ($(varE x) $ varCoerce v)
-                                              ($(varE y) $ varCoerce v)} |]
+                              [| do {v <- getVar;
+                                     step (pcompare ($(varE x) $ varCoerce v)
+                                                    ($(varE y) $ varCoerce v))} |]
                       SigT tp' _ ->
                           eqDB conArg coArg (x, y, tp')
                       _ ->

@@ -42,7 +42,7 @@ import Prelude hiding (or, foldl)
 
 type CxtSubst h a f v = Map v (Cxt h f a)
 
-type Subst f v = CxtSubst NoHole Nothing f v
+type Subst f v = CxtSubst NoHole () f v
 
 {-| This multiparameter class defines functors with variables. An instance
   @HasVar f v@ denotes that values over @f@ might contain and bind variables of

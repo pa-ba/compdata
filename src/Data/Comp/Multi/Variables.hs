@@ -49,7 +49,7 @@ type GSubst v a = NatM Maybe (K v) a
 
 type CxtSubst h a f v =  GSubst v (Cxt h f a)
 
-type Subst f v = CxtSubst NoHole Nothing f v
+type Subst f v = CxtSubst NoHole (K ()) f v
 
 {-| This multiparameter class defines functors with variables. An instance
   @HasVar f v@ denotes that values over @f@ might contain and bind variables of

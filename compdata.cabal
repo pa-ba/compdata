@@ -138,6 +138,7 @@ extra-source-files:
   examples/Examples/Param/DesugarEval.hs
   examples/Examples/Param/DesugarPos.hs
   examples/Examples/Param/Parsing.hs
+  examples/Examples/Param/Graph.hs
   examples/Examples/MultiParam/Eval.hs
   examples/Examples/MultiParam/EvalI.hs
   examples/Examples/MultiParam/EvalM.hs

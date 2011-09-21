@@ -20,7 +20,6 @@ module Data.Comp.Multi.Term
      Hole,
      NoHole,
      Context,
-     Nothing,
      Term,
      Const,
      constTerm,
@@ -67,15 +66,8 @@ data NoHole
 -- | A context might contain holes.
 type Context = Cxt Hole
 
-{-| Phantom type family used to define 'Term'.  -}
-data Nothing :: * -> *
-
-instance Show (Nothing i) where
-instance Eq (Nothing i) where
-instance Ord (Nothing i) where
-
 -- | A (higher-order) term is a context with no holes.
-type Term f = Cxt NoHole f Nothing
+type Term f = Cxt NoHole f (K ())
 
 -- | This function unravels the given term at the topmost layer.
 unTerm :: Term f t -> f (Term f) t

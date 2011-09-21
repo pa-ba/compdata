@@ -74,8 +74,8 @@ makeEqD fname = do
                           | a == coArg -> [| peq $(varE x) $(varE y) |]
                       AppT (AppT ArrowT (VarT a)) _
                           | a == conArg ->
-                              [| do {v <- genVar;
-                                     peq ($(varE x) v) ($(varE y) v)} |]
+                              [| do {v <- getVar;
+                                     step (peq ($(varE x) v) ($(varE y) v))} |]
                       SigT tp' _ ->
                           eqDB conArg coArg (x, y, tp')
                       _ ->

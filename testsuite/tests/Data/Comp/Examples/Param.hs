@@ -7,6 +7,7 @@ import qualified Examples.Param.EvalAlgM as EvalAlgM
 import qualified Examples.Param.DesugarEval as DesugarEval
 import qualified Examples.Param.DesugarPos as DesugarPos
 import qualified Examples.Param.Parsing as Parsing
+import qualified Examples.Param.Graph as Graph
 
 import Data.Comp.Param
 
@@ -29,7 +30,8 @@ tests = testGroup "Parametric Compositional Data Types" [
          testProperty "evalAlgM" evalAlgMTest,
          testProperty "desugarEval" desugarEvalTest,
          testProperty "desugarPos" desugarPosTest,
-         testProperty "parsing" parsingTest
+         testProperty "parsing" parsingTest,
+         testProperty "graph" graphTest
         ]
 
 
@@ -56,3 +58,4 @@ desugarPosTest = DesugarPos.desugPEx ==
                                                         (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
                                                              DesugarPos.iAApp (DesugarPos.Pos 1 1) f (DesugarPos.iAApp (DesugarPos.Pos 1 1) x x)))
 parsingTest = Parsing.transEx == (Parsing.iLam $ \a -> Parsing.iApp (Parsing.iLam $ \b -> Parsing.iLam $ \c -> b) a)
+graphTest = Graph.alphaTest && Graph.n == 5 && Graph.f == [0,2,1,2] && Graph.flatG Graph.g0' == ["0","2","1","2"]

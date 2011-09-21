@@ -43,17 +43,12 @@ instance KEq a => Eq (A a) where
 {-|
   'EqF' is propagated through sums.
 -}
-
 instance (EqHF f, EqHF g) => EqHF (f :+: g) where
     eqHF (Inl x) (Inl y) = eqHF x y
     eqHF (Inr x) (Inr y) = eqHF x y
     eqHF _ _ = False
 
-{-|
-  From an 'EqF' functor an 'Eq' instance of the corresponding
-  term type can be derived.
--}
-instance (EqHF f) => EqHF (Cxt h f) where
+instance EqHF f => EqHF (Cxt h f) where
     eqHF (Term e1) (Term e2) = e1 `eqHF` e2
     eqHF (Hole h1) (Hole h2) = h1 `keq` h2
     eqHF _ _ = False
@@ -61,12 +56,12 @@ instance (EqHF f) => EqHF (Cxt h f) where
 instance (EqHF f, KEq a) => KEq (Cxt h f a) where
     keq = eqHF
 
+{-|
+  From an 'EqF' functor an 'Eq' instance of the corresponding
+  term type can be derived.
+-}
 instance (EqHF f, KEq a) => Eq (Cxt h f a i) where
     (==) = keq
-
-instance KEq Nothing where
-    keq _ = undefined
-
 
 {-| This function implements equality of values of type @f a@ modulo
 the equality of @a@ itself. If two functorial values are equal in this

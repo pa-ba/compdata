@@ -35,7 +35,5 @@ instance (NFDataF f, NFData a) => NFData (Cxt h f a) where
     rnf (Hole x) = rnf x
     rnf (Term x) = rnfF x
 
-instance NFData Nothing where
-
 $(derive [liftSum] [''NFDataF])
 $(derive [makeNFDataF] [''Maybe, ''[], ''(,)])

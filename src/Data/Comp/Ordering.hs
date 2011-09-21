@@ -24,15 +24,14 @@ import Data.Comp.Equality ()
 import Data.Comp.Derive
 import Data.Comp.Derive.Utils
 
-
-instance (OrdF f, Ord a) => Ord (Cxt h f a) where
-    compare = compareF
-
 {-|
   From an 'OrdF' functor an 'Ord' instance of the corresponding
   term type can be derived.
 -}
-instance (OrdF f) => OrdF (Cxt h f) where
+instance (OrdF f, Ord a) => Ord (Cxt h f a) where
+    compare = compareF
+
+instance OrdF f => OrdF (Cxt h f) where
     compareF (Term e1) (Term e2) = compareF e1 e2
     compareF (Hole h1) (Hole h2) = compare h1 h2
     compareF Term{} Hole{} = LT

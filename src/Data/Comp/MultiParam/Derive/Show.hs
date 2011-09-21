@@ -75,8 +75,8 @@ makeShowHD fname = do
                           | a == coArg -> [| unK $(varE x) |]
                       AppT (AppT ArrowT (AppT (VarT a) _)) _
                           | a == conArg ->
-                              [| do {v <- genVar;
-                                     body <- (unK . $(varE x)) v;
+                              [| do {v <- getVar;
+                                     body <- step ((unK . $(varE x)) v);
                                      return $ "\\" ++ show v ++ " -> " ++ body} |]
                       SigT tp' _ ->
                           showHDB conArg coArg (x, tp')

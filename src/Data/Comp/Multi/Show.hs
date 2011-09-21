@@ -26,8 +26,6 @@ import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.Functor
 import Data.Comp.Multi.Derive
 
-instance KShow Nothing where
-    kshow _ = undefined
 instance KShow (K String) where
     kshow = id
 

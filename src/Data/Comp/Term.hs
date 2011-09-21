@@ -18,7 +18,6 @@ module Data.Comp.Term
      Hole,
      NoHole,
      Context,
-     Nothing,
      Term,
      PTerm,
      Const,
@@ -82,19 +81,8 @@ toCxt :: Functor f => Term f -> Cxt h f a
 toCxt = unsafeCoerce
 -- equivalent to @Term . (fmap toCxt) . unTerm@
 
-{-| Phantom type used to define 'Term'.  -}
-
-data Nothing
-
-instance Eq Nothing where
-instance Ord Nothing where
-instance Show Nothing where
-
-
-
 {-| A term is a context with no holes.  -}
-
-type Term f = Cxt NoHole f Nothing
+type Term f = Cxt NoHole f ()
 
 -- | Polymorphic definition of a term. This formulation is more
 -- natural than 'Term', it leads to impredicative types in some cases,
