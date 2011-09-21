@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, FlexibleContexts, ImplicitParams, GADTs, ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes, FlexibleContexts, ImplicitParams, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata

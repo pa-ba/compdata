@@ -20,6 +20,7 @@ module Data.Comp.Show
 import Data.Comp.Term
 import Data.Comp.Annotation
 import Data.Comp.Algebra
+import Data.Comp.Derive.Utils (derive)
 import Data.Comp.Derive.Show
 import Data.Comp.Derive.LiftSum
 
