@@ -36,6 +36,9 @@ module Data.Comp.Automata
     , compUpTrans
     , compUpTransHom
     , compHomUpTrans
+    , compUpTransSig
+    , compSigUpTrans
+    , compAlgUpTrans
     -- * Deterministic Bottom-Up Tree State Transformations
     -- ** Monolithic State
     , UpState
@@ -53,6 +56,8 @@ module Data.Comp.Automata
     , DownTrans
     , runDownTrans
     , compDownTrans
+    , compDownTransSig
+    , compSigDownTrans
     , compDownTransHom
     , compHomDownTrans
     -- * Deterministic Top-Down Tree State Transformations
@@ -170,6 +175,21 @@ compUpTrans t2 t1 x = ((q1,q2), c2) where
     (q2, c2) = runUpTrans' t2 c1
 
 
+-- | This function composes a DUTT with an algebra.
+compAlgUpTrans :: (Functor g)
+               => Alg g a -> UpTrans f q g -> Alg f (q,a)
+compAlgUpTrans alg trans = fmap (cata' alg) . trans
+
+
+-- | This combinator composes a DUTT followed by a signature function.
+compSigUpTrans :: (Functor g) => SigFun g h -> UpTrans f q g -> UpTrans f q h
+compSigUpTrans sig trans x = (q, appSigFun sig x') where
+    (q, x') = trans x
+
+-- | This combinator composes a signature function followed by a DUTT.
+compUpTransSig :: UpTrans g q h -> SigFun f g -> UpTrans f q h
+compUpTransSig trans sig = trans . sig
+
 -- | This combinator composes a DUTT followed by a homomorphism.
 compHomUpTrans :: (Functor g, Functor h) => Hom g h -> UpTrans f q g -> UpTrans f q h
 compHomUpTrans hom trans x = (q, appHom hom x') where
@@ -268,6 +288,15 @@ runDownTrans' tr q t = run (q,t) where
 compDownTrans :: (Functor f, Functor g, Functor h)
               => DownTrans g p h -> DownTrans f q g -> DownTrans f (q,p) h
 compDownTrans t2 t1 ((q,p), t) = fmap (\(p, (q, a)) -> ((q,p),a)) $ runDownTrans' t2 p (t1 (q, t))
+
+
+-- | This function composes a signature function after a DDTT.
+compSigDownTrans :: (Functor g) => SigFun g h -> DownTrans f q g -> DownTrans f q h
+compSigDownTrans sig trans = appSigFun sig . trans
+
+-- | This function composes a DDTT after a function.
+compDownTransSig :: DownTrans g q h -> SigFun f g -> DownTrans f q h
+compDownTransSig trans hom (q,t) = trans (q, (hom t))
 
 
 -- | This function composes a homomorphism after a DDTT.
