@@ -20,7 +20,7 @@ module Data.Comp.Multi.Derive.Show
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.Multi.Functor
+import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Algebra
 import Language.Haskell.TH
 

@@ -34,8 +34,8 @@ module Data.Comp.Multi.Variables
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.Derive
-import Data.Comp.Multi.Functor
-import Data.Comp.Multi.Foldable
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HFoldable
 import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Maybe

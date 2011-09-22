@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Multi.Derive.Functor
+-- Module      :  Data.Comp.Multi.Derive.HFunctor
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -12,14 +12,14 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Derive.Functor
+module Data.Comp.Multi.Derive.HFunctor
     (
      HFunctor,
      makeHFunctor
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.Multi.Functor
+import Data.Comp.Multi.HFunctor
 import Language.Haskell.TH
 import qualified Prelude as P (mapM)
 import Prelude hiding (mapM)

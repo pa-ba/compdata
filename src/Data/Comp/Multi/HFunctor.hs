@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Multi.Functor
+-- Module      :  Data.Comp.Multi.HFunctor
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -14,7 +14,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Functor
+module Data.Comp.Multi.HFunctor
     (
      HFunctor (..),
      (:->),

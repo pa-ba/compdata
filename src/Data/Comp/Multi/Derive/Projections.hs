@@ -21,7 +21,7 @@ module Data.Comp.Multi.Derive.Projections
 
 import Language.Haskell.TH hiding (Cxt)
 import Control.Monad (liftM)
-import Data.Comp.Multi.Traversable (HTraversable)
+import Data.Comp.Multi.HTraversable (HTraversable)
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Algebra (CxtFunM, appSigFunM')
 import Data.Comp.Multi.Ops ((:+:)(..), (:<:)(..))

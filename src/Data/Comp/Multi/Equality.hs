@@ -23,8 +23,8 @@ module Data.Comp.Multi.Equality
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Ops
-import Data.Comp.Multi.Functor
-import Data.Comp.Multi.Foldable
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HFoldable
 
 class KEq f where
     keq :: f i -> f j -> Bool

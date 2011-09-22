@@ -27,42 +27,7 @@ module Data.Comp.MultiParam.HDifunctor
      NatM
     ) where
 
-import Data.Comp.Multi.Functor (HFunctor (..))
-
--- | The identity functor.
-newtype I a = I {unI :: a}
-
--- | The parametrised constant functor.
-newtype K a i = K {unK :: a}
-
-instance Functor I where
-    fmap f (I x) = I (f x)
-
-instance Functor (K a) where
-    fmap _ (K x) = K x
-
-data A f = forall i. A {unA :: f i}
-
-instance Eq a => Eq (K a i) where
-    K x == K y = x == y
-    K x /= K y = x /= y
-
-instance Ord a => Ord (K a i) where
-    K x < K y = x < y
-    K x > K y = x > y
-    K x <= K y = x <= y
-    K x >= K y = x >= y
-    min (K x) (K y) = K $ min x y
-    max (K x) (K y) = K $ max x y
-    compare (K x) (K y) = compare x y
-
-infixr 0 :-> -- same precedence as function space operator ->
-
--- |This type represents natural transformations.
-type f :-> g = forall i . f i -> g i
-
--- |This type represents monadic natural transformations.
-type NatM m f g = forall i. f i -> m (g i)
+import Data.Comp.Multi.HFunctor
 
 -- | This class represents higher-order difunctors.
 class HDifunctor f where

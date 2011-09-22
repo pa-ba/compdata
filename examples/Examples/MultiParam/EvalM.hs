@@ -39,7 +39,7 @@ data Op :: (* -> *) -> (* -> *) -> * -> * where
     Add :: e Int -> e Int -> Op a e Int
     Mult :: e Int -> e Int -> Op a e Int
 data FunM :: (* -> *) -> (* -> *) -> (* -> *) -> * -> * where
-    FunM :: (e i -> Compose m e j) -> FunM m a e (i -> j)
+    FunM :: (e i -> m (e j)) -> FunM m a e (i -> j)
 
 -- Signature for the simple expression language
 type Sig = Const :+: Lam :+: App :+: Op
@@ -77,17 +77,17 @@ instance (Const :<: v) => EvalM Op v where
 
 instance (FunM Maybe :<: v) => EvalM App v where
   evalAlgM (App mx my) = do f <- projF =<< getCompose mx
-                            (getCompose . f) =<< getCompose my
+                            f =<< getCompose my
 
 instance (FunM Maybe :<: v) => EvalM Lam v where
-  evalAlgM (Lam f) = return $ inject $ FunM f
+  evalAlgM (Lam f) = return $ inject $ FunM $ getCompose . f
 
 projC :: (Const :<: v) => Term v Int -> Maybe Int
 projC v = case project v of
             Just (Const n) -> return n; _ -> Nothing
 
 projF :: (FunM Maybe :<: v)
-         => Term v (i -> j) -> Maybe (Term v i -> Compose Maybe (Term v) j)
+         => Term v (i -> j) -> Maybe (Term v i -> Maybe (Term v j))
 projF v = case project v of
             Just (FunM f :: FunM Maybe Any (Term v) (i -> j)) -> return f
             _ -> Nothing

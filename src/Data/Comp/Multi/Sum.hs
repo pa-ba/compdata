@@ -94,8 +94,8 @@ module Data.Comp.Multi.Sum
 --     substHoles'
     ) where
 
-import Data.Comp.Multi.Functor
-import Data.Comp.Multi.Traversable
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HTraversable
 import Data.Comp.Multi.Ops
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Algebra

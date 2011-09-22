@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Multi.Traversable
+-- Module      :  Data.Comp.Multi.HTraversable
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -13,13 +13,13 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Traversable
+module Data.Comp.Multi.HTraversable
     (
      HTraversable (..)
     ) where
 
-import Data.Comp.Multi.Functor
-import Data.Comp.Multi.Foldable
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HFoldable
 import Control.Applicative
 
 class HFoldable t => HTraversable t where

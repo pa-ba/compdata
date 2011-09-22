@@ -87,8 +87,8 @@ module Data.Comp.Multi.Algebra (
 
 
 import Data.Comp.Multi.Term
-import Data.Comp.Multi.Functor
-import Data.Comp.Multi.Traversable
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HTraversable
 import Data.Comp.Ops
 import Control.Monad
 

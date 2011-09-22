@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Multi.Derive.Traversable
+-- Module      :  Data.Comp.Multi.Derive.HTraversable
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -12,14 +12,14 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Derive.Traversable
+module Data.Comp.Multi.Derive.HTraversable
     (
      HTraversable,
      makeHTraversable
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.Multi.Traversable
+import Data.Comp.Multi.HTraversable
 import Language.Haskell.TH
 import Data.Maybe
 import Data.Traversable

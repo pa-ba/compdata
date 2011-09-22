@@ -20,7 +20,7 @@ module Data.Comp.Multi.Derive.Injections
     ) where
 
 import Language.Haskell.TH hiding (Cxt)
-import Data.Comp.Multi.Functor
+import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Algebra (CxtFun, appSigFun)
 import Data.Comp.Multi.Ops ((:+:)(..), (:<:)(..))

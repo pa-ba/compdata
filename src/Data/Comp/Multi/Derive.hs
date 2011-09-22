@@ -26,11 +26,11 @@ module Data.Comp.Multi.Derive
      -- ** OrdHF
      module Data.Comp.Multi.Derive.Ordering,
      -- ** HFunctor
-     module Data.Comp.Multi.Derive.Functor,
+     module Data.Comp.Multi.Derive.HFunctor,
      -- ** HFoldable
-     module Data.Comp.Multi.Derive.Foldable,
+     module Data.Comp.Multi.Derive.HFoldable,
      -- ** HTraversable
-     module Data.Comp.Multi.Derive.Traversable,
+     module Data.Comp.Multi.Derive.HTraversable,
      -- ** Smart Constructors
      module Data.Comp.Multi.Derive.SmartConstructors,
      -- ** Smart Constructors w/ Annotations
@@ -43,9 +43,9 @@ import Data.Comp.Derive.Utils (derive)
 import Data.Comp.Multi.Derive.Equality
 import Data.Comp.Multi.Derive.Ordering
 import Data.Comp.Multi.Derive.Show
-import Data.Comp.Multi.Derive.Functor
-import Data.Comp.Multi.Derive.Foldable
-import Data.Comp.Multi.Derive.Traversable
+import Data.Comp.Multi.Derive.HFunctor
+import Data.Comp.Multi.Derive.HFoldable
+import Data.Comp.Multi.Derive.HTraversable
 import Data.Comp.Multi.Derive.SmartConstructors
 import Data.Comp.Multi.Derive.SmartAConstructors
 import Data.Comp.Multi.Derive.LiftSum

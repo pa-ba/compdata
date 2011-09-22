@@ -18,9 +18,9 @@
 
 module Data.Comp.Multi.Ops where
 
-import Data.Comp.Multi.Functor
-import Data.Comp.Multi.Foldable
-import Data.Comp.Multi.Traversable
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HFoldable
+import Data.Comp.Multi.HTraversable
 import qualified Data.Comp.Ops as O
 import Control.Monad
 import Control.Applicative

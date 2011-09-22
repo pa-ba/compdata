@@ -28,9 +28,9 @@ module Data.Comp.Multi.Term
      simpCxt
      ) where
 
-import Data.Comp.Multi.Functor
-import Data.Comp.Multi.Foldable
-import Data.Comp.Multi.Traversable
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HFoldable
+import Data.Comp.Multi.HTraversable
 import Data.Monoid
 
 import Control.Monad

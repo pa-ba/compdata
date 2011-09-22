@@ -22,7 +22,7 @@ module Data.Comp.Multi.Ordering
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Ops
-import Data.Comp.Multi.Functor
+import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Equality
 
 class KEq f => KOrd f where

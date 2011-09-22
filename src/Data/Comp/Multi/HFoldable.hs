@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Data.Comp.Multi.Foldable
+-- Module      :  Data.Comp.Multi.HFoldable
 -- Copyright   :  (c) 2011 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
@@ -13,7 +13,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Foldable
+module Data.Comp.Multi.HFoldable
     (
      HFoldable (..),
      kfoldr,
@@ -23,7 +23,7 @@ module Data.Comp.Multi.Foldable
 
 import Data.Monoid
 import Data.Maybe
-import Data.Comp.Multi.Functor
+import Data.Comp.Multi.HFunctor
 
 -- | Higher-order functors that can be folded.
 --

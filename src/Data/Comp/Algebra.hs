@@ -621,7 +621,7 @@ appSigFunHom :: forall f g h. (Functor g)
 {-# NOINLINE [1] appSigFunHom #-}
 appSigFunHom f g = run where
     run :: CxtFun f h
-    run (Term t) = run' $ g $ t
+    run (Term t) = run' $ g t
     run (Hole h) = Hole h
     run' :: Context g (Cxt h' f b) -> Cxt h' h b
     run' (Term t) = Term $ f $ fmap run' t
@@ -635,7 +635,7 @@ appAlgHomM :: forall m f g a. (Traversable g, Monad m)
 appAlgHomM alg hom = run
     where run :: Term f -> m a
           run (Term t) = hom t >>= mapM run >>= run'
-          run' :: (Context g a) -> m a
+          run' :: Context g a -> m a
           run' (Term t) = mapM run' t >>= alg
           run' (Hole x) = return x
 

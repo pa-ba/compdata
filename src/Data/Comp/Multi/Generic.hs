@@ -19,9 +19,9 @@ module Data.Comp.Multi.Generic where
 
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Sum
-import Data.Comp.Multi.Functor
-import Data.Comp.Multi.Foldable
-import Data.Comp.Multi.Traversable
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HFoldable
+import Data.Comp.Multi.HTraversable
 import GHC.Exts
 import Control.Monad
 import Prelude

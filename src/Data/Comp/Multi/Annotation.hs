@@ -32,7 +32,7 @@ import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Ops
 import qualified Data.Comp.Ops as O
 import Data.Comp.Multi.Algebra
-import Data.Comp.Multi.Functor
+import Data.Comp.Multi.HFunctor
 
 import Control.Monad
 

@@ -23,7 +23,7 @@ module Data.Comp.Multi.Show
 import Data.Comp.Multi.Term
 import Data.Comp.Multi.Annotation
 import Data.Comp.Multi.Algebra
-import Data.Comp.Multi.Functor
+import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Derive
 
 instance KShow (K String) where
