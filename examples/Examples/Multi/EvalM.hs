@@ -26,12 +26,12 @@ import Control.Monad (liftM)
 
 -- Signature for values and operators
 data Value e l where
-  Const  ::        Int -> Value e Int
-  Pair   :: e s -> e t -> Value e (s,t)
+  Const ::        Int -> Value e Int
+  Pair  :: e s -> e t -> Value e (s,t)
 data Op e l where
-  Add, Mult  :: e Int -> e Int   -> Op e Int
-  Fst        ::          e (s,t) -> Op e s
-  Snd        ::          e (s,t) -> Op e t
+  Add, Mult :: e Int -> e Int   -> Op e Int
+  Fst       ::          e (s,t) -> Op e s
+  Snd       ::          e (s,t) -> Op e t
 
 -- Signature for the simple expression language
 type Sig = Op :+: Value
@@ -73,5 +73,4 @@ projP v = case project v of
 
 -- Example: evalMEx = Just (iConst 5)
 evalMEx :: Maybe (Term Value Int)
-evalMEx = evalM ((iConst 1) `iAdd`
-                 (iConst 2 `iMult` iConst 2) :: Term Sig Int)
+evalMEx = evalM (iConst 1 `iAdd` (iConst 2 `iMult` iConst 2) :: Term Sig Int)

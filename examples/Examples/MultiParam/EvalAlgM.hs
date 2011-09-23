@@ -83,4 +83,4 @@ projP v = case project v of
 
 -- Example: evalMEx = Just (iConst 5)
 evalMEx :: Maybe (Term Value Int)
-evalMEx = evalM ((iConst 1) `iAdd` (iConst 2 `iMult` iConst 2) :: Term Sig Int)
+evalMEx = evalM (iConst 1 `iAdd` (iConst 2 `iMult` iConst 2) :: Term Sig Int)

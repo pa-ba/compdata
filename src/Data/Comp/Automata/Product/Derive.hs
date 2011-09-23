@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances, IncoherentInstances, TemplateHaskell #-}
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances, IncoherentInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata.Product.Derive
@@ -39,7 +39,7 @@ genInst dir = do
   ty <- genType n dir
   ex <- genEx dir
   up <- genUp dir
-  return $ InstanceD [] (ConT (mkName ":<") `AppT` (VarT n) `AppT` ty) [ex,up]
+  return $ InstanceD [] (ConT (mkName ":<") `AppT` VarT n `AppT` ty) [ex,up]
 
 genType :: Name -> [Dir] -> Q Type
 genType n = gen
@@ -78,4 +78,4 @@ genPatExp n = gen where
 
 
 pairT :: TypeQ -> TypeQ -> TypeQ
-pairT x y = appT (appT (tupleT 2) x) y
+pairT x = appT (appT (tupleT 2) x)

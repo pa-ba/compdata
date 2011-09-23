@@ -46,7 +46,7 @@ makeShowHF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       fArg = VarT . tyVarBndrName $ last args'
-      argNames = (map (VarT . tyVarBndrName) (init args'))
+      argNames = map (VarT . tyVarBndrName) (init args')
       complType = foldl AppT (ConT name) argNames
       preCond = map (ClassP ''Show . (: [])) argNames
       classType = AppT (ConT ''ShowHF) complType

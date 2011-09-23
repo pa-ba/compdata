@@ -46,7 +46,7 @@ instance (EqHD f, EqHD g) => EqHD (f :+: g) where
     eqHD _ _ = return False
 
 instance PEq Var where
-   peq x y = return $ (varCoerce x) == y
+   peq x y = return $ varCoerce x == y
 
 {-| From an 'EqHD' difunctor an 'Eq' instance of the corresponding term type can
   be derived. -}

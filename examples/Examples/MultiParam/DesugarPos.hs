@@ -37,7 +37,7 @@ data Op :: (* -> *) -> (* -> *) -> * -> * where
 data Fun :: (* -> *) -> (* -> *) -> * -> * where
     Fun :: (e i -> e j) -> Fun a e (i -> j)
 data IfThenElse :: (* -> *) -> (* -> *) -> * -> * where
-                   IfThenElse :: (e Int) -> (e i) -> (e i) -> IfThenElse a e i
+                   IfThenElse :: e Int -> e i -> e i -> IfThenElse a e i
 
 -- Signature for syntactic sugar (negation, let expressions)
 data Sug :: (* -> *) -> (* -> *) -> * -> * where

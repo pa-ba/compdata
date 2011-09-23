@@ -138,9 +138,9 @@ instance CodeSt Val q where
 
 instance (Height :< q) => CodeSt Op q where
     codeSt (Plus x y) = below x ++ [Store i] ++ below y ++ [Add i]
-        where i = 2*(height $ below y) +1
+        where i = 2 * height (below y) + 1
     codeSt (Times x y) = below x ++ [Store i] ++ below y ++ [Mul i]
-        where i = 2*(height $ below y) +1
+        where i = 2 * height (below y) + 1
 
 instance (Depth :< q, Bind :< q) => CodeSt Let q where
     codeSt (Let _ b e) = below b ++ [Store i] ++ below e
@@ -182,7 +182,7 @@ instance VarsSt Op where
 
 instance VarsSt Let where
     varsSt (Var v) = singleton v
-    varsSt (Let v x y) = (if v `member` y then x else Set.empty) `union` (delete v y)
+    varsSt (Let v x y) = (if v `member` y then x else Set.empty) `union` delete v y
 
 -- | Stateful homomorphism that removes unnecessary let bindings.
 remLetHom :: (Set Var :< q, Let :<: f, Functor f) => QHom f q f

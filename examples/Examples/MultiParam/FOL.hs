@@ -29,7 +29,7 @@ import Data.Comp.MultiParam hiding (Const)
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
 import Data.Comp.MultiParam.FreshM (getVar,step)
-import Data.List (intersperse)
+import Data.List (intercalate)
 import Data.Maybe
 import Control.Monad.State
 import Control.Monad.Reader
@@ -78,7 +78,7 @@ $(derive [makeHDifunctor, smartConstructors]
 instance ShowHD Const where
     showHD (Const f t) = do
       ts <- mapM unK t
-      return $ f ++ "(" ++ concat (intersperse ", " ts) ++ ")"
+      return $ f ++ "(" ++ intercalate ", " ts ++ ")"
 
 instance ShowHD Var where
     showHD (Var x) = return x
@@ -92,12 +92,12 @@ instance ShowHD FF where
 instance ShowHD Atom where
     showHD (Atom p t) = do
       ts <- mapM unK t
-      return $ p ++ "(" ++ concat (intersperse ", " ts) ++ ")"
+      return $ p ++ "(" ++ intercalate ", " ts ++ ")"
 
 instance ShowHD NAtom where
     showHD (NAtom p t) = do
       ts <- mapM unK t
-      return $ "not " ++ p ++ "(" ++ concat (intersperse ", " ts) ++ ")"
+      return $ "not " ++ p ++ "(" ++ intercalate ", " ts ++ ")"
 
 instance ShowHD Not where
     showHD (Not f) = liftM (\x -> "not (" ++ x ++ ")") (unK f)
@@ -133,9 +133,9 @@ type Input = Const :+: TT :+: FF :+: Atom :+: Not :+: Or :+: And :+:
 
 foodFact :: Term Input TFormula
 foodFact =
-    (iExists $ \p -> iAtom "Person" [p] `iAnd`
-                     (iForall $ \f -> iAtom "Food" [f] `iImpl`
-                                      iAtom "Eats" [p,f])) `iImpl`
+    iExists (\p -> iAtom "Person" [p] `iAnd`
+                   iForall (\f -> iAtom "Food" [f] `iImpl`
+                                  iAtom "Eats" [p,f])) `iImpl`
     iNot (iExists $ \f -> iAtom "Food" [f] `iAnd`
                           iNot (iExists $ \p -> iAtom "Person" [p] `iAnd`
                                                 iAtom "Eats" [p,f]))
@@ -274,7 +274,7 @@ type Supply = State UniqueSupply
 type S = ReaderT [Term Stage4 TTerm] Supply
 
 evalS :: S a -> [Term Stage4 TTerm] -> UniqueSupply -> a
-evalS m env s = evalState (runReaderT m env) s
+evalS m env = evalState (runReaderT m env)
 
 fresh :: S Int
 fresh = do supply <- get
@@ -365,7 +365,7 @@ instance Prenex And where
 
 instance Prenex Forall where
     prenexAlg (Forall f) = do uniq <- fresh
-                              getCompose $ f (iVar ("x" ++ show uniq))
+                              getCompose $ f (iVar ('x' : show uniq))
 
 prenex :: Term Stage4 :-> Term Stage5
 prenex f = evalState (runReaderT (cataM' prenexAlg f) []) initialUniqueSupply
@@ -382,10 +382,10 @@ newtype Clause i = Clause {unClause :: [Literal i]} -- implicit disjunction
 newtype CNF i = CNF {unCNF :: [Clause i]} -- implicit conjunction
 
 instance Show (Clause i) where
-    show c = concat $ intersperse " or " $ map show $ unClause c
+    show c = intercalate " or " $ map show $ unClause c
 
 instance Show (CNF i) where
-    show c = concat $ intersperse "\n" $ map show $ unCNF c
+    show c = intercalate "\n" $ map show $ unCNF c
 
 class ToCNF f where
     cnfAlg :: Alg f CNF
@@ -433,12 +433,12 @@ newtype INF i = INF [IClause i] -- implicit conjunction
 
 instance Show (IClause i) where
     show (IClause (cs,ds)) =
-        let cs' = concat $ intersperse " and " $ map show cs
-            ds' = concat $ intersperse " or " $ map show ds
+        let cs' = intercalate " and " $ map show cs
+            ds' = intercalate " or " $ map show ds
         in "(" ++ cs' ++ ") -> (" ++ ds' ++ ")"
 
 instance Show (INF i) where
-    show (INF fs) = concat $ intersperse "\n" $ map show fs
+    show (INF fs) = intercalate "\n" $ map show fs
 
 inf :: CNF TFormula -> INF TFormula
 inf (CNF f) = INF $ map (toImpl . unClause) f

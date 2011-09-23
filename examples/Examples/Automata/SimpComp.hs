@@ -72,7 +72,7 @@ codeSt (Plus x y) = pr x ++ [Store a] ++ pr y ++ [Add a] where a = pr y
 (sp <*> sq) t = (sp t, sq t)
     
 runDUpState :: Functor f => DUpState f q q -> Term f -> q
-runDUpState f = cata f
+runDUpState = cata
 
 code :: Term Sig -> Code
 code = fst . runDUpState (codeSt <*> dUpState heightSt)

@@ -13,20 +13,15 @@
 -- usage are bundled with the package in the library @examples\/Examples@.
 --
 --------------------------------------------------------------------------------
-module Data.Comp(
-    module Data.Comp.Term
-  , module Data.Comp.Algebra
-  , module Data.Comp.Sum
-  , module Data.Comp.Annotation
-  , module Data.Comp.Equality
-  , module Data.Comp.Ordering
-  , module Data.Comp.Generic
+module Data.Comp
+    (
+     module X
     ) where
 
-import Data.Comp.Term
-import Data.Comp.Algebra
-import Data.Comp.Sum
-import Data.Comp.Annotation
-import Data.Comp.Equality
-import Data.Comp.Ordering
-import Data.Comp.Generic
+import Data.Comp.Term as X
+import Data.Comp.Algebra as X
+import Data.Comp.Sum as X
+import Data.Comp.Annotation as X
+import Data.Comp.Equality as X
+import Data.Comp.Ordering as X
+import Data.Comp.Generic as X

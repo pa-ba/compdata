@@ -54,8 +54,8 @@ instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
   => Desugar Sug f where
   desugHom' (Neg x)   = iConst (-1) `iMult` x
   desugHom' (Let x y) = inject (Lam y) `iApp` x
-  desugHom' Fix       = iLam $ \f -> (iLam $ \x -> f `iApp` (x `iApp` x)) `iApp`
-                                     (iLam $ \x -> f `iApp` (x `iApp` x))
+  desugHom' Fix       = iLam $ \f -> iLam (\x -> f `iApp` (x `iApp` x)) `iApp`
+                                     iLam (\x -> f `iApp` (x `iApp` x))
 
 -- Example: desugPEx == iAApp (Pos 1 0)
 --          (iALam (Pos 1 0) id)

@@ -25,12 +25,12 @@ import Data.Comp.Multi.Derive
 
 -- Signature for values and operators
 data Value e l where
-  Const  ::        Int -> Value e Int
-  Pair   :: e s -> e t -> Value e (s,t)
+  Const ::        Int -> Value e Int
+  Pair  :: e s -> e t -> Value e (s,t)
 data Op e l where
-  Add, Mult  :: e Int -> e Int   -> Op e Int
-  Fst        ::          e (s,t) -> Op e s
-  Snd        ::          e (s,t) -> Op e t
+  Add, Mult :: e Int -> e Int   -> Op e Int
+  Fst       ::          e (s,t) -> Op e s
+  Snd       ::          e (s,t) -> Op e t
 
 -- Signature for the simple expression language
 type Sig = Op :+: Value
@@ -53,8 +53,8 @@ instance (Value :<: v) => Eval Value v where
   evalAlg = inject
 
 instance (Value :<: v) => Eval Op v where
-  evalAlg (Add x y)  = iConst $ (projC x) + (projC y)
-  evalAlg (Mult x y) = iConst $ (projC x) * (projC y)
+  evalAlg (Add x y)  = iConst $ projC x + projC y
+  evalAlg (Mult x y) = iConst $ projC x * projC y
   evalAlg (Fst x)    = fst $ projP x
   evalAlg (Snd x)    = snd $ projP x
 

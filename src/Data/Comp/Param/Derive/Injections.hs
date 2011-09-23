@@ -34,7 +34,7 @@ injn n = do
   let bvar = mkName "b"
   let xvar = mkName "x"
   let d = [funD i [clause [varP xvar] (normalB $ genDecl xvar n) []]]
-  sequence $ (sigD i $ genSig fvars gvar avar bvar) : d
+  sequence $ sigD i (genSig fvars gvar avar bvar) : d
     where genSig fvars gvar avar bvar = do
             let cxt = map (\f -> classP ''(:<:) [varT f, varT gvar]) fvars
             let tp = foldl1 (\a f -> conT ''(:+:) `appT` f `appT` a)
@@ -45,7 +45,7 @@ injn n = do
             forallT (map PlainTV $ gvar : avar : bvar : fvars)
                     (sequence cxt) tp'
           genDecl x n = [| case $(varE x) of
-                             Inl x -> $(varE $ mkName $ "inj") x
+                             Inl x -> $(varE $ mkName "inj") x
                              Inr x -> $(varE $ mkName $ "inj" ++
                                         if n > 2 then show (n - 1) else "") x |]
 injectn :: Int -> Q [Dec]
@@ -56,7 +56,7 @@ injectn n = do
   let avar = mkName "a"
   let bvar = mkName "b"
   let d = [funD i [clause [] (normalB $ genDecl n) []]]
-  sequence $ (sigD i $ genSig fvars gvar avar bvar) : d
+  sequence $ sigD i (genSig fvars gvar avar bvar) : d
     where genSig fvars gvar avar bvar = do
             let hvar = mkName "h"
             let cxt = map (\f -> classP ''(:<:) [varT f, varT gvar]) fvars
@@ -75,7 +75,7 @@ deepInjectn n = do
   let fvars = map (\n -> mkName $ 'f' : show n) [1..n]
   let gvar = mkName "g"
   let d = [funD i [clause [] (normalB $ genDecl n) []]]
-  sequence $ (sigD i $ genSig fvars gvar) : d
+  sequence $ sigD i (genSig fvars gvar) : d
     where genSig fvars gvar = do
             let cxt = map (\f -> classP ''(:<:) [varT f, varT gvar]) fvars
             let tp = foldl1 (\a f -> conT ''(:+:) `appT` f `appT` a)

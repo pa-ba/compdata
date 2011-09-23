@@ -39,7 +39,7 @@ data Op :: (* -> *) -> (* -> *) -> * -> * where
 data Fun :: (* -> *) -> (* -> *) -> * -> * where
     Fun :: (e i -> e j) -> Fun a e (i -> j)
 data IfThenElse :: (* -> *) -> (* -> *) -> * -> * where
-                   IfThenElse :: (e Int) -> (e i) -> (e i) -> IfThenElse a e i
+                   IfThenElse :: e Int -> e i -> e i -> IfThenElse a e i
 
 -- Signature for syntactic sugar (negation, let expressions)
 data Sug :: (* -> *) -> (* -> *) -> * -> * where
@@ -80,11 +80,11 @@ instance (Const :<: v) => Eval Const v where
   evalAlg (Const n) = iConst n
 
 instance (Const :<: v) => Eval Op v where
-  evalAlg (Add x y)  = iConst $ (projC x) + (projC y)
-  evalAlg (Mult x y) = iConst $ (projC x) * (projC y)
+  evalAlg (Add x y)  = iConst $ projC x + projC y
+  evalAlg (Mult x y) = iConst $ projC x * projC y
 
 instance (Fun :<: v) => Eval App v where
-  evalAlg (App x y) = (projF x) y
+  evalAlg (App x y) = projF x y
 
 instance (Fun :<: v) => Eval Lam v where
   evalAlg (Lam f) = inject $ Fun f

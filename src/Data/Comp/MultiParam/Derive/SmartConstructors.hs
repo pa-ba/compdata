@@ -22,6 +22,7 @@ import Data.Comp.Derive.Utils
 import Data.Comp.MultiParam.Sum
 import Data.Comp.MultiParam.Term
 import Data.Comp.MultiParam.HDifunctor
+import Control.Arrow ((&&&))
 import Control.Monad
 
 {-| Derive smart constructors for a higher-order difunctor. The smart
@@ -31,7 +32,7 @@ smartConstructors :: Name -> Q [Dec]
 smartConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
     let iVar = tyVarBndrName $ last targs
-    let cons = map (\con -> (abstractConType con, iTp iVar con)) constrs
+    let cons = map (abstractConType &&& iTp iVar) constrs
     liftM concat $ mapM (genSmartConstr (map tyVarBndrName targs) tname) cons
         where iTp iVar (ForallC _ cxt _) =
                   -- Check if the GADT phantom type is constrained
@@ -56,8 +57,8 @@ smartConstructors fname = do
                 avar <- newName "a"
                 bvar <- newName "b"
                 ivar <- newName "i"
-                let targs' = init $ init $ init $ targs
-                    vars = hvar:fvar:avar:bvar:(maybe [ivar] (const []) miTp)++targs'
+                let targs' = init $ init $ init targs
+                    vars = hvar:fvar:avar:bvar:maybe [ivar] (const []) miTp++targs'
                     h = varT hvar
                     f = varT fvar
                     a = varT avar

@@ -32,7 +32,7 @@ class EqF f where
 makeEqF :: Name -> Q [Dec]
 makeEqF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
-  let argNames = (map (VarT . tyVarBndrName) (init args))
+  let argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
       preCond = map (ClassP ''Eq . (: [])) argNames
       classType = AppT (ConT ''EqF) complType

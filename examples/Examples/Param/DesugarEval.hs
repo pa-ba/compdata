@@ -56,8 +56,8 @@ instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
   => Desugar Sug f where
   desugHom' (Neg x)   = iConst (-1) `iMult` x
   desugHom' (Let x y) = inject (Lam y) `iApp` x
-  desugHom' Fix       = iLam $ \f -> (iLam $ \x -> f `iApp` (x `iApp` x)) `iApp`
-                                     (iLam $ \x -> f `iApp` (x `iApp` x))
+  desugHom' Fix       = iLam $ \f -> iLam (\x -> f `iApp` (x `iApp` x)) `iApp`
+                                     iLam (\x -> f `iApp` (x `iApp` x))
 
 -- Term evaluation algebra
 class Eval f v where
@@ -76,11 +76,11 @@ instance (Const :<: v) => Eval Const v where
   evalAlg (Const n) = iConst n
 
 instance (Const :<: v) => Eval Op v where
-  evalAlg (Add x y)  = iConst $ (projC x) + (projC y)
-  evalAlg (Mult x y) = iConst $ (projC x) * (projC y)
+  evalAlg (Add x y)  = iConst $ projC x + projC y
+  evalAlg (Mult x y) = iConst $ projC x * projC y
 
 instance (Fun :<: v) => Eval App v where
-  evalAlg (App x y) = (projF x) y
+  evalAlg (App x y) = projF x y
 
 instance (Fun :<: v) => Eval Lam v where
   evalAlg (Lam f) = inject $ Fun f
@@ -104,6 +104,6 @@ evalEx = evalG $ fact `iApp` iConst 6
 
 fact :: Term Sig'
 fact = iFix `iApp`
-       (iLam $ \f ->
+       iLam (\f ->
           iLam $ \n ->
               iIfThenElse n  (n `iMult` (f `iApp` (n `iAdd` iConst (-1)))) (iConst 1))

@@ -74,4 +74,4 @@ trans x = runReader (cata transAlg x) Map.empty
 
 -- Example: evalEx = iLam $ \a -> iApp (iLam $ \b -> iLam $ \c -> b) a
 transEx :: Term Sig'
-transEx = trans $ iAbs "y" $ (iAbs "x" $ iAbs "y" $ iVar "x") `iApp` (iVar "y")
+transEx = trans $ iAbs "y" $ iAbs "x" (iAbs "y" $ iVar "x") `iApp` iVar "y"

@@ -296,7 +296,7 @@ compSigDownTrans sig trans = appSigFun sig . trans
 
 -- | This function composes a DDTT after a function.
 compDownTransSig :: DownTrans g q h -> SigFun f g -> DownTrans f q h
-compDownTransSig trans hom (q,t) = trans (q, (hom t))
+compDownTransSig trans hom (q,t) = trans (q, hom t)
 
 
 -- | This function composes a homomorphism after a DDTT.

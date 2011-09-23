@@ -21,7 +21,7 @@ import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Term
-
+import Control.Arrow ((&&&))
 import Control.Monad
 
 {-| Derive smart constructors for a type constructor of any higher-order kind
@@ -31,7 +31,7 @@ smartConstructors :: Name -> Q [Dec]
 smartConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
     let iVar = tyVarBndrName $ last targs
-    let cons = map (\con -> (abstractConType con, iTp iVar con)) constrs
+    let cons = map (abstractConType &&& iTp iVar) constrs
     liftM concat $ mapM (genSmartConstr (map tyVarBndrName targs) tname) cons
         where iTp iVar (ForallC _ cxt _) =
                   -- Check if the GADT phantom type is constrained
@@ -56,7 +56,7 @@ smartConstructors fname = do
                 avar <- newName "a"
                 ivar <- newName "i"
                 let targs' = init $ init targs
-                    vars = hvar:fvar:avar:(maybe [ivar] (const []) miTp)++targs'
+                    vars = hvar:fvar:avar:maybe [ivar] (const []) miTp++targs'
                     f = varT fvar
                     h = varT hvar
                     a = varT avar

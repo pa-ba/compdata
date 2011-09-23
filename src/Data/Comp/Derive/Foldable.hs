@@ -42,7 +42,7 @@ makeFoldable :: Name -> Q [Dec]
 makeFoldable fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
-      argNames = (map (VarT . tyVarBndrName) (init args))
+      argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
       classType = AppT (ConT ''Foldable) complType
   constrs' <- mapM (mkPatAndVars  . isFarg fArg <=< normalConExp) constrs

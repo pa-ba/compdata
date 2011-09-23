@@ -26,15 +26,15 @@ import Data.Comp.Multi.Desugar
 
 -- Signature for values, operators, and syntactic sugar
 data Value e l where
-  Const  ::        Int -> Value e Int
-  Pair   :: e s -> e t -> Value e (s,t)
+  Const ::        Int -> Value e Int
+  Pair  :: e s -> e t -> Value e (s,t)
 data Op e l where
-  Add, Mult  :: e Int -> e Int   -> Op e Int
-  Fst        ::          e (s,t) -> Op e s
-  Snd        ::          e (s,t) -> Op e t
+  Add, Mult :: e Int -> e Int   -> Op e Int
+  Fst       ::          e (s,t) -> Op e s
+  Snd       ::          e (s,t) -> Op e t
 data Sugar e l where
-  Neg   :: e Int   -> Sugar e Int
-  Swap  :: e (s,t) -> Sugar e (t,s)
+  Neg  :: e Int   -> Sugar e Int
+  Swap :: e (s,t) -> Sugar e (t,s)
 
 -- Source position information (line number, column number)
 data Pos = Pos Int Int
@@ -67,8 +67,8 @@ instance (Value :<: v) => Eval Value v where
   evalAlg = inject
 
 instance (Value :<: v) => Eval Op v where
-  evalAlg (Add x y)  = iConst $ (projC x) + (projC y)
-  evalAlg (Mult x y) = iConst $ (projC x) * (projC y)
+  evalAlg (Add x y)  = iConst $ projC x + projC y
+  evalAlg (Mult x y) = iConst $ projC x * projC y
   evalAlg (Fst x)    = fst $ projP x
   evalAlg (Snd x)    = snd $ projP x
 

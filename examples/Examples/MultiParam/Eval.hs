@@ -72,11 +72,11 @@ instance (Const :<: v) => Eval Const v where
   evalAlg (Const n) = iConst n
 
 instance (Const :<: v) => Eval Op v where
-  evalAlg (Add x y)  = iConst $ (projC x) + (projC y)
-  evalAlg (Mult x y) = iConst $ (projC x) * (projC y)
+  evalAlg (Add x y)  = iConst $ projC x + projC y
+  evalAlg (Mult x y) = iConst $ projC x * projC y
 
 instance (Fun :<: v) => Eval App v where
-  evalAlg (App x y) = (projF x) y
+  evalAlg (App x y) = projF x y
 
 instance (Fun :<: v) => Eval Lam v where
   evalAlg (Lam f) = inject $ Fun f
@@ -93,4 +93,4 @@ evalG = deepProject . (eval :: Term Sig :-> Term Value)
 
 -- Example: evalEx = Just (iConst 4)
 evalEx :: Maybe (Term GValue Int)
-evalEx = evalG $ (iLam $ \x -> x `iAdd` x) `iApp` iConst 2
+evalEx = evalG $ iLam (\x -> x `iAdd` x) `iApp` iConst 2

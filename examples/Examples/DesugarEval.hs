@@ -54,8 +54,8 @@ instance (Value :<: v) => Eval Value v where
   evalAlg = inject
 
 instance (Value :<: v) => Eval Op v where
-  evalAlg (Add x y)  = iConst $ (projC x) + (projC y)
-  evalAlg (Mult x y) = iConst $ (projC x) * (projC y)
+  evalAlg (Add x y)  = iConst $ projC x + projC y
+  evalAlg (Mult x y) = iConst $ projC x * projC y
   evalAlg (Fst x)    = fst $ projP x
   evalAlg (Snd x)    = snd $ projP x
 

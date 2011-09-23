@@ -46,7 +46,7 @@ class ArbitraryF f where
 makeArbitraryF :: Name -> Q [Dec]
 makeArbitraryF dt = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify dt
-  let argNames = (map (VarT . tyVarBndrName) (tail args))
+  let argNames = map (VarT . tyVarBndrName) (tail args)
       complType = foldl AppT (ConT name) argNames
       preCond = map (ClassP ''Arbitrary . (: [])) argNames
       classType = AppT (ConT ''ArbitraryF) complType

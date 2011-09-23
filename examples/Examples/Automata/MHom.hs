@@ -1,6 +1,7 @@
 {-# LANGUAGE RankNTypes, MultiParamTypeClasses, FlexibleInstances,
-  FlexibleContexts, UndecidableInstances, TemplateHaskell, TypeOperators,
-  ImplicitParams, GADTs, IncoherentInstances, RankNTypes, ScopedTypeVariables, TupleSections #-}
+  FlexibleContexts, UndecidableInstances, TypeOperators,
+  ImplicitParams, GADTs, IncoherentInstances, ScopedTypeVariables,
+  TupleSections #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.MHom
@@ -25,6 +26,7 @@ import Data.Comp.Show ()
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Control.Monad
+import Control.Arrow (first, (&&&))
 import Data.Comp.Derive
 
 -- | An instance @a :< b@ means that @a@ is a component of @b@. @a@
@@ -104,7 +106,7 @@ compUpTrans :: (Functor f, Functor g, Functor h, Functor q1, Functor q2)
                => UpTrans q2 g h -> UpTrans q1 f g -> UpTrans (q1 :*: q2) f h
 compUpTrans t2 t1 x = (q1' :*: q2, c2) where
     (q1, c1) = t1 $ fmap shuffle  x
-    shuffle ((q1 :*: q2),a) = (fmap (q2,) q1 ,(q2,a) )
+    shuffle (q1 :*: q2,a) = (fmap (q2,) q1 ,(q2,a) )
     q1' = fmap (snd . runUpTrans' t2) q1
     (q2, c2) = runUpTrans' t2 c1
 
@@ -121,9 +123,9 @@ runUpState st = run where
 
 -- | This function combines the product DUTA of the two given DUTAs.
 prodUpState :: Functor f => UpState f p -> UpState f q -> UpState f (p :*:q)
-prodUpState sp sq t = (p :*: q) where
-    p = sp $ fmap (\ (pq,a) -> (ffst pq,a)) t
-    q = sq $ fmap (\ (pq,a) -> (fsnd pq,a)) t
+prodUpState sp sq t = p :*: q where
+    p = sp $ fmap (first ffst) t
+    q = sq $ fmap (first fsnd) t
 
 -- | This function turns constructs a DUTT from a given macro term
 -- homomorphism with the state propagated by the given DUTA.
@@ -145,7 +147,7 @@ type GUpState f q p = forall a i . (?get :: i -> a, ?below :: i -> p a, ?above :
 
 -- | This combinator turns an arbitrary DUTA into a GDUTA.
 gUpState :: Functor f => UpState f q -> GUpState f q p
-gUpState f = f . fmap (\ i -> (below i, ?get i))
+gUpState f = f . fmap (below &&& (?get))
 
 -- | This combinator turns a GDUTA with the smallest possible state
 -- space into a DUTA.
@@ -159,7 +161,7 @@ runGUpState s = runUpState (upState s)
 -- | This combinator constructs the product of two GDUTA.
 prodGUpState :: (p :< pq, q :< pq)
              => GUpState f p pq -> GUpState f q pq -> GUpState f (p :*: q) pq
-prodGUpState sp sq t = (sp t :*: sq t)
+prodGUpState sp sq t = sp t :*: sq t
 
 -- | This type represents transition functions of deterministic
 -- top-down tree transducers (DDTTs).
@@ -190,7 +192,7 @@ type DownState f q = forall a i. Ord i => (q a, f (i,a)) -> Map i (q a)
 
 -- | This function constructs the product DDTA of the given two DDTAs.
 prodDownState :: DownState f p -> DownState f q -> DownState f (p :*: q)
-prodDownState sp sq ((p :*: q),t) = prodMap p q (sp (p, t)) (sq (q, t))
+prodDownState sp sq (p :*: q,t) = prodMap p q (sp (p, t)) (sq (q, t))
 
 
 
@@ -207,15 +209,14 @@ prodMap p q mp mq = Map.map final $ Map.unionWith combine ps qs
           combine (LState p) (RState q) = BState p q
           combine (RState q) (LState p) = BState p q
           combine _ _                   = error "unexpected merging"
-          final (LState p) = (p :*: q)
-          final (RState q) = (p :*: q)
-          final (BState p q) = (p :*: q)
+          final (LState p) = p :*: q
+          final (RState q) = p :*: q
+          final (BState p q) = p :*: q
 
 -- | Apply the given state mapping to the given functorial value by
 -- adding the state to the corresponding index if it is in the map and
 -- otherwise adding the provided default state.
-appMap :: (Zippable f) => (DownState f q)
-       -> q a -> f a -> f (q a,a)
+appMap :: Zippable f => DownState f q -> q a -> f a -> f (q a,a)
 appMap qmap q s = fmap qfun s'
     where s' = number' s
           mapping  = qmap (q,s')

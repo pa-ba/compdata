@@ -38,7 +38,7 @@ compList = fromMaybe EQ . find (/= EQ)
 makeOrdF :: Name -> Q [Dec]
 makeOrdF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
-  let argNames = (map (VarT . tyVarBndrName) (init args))
+  let argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
       preCond = map (ClassP ''Ord . (: [])) argNames
       classType = AppT (ConT ''OrdF) complType

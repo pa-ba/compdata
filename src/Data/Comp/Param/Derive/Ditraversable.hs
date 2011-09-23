@@ -44,15 +44,13 @@ makeDitraversable fname = do
   let fArg = VarT . tyVarBndrName $ last args
       aArg = VarT . tyVarBndrName $ last (init args)
       funTy = foldl AppT ArrowT [aArg,fArg]
-      argNames = (map (VarT . tyVarBndrName) (init $ init args))
+      argNames = map (VarT . tyVarBndrName) (init $ init args)
       complType = foldl AppT (ConT name) argNames
       classType = foldl1 AppT [ConT ''Ditraversable, complType, monadType,domainType]
   normConstrs <- mapM normalConExp constrs
-  let hasFunTy = or $ map (checksAarg funTy) normConstrs
-      context = [ClassP ''Monad [monadType]] ++
-                if hasFunTy
-                then [ClassP ''Ditraversable [ArrowT,monadType,domainType] ]
-                else []
+  let hasFunTy = any (checksAarg funTy) normConstrs
+      context = ClassP ''Monad [monadType] :
+                [ClassP ''Ditraversable [ArrowT,monadType,domainType] | hasFunTy]
   constrs' <- mapM (mkPatAndVars . isFarg fArg funTy) normConstrs
   mapMDecl <- funD 'dimapM (map mapMClause constrs')
   sequenceDecl <- funD 'disequence (map sequenceClause constrs')

@@ -112,7 +112,7 @@ hfmapCxt f = run
 
 -- | This is an instance of 'hdimapM' for 'Cxt'.
 hdimapMCxt :: forall h f a b b' m . HDitraversable f m a
-          => (NatM m b b') -> NatM m (Cxt h f a b) (Cxt h f a b')
+          => NatM m b b' -> NatM m (Cxt h f a b) (Cxt h f a b')
 hdimapMCxt f = run
     where run :: NatM m (Cxt h f a b) (Cxt h f a b')
           run (Term t)  = liftM Term $ hdimapM run t
