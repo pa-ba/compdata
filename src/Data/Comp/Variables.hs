@@ -40,8 +40,12 @@ import Data.Map (Map)
 import qualified Data.Map as Map
 import Prelude hiding (or, foldl)
 
+-- | This type represents substitutions of contexts, i.e. finite
+-- mappings from variables to contexts.
 type CxtSubst h a f v = Map v (Cxt h f a)
 
+-- | This type represents substitutions of terms, i.e. finite mappings
+-- from variables to terms.
 type Subst f v = CxtSubst NoHole () f v
 
 {-| This multiparameter class defines functors with variables. An instance
@@ -63,7 +67,7 @@ instance HasVars f v => HasVars (Cxt h f) v where
     bindsVars (Term t) = bindsVars t
     bindsVars _ = []
 
--- |Convert variables to holes, except those that are bound.
+-- | Convert variables to holes, except those that are bound.
 varsToHoles :: (Functor f, HasVars f v, Eq v) => Term f -> Context f v
 varsToHoles t = cata alg t []
     where alg :: (Functor f, HasVars f v, Eq v) => Alg f ([v] -> Context f v)

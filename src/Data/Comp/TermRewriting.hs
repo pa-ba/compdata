@@ -35,6 +35,7 @@ import Control.Monad
 
 type RPS f g  = Hom f g
 
+-- | This type represents variables.
 type Var = Int
 
 {-| This type represents term rewrite rules from signature @f@ to
@@ -48,7 +49,14 @@ type Rule f g v = (Context f v, Context g v)
 
 type TRS f g v = [Rule f g v]
 
+-- | This type represents a potential single step reduction from any
+-- input.
 type Step t = t -> Maybe t
+
+-- | This type represents a potential single step reduction from any
+-- input. If there is no single step then the return value is the
+-- input together with @False@. Otherwise, the successor is returned
+-- together with @True@.
 type BStep t = t -> (t,Bool)
 
 {-| This function tries to match the given rule against the given term
@@ -62,6 +70,10 @@ matchRule (lhs,rhs) t = do
   subst <- matchCxt lhs t
   return (rhs,subst)
 
+-- | This function tries to match the rules of the given TRS against
+-- the given term (resp. context in general) at the root. The first
+-- rule in the TRS that matches is then used and the corresponding
+-- right-hand side as well the matching substitution is returned.
 matchRules :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
            => TRS f g v -> Cxt h f a -> Maybe (Context g v, Map v (Cxt h f a))
 matchRules trs t = listToMaybe $ mapMaybe (`matchRule` t) trs

@@ -12,6 +12,7 @@
 -- data types.
 --
 --------------------------------------------------------------------------------
+
 module Data.Comp.Unification where
 
 import Data.Comp.Term
@@ -43,12 +44,18 @@ instance Error (UnifError f v) where
     strMsg = UnifError
 
 
+-- | This is used in order to signal a failed occurs check during
+-- unification.
 failedOccursCheck :: (MonadError (UnifError f v) m) => v -> Term f -> m a
 failedOccursCheck v t = throwError $ FailedOccursCheck v t
 
+-- | This is used in order to signal a head symbol mismatch during
+-- unification.
 headSymbolMismatch :: (MonadError (UnifError f v) m) => Term f -> Term f -> m a
 headSymbolMismatch f g = throwError $ HeadSymbolMismatch f g
 
+-- | This function applies a substitution to each term in a list of
+-- equations.
 appSubstEq :: (Ord v,  HasVars f v, Functor f) =>
      Subst f v -> Equation f -> Equation f
 appSubstEq s (t1,t2) = (appSubst s t1,appSubst s t2)
@@ -61,9 +68,15 @@ unify :: (MonadError (UnifError f v) m, Decompose f v, Ord v, Eq (Const f))
       => Equations f -> m (Subst f v)
 unify = runUnifyM runUnify
 
+-- | This type represents the state for the unification algorithm.
 data UnifyState f v = UnifyState {usEqs ::Equations f, usSubst :: Subst f v}
+
+-- | This is the unification monad that is used to run the unification
+-- algorithm.
 type UnifyM f v m a = StateT (UnifyState f v) m a
 
+-- | This function runs a unification monad with the given initial
+-- list of equations.
 runUnifyM :: MonadError (UnifError f v) m
           => UnifyM f v m a -> Equations f -> m (Subst f v)
 runUnifyM m eqs = liftM (usSubst . snd) $
