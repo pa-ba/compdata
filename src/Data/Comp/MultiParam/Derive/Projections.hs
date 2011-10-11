@@ -86,7 +86,7 @@ projectn n = do
                     (sequence cxt) tp''
           genDecl x n = [| case $(varE x) of
                              Hole _ -> Nothing
-                             Place _ -> Nothing
+                             Var _ -> Nothing
                              Term t -> $(varE $ mkName $ "proj" ++ show n) t |]
 
 deepProjectn :: Int -> Q [Dec]

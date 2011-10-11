@@ -49,7 +49,7 @@ import Unsafe.Coerce
 data Cxt :: * -> ((* -> *) -> (* -> *) -> * -> *) -> (* -> *) -> (* -> *) -> * -> * where
             Term :: f a (Cxt h f a b) i -> Cxt h f a b i
             Hole :: b i -> Cxt Hole f a b i
-            Place :: a i -> Cxt h f a b i
+            Var :: a i -> Cxt h f a b i
 
 {-| Phantom type used to define 'Context'. -}
 data Hole
@@ -107,7 +107,7 @@ hfmapCxt :: forall h f a b b'. HDifunctor f
 hfmapCxt f = run
     where run :: Cxt h f a b :-> Cxt h f a b'
           run (Term t) = Term $ hfmap run t
-          run (Place a) = Place a
+          run (Var a) = Var a
           run (Hole b)  = Hole $ f b
 
 -- | This is an instance of 'hdimapM' for 'Cxt'.
@@ -116,5 +116,5 @@ hdimapMCxt :: forall h f a b b' m . HDitraversable f m a
 hdimapMCxt f = run
     where run :: NatM m (Cxt h f a b) (Cxt h f a b')
           run (Term t)  = liftM Term $ hdimapM run t
-          run (Place a) = return $ Place a
+          run (Var a) = return $ Var a
           run (Hole b)  = liftM Hole (f b)

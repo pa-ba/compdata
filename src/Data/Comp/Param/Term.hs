@@ -49,7 +49,7 @@ import Unsafe.Coerce
 data Cxt :: * -> (* -> * -> *) -> * -> * -> * where
             Term :: f a (Cxt h f a b) -> Cxt h f a b
             Hole :: b -> Cxt Hole f a b
-            Place :: a -> Cxt h f a b
+            Var :: a -> Cxt h f a b
 
 {-| Phantom type used to define 'Context'. -}
 data Hole
@@ -104,18 +104,18 @@ constTerm = Term . difmap (const undefined)
 fmapCxt :: Difunctor f => (b -> b') -> Cxt h f a b -> Cxt h f a b'
 fmapCxt f = run
     where run (Term t) = Term $ difmap run t
-          run (Place a) = Place a
+          run (Var a) = Var a
           run (Hole b)  = Hole $ f b
 
 -- | This is an instance of 'dimamM' for 'Cxt'.
 dimapMCxt :: Ditraversable f m a => (b -> m b') -> Cxt h f a b -> m (Cxt h f a b')
 dimapMCxt f = run
               where run (Term t)  = liftM Term $ dimapM run t
-                    run (Place a) = return $ Place a
+                    run (Var a) = return $ Var a
                     run (Hole b)  = liftM Hole (f b)
 
 -- | This is an instance of 'disequence' for 'Cxt'.
 disequenceCxt :: Ditraversable f m a => Cxt h f a (m b) -> m (Cxt h f a b)
 disequenceCxt (Term t)  = liftM Term $ dimapM disequenceCxt t
-disequenceCxt (Place a) = return $ Place a
+disequenceCxt (Var a) = return $ Var a
 disequenceCxt (Hole b)  = liftM Hole b

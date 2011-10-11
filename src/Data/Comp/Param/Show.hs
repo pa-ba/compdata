@@ -30,7 +30,7 @@ $(derive [liftSum] [''ShowD])
 instance (Difunctor f, ShowD f) => ShowD (Cxt h f) where
     showD (Term t) = showD $ fmap showD t
     showD (Hole h) = h
-    showD (Place p) = return $ show p
+    showD (Var p) = return $ show p
 
 {-| Printing of terms. -}
 instance (Difunctor f, ShowD f) => Show (Term f) where

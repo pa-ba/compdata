@@ -31,7 +31,7 @@ $(derive [liftSum] [''ShowHD])
 instance (HDifunctor f, ShowHD f) => ShowHD (Cxt h f) where
     showHD (Term t) = showHD $ hfmap (K . showHD) t
     showHD (Hole h) = unK h
-    showHD (Place p) = return $ show p
+    showHD (Var p) = return $ show p
 
 {-| Printing of terms. -}
 instance (HDifunctor f, ShowHD f) => Show (Term f i) where

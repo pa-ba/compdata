@@ -53,7 +53,7 @@ instance PEq Var where
 instance EqHD f => EqHD (Cxt h f) where
     eqHD (Term e1) (Term e2) = eqHD e1 e2
     eqHD (Hole h1) (Hole h2) = peq h1 h2
-    eqHD (Place p1) (Place p2) = peq p1 p2
+    eqHD (Var p1) (Var p2) = peq p1 p2
     eqHD _ _ = return False
 
 instance (EqHD f, PEq a) => PEq (Cxt h f Var a) where

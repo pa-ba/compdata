@@ -109,7 +109,7 @@ $(liftM concat $ mapM projn [2..10])
 project :: (g :<: f) => Cxt h f a b -> Maybe (g a (Cxt h f a b))
 project (Term t) = proj t
 project (Hole _) = Nothing
-project (Place _) = Nothing
+project (Var _) = Nothing
 
 $(liftM concat $ mapM projectn [2..10])
 
@@ -177,7 +177,7 @@ projectConst = fmap (difmap (const ())) . project
 injectCxt :: (Difunctor g, g :<: f) => Cxt h g a (Cxt h f a b) -> Cxt h f a b
 injectCxt (Term t) = inject $ difmap injectCxt t
 injectCxt (Hole x) = x
-injectCxt (Place p) = Place p
+injectCxt (Var p) = Var p
 
 {-| This function lifts the given functor to a context. -}
 liftCxt :: (Difunctor f, g :<: f) => g a b -> Cxt Hole f a b

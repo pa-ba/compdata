@@ -27,7 +27,7 @@ import Control.Monad
 
 {-| Derive smart constructors for a higher-order difunctor. The smart
  constructors are similar to the ordinary constructors, but a
- 'inject . hdimap Place id' is automatically inserted. -}
+ 'inject . hdimap Var id' is automatically inserted. -}
 smartConstructors :: Name -> Q [Dec]
 smartConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
@@ -49,7 +49,7 @@ smartConstructors fname = do
                     vars = map varE varNs
                     val = foldl appE (conE name) vars
                     sig = genSig targs tname sname args miTp
-                    function = [funD sname [clause pats (normalB [|inject (hdimap Place id $val)|]) []]]
+                    function = [funD sname [clause pats (normalB [|inject (hdimap Var id $val)|]) []]]
                 sequence $ sig ++ function
               genSig targs tname sname 0 miTp = (:[]) $ do
                 hvar <- newName "h"

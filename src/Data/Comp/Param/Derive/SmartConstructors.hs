@@ -25,7 +25,7 @@ import Data.Comp.Param.Difunctor
 import Control.Monad
 
 {-| Derive smart constructors for a difunctor. The smart constructors are
- similar to the ordinary constructors, but a 'inject . dimap Place id' is
+ similar to the ordinary constructors, but a 'inject . dimap Var id' is
  automatically inserted. -}
 smartConstructors :: Name -> Q [Dec]
 smartConstructors fname = do
@@ -41,7 +41,7 @@ smartConstructors fname = do
                     vars = map varE varNs
                     val = foldl appE (conE name) vars
                     sig = genSig targs tname sname args
-                    function = [funD sname [clause pats (normalB [|inject (dimap Place id $val)|]) []]]
+                    function = [funD sname [clause pats (normalB [|inject (dimap Var id $val)|]) []]]
                 sequence $ sig ++ function
               genSig targs tname sname 0 = (:[]) $ do
                 hvar <- newName "h"

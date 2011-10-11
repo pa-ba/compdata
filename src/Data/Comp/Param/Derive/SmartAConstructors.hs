@@ -27,7 +27,7 @@ import Control.Monad
 
 {-| Derive smart constructors with annotations for a difunctor. The smart
  constructors are similar to the ordinary constructors, but a
- 'injectA . dimap Place id' is automatically inserted. -}
+ 'injectA . dimap Var id' is automatically inserted. -}
 smartAConstructors :: Name -> Q [Dec]
 smartAConstructors fname = do
     TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
@@ -42,6 +42,6 @@ smartAConstructors fname = do
                 let pats = map varP (varPr : varNs)
                     vars = map varE varNs
                     val = appE [|injectA $(varE varPr)|] $
-                          appE [|inj . dimap Place id|] $ foldl appE (conE name) vars
+                          appE [|inj . dimap Var id|] $ foldl appE (conE name) vars
                     function = [funD sname [clause pats (normalB [|Term $val|]) []]]
                 sequence function

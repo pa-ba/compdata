@@ -21,7 +21,8 @@
 
 module Examples.Param.Parsing where
 
-import Data.Comp.Param hiding (Const)
+import Data.Comp.Param hiding (Const,Var)
+import qualified Data.Comp.Param as P
 import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
 import Data.Comp.Param.Ditraversable
@@ -60,7 +61,7 @@ $(derive [liftSum] [''PHOASTrans])
 
 -- default translation
 instance (f :<: g, Ditraversable f (TransM g) Any) => PHOASTrans f g where
-  transAlg x = liftM inject $ disequence $ dimap (return . Place) id x
+  transAlg x = liftM inject $ disequence $ dimap (return . P.Var) id x
 
 instance (Lam :<: g) => PHOASTrans Abs g where
   transAlg (Abs x b) = do env <- ask

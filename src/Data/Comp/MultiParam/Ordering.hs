@@ -50,11 +50,11 @@ instance (OrdHD f, OrdHD g) => OrdHD (f :+: g) where
 instance OrdHD f => OrdHD (Cxt h f) where
     compareHD (Term e1) (Term e2) = compareHD e1 e2
     compareHD (Hole h1) (Hole h2) = pcompare h1 h2
-    compareHD (Place p1) (Place p2) = pcompare p1 p2
+    compareHD (Var p1) (Var p2) = pcompare p1 p2
     compareHD (Term _) _ = return LT
     compareHD (Hole _) (Term _) = return GT
-    compareHD (Hole _) (Place _) = return LT
-    compareHD (Place _) _ = return GT
+    compareHD (Hole _) (Var _) = return LT
+    compareHD (Var _) _ = return GT
 
 instance POrd Var where
     pcompare x y = return $ compare (varCoerce x) y

@@ -120,7 +120,7 @@ free f g = run
     where run :: Cxt h f a b -> a
           run (Term t) = f (difmap run t)
           run (Hole x) = g x
-          run (Place p) = p
+          run (Var p) = p
 
 {-| Construct a catamorphism from the given algebra. -}
 cata :: forall f a. Difunctor f => Alg f a -> Term f -> a 
@@ -128,7 +128,7 @@ cata :: forall f a. Difunctor f => Alg f a -> Term f -> a
 cata f = run . coerceCxt
     where run :: Trm f a -> a
           run (Term t) = f (difmap run t)
-          run (Place x) = x
+          run (Var x) = x
 
 {-| A generalisation of 'cata' from terms over @f@ to contexts over @f@, where
   the holes have the type of the algebra carrier. -}
@@ -140,7 +140,7 @@ cata' f = free f id
 appCxt :: Difunctor f => Context f a (Cxt h f a b) -> Cxt h f a b
 appCxt (Term t) = Term (difmap appCxt t)
 appCxt (Hole x) = x
-appCxt (Place p) = Place p
+appCxt (Var p) = Var p
 
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
   the return type is monadic. -}
@@ -159,7 +159,7 @@ freeM f g = run
     where run :: Cxt h f a b -> m a
           run (Term t) = f =<< dimapM run t
           run (Hole x) = g x
-          run (Place p) = return p
+          run (Var p) = return p
 
 {-| Construct a monadic catamorphism from the given monadic algebra. -}
 cataM :: forall m f a. (Ditraversable f m a, Monad m)
@@ -168,7 +168,7 @@ cataM :: forall m f a. (Ditraversable f m a, Monad m)
 cataM algm = run . coerceCxt
     where run :: Trm f a  -> m a
           run (Term t) = algm =<< dimapM run t
-          run (Place x) = return x
+          run (Var x) = return x
 
 {-| A generalisation of 'cataM' from terms over @f@ to contexts over @f@, where
   the holes have the type of the monadic algebra carrier. -}
@@ -195,7 +195,7 @@ appHom f = run where
     run :: CxtFun f g
     run (Term t) = appCxt (f (difmap run t))
     run (Hole x) = Hole x
-    run (Place p) = Place p
+    run (Var p) = Var p
 
 {-| Apply a term homomorphism recursively to a term/context. -}
 appHom' :: forall f g. (Difunctor g)
@@ -205,7 +205,7 @@ appHom' f = run where
     run :: CxtFun f g
     run (Term t) = appCxt (fmapCxt run (f t))
     run (Hole x) = Hole x
-    run (Place p) = Place p
+    run (Var p) = Var p
 
 {-| Compose two term homomorphisms. -}
 compHom :: (Difunctor g, Difunctor h)
@@ -226,7 +226,7 @@ appSigFun :: forall f g. (Difunctor f) => SigFun f g -> CxtFun f g
 {-# NOINLINE [1] appSigFun #-}
 appSigFun f = run
     where run (Term t) = Term $ f $ difmap run t
-          run (Place x) = Place x
+          run (Var x) = Var x
           run (Hole x) = Hole x
 -- implementation via term homomorphisms
 --  appSigFun f = appHom $ hom f
@@ -238,7 +238,7 @@ appSigFun' :: forall f g. (Difunctor g) => SigFun f g -> CxtFun f g
 {-# NOINLINE [1] appSigFun' #-}
 appSigFun' f = run
     where run (Term t) = Term $ difmap run $ f t
-          run (Place x) = Place x
+          run (Var x) = Var x
           run (Hole x) = Hole x
 
 {-| This function composes two signature functions. -}
@@ -302,7 +302,7 @@ appHomM f = coerceCxtFunM run
     where run :: CxtFunM' m f g
           run (Term t) = liftM appCxt . f =<< dimapM run t
           run (Hole x) = return (Hole x)
-          run (Place p) = return (Place p)
+          run (Var p) = return (Var p)
 
 
 -- | Apply a monadic term homomorphism recursively to a
@@ -312,7 +312,7 @@ appHomM' :: forall f g m. (Ditraversable g m Any)
 appHomM' f = coerceCxtFunM run
     where run :: CxtFunM' m f g
           run (Term t)  = liftM appCxt . dimapMCxt run =<< f t
-          run (Place p) = return (Place p)
+          run (Var p) = return (Var p)
           run (Hole x) = return (Hole x)
             
 
@@ -324,7 +324,7 @@ homMD f = run
     where run :: CxtFunM m f g
           run (Term t) = liftM appCxt (f (difmap run t))
           run (Hole x) = return (Hole x)
-          run (Place p) = return (Place p)
+          run (Var p) = return (Var p)
 
 {-| This function applies a monadic signature function to the given context. -}
 appSigFunM :: forall m f g . (Ditraversable f m Any)
@@ -332,7 +332,7 @@ appSigFunM :: forall m f g . (Ditraversable f m Any)
 appSigFunM f = coerceCxtFunM run
     where run :: CxtFunM' m f g
           run (Term t) = liftM Term . f =<< dimapM run t
-          run (Place x) = return $ Place x
+          run (Var x) = return $ Var x
           run (Hole x) = return $ Hole x
 -- implementation via term homomorphisms
 --  appSigFunM f = appHomM $ hom' f
@@ -344,7 +344,7 @@ appSigFunM' :: forall m f g . (Ditraversable g m Any)
 appSigFunM' f = coerceCxtFunM run
     where run :: CxtFunM' m f g
           run (Term t) = liftM Term . dimapM run =<< f t
-          run (Place x) = return $ Place x
+          run (Var x) = return $ Var x
           run (Hole x) = return $ Hole x
 
 
@@ -355,7 +355,7 @@ appSigFunMD f = run
     where run :: CxtFunM m f g
           run (Term t) = liftM Term (f (difmap run t))
           run (Hole x) = return (Hole x)
-          run (Place p) = return (Place p)
+          run (Var p) = return (Var p)
 
 {-| Compose two monadic term homomorphisms. -}
 compHomM :: (Ditraversable g m Any, Difunctor h, Monad m)
@@ -431,7 +431,7 @@ type Coalg f a = forall b. a -> [(a,b)] -> Either b (f b (a,[(a,b)]))
 ana :: forall a f. Difunctor f => Coalg f a -> a -> Term f
 ana f x = run (x,[])
     where run (a,bs) = case f a bs of
-                         Left p -> Place p
+                         Left p -> Var p
                          Right t -> Term $ difmap run t
 
 {-| This type represents a monadic coalgebra over a difunctor @f@ and carrier
@@ -444,7 +444,7 @@ anaM :: forall a m f. (Ditraversable f m Any, Monad m)
 anaM f x = run (x,[])
     where run (a,bs) = do c <- f a bs
                           case c of
-                            Left p -> return $ Place p
+                            Left p -> return $ Var p
                             Right t -> liftM Term $ dimapM run t
 
 
@@ -460,7 +460,7 @@ para :: forall f a. Difunctor f => RAlg f a -> Term f -> a
 para f = run . coerceCxt
     where run :: Trm f a -> a
           run (Term t) = f $ difmap (\x -> (x, run x)) t
-          run (Place x) = x
+          run (Var x) = x
 
 {-| This type represents a monadic r-algebra over a difunctor @f@ and carrier
   @a@. -}
@@ -471,7 +471,7 @@ paraM :: forall m f a. (Ditraversable f m a, Monad m)
 paraM f = run . coerceCxt
     where run :: Trm f a -> m a
           run (Term t) = f =<< dimapM (\x -> run x >>= \y -> return (x, y)) t
-          run (Place x) = return x
+          run (Var x) = return x
 
 
 --------------------------------
@@ -486,7 +486,7 @@ apo :: forall a f. (Difunctor f) => RCoalg f a -> a -> Term f
 apo coa x = run (x,[])
     where run :: (a,[(a,b)]) -> Trm f b
           run (a,bs) = case coa a bs of
-                         Left x -> Place x
+                         Left x -> Var x
                          Right t -> Term $ difmap run' t
           run' :: Either (Trm f b) (a,[(a,b)]) -> Trm f b
           run' (Left t) = t
@@ -506,7 +506,7 @@ apoM coa x = run (x,[])
           run (a,bs) = do
             res <- coa a bs
             case res of
-              Left x -> return $ Place x
+              Left x -> return $ Var x
               Right t -> liftM Term $ dimapM run' t
           run' :: Either (Term f) (a,[(a,Any)]) -> m (Term f)
           run' (Left t) = return t
@@ -523,7 +523,7 @@ type CVAlg f a f' = f a (Trm f' a) -> a
 -- | This function applies 'projectA' at the tip of the term.
 projectTip  :: DistAnn f a f' => Trm f' a -> a
 projectTip (Term v) = snd $ projectA v
-projectTip (Place p) = p
+projectTip (Var p) = p
 
 {-| Construct a histomorphism from the given cv-algebra. -}
 histo :: forall f f' a. (Difunctor f, DistAnn f a f')
@@ -531,7 +531,7 @@ histo :: forall f f' a. (Difunctor f, DistAnn f a f')
 histo alg = projectTip . cata run
     where run :: Alg f (Trm f' a)
           run v = Term $ injectA (alg v') v'
-              where v' = dimap Place id v
+              where v' = dimap Var id v
 
 {-| This type represents a monadic cv-algebra over a functor @f@ and carrier
   @a@. -}
@@ -544,7 +544,7 @@ histoM alg = liftM projectTip . run . coerceCxt
     where run (Term t) = do t' <- dimapM run t
                             r <- alg t'
                             return $ Term $ injectA r t'
-          run (Place p) = return $ Place p
+          run (Var p) = return $ Var p
 
 
 -----------------------------------
@@ -564,11 +564,11 @@ type CVCoalg f a = forall b. a -> [(a,b)]
 futu :: forall f a. Difunctor f => CVCoalg f a -> a -> Term f
 futu coa x = run (x,[])
     where run (a,bs) = case coa a bs of
-                         Left p -> Place p
+                         Left p -> Var p
                          Right t -> Term $ difmap run' t
           run' (Term t) = Term $ difmap run' t
           run' (Hole x) = run x
-          run' (Place p) = Place p
+          run' (Var p) = Var p
 
 {-| This type represents a monadic cv-coalgebra over a difunctor @f@ and carrier
   @a@. -}
@@ -581,11 +581,11 @@ futuM :: forall f a m. (Ditraversable f m Any, Monad m) =>
 futuM coa x = run (x,[])
     where run (a,bs) = do c <- coa a bs
                           case c of 
-                            Left p -> return $ Place p
+                            Left p -> return $ Var p
                             Right t -> liftM Term $ dimapM run' t
           run' (Term t) = liftM Term $ dimapM run' t
           run' (Hole x) = run x
-          run' (Place p) = return $ Place p
+          run' (Var p) = return $ Var p
 
 {-| This type represents a generalised cv-coalgebra over a difunctor @f@ and
   carrier @a@. -}
@@ -597,7 +597,7 @@ futu' coa x = run (x,[])
     where run (a,bs) = run' $ coa a bs
           run' (Term t) = Term $ difmap run' t
           run' (Hole x) = run x
-          run' (Place p) = Place p
+          run' (Var p) = Var p
 
 -------------------------------------------
 -- functions only used for rewrite rules --
@@ -608,10 +608,10 @@ appAlgHom :: forall f g d . (Difunctor g) => Alg g d -> Hom f g -> Term f -> d
 appAlgHom alg hom = run . coerceCxt where
     run :: Trm f d -> d
     run (Term t) = run' $ hom t
-    run (Place a) = a
+    run (Var a) = a
     run' :: Context g d (Trm f d) -> d
     run' (Term t) = alg $ difmap run' t
-    run' (Place a) = a
+    run' (Var a) = a
     run' (Hole x) = run x
 
 
@@ -622,11 +622,11 @@ appSigFunHom :: forall f g h. (Difunctor g)
 appSigFunHom f g = run where
     run :: CxtFun f h
     run (Term t) = run' $ g t
-    run (Place a) = Place a
+    run (Var a) = Var a
     run (Hole h) = Hole h
     run' :: Context g a (Cxt h' f a b) -> Cxt h' h a b
     run' (Term t) = Term $ f $ difmap run' t
-    run' (Place a) = Place a
+    run' (Var a) = Var a
     run' (Hole h) = run h
 
 appAlgHomM :: forall m g f d . (Monad m, Ditraversable g m d)
@@ -634,10 +634,10 @@ appAlgHomM :: forall m g f d . (Monad m, Ditraversable g m d)
 appAlgHomM alg hom = run . coerceCxt where 
     run :: Trm f d -> m d
     run (Term t) = run' =<< hom t
-    run (Place a) = return a
+    run (Var a) = return a
     run' :: Context g d (Trm f d) -> m d
     run' (Term t) = alg =<< dimapM run' t
-    run' (Place a) = return a
+    run' (Var a) = return a
     run' (Hole x) = run x
 
 
@@ -647,11 +647,11 @@ appHomHomM :: forall m f g h . (Ditraversable g m Any, Difunctor h)
 appHomHomM f g = coerceCxtFunM run where
     run :: CxtFunM' m f h
     run (Term t) = run' =<< g t
-    run (Place a) = return $ Place a
+    run (Var a) = return $ Var a
     run (Hole h) = return $ Hole h
     run' :: Context g Any (Cxt h' f Any b) -> m (Cxt h' h Any b)
     run' (Term t) = liftM appCxt $ f =<< dimapM run' t
-    run' (Place a) = return $ Place a
+    run' (Var a) = return $ Var a
     run' (Hole h) = run h
 
 appSigFunHomM :: forall m f g h . (Ditraversable g m Any)
@@ -659,11 +659,11 @@ appSigFunHomM :: forall m f g h . (Ditraversable g m Any)
 appSigFunHomM f g = coerceCxtFunM run where
     run :: CxtFunM' m f h
     run (Term t) = run' =<< g t
-    run (Place a) = return $ Place a
+    run (Var a) = return $ Var a
     run (Hole h) = return $ Hole h
     run' :: Context g Any (Cxt h' f Any b) -> m (Cxt h' h Any b)
     run' (Term t) = liftM Term $ f =<< dimapM run' t
-    run' (Place a) = return $ Place a
+    run' (Var a) = return $ Var a
     run' (Hole h) = run h
 
 

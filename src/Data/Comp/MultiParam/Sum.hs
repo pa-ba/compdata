@@ -109,7 +109,7 @@ $(liftM concat $ mapM projn [2..10])
 project :: (g :<: f) => NatM Maybe (Cxt h f a b) (g a (Cxt h f a b))
 project (Term t) = proj t
 project (Hole _) = Nothing
-project (Place _) = Nothing
+project (Var _) = Nothing
 
 $(liftM concat $ mapM projectn [2..10])
 
@@ -178,21 +178,21 @@ proj3 x = case proj x of
 project :: (g :<: f) => NatM Maybe (Cxt h f a b) (g a (Cxt h f a b))
 project (Term t) = proj t
 project (Hole _) = Nothing
-project (Place _) = Nothing
+project (Var _) = Nothing
 
 -- |Project the outermost layer of a term to a binary sub signature.
 project2 :: (g1 :<: f, g2 :<: f)
             => NatM Maybe (Cxt h f a b) ((g1 :+: g2) a (Cxt h f a b))
 project2 (Term t) = proj2 t
 project2 (Hole _) = Nothing
-project2 (Place _) = Nothing
+project2 (Var _) = Nothing
 
 -- |Project the outermost layer of a term to a ternary sub signature.
 project3 :: (g1 :<: f, g2 :<: f, g3 :<: f)
             => NatM Maybe (Cxt h f a b) ((g1 :+: g2 :+: g3) a (Cxt h f a b))
 project3 (Term t) = proj3 t
 project3 (Hole _) = Nothing
-project3 (Place _) = Nothing
+project3 (Var _) = Nothing
 
 -- | Tries to coerce a term/context to a term/context over a
 -- sub-signature.
@@ -269,7 +269,7 @@ projectConst = fmap (hfmap (const (K ()))) . project
 injectCxt :: (HDifunctor g, g :<: f) => Cxt h g a (Cxt h f a b) :-> Cxt h f a b
 injectCxt (Term t) = inject $ hfmap injectCxt t
 injectCxt (Hole x) = x
-injectCxt (Place p) = Place p
+injectCxt (Var p) = Var p
 
 {-| This function lifts the given functor to a context. -}
 liftCxt :: (HDifunctor f, g :<: f) => g a b :-> Cxt Hole f a b

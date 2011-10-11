@@ -82,7 +82,7 @@ free f g = run
     where run :: Cxt h f a b :-> a
           run (Term t) = f (hfmap run t)
           run (Hole x) = g x
-          run (Place p) = p
+          run (Var p) = p
 
 {-| Construct a catamorphism from the given algebra. -}
 cata :: forall f a. HDifunctor f => Alg f a -> Term f :-> a 
@@ -90,7 +90,7 @@ cata :: forall f a. HDifunctor f => Alg f a -> Term f :-> a
 cata f = run . coerceCxt
     where run :: Trm f a :-> a
           run (Term t) = f (hfmap run t)
-          run (Place x) = x
+          run (Var x) = x
 
 {-| A generalisation of 'cata' from terms over @f@ to contexts over @f@, where
   the holes have the type of the algebra carrier. -}
@@ -102,7 +102,7 @@ cata' f = free f id
 appCxt :: HDifunctor f => Cxt Hole f a (Cxt h f a b) :-> Cxt h f a b
 appCxt (Term t) = Term (hfmap appCxt t)
 appCxt (Hole x) = x
-appCxt (Place p) = Place p
+appCxt (Var p) = Var p
 
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
   the return type is monadic. -}
@@ -116,7 +116,7 @@ freeM f g = run
     where run :: NatM m (Cxt h f a b) a
           run (Term t) = f =<< hdimapM run t
           run (Hole x) = g x
-          run (Place p) = return p
+          run (Var p) = return p
 
 {-| Construct a monadic catamorphism from the given monadic algebra. -}
 cataM :: forall m f a. (HDitraversable f m a, Monad m)
@@ -125,7 +125,7 @@ cataM :: forall m f a. (HDitraversable f m a, Monad m)
 cataM algm = run . coerceCxt
     where run :: NatM m (Trm f a) a
           run (Term t) = algm =<< hdimapM run t
-          run (Place x) = return x
+          run (Var x) = return x
 
 {-| This type represents a monadic algebra, but where the covariant argument is
   also a monadic computation. -}
@@ -139,7 +139,7 @@ freeM' f g = run
     where run :: NatM m (Cxt h f a b) a
           run (Term t) = f $ hfmap (Compose . run) t
           run (Hole x) = g x
-          run (Place p) = return p
+          run (Var p) = return p
 
 {-| Construct a monadic catamorphism from the given monadic algebra. -}
 cataM' :: forall m f a. (HDifunctor f, Monad m)
@@ -148,7 +148,7 @@ cataM' :: forall m f a. (HDifunctor f, Monad m)
 cataM' algm = run . coerceCxt
     where run :: NatM m (Trm f a) a
           run (Term t) = algm $ hfmap (Compose . run) t
-          run (Place x) = return x
+          run (Var x) = return x
 
 {-| This type represents a signature function. -}
 type SigFun f g = forall a b. f a b :-> g a b
@@ -167,7 +167,7 @@ appHom f = run where
     run :: CxtFun f g
     run (Term t) = appCxt (f (hfmap run t))
     run (Hole x) = Hole x
-    run (Place p) = Place p
+    run (Var p) = Var p
 
 -- | Apply a term homomorphism recursively to a term/context. This is
 -- a top-down variant of 'appHom'.
@@ -178,7 +178,7 @@ appHom' f = run where
     run :: CxtFun f g
     run (Term t) = appCxt (hfmapCxt run (f t))
     run (Hole x) = Hole x
-    run (Place p) = Place p
+    run (Var p) = Var p
 
 {-| Compose two term homomorphisms. -}
 compHom :: (HDifunctor g, HDifunctor h)
@@ -195,7 +195,7 @@ appSigFun f = run where
     run :: CxtFun f g
     run (Term t) = Term (f (hfmap run t))
     run (Hole x) = Hole x
-    run (Place p) = Place p
+    run (Var p) = Var p
 
 {-| This function applies a signature function to the given context. -}
 appSigFun' :: forall f g. (HDifunctor g) => SigFun f g -> CxtFun f g
@@ -203,7 +203,7 @@ appSigFun' f = run where
     run :: CxtFun f g
     run (Term t) = Term (hfmap run (f t))
     run (Hole x) = Hole x
-    run (Place p) = Place p
+    run (Var p) = Var p
 
 {-| This function composes two signature functions. -}
 compSigFun :: SigFun g h -> SigFun f g -> SigFun f h
@@ -254,7 +254,7 @@ appHomM f = coerceCxtFunM run
     where run :: CxtFunM' m f g
           run (Term t) = liftM appCxt (f =<< hdimapM run t)
           run (Hole x) = return (Hole x)
-          run (Place p) = return (Place p)
+          run (Var p) = return (Var p)
 
 -- | Apply a monadic term homomorphism recursively to a
 -- term/context. This is a top-down variant of 'appHomM'.
@@ -265,7 +265,7 @@ appHomM' f = coerceCxtFunM run
     where run :: CxtFunM' m f g
           run (Term t) = liftM appCxt (hdimapMCxt run =<<  f t)
           run (Hole x) = return (Hole x)
-          run (Place p) = return (Place p)
+          run (Var p) = return (Var p)
 
 
 {-| This function applies a monadic signature function to the given context. -}
@@ -275,7 +275,7 @@ appSigFunM f = coerceCxtFunM run
     where run :: CxtFunM' m f g
           run (Term t) = liftM Term (f =<< hdimapM run t)
           run (Hole x) = return (Hole x)
-          run (Place p) = return (Place p)
+          run (Var p) = return (Var p)
 
 -- | This function applies a monadic signature function to the given
 -- context. This is a top-down variant of 'appSigFunM'.
@@ -285,7 +285,7 @@ appSigFunM' f = coerceCxtFunM run
     where run :: CxtFunM' m f g
           run (Term t) = liftM Term (hdimapM run =<< f t)
           run (Hole x) = return (Hole x)
-          run (Place p) = return (Place p)
+          run (Var p) = return (Var p)
 
 
 {-| Compose two monadic term homomorphisms. -}

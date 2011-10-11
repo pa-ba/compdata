@@ -25,7 +25,7 @@
 
 module Examples.MultiParam.FOL where
 
-import Data.Comp.MultiParam hiding (Const)
+import Data.Comp.MultiParam hiding (Const,Var)
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
 import Data.Comp.MultiParam.FreshM (getVar,step)

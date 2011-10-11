@@ -56,7 +56,7 @@ instance (EqD f, EqD g) => EqD (f :+: g) where
 instance EqD f => EqD (Cxt h f) where
     eqD (Term e1) (Term e2) = eqD e1 e2
     eqD (Hole h1) (Hole h2) = peq h1 h2
-    eqD (Place p1) (Place p2) = peq p1 p2
+    eqD (Var p1) (Var p2) = peq p1 p2
     eqD _ _ = return False
 
 instance (EqD f, PEq a) => PEq (Cxt h f Var a) where

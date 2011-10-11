@@ -63,11 +63,11 @@ instance (OrdD f, OrdD g) => OrdD (f :+: g) where
 instance OrdD f => OrdD (Cxt h f) where
     compareD (Term e1) (Term e2) = compareD e1 e2
     compareD (Hole h1) (Hole h2) = pcompare h1 h2
-    compareD (Place p1) (Place p2) = pcompare p1 p2
+    compareD (Var p1) (Var p2) = pcompare p1 p2
     compareD (Term _) _ = return LT
     compareD (Hole _) (Term _) = return GT
-    compareD (Hole _) (Place _) = return LT
-    compareD (Place _) _ = return GT
+    compareD (Hole _) (Var _) = return LT
+    compareD (Var _) _ = return GT
 
 instance (OrdD f, POrd a) => POrd (Cxt h f Var a) where
     pcompare = compareD
