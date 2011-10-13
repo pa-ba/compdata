@@ -28,7 +28,7 @@ module Examples.MultiParam.FOL where
 import Data.Comp.MultiParam hiding (Const,Var)
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
-import Data.Comp.MultiParam.FreshM (getVar,step)
+import Data.Comp.MultiParam.FreshM (getVar,nextVar)
 import Data.List (intercalate)
 import Data.Maybe
 import Control.Monad.State
@@ -116,12 +116,12 @@ instance ShowHD Impl where
 
 instance ShowHD Exists where
     showHD (Exists f) = do x <- getVar
-                           b <- step $ unK $ f x
+                           b <- nextVar $ unK $ f x
                            return $ "exists " ++ show x ++ ". " ++ b
 
 instance ShowHD Forall where
     showHD (Forall f) = do x <- getVar
-                           b <- step $ unK $ f x
+                           b <- nextVar $ unK $ f x
                            return $ "forall " ++ show x ++ ". " ++ b
 
 --------------------------------------------------------------------------------

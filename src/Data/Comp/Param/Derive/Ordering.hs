@@ -80,7 +80,7 @@ makeOrdD fname = do
                       AppT (AppT ArrowT (VarT a)) _
                           | a == conArg ->
                               [| do {v <- getVar;
-                                     step (pcompare ($(varE x) v) ($(varE y) v))} |]
+                                     nextVar (pcompare ($(varE x) v) ($(varE y) v))} |]
                       SigT tp' _ ->
                           eqDB conArg coArg (x, y, tp')
                       _ ->

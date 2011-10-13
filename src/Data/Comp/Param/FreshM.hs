@@ -17,7 +17,7 @@ module Data.Comp.Param.FreshM
      FreshM,
      Var,
      getVar,
-     step,
+     nextVar,
      evalFreshM
     ) where
 
@@ -42,8 +42,8 @@ getVar :: FreshM Var
 getVar = FreshM $ asks (Var . head)
 
 -- |Use the next available variable in the monadic computation.
-step :: FreshM a -> FreshM a
-step = FreshM . local tail . unFreshM
+nextVar :: FreshM a -> FreshM a
+nextVar = FreshM . local tail . unFreshM
 
 -- |Evaluate a computation that uses fresh variables.
 evalFreshM :: FreshM a -> a
