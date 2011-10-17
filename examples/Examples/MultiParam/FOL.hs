@@ -10,13 +10,13 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- First-Order Logic à la Carte
+-- First-Order Logic a la Carte
 --
--- This example illustrates how to implement First-Order Logic à la Carte
+-- This example illustrates how to implement First-Order Logic a la Carte
 -- (Knowles, The Monad.Reader Issue 11, '08) using Generalised Parametric
 -- Compositional Data Types.
 --
--- Rather than having a fixed domain @Term@ for binders, a la Knowles, our
+-- Rather than having a fixed domain 'Term' for binders, a la Knowles, our
 -- encoding uses a mutually recursive data structure for terms and formulae.
 -- This enables variables to be introduced only when they are actually needed
 -- in the term language, i.e. in stage 5.
@@ -26,6 +26,7 @@
 module Examples.MultiParam.FOL where
 
 import Data.Comp.MultiParam hiding (Const,Var)
+import qualified Data.Comp.MultiParam as MP
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
 import Data.Comp.MultiParam.FreshM (getVar,nextVar)
@@ -40,89 +41,85 @@ data TTerm
 
 -- Terms
 data Const :: (* -> *) -> (* -> *) -> * -> * where
-              Const :: String -> [e TTerm] -> Const a e TTerm
+    Const :: String -> [e TTerm] -> Const a e TTerm
 data Var :: (* -> *) -> (* -> *) -> * -> * where
-            Var :: String -> Var a e TTerm
+    Var :: String -> Var a e TTerm
 
 -- Formulae
 data TT :: (* -> *) -> (* -> *) -> * -> * where
-           TT :: TT a e TFormula
+    TT :: TT a e TFormula
 data FF :: (* -> *) -> (* -> *) -> * -> * where
-           FF :: FF a e TFormula
+    FF :: FF a e TFormula
 data Atom :: (* -> *) -> (* -> *) -> * -> * where
-             Atom :: String -> [e TTerm] -> Atom a e TFormula
+    Atom :: String -> [e TTerm] -> Atom a e TFormula
 data NAtom :: (* -> *) -> (* -> *) -> * -> * where
-              NAtom :: String -> [e TTerm] -> NAtom a e TFormula
+    NAtom :: String -> [e TTerm] -> NAtom a e TFormula
 data Not :: (* -> *) -> (* -> *) -> * -> * where
-            Not :: e TFormula -> Not a e TFormula
+    Not :: e TFormula -> Not a e TFormula
 data Or :: (* -> *) -> (* -> *) -> * -> * where
-           Or :: e TFormula -> e TFormula -> Or a e TFormula
+    Or :: e TFormula -> e TFormula -> Or a e TFormula
 data And :: (* -> *) -> (* -> *) -> * -> * where
-            And :: e TFormula -> e TFormula -> And a e TFormula
+    And :: e TFormula -> e TFormula -> And a e TFormula
 data Impl :: (* -> *) -> (* -> *) -> * -> * where
-             Impl :: e TFormula -> e TFormula -> Impl a e TFormula
+    Impl :: e TFormula -> e TFormula -> Impl a e TFormula
 data Exists :: (* -> *) -> (* -> *) -> * -> * where
-               Exists :: (a TTerm -> e TFormula) -> Exists a e TFormula
+    Exists :: (a TTerm -> e TFormula) -> Exists a e TFormula
 data Forall :: (* -> *) -> (* -> *) -> * -> * where
-               Forall :: (a TTerm -> e TFormula) -> Forall a e TFormula
+    Forall :: (a TTerm -> e TFormula) -> Forall a e TFormula
 
--- Derive boilerplate code using Template Haskell
 $(derive [makeHDifunctor, smartConstructors]
          [''Const, ''Var, ''TT, ''FF, ''Atom, ''NAtom,
           ''Not, ''Or, ''And, ''Impl, ''Exists, ''Forall])
 
 --------------------------------------------------------------------------------
--- Pretty printing of terms and formulae
+-- (Custom) pretty printing of terms and formulae
 --------------------------------------------------------------------------------
 
 instance ShowHD Const where
-    showHD (Const f t) = do
-      ts <- mapM unK t
-      return $ f ++ "(" ++ intercalate ", " ts ++ ")"
+  showHD (Const f t) = do ts <- mapM unK t
+                          return $ f ++ "(" ++ intercalate ", " ts ++ ")"
 
 instance ShowHD Var where
-    showHD (Var x) = return x
+  showHD (Var x) = return x
 
 instance ShowHD TT where
-    showHD TT = return "true"
+  showHD TT = return "true"
 
 instance ShowHD FF where
-    showHD FF = return "false"
+  showHD FF = return "false"
 
 instance ShowHD Atom where
-    showHD (Atom p t) = do
-      ts <- mapM unK t
-      return $ p ++ "(" ++ intercalate ", " ts ++ ")"
+  showHD (Atom p t) = do ts <- mapM unK t
+                         return $ p ++ "(" ++ intercalate ", " ts ++ ")"
 
 instance ShowHD NAtom where
-    showHD (NAtom p t) = do
-      ts <- mapM unK t
-      return $ "not " ++ p ++ "(" ++ intercalate ", " ts ++ ")"
+  showHD (NAtom p t) = do ts <- mapM unK t
+                          return $ "not " ++ p ++ "(" ++ intercalate ", " ts ++ ")"
 
 instance ShowHD Not where
-    showHD (Not f) = liftM (\x -> "not (" ++ x ++ ")") (unK f)
+  showHD (Not (K f)) = liftM (\x -> "not (" ++ x ++ ")") f
 
 instance ShowHD Or where
-    showHD (Or f1 f2) =
-        liftM2 (\x y -> "(" ++ x ++ ") or (" ++ y ++ ")") (unK f1) (unK f2)
+  showHD (Or (K f1) (K f2)) =
+      liftM2 (\x y -> "(" ++ x ++ ") or (" ++ y ++ ")") f1 f2
 
 instance ShowHD And where
-    showHD (And f1 f2) =
-        liftM2 (\x y -> "(" ++ x ++ ") and (" ++ y ++ ")") (unK f1) (unK f2)
+  showHD (And (K f1) (K f2)) =
+      liftM2 (\x y -> "(" ++ x ++ ") and (" ++ y ++ ")") f1 f2
 
 instance ShowHD Impl where
-    showHD (Impl f1 f2) =
-        liftM2 (\x y -> "(" ++ x ++ ") -> (" ++ y ++ ")") (unK f1) (unK f2)
+  showHD (Impl (K f1) (K f2)) =
+      liftM2 (\x y -> "(" ++ x ++ ") -> (" ++ y ++ ")") f1 f2
 
 instance ShowHD Exists where
-    showHD (Exists f) = do x <- getVar
-                           b <- nextVar $ unK $ f x
-                           return $ "exists " ++ show x ++ ". " ++ b
+  showHD (Exists f) = do x <- getVar
+                         b <- nextVar $ unK $ f x
+                         return $ "exists " ++ show x ++ ". " ++ b
 
 instance ShowHD Forall where
-    showHD (Forall f) = do x <- getVar
-                           b <- nextVar $ unK $ f x
-                           return $ "forall " ++ show x ++ ". " ++ b
+  showHD (Forall f) = do x <- getVar
+                         b <- nextVar $ unK $ f x
+                         return $ "forall " ++ show x ++ ". " ++ b
 
 --------------------------------------------------------------------------------
 -- Stage 0
@@ -133,12 +130,12 @@ type Input = Const :+: TT :+: FF :+: Atom :+: Not :+: Or :+: And :+:
 
 foodFact :: Term Input TFormula
 foodFact =
-    iExists (\p -> iAtom "Person" [p] `iAnd`
-                   iForall (\f -> iAtom "Food" [f] `iImpl`
-                                  iAtom "Eats" [p,f])) `iImpl`
-    iNot (iExists $ \f -> iAtom "Food" [f] `iAnd`
-                          iNot (iExists $ \p -> iAtom "Person" [p] `iAnd`
-                                                iAtom "Eats" [p,f]))
+  iExists (\p -> iAtom "Person" [p] `iAnd`
+                 iForall (\f -> iAtom "Food" [f] `iImpl`
+                                iAtom "Eats" [p,f])) `iImpl`
+  iNot (iExists $ \f -> iAtom "Food" [f] `iAnd`
+                        iNot (iExists $ \p -> iAtom "Person" [p] `iAnd`
+                                              iAtom "Eats" [p,f]))
 
 --------------------------------------------------------------------------------
 -- Stage 1
@@ -148,18 +145,18 @@ type Stage1 = Const :+: TT :+: FF :+: Atom :+: Not :+: Or :+: And :+:
               Exists :+: Forall
 
 class HDifunctor f => ElimImp f where
-    elimImpHom :: Hom f Stage1
-    elimImpHom = elimImpHom' . hfmap Hole
-    elimImpHom' :: f a (Cxt h Stage1 a b) :-> Cxt h Stage1 a b
-    elimImpHom' = appCxt .elimImpHom
+  elimImpHom :: Hom f Stage1
+  elimImpHom = elimImpHom' . hfmap Hole
+  elimImpHom' :: f a (Cxt h Stage1 a b) :-> Cxt h Stage1 a b
+  elimImpHom' = appCxt .elimImpHom
 
 $(derive [liftSum] [''ElimImp])
 
 instance (HDifunctor f, f :<: Stage1) => ElimImp f where
-    elimImpHom = simpCxt . inj
+  elimImpHom = simpCxt . inj
 
 instance ElimImp Impl where
-    elimImpHom' (Impl f1 f2) = iNot f1 `iOr` f2
+  elimImpHom' (Impl f1 f2) = iNot f1 `iOr` f2
 
 elimImp :: Term Input :-> Term Stage1
 elimImp = appHom elimImpHom
@@ -175,74 +172,50 @@ type Stage2 = Const :+: TT :+: FF :+: Atom :+: NAtom :+: Or :+: And :+:
               Exists :+: Forall
 
 class HDifunctor f => Dualize f where
-    dualizeHom :: Hom f Stage2
-    dualizeHom = dualizeHom' . hfmap Hole
-    dualizeHom' :: f a (Cxt h Stage2 a b) :-> Cxt h Stage2 a b
-    dualizeHom' = appCxt . dualizeHom
+  dualizeHom :: f a (Cxt h Stage2 a b) :-> Cxt h Stage2 a b
 
 $(derive [liftSum] [''Dualize])
 
 instance Dualize Const where
-    dualizeHom' (Const f t) = iConst f t
+  dualizeHom (Const f t) = iConst f t
 
 instance Dualize TT where
-    dualizeHom' TT = iFF
+  dualizeHom TT = iFF
 
 instance Dualize FF where
-    dualizeHom' FF = iTT
+  dualizeHom FF = iTT
 
 instance Dualize Atom where
-    dualizeHom' (Atom p t) = iNAtom p t
+  dualizeHom (Atom p t) = iNAtom p t
 
 instance Dualize NAtom where
-    dualizeHom' (NAtom p t) = iAtom p t
+  dualizeHom (NAtom p t) = iAtom p t
 
 instance Dualize Or where
-    dualizeHom' (Or f1 f2) = f1 `iAnd` f2
+  dualizeHom (Or f1 f2) = f1 `iAnd` f2
 
 instance Dualize And where
-    dualizeHom' (And f1 f2) = f1 `iOr` f2
+  dualizeHom (And f1 f2) = f1 `iOr` f2
 
 instance Dualize Exists where
-    dualizeHom' (Exists f) = inject $ Forall f
+  dualizeHom (Exists f) = inject $ Forall f
 
 instance Dualize Forall where
-    dualizeHom' (Forall f) = inject $ Exists f
+  dualizeHom (Forall f) = inject $ Exists f
 
 dualize :: Term Stage2 :-> Term Stage2
-dualize = appHom dualizeHom
+dualize = appHom (dualizeHom . hfmap Hole)
 
 class PushNot f where
-    pushNotAlg :: Alg f (Term Stage2)
+  pushNotAlg :: Alg f (Term Stage2)
 
 $(derive [liftSum] [''PushNot])
 
-instance PushNot Const where
-    pushNotAlg (Const f t) = iConst f t
-
-instance PushNot TT where
-    pushNotAlg TT = iTT
-
-instance PushNot FF where
-    pushNotAlg FF = iFF
-
-instance PushNot Atom where
-    pushNotAlg (Atom p t) = iAtom p t
+instance (HDifunctor f, f :<: Stage2) => PushNot f where
+  pushNotAlg = inject . hdimap MP.Var id -- default
 
 instance PushNot Not where
-    pushNotAlg (Not f) = dualize f
-
-instance PushNot Or where
-    pushNotAlg (Or f1 f2) = f1 `iOr` f2
-
-instance PushNot And where
-    pushNotAlg (And f1 f2) = f1 `iAnd` f2
-
-instance PushNot Exists where
-    pushNotAlg (Exists f) = iExists f
-
-instance PushNot Forall where
-    pushNotAlg (Forall f) = iForall f
+  pushNotAlg (Not f) = dualize f
 
 pushNotInwards :: Term Stage1 :-> Term Stage2
 pushNotInwards = cata pushNotAlg
@@ -289,41 +262,42 @@ freshes = do supply <- get
              return l
 
 class Skolem f where
-    skolemAlg :: AlgM' S f (Term Stage4)
+  skolemAlg :: AlgM' S f (Term Stage4)
 
 $(derive [liftSum] [''Skolem])
 
 instance Skolem Const where
-    skolemAlg (Const f t) = liftM (iConst f) $ mapM getCompose t
+  skolemAlg (Const f t) = liftM (iConst f) $ mapM getCompose t
 
 instance Skolem TT where
-    skolemAlg TT = return iTT
+  skolemAlg TT = return iTT
 
 instance Skolem FF where
-    skolemAlg FF = return iFF
+  skolemAlg FF = return iFF
 
 instance Skolem Atom where
-    skolemAlg (Atom p t) = liftM (iAtom p) $ mapM getCompose t
+  skolemAlg (Atom p t) = liftM (iAtom p) $ mapM getCompose t
 
 instance Skolem NAtom where
-    skolemAlg (NAtom p t) = liftM (iNAtom p) $ mapM getCompose t
+  skolemAlg (NAtom p t) = liftM (iNAtom p) $ mapM getCompose t
 
 instance Skolem Or where
-    skolemAlg (Or f1 f2) = liftM2 iOr (getCompose f1) (getCompose f2)
+  skolemAlg (Or (Compose f1) (Compose f2)) = liftM2 iOr f1 f2
 
 instance Skolem And where
-    skolemAlg (And f1 f2) = liftM2 iAnd (getCompose f1) (getCompose f2)
+  skolemAlg (And (Compose f1) (Compose f2)) = liftM2 iAnd f1 f2
 
 instance Skolem Forall where
-    skolemAlg (Forall f) = do
-      supply <- freshes
-      xs <- ask
-      return $ iForall $ \x -> evalS (getCompose $ f x) (x : xs) supply
+  skolemAlg (Forall f) = do
+    supply <- freshes
+    xs <- ask
+    return $ iForall $ \x -> evalS (getCompose $ f x) (x : xs) supply
 
 instance Skolem Exists where
-    skolemAlg (Exists f) = do uniq <- fresh
-                              xs <- ask
-                              getCompose $ f (iConst ("Skol" ++ show uniq) xs)
+  skolemAlg (Exists f) = do
+    uniq <- fresh
+    xs <- ask
+    getCompose $ f (iConst ("Skol" ++ show uniq) xs)
 
 skolemize :: Term Stage2 :-> Term Stage4
 skolemize f = evalState (runReaderT (cataM' skolemAlg f) []) initialUniqueSupply
@@ -338,34 +312,34 @@ foodFact4 = skolemize foodFact2
 type Stage5 = Const :+: Var :+: TT :+: FF :+: Atom :+: NAtom :+: Or :+: And
 
 class Prenex f where
-    prenexAlg :: AlgM' S f (Term Stage5)
+  prenexAlg :: AlgM' S f (Term Stage5)
 
 $(derive [liftSum] [''Prenex])
 
 instance Prenex Const where
-    prenexAlg (Const f t) = liftM (iConst f) $ mapM getCompose t
+  prenexAlg (Const f t) = liftM (iConst f) $ mapM getCompose t
 
 instance Prenex TT where
-    prenexAlg TT = return iTT
+  prenexAlg TT = return iTT
 
 instance Prenex FF where
-    prenexAlg FF = return iFF
+  prenexAlg FF = return iFF
 
 instance Prenex Atom where
-    prenexAlg (Atom p t) = liftM (iAtom p) $ mapM getCompose t
+  prenexAlg (Atom p t) = liftM (iAtom p) $ mapM getCompose t
 
 instance Prenex NAtom where
-    prenexAlg (NAtom p t) = liftM (iNAtom p) $ mapM getCompose t
+  prenexAlg (NAtom p t) = liftM (iNAtom p) $ mapM getCompose t
 
 instance Prenex Or where
-    prenexAlg (Or f1 f2) = liftM2 iOr (getCompose f1) (getCompose f2)
+  prenexAlg (Or (Compose f1) (Compose f2)) = liftM2 iOr f1 f2
 
 instance Prenex And where
-    prenexAlg (And f1 f2) = liftM2 iAnd (getCompose f1) (getCompose f2)
+  prenexAlg (And (Compose f1) (Compose f2)) = liftM2 iAnd f1 f2
 
 instance Prenex Forall where
-    prenexAlg (Forall f) = do uniq <- fresh
-                              getCompose $ f (iVar ('x' : show uniq))
+  prenexAlg (Forall f) = do uniq <- fresh
+                            getCompose $ f (iVar ('x' : show uniq))
 
 prenex :: Term Stage4 :-> Term Stage5
 prenex f = evalState (runReaderT (cataM' prenexAlg f) []) initialUniqueSupply
@@ -377,44 +351,48 @@ foodFact5 = prenex foodFact4
 -- Stage 6
 --------------------------------------------------------------------------------
 
-type Literal = Term (Const :+: Var :+: Atom :+: NAtom)
+type Literal     = Term (Const :+: Var :+: Atom :+: NAtom)
 newtype Clause i = Clause {unClause :: [Literal i]} -- implicit disjunction
-newtype CNF i = CNF {unCNF :: [Clause i]} -- implicit conjunction
+newtype CNF i    = CNF {unCNF :: [Clause i]} -- implicit conjunction
 
 instance Show (Clause i) where
-    show c = intercalate " or " $ map show $ unClause c
+  show c = intercalate " or " $ map show $ unClause c
 
 instance Show (CNF i) where
-    show c = intercalate "\n" $ map show $ unCNF c
+  show c = intercalate "\n" $ map show $ unCNF c
 
 class ToCNF f where
-    cnfAlg :: Alg f CNF
+  cnfAlg :: Alg f CNF
 
 $(derive [liftSum] [''ToCNF])
 
 instance ToCNF Const where
-    cnfAlg (Const f t) = CNF [Clause [iConst f (map (head . unClause . head . unCNF) t)]]
+  cnfAlg (Const f t) =
+      CNF [Clause [iConst f (map (head . unClause . head . unCNF) t)]]
 
 instance ToCNF Var where
-    cnfAlg (Var x) = CNF [Clause [iVar x]]
+  cnfAlg (Var x) = CNF [Clause [iVar x]]
 
 instance ToCNF TT where
-    cnfAlg TT = CNF []
+  cnfAlg TT = CNF []
 
 instance ToCNF FF where
-    cnfAlg FF = CNF [Clause []]
+  cnfAlg FF = CNF [Clause []]
 
 instance ToCNF Atom where
-    cnfAlg (Atom p t) = CNF [Clause [iAtom p (map (head . unClause . head . unCNF) t)]]
+  cnfAlg (Atom p t) =
+      CNF [Clause [iAtom p (map (head . unClause . head . unCNF) t)]]
 
 instance ToCNF NAtom where
-    cnfAlg (NAtom p t) = CNF [Clause [iNAtom p (map (head . unClause . head . unCNF) t)]]
+  cnfAlg (NAtom p t) =
+      CNF [Clause [iNAtom p (map (head . unClause . head . unCNF) t)]]
 
 instance ToCNF And where
-    cnfAlg (And f1 f2) = CNF $ unCNF f1 ++ unCNF f2
+  cnfAlg (And f1 f2) = CNF $ unCNF f1 ++ unCNF f2
 
 instance ToCNF Or where
-    cnfAlg (Or f1 f2) = CNF [Clause (x ++ y) | Clause x <- unCNF f1, Clause y <- unCNF f2]
+  cnfAlg (Or f1 f2) =
+      CNF [Clause (x ++ y) | Clause x <- unCNF f1, Clause y <- unCNF f2]
 
 cnf :: Term Stage5 :-> CNF
 cnf = cata cnfAlg
@@ -426,19 +404,18 @@ foodFact6 = cnf foodFact5
 -- Stage 7
 --------------------------------------------------------------------------------
 
-type T = Const :+: Var :+: Atom :+: NAtom
+type T            = Const :+: Var :+: Atom :+: NAtom
 newtype IClause i = IClause ([Term T i], -- implicit conjunction
                              [Term T i]) -- implicit disjunction
-newtype INF i = INF [IClause i] -- implicit conjunction
+newtype INF i     = INF [IClause i] -- implicit conjunction
 
 instance Show (IClause i) where
-    show (IClause (cs,ds)) =
-        let cs' = intercalate " and " $ map show cs
-            ds' = intercalate " or " $ map show ds
-        in "(" ++ cs' ++ ") -> (" ++ ds' ++ ")"
+  show (IClause (cs,ds)) = let cs' = intercalate " and " $ map show cs
+                               ds' = intercalate " or " $ map show ds
+                           in "(" ++ cs' ++ ") -> (" ++ ds' ++ ")"
 
 instance Show (INF i) where
-    show (INF fs) = intercalate "\n" $ map show fs
+  show (INF fs) = intercalate "\n" $ map show fs
 
 inf :: CNF TFormula -> INF TFormula
 inf (CNF f) = INF $ map (toImpl . unClause) f

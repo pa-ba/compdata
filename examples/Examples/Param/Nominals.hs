@@ -30,13 +30,13 @@ import Data.Maybe
 import qualified Data.Map as Map
 import Control.Monad.Reader
 
-type VarId = String -- Nominals
-data Val a e = Const Int | Pair e e
-data Op a e  = Mult e e | Fst e | Snd e
-data Abs a e = Abs VarId e
-data Var a e = Var VarId -- Nominal
-data Lam a e = Lam VarId (a -> e) -- The VarId is the original nominal
-data App a e = App e e
+type VarId   = String -- The type of nominals
+data Val a b = Const Int | Pair b b
+data Op a b  = Mult b b | Fst b | Snd b
+data Abs a b = Abs VarId b
+data Var a b = Var VarId -- Nominal
+data Lam a b = Lam VarId (a -> b) -- The VarId is the original nominal
+data App a b = App b b
 type SigB    = App :+: Op :+: Val -- The base signature
 type SigN    = Abs :+: Var :+: SigB -- The nominal signature
 type SigP    = Lam :+: SigB -- The PHOAS signature
@@ -45,7 +45,10 @@ $(derive [makeDifunctor, makeDitraversable, makeShowD, makeEqD, smartConstructor
          [''Val, ''Op, ''Abs, ''Var, ''Lam, ''App])
 
 
+--------------------------------------------------------------------------------
 -- Nominal to PHOAS translation
+--------------------------------------------------------------------------------
+
 type M f = Reader (Map.Map VarId (Term f))
 
 class N2PTrans f g where
@@ -60,9 +63,8 @@ instance (f :<: g, Ditraversable f (M g) Any) => N2PTrans f g where
   n2pAlg = liftM inject . disequence . dimap (return . P.Var) id -- default
 
 instance (Lam :<: g) => N2PTrans Abs g where
-  n2pAlg (Abs x b) = do
-      vars <- ask
-      return $ iLam x $ \y -> runReader b (Map.insert x y vars)
+  n2pAlg (Abs x b) = do vars <- ask
+                        return $ iLam x $ \y -> runReader b (Map.insert x y vars)
 
 instance N2PTrans Var g where
   n2pAlg (Var x) = liftM fromJust (asks (Map.lookup x))
@@ -74,7 +76,10 @@ ep :: Term SigP
 ep = n2p en
 
 
+--------------------------------------------------------------------------------
 -- PHOAS to nominal translation
+--------------------------------------------------------------------------------
+
 class P2NTrans f g where
   p2nAlg :: Alg f (Term g)
 
