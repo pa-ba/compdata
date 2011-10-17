@@ -4,15 +4,18 @@ Synopsis:            	Compositional Data Types
 Description:
 
   Based on Wouter Swierstra's Functional Pearl /Data types à la carte/
-  (Journal of Functional Programming, 18(4):423-436, 2008),
+  (Journal of Functional Programming, 18(4):423-436, 2008,
+  <http://dx.doi.org/10.1017/S0956796808006758>),
   this package provides a framework for defining recursive
   data types in a compositional manner. The fundamental idea of
-  compositional data types is to separate the signature of a data type
+  /compositional data types/ (Workshop on Generic Programming, 83-94, 2011,
+  <http://dx.doi.org/10.1145/2036918.2036930>) is to separate the
+  signature of a data type
   from the fixed point construction that produces its recursive
   structure. By allowing to compose and decompose signatures,
-  /compositional data types/ enable to combine data types in a flexible
+  compositional data types enable to combine data types in a flexible
   way. The key point of Wouter Swierstra's original work is to define
-  functions on /compositional data types/ in a compositional manner as
+  functions on compositional data types in a compositional manner as
   well by leveraging Haskell's type class machinery.
   .
   Building on that foundation, this library provides additional
@@ -137,7 +140,7 @@ extra-source-files:
   examples/Examples/Param/EvalAlgM.hs
   examples/Examples/Param/DesugarEval.hs
   examples/Examples/Param/DesugarPos.hs
-  examples/Examples/Param/Parsing.hs
+  examples/Examples/Param/Nominals.hs
   examples/Examples/Param/Graph.hs
   examples/Examples/MultiParam/Eval.hs
   examples/Examples/MultiParam/EvalI.hs
@@ -285,18 +288,20 @@ library
 
 Executable test
   Main-is:		Data_Test.hs
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq, transformers
   hs-source-dirs:	src testsuite/tests examples
   ghc-options:          -fhpc
   if !flag(test)
-    buildable:     False
+    buildable:          False
+  else
+    Build-Depends:      base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq, transformers
 
 Executable benchmark
   Main-is:		Benchmark.hs
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
   hs-source-dirs:	src benchmark
   ghc-options:          -W -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
   if !flag(benchmark)
-    buildable:     False
+    buildable:          False
+  else
+    Build-Depends:      base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
