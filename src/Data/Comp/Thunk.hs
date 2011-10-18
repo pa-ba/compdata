@@ -18,9 +18,9 @@ module Data.Comp.Thunk
     (TermT
     ,CxtT
     ,thunk
-    ,dethunk
-    ,dethunk'
-    ,deepDethunk
+    ,whnf
+    ,whnf'
+    ,nf
     ,eval
     ,eval2
     ,deepEval
@@ -59,19 +59,19 @@ thunk = inject
 
 -- | This function evaluates all thunks until a non-thunk node is
 -- found.
-dethunk :: Monad m => TermT m f -> m (f (TermT m f))
-dethunk (Term (Inl m)) = m >>= dethunk
-dethunk (Term (Inr t)) = return t
+whnf :: Monad m => TermT m f -> m (f (TermT m f))
+whnf (Term (Inl m)) = m >>= whnf
+whnf (Term (Inr t)) = return t
 
-dethunk' :: Monad m => TermT m f -> m (TermT m f)
-dethunk' = liftM inject . dethunk
+whnf' :: Monad m => TermT m f -> m (TermT m f)
+whnf' = liftM inject . whnf
 
 -- | This function inspects the topmost non-thunk node (using
--- 'dethunk') according to the given function.
+-- 'whnf') according to the given function.
 eval :: Monad m => (f (TermT m f) -> TermT m f) -> TermT m f -> TermT m f
-eval cont (Term (Inl m)) = thunk $ cont' =<< dethunk =<< m 
+eval cont (Term (Inl m)) = thunk $ cont' =<< whnf =<< m 
     where cont' = return . cont
-    -- alt: where cont' x = liftM inject $ dethunk $ cont x
+    -- alt: where cont' x = liftM inject $ whnf $ cont x
 eval cont (Term (Inr t)) = cont t
 
 infixl 1 #>
@@ -81,22 +81,22 @@ infixl 1 #>
 (#>) = flip eval
 
 -- | This function inspects the topmost non-thunk nodes of two terms
--- (using 'dethunk') according to the given function.
+-- (using 'whnf') according to the given function.
 eval2 :: Monad m => (f (TermT m f) -> f (TermT m f) -> TermT m f)
                  -> TermT m f -> TermT m f -> TermT m f
 eval2 cont x y = (\ x' -> cont x' `eval` y) `eval` x 
 
 -- | This function evaluates all thunks.
-deepDethunk :: (Monad m, Traversable f) => TermT m f -> m (Term f)
-deepDethunk = liftM Term . mapM deepDethunk <=< dethunk
+nf :: (Monad m, Traversable f) => TermT m f -> m (Term f)
+nf = liftM Term . mapM nf <=< whnf
 
--- | This function inspects a term (using 'deepDethunk') according to the
+-- | This function inspects a term (using 'nf') according to the
 -- given function.
 deepEval :: (Traversable f, Monad m) => 
             (Term f -> TermT m f) -> TermT m f -> TermT m f
 deepEval cont v = case deepProject v of 
                     Just v' -> cont v'
-                    _ -> thunk $ liftM cont $ deepDethunk v 
+                    _ -> thunk $ liftM cont $ nf v 
 
 infixl 1 #>>
 
@@ -104,7 +104,7 @@ infixl 1 #>>
 (#>>) :: (Monad m, Traversable f) => TermT m f -> (Term f -> TermT m f) -> TermT m f
 (#>>) = flip deepEval
 
--- | This function inspects two terms (using 'deepDethunk') according
+-- | This function inspects two terms (using 'nf') according
 -- to the given function.
 deepEval2 :: (Monad m, Traversable f) =>
              (Term f -> Term f -> TermT m f)
@@ -118,7 +118,7 @@ type AlgT m f g = Alg f (TermT m g)
 -- | This combinator makes the evaluation of the given functor
 -- application strict by evaluating all thunks of immediate subterms.
 strict :: (f :<: g, Traversable f, Monad m) => f (TermT m g) -> TermT m g
-strict x = thunk $ liftM inject $ mapM dethunk' x
+strict x = thunk $ liftM inject $ mapM whnf' x
 
 -- | This type represents position representations for a functor
 -- @f@. It is a function that extracts a number of components (of
@@ -134,5 +134,5 @@ strictAt :: (f :<: g, Traversable f, Zippable f, Monad m) => Pos f ->  f (TermT 
 strictAt p s = thunk $ liftM inject $ mapM run s'
     where s'  = number s
           isStrict e = Set.member e $ Set.fromList $ p s'
-          run e | isStrict e = dethunk' $ unNumbered e
+          run e | isStrict e = whnf' $ unNumbered e
                 | otherwise  = return $ unNumbered e
