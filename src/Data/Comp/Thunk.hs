@@ -20,6 +20,7 @@ module Data.Comp.Thunk
     ,thunk
     ,whnf
     ,whnf'
+    ,whnfPr
     ,nf
     ,eval
     ,eval2
@@ -65,6 +66,16 @@ whnf (Term (Inr t)) = return t
 
 whnf' :: Monad m => TermT m f -> m (TermT m f)
 whnf' = liftM inject . whnf
+
+-- | This function first evaluates the argument term into whnf via
+-- 'whnf' and then projects the top-level signature to the desired
+-- subsignature. Failure to do the projection is signalled as a
+-- failure in the monad.
+whnfPr :: (Monad m, g :<: f) => TermT m f -> m (g (TermT m f))
+whnfPr t = do res <- whnf t
+              case proj res of
+                Just res' -> return res'
+                Nothing -> fail "projection failed"
 
 -- | This function inspects the topmost non-thunk node (using
 -- 'whnf') according to the given function.

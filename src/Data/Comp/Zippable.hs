@@ -11,7 +11,7 @@
 --------------------------------------------------------------------------------
 
 module Data.Comp.Zippable
-    ( Zippable
+    ( Zippable (..)
     , Numbered(..)
     , unNumbered
     , number

@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances, OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Thunk
@@ -42,15 +42,13 @@ instance Zippable Value where
 
 -- Monadic term evaluation algebra
 class EvalT f v where
-  evalAlgT :: AlgT Maybe f v
+  evalAlgT :: Monad m => AlgT m f v
 
 $(derive [liftSum] [''EvalT])
 
-type MTerm f = TermT Maybe f
-
 -- Lift the monadic evaluation algebra to a monadic catamorphism
-evalT :: (Traversable v, Functor f, EvalT f v) => Term f -> Maybe (Term v)
-evalT = deepDethunk . cata evalAlgT
+evalT :: (Traversable v, Functor f, EvalT f v, Monad m) => Term f -> m (Term v)
+evalT = nf . cata evalAlgT
 
 instance (Value :<: v) => EvalT Value v where
 -- make pairs strict in both components
@@ -66,28 +64,27 @@ instance (Value :<: v) => EvalT Value v where
 
 instance (Value :<: v) => EvalT Op v where
   evalAlgT (Add x y) = thunk $ do
-                         n1 <- projC x
-                         n2 <- projC y
+                         Const n1 <- whnfPr x
+                         Const n2 <- whnfPr y
                          return $ iConst $ n1 + n2
   evalAlgT (Mult x y) = thunk $ do
-                          n1 <- projC x
-                          n2 <- projC y
+                          Const n1 <- whnfPr x
+                          Const n2 <- whnfPr y
                           return $ iConst $ n1 * n2
-  evalAlgT (Fst v)    = thunk $ liftM fst $ projP v
-  evalAlgT (Snd v)    = thunk $ liftM snd $ projP v
-
-projC :: (Value :<: v) => TermT Maybe v -> Maybe Int
-projC v = do v' <- dethunk v
-             case proj v' of
-               Just (Const n) -> return n
-               _ -> Nothing
-
-projP :: (Value :<: v) => MTerm v -> Maybe (MTerm v, MTerm v)
-projP v = do v' <- dethunk v
-             case proj v' of
-               Just (Pair x y) -> return (x,y)
-               _ -> Nothing
+  evalAlgT (Fst v)    = thunk $ do 
+                          Pair x _  <- whnfPr v
+                          return x
+  evalAlgT (Snd v)    = thunk $ do 
+                          Pair _ y <- whnfPr v
+                          return y
 
 
-evalTEx :: Maybe (Term Value)
-evalTEx = evalT (iSnd (iFst (iConst 5) `iPair` iConst 4) :: Term Sig)
+instance Monad (Either String) where
+    Left msg >>= _ = Left msg
+    Right x >>= f = f x
+                      
+    return = Right
+    fail = Left
+
+evalTEx :: Either String (Term Value)
+evalTEx = evalT (iFst (iFst (iConst 5) `iPair` iConst 4) :: Term Sig)
