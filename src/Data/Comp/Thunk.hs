@@ -22,6 +22,7 @@ module Data.Comp.Thunk
     ,whnf'
     ,whnfPr
     ,nf
+    ,nfPr
     ,eval
     ,eval2
     ,deepEval
@@ -100,6 +101,12 @@ eval2 cont x y = (\ x' -> cont x' `eval` y) `eval` x
 -- | This function evaluates all thunks.
 nf :: (Monad m, Traversable f) => TermT m f -> m (Term f)
 nf = liftM Term . mapM nf <=< whnf
+
+-- | This function evaluates all thunks while simultaneously
+-- projecting the term to a smaller signature. Failure to do the
+-- projection is signalled as a failure in the monad as in 'whnfPr'.
+nfPr :: (Monad m, Traversable g, g :<: f) => TermT m f -> m (Term g)
+nfPr = liftM Term . mapM nfPr <=< whnfPr
 
 -- | This function inspects a term (using 'nf') according to the
 -- given function.

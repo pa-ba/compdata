@@ -76,7 +76,7 @@ instance (Const :<: v) => EvalM Op v where
 
 instance (FunM Maybe :<: v) => EvalM App v where
   evalAlgM (App mx my) = do f <- projF =<< mx
-                            f =<< my
+                            f =<< my 
 
 instance (FunM Maybe :<: v) => EvalM Lam v where
   evalAlgM (Lam f) = return $ inject $ FunM $ f . return
@@ -97,3 +97,8 @@ evalMG = deepProject <=< (evalM :: Term Sig -> Maybe (Term Value))
 evalMEx :: Maybe (Term GValue)
 evalMEx = evalMG $ iLam (\x -> iLam $ \y -> y `iMult` (x `iAdd` x))
                    `iApp` iConst 2 `iApp` iConst 3
+
+-- Example: evalEx = Just (iConst 12) (3 * (2 + 2) = 12)
+evalMEx' :: Maybe (Term GValue)
+evalMEx' = evalMG $ iLam (\x -> iLam $ \y -> x `iMult` (x `iAdd` x))
+                   `iApp` iConst 2 `iApp` (iLam (\x -> x) `iAdd` iConst 2)

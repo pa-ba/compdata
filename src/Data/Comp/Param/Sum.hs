@@ -63,6 +63,7 @@ module Data.Comp.Param.Sum
      inj9,
      inj10,
      inject,
+     inject',
      inject2,
      inject3,
      inject4,
@@ -137,6 +138,11 @@ $(liftM concat $ mapM injn [2..10])
 -- @g@ is compound of /n/ atomic signatures, use @inject@/n/ instead.
 inject :: (g :<: f) => g a (Cxt h f a b) -> Cxt h f a b
 inject = Term . inj
+
+-- |Inject a term where the outermost layer is a sub signature. If the signature
+-- @g@ is compound of /n/ atomic signatures, use @inject@/n/ instead.
+inject' :: (Difunctor g, g :<: f) => g (Cxt h f a b) (Cxt h f a b) -> Cxt h f a b
+inject' = inject . dimap Var id
 
 $(liftM concat $ mapM injectn [2..10])
 
