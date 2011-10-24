@@ -8,6 +8,7 @@ import qualified Examples.Param.DesugarEval as DesugarEval
 import qualified Examples.Param.DesugarPos as DesugarPos
 import qualified Examples.Param.Nominals as Nominals
 import qualified Examples.Param.Graph as Graph
+import qualified Examples.Param.Lambda as Lambda
 
 import Data.Comp.Param
 
@@ -31,7 +32,8 @@ tests = testGroup "Parametric Compositional Data Types" [
          testProperty "desugarEval" desugarEvalTest,
          testProperty "desugarPos" desugarPosTest,
          testProperty "nominals" nominalsTest,
-         testProperty "graph" graphTest
+         testProperty "graph" graphTest,
+         testProperty "lambda" lambdaTest
         ]
 
 
@@ -59,3 +61,4 @@ desugarPosTest = DesugarPos.desugPEx ==
                                                              DesugarPos.iAApp (DesugarPos.Pos 1 1) f (DesugarPos.iAApp (DesugarPos.Pos 1 1) x x)))
 nominalsTest = Nominals.en == Nominals.en' && Nominals.ep == Nominals.ep'
 graphTest = Graph.alphaTest && Graph.n == 5 && Graph.f == [0,2,1,2] && Graph.flatG Graph.g0' == ["0","2","1","2"]
+lambdaTest = Lambda.e' == (Lambda.iLam (\a -> a)) `iApp` (Lambda.iLam (\a -> a)) && Lambda.e1' == Lambda.iLam (\a -> a `Lambda.iApp` Lambda.iLam (\b -> Lambda.iLam (\c -> b `Lambda.iApp` b `Lambda.iApp` c)))
