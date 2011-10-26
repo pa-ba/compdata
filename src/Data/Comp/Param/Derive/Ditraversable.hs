@@ -40,17 +40,16 @@ makeDitraversable :: Name -> Q [Dec]
 makeDitraversable fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   monadType <- varT =<< newName "m"
-  domainType <- varT =<< newName "d"
   let fArg = VarT . tyVarBndrName $ last args
       aArg = VarT . tyVarBndrName $ last (init args)
       funTy = foldl AppT ArrowT [aArg,fArg]
       argNames = map (VarT . tyVarBndrName) (init $ init args)
       complType = foldl AppT (ConT name) argNames
-      classType = foldl1 AppT [ConT ''Ditraversable, complType, monadType,domainType]
+      classType = foldl1 AppT [ConT ''Ditraversable, complType, monadType]
   normConstrs <- mapM normalConExp constrs
   let hasFunTy = any (checksAarg funTy) normConstrs
       context = ClassP ''Monad [monadType] :
-                [ClassP ''Ditraversable [ArrowT,monadType,domainType] | hasFunTy]
+                [ClassP ''Ditraversable [ArrowT,monadType] | hasFunTy]
   constrs' <- mapM (mkPatAndVars . isFarg fArg funTy) normConstrs
   mapMDecl <- funD 'dimapM (map mapMClause constrs')
   sequenceDecl <- funD 'disequence (map sequenceClause constrs')

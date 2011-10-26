@@ -19,26 +19,18 @@ module Data.Comp.Param.Term
      Cxt(..),
      Hole,
      NoHole,
-     Any,
-     Term,
+     Term(..),
      Trm,
      Context,
-     Const,
+     MonadTrm(..),
      simpCxt,
-     coerceCxt,
-     toCxt,
-     constTerm,
-     fmapCxt,
-     disequenceCxt,
-     dimapMCxt
+     toCxt
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
-import Data.Comp.Param.Any
+import Data.Maybe (fromJust)
 import Data.Comp.Param.Difunctor
-import Data.Comp.Param.Ditraversable
-import Control.Monad
-import Unsafe.Coerce
+import Unsafe.Coerce (unsafeCoerce)
 
 {-| This data type represents contexts over a signature. Contexts are terms
   containing zero or more holes, and zero or more parameters. The first
@@ -47,7 +39,7 @@ import Unsafe.Coerce
   "Data.Comp.Param.Difunctor". The third parameter is the type of parameters,
   and the fourth parameter is the type of holes. -}
 data Cxt :: * -> (* -> * -> *) -> * -> * -> * where
-            Term :: f a (Cxt h f a b) -> Cxt h f a b
+            Node :: f a (Cxt h f a b) -> Cxt h f a b
             Hole :: b -> Cxt Hole f a b
             Var :: a -> Cxt h f a b
 
@@ -57,65 +49,34 @@ data Hole
 {-| Phantom type used to define 'Term'. -}
 data NoHole
 
-{-| A context may contain holes, but must be parametric in the bound
-  parameters. Parametricity is \"emulated\" using the empty type @Any@, e.g. a
-  function of type @Any -> T[Any]@ is equivalent with @forall b. b -> T[b]@,
-  but the former avoids the impredicative typing extension, and works also in
-  the cases where the codomain type is not a type constructor, e.g.
-  @Any -> (Any,Any)@. -}
+{-| A context may contain holes. -}
 type Context = Cxt Hole
 
+{-| \"Preterms\" -}
 type Trm f a = Cxt NoHole f a ()
 
 {-| A term is a context with no holes, where all occurrences of the
-  contravariant parameter is fully parametric. Parametricity is \"emulated\"
-  using the empty type @Any@, e.g. a function of type @Any -> T[Any]@ is
-  equivalent with @forall b. b -> T[b]@, but the former avoids the impredicative
-  typing extension, and works also in the cases where the codomain type is not a
-  type constructor, e.g. @Any -> (Any,Any)@. -}
-type Term f = Trm f Any
+  contravariant parameter is fully parametric. -}
+newtype Term f = Term{unTerm :: forall a. Trm f a}
 
 {-| Convert a difunctorial value into a context. -}
 simpCxt :: Difunctor f => f a b -> Cxt Hole f a b
 {-# INLINE simpCxt #-}
-simpCxt = Term . difmap Hole
-
-{-| Cast a \"pseudo-parametric\" context over a signature to a parametric
-  context over the same signature. The usage of 'unsafeCoerce' is safe, because
-  the empty type 'Any' witnesses that all uses of the contravariant argument are
-  parametric. -}
-coerceCxt :: Cxt h f Any b -> forall a. Cxt h f a b
-coerceCxt = unsafeCoerce
+simpCxt = Node . fmap Hole
 
 toCxt :: Difunctor f => Trm f a -> Cxt h f a b
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
 
-{-|  -}
-type Const f = f Any ()
+{-| Monads for which embedded @Trm@ values, which a parametric at top level, can
+  be made into embedded @Term@ values. -}
+class Monad m => MonadTrm m where
+    coerceTrmM :: (forall a. m (Trm f a)) -> m (Term f)
 
-{-| This function converts a constant to a term. This assumes that the
-  argument is indeed a constant, i.e. does not have a value for the
-  argument type of the difunctor @f@. -}
-constTerm :: Difunctor f => Const f -> Term f
-constTerm = Term . difmap (const undefined)
+instance MonadTrm Maybe where
+    coerceTrmM Nothing = Nothing
+    coerceTrmM x = Just (Term $ fromJust x)
 
--- | This is an instance of 'fmap' for 'Cxt'.
-fmapCxt :: Difunctor f => (b -> b') -> Cxt h f a b -> Cxt h f a b'
-fmapCxt f = run
-    where run (Term t) = Term $ difmap run t
-          run (Var a) = Var a
-          run (Hole b)  = Hole $ f b
-
--- | This is an instance of 'dimamM' for 'Cxt'.
-dimapMCxt :: Ditraversable f m a => (b -> m b') -> Cxt h f a b -> m (Cxt h f a b')
-dimapMCxt f = run
-              where run (Term t)  = liftM Term $ dimapM run t
-                    run (Var a) = return $ Var a
-                    run (Hole b)  = liftM Hole (f b)
-
--- | This is an instance of 'disequence' for 'Cxt'.
-disequenceCxt :: Ditraversable f m a => Cxt h f a (m b) -> m (Cxt h f a b)
-disequenceCxt (Term t)  = liftM Term $ dimapM disequenceCxt t
-disequenceCxt (Var a) = return $ Var a
-disequenceCxt (Hole b)  = liftM Hole b
+instance MonadTrm [] where
+    coerceTrmM [] = []
+    coerceTrmM l = Term (head l) : coerceTrmM (tail l)

@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances,
-  UndecidableInstances, OverlappingInstances #-}
+  UndecidableInstances, OverlappingInstances, Rank2Types #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Desugar
@@ -30,12 +30,12 @@ $(derive [liftSum] [''Desugar])
 -- |Desugar a term.
 desugar :: Desugar f g => Term f -> Term g
 {-# INLINE desugar #-}
-desugar = appHom desugHom
+desugar (Term t) = Term (appHom desugHom t)
 
 -- |Lift desugaring to annotated terms.
 desugarA :: (Difunctor f', Difunctor g', DistAnn f p f', DistAnn g p g',
              Desugar f g) => Term f' -> Term g'
-desugarA = appHom (propAnn desugHom)
+desugarA (Term t) = Term (appHom (propAnn desugHom) t)
 
 -- |Default desugaring instance.
 instance (Difunctor f, Difunctor g, f :<: g) => Desugar f g where

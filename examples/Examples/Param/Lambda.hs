@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances, Rank2Types #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Param.Lambda
@@ -20,7 +20,7 @@
 
 module Examples.Param.Lambda where
 
-import Data.Comp.Param hiding (Const)
+import Data.Comp.Param
 import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
 
@@ -37,15 +37,15 @@ $(derive [makeDifunctor, makeDitraversable, makeEqD, makeOrdD, makeShowD,
 -- Parallel reduction
 --------------------------------------------------------------------------------
 
-data Par f = Par{par :: Term f, apply :: Term f -> Term f}
+data Par f a = Par{par :: Trm f a, apply :: Trm f a -> Trm f a}
 
 class ParRed f v where
-  parRedAlg :: Alg f (Par v)
+  parRedAlg :: Alg f (Par v a)
 
 $(derive [liftSum] [''ParRed])
 
 parRed :: (Difunctor f, ParRed f v) => Term f -> Term v
-parRed = par . cata parRedAlg
+parRed t = Term $ par $ cata parRedAlg t
 
 instance (App :<: v) => ParRed App v where
   parRedAlg (App x y) = Par{par = apply x (par y),
@@ -54,11 +54,11 @@ instance (App :<: v) => ParRed App v where
 instance (Lam :<: v, App :<: v) => ParRed Lam v where
   parRedAlg (Lam f) = Par{par = iLam (par . f . var),
                           apply = par . f . var}
-      where var :: (App :<: f) => Term f -> Par f
+      where var :: (App :<: f) => Trm f a -> Par f a
             var x = Par{par = x, apply = iApp x}
 
 e :: Term Sig
-e = iApp (iLam (\x -> iApp x x)) (iLam (\y -> y))
+e = Term $ iApp (iLam (\x -> iApp x x)) (iLam (\y -> y))
 
 e' :: Term Sig
 e' = parRed e
@@ -68,16 +68,16 @@ e' = parRed e
 -- CPS translation
 --------------------------------------------------------------------------------
 
-data CPS f = CPS{cpsmeta :: (Term f -> Term f) -> Term f,
-                 cpsobj :: Term f -> Term f}
+data CPS f a = CPS{cpsmeta :: (Trm f a -> Trm f a) -> Trm f a,
+                   cpsobj :: Trm f a -> Trm f a}
 
 class CPSTrans f v where
-  cpsTransAlg :: Alg f (CPS v)
+  cpsTransAlg :: Alg f (CPS v a)
 
 $(derive [liftSum] [''CPSTrans])
 
 cpsTrans :: (Difunctor f, CPSTrans f v, Lam :<: v, App :<: v) => Term f -> Term v
-cpsTrans t = iLam (\a -> cpsmeta (cata cpsTransAlg t) (\m -> iApp a m))
+cpsTrans t = Term $ iLam (\a -> cpsmeta (cata cpsTransAlg t) (\m -> iApp a m))
 
 instance (App :<: v, Lam :<: v) => CPSTrans App v where
   cpsTransAlg (App x y) = CPS{cpsmeta = \k -> appexp (iLam k),
@@ -89,7 +89,7 @@ instance (Lam :<: v, App :<: v) => CPSTrans Lam v where
     where value x = CPS{cpsmeta = \k -> k x, cpsobj = \c -> iApp c x}
 
 e1 :: Term Sig
-e1 = iLam (\x -> iApp x x)
+e1 = Term $ iLam (\x -> iApp x x)
 
 e1' :: Term Sig
 e1' = cpsTrans e1

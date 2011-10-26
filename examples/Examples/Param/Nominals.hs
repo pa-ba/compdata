@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances,
-  OverlappingInstances #-}
+  OverlappingInstances, Rank2Types #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Param.Nominals
@@ -49,18 +49,24 @@ $(derive [makeDifunctor, makeDitraversable, makeShowD, makeEqD, smartConstructor
 -- Nominal to PHOAS translation
 --------------------------------------------------------------------------------
 
-type M f = Reader (Map.Map VarId (Term f))
+type M f a = Reader (Map.Map VarId (Trm f a))
 
 class N2PTrans f g where
-  n2pAlg :: Alg f (M g (Term g))
+  n2pAlg :: Alg f (M g a (Trm g a))
 
 $(derive [liftSum] [''N2PTrans])
 
 n2p :: (Difunctor f, N2PTrans f g) => Term f -> Term g
-n2p x = runReader (cata n2pAlg x) Map.empty
+n2p t = Term $ runReader (cata n2pAlg t) Map.empty
 
-instance (f :<: g, Ditraversable f (M g) Any) => N2PTrans f g where
-  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id -- default
+instance (Val :<: g) => N2PTrans Val g where
+  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
+
+instance (Op :<: g) => N2PTrans Op g where
+  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
+
+instance (App :<: g) => N2PTrans App g where
+  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
 
 instance (Lam :<: g) => N2PTrans Abs g where
   n2pAlg (Abs x b) = do vars <- ask
@@ -70,7 +76,7 @@ instance N2PTrans Var g where
   n2pAlg (Var x) = liftM fromJust (asks (Map.lookup x))
 
 en :: Term SigN
-en = iAbs "a" $ iAbs "b" (iAbs "a" $ iVar "b") `iApp` iVar "a"
+en = Term $ iAbs "a" $ iAbs "b" (iAbs "a" $ iVar "b") `iApp` iVar "a"
 
 ep :: Term SigP
 ep = n2p en
@@ -81,12 +87,12 @@ ep = n2p en
 --------------------------------------------------------------------------------
 
 class P2NTrans f g where
-  p2nAlg :: Alg f (Term g)
+  p2nAlg :: Alg f (Trm g a)
 
 $(derive [liftSum] [''P2NTrans])
 
 p2n :: (Difunctor f, P2NTrans f g) => Term f -> Term g
-p2n = cata p2nAlg
+p2n t = Term (cata p2nAlg t)
 
 instance (Difunctor f, f :<: g) => P2NTrans f g where
   p2nAlg = inject . dimap P.Var id -- default
@@ -95,7 +101,7 @@ instance (Abs :<: g, Var :<: g) => P2NTrans Lam g where
   p2nAlg (Lam x f) = iAbs x (f $ iVar x)
 
 ep' :: Term SigP
-ep' = iLam "a" $ \a -> iLam "b" (\b -> (iLam "a" $ \a -> b)) `iApp` a
+ep' = Term $ iLam "a" $ \a -> iLam "b" (\b -> (iLam "a" $ \a -> b)) `iApp` a
 
 en' :: Term SigN
 en' = p2n ep'

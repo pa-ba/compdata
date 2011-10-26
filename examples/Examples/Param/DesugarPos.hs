@@ -19,16 +19,16 @@
 
 module Examples.Param.DesugarPos where
 
-import Data.Comp.Param hiding (Const)
+import Data.Comp.Param
 import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
 import Data.Comp.Param.Desugar
 
 -- Signatures for values and operators
 data Const a e = Const Int
-data Lam a e = Lam (a -> e) -- Note: not e -> e
-data App a e = App e e
-data Op a e = Add e e | Mult e e
+data Lam a e   = Lam (a -> e) -- Note: not e -> e
+data App a e   = App e e
+data Op a e    = Add e e | Mult e e
 
 -- Signature for syntactic sugar (negation, let expressions, Y combinator)
 data Sug a e = Neg e | Let e (a -> e) | Fix
@@ -66,4 +66,4 @@ instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
 --                     (iALam (Pos 1 1) $ \x ->
 --                          iAApp (Pos 1 1) f (iAApp (Pos 1 1) x  x)))
 desugPEx :: Term SigP
-desugPEx = desugarA (iALet (Pos 1 0) (iAFix (Pos 1 1)) id :: Term SigP')
+desugPEx = desugarA (Term (iALet (Pos 1 0) (iAFix (Pos 1 1)) id) :: Term SigP')

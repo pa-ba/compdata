@@ -8,46 +8,46 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines a monad for generating fresh, abstract variables, useful
+-- This module defines a monad for generating fresh, abstract nominals, useful
 -- e.g. for defining equality on terms.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.Param.FreshM
     (
      FreshM,
-     Var,
-     getVar,
-     nextVar,
+     Nom,
+     getNom,
+     nextNom,
      evalFreshM
     ) where
 
 import Control.Monad.Reader
 
--- |Monad for generating fresh (abstract) variables.
+-- |Monad for generating fresh (abstract) nominals.
 newtype FreshM a = FreshM{unFreshM :: Reader [String] a}
     deriving Monad
 
--- |Abstract notion of a variable (the constructor is hidden).
-data Var = Var String
+-- |Abstract notion of a nominal (the constructor is hidden).
+data Nom = Nom String
            deriving Eq
 
-instance Show Var where
-    show (Var x) = x
+instance Show Nom where
+    show (Nom x) = x
 
-instance Ord Var where
-    compare (Var x) (Var y) = compare x y
+instance Ord Nom where
+    compare (Nom x) (Nom y) = compare x y
 
--- |Get the current variable.
-getVar :: FreshM Var
-getVar = FreshM $ asks (Var . head)
+-- |Get the current nominal.
+getNom :: FreshM Nom
+getNom = FreshM $ asks (Nom . head)
 
--- |Use the next available variable in the monadic computation.
-nextVar :: FreshM a -> FreshM a
-nextVar = FreshM . local tail . unFreshM
+-- |Use the next available nominal in the monadic computation.
+nextNom :: FreshM a -> FreshM a
+nextNom = FreshM . local tail . unFreshM
 
--- |Evaluate a computation that uses fresh variables.
+-- |Evaluate a computation that uses fresh nominals.
 evalFreshM :: FreshM a -> a
-evalFreshM (FreshM m) = runReader m vars
-    where baseVars = ['a'..'z']
-          vars = map (:[]) baseVars ++ vars' 1
-          vars' n = map (: show n) baseVars ++ vars' (n + 1)
+evalFreshM (FreshM m) = runReader m noms
+    where baseNoms = ['a'..'z']
+          noms = map (:[]) baseNoms ++ noms' 1
+          noms' n = map (: show n) baseNoms ++ noms' (n + 1)

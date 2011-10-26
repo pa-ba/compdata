@@ -28,13 +28,13 @@ $(derive [liftSum] [''ShowD])
 {-| From an 'ShowD' difunctor an 'ShowD' instance of the corresponding term type
   can be derived. -}
 instance (Difunctor f, ShowD f) => ShowD (Cxt h f) where
-    showD (Term t) = showD $ fmap showD t
+    showD (Node t) = showD $ fmap showD t
     showD (Hole h) = h
     showD (Var p) = return $ show p
 
 {-| Printing of terms. -}
 instance (Difunctor f, ShowD f) => Show (Term f) where
-    show = evalFreshM . showD . toCxt . coerceCxt
+    show = evalFreshM . showD . toCxt . unTerm
 
 instance (ShowD f, Show p) => ShowD (f :&: p) where
     showD (x :&: p) = do sx <- showD x

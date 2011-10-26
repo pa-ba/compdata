@@ -46,11 +46,11 @@ instance (EqD f, PEq p) => EqD (f :&: p) where
                                      b2 <- eqD v1 v2
                                      return $ b1 && b2
 
-evalTest = Eval.evalEx == Just (Eval.iConst 4)
-evalMTest = EvalM.evalMEx == Just (EvalM.iConst 12)
-evalAlgMTest = EvalAlgM.evalMEx == Just (EvalAlgM.iConst 5)
-desugarEvalTest = DesugarEval.evalEx == Just (DesugarEval.iConst 720)
-desugarPosTest = DesugarPos.desugPEx ==
+evalTest = Eval.evalEx == Just (Term $ Eval.iConst 4)
+evalMTest = EvalM.evalMEx == Just (Term $ EvalM.iConst 12)
+evalAlgMTest = EvalAlgM.evalMEx == Just (Term $ EvalAlgM.iConst 5)
+desugarEvalTest = DesugarEval.evalEx == Just (Term $ DesugarEval.iConst 720)
+desugarPosTest = DesugarPos.desugPEx == Term (
                  DesugarPos.iAApp (DesugarPos.Pos 1 0)
                                   (DesugarPos.iALam (DesugarPos.Pos 1 0) id)
                                   (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \f ->
@@ -58,7 +58,7 @@ desugarPosTest = DesugarPos.desugPEx ==
                                                         (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
                                                              DesugarPos.iAApp (DesugarPos.Pos 1 1) f (DesugarPos.iAApp (DesugarPos.Pos 1 1) x x))
                                                         (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
-                                                             DesugarPos.iAApp (DesugarPos.Pos 1 1) f (DesugarPos.iAApp (DesugarPos.Pos 1 1) x x)))
+                                                             DesugarPos.iAApp (DesugarPos.Pos 1 1) f (DesugarPos.iAApp (DesugarPos.Pos 1 1) x x))))
 nominalsTest = Nominals.en == Nominals.en' && Nominals.ep == Nominals.ep'
-graphTest = Graph.alphaTest && Graph.n == 5 && Graph.f == [0,2,1,2] && Graph.flatG Graph.g0' == ["0","2","1","2"]
-lambdaTest = Lambda.e' == (Lambda.iLam (\a -> a)) `iApp` (Lambda.iLam (\a -> a)) && Lambda.e1' == Lambda.iLam (\a -> a `Lambda.iApp` Lambda.iLam (\b -> Lambda.iLam (\c -> b `Lambda.iApp` b `Lambda.iApp` c)))
+graphTest = Graph.g0 == Graph.g1 && Graph.n == 5 && Graph.f == [0,2,1,2] && Graph.flatG Graph.g0' == ["0","2","1","2"]
+lambdaTest = Lambda.e' == Term ((Lambda.iLam (\a -> a)) `Lambda.iApp` (Lambda.iLam (\a -> a))) && Lambda.e1' == Term (Lambda.iLam (\a -> a `Lambda.iApp` Lambda.iLam (\b -> Lambda.iLam (\c -> b `Lambda.iApp` b `Lambda.iApp` c))))

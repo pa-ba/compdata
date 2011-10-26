@@ -31,8 +31,8 @@ instance (Difunctor f, Difunctor g) => Difunctor (f :+: g) where
     dimap f g (Inl e) = Inl (dimap f g e)
     dimap f g (Inr e) = Inr (dimap f g e)
 
-instance (Ditraversable f m a, Ditraversable g m a)
-    => Ditraversable (f :+: g) m a where
+instance (Ditraversable f m, Ditraversable g m)
+    => Ditraversable (f :+: g) m where
     dimapM f (Inl e) = Inl `liftM` dimapM f e
     dimapM f (Inr e) = Inr `liftM` dimapM f e
     disequence (Inl e) = Inl `liftM` disequence e
@@ -84,7 +84,7 @@ data (f :&: p) a b = f a b :&: p
 instance Difunctor f => Difunctor (f :&: p) where
     dimap f g (v :&: c) = dimap f g v :&: c
 
-instance Ditraversable f m a => Ditraversable (f :&: p) m a where
+instance Ditraversable f m => Ditraversable (f :&: p) m where
     dimapM f (v :&: c) = liftM (:&: c) (dimapM f v)
     disequence (v :&: c) = liftM (:&: c) (disequence v)
 
