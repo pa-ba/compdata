@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes,
+{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, Rank2Types,
   MultiParamTypeClasses #-}
 --------------------------------------------------------------------------------
 -- |
@@ -9,7 +9,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines the central notion of /parametrized terms/ and their
+-- This module defines the central notion of /parametrised terms/ and their
 -- generalisation to parametrised contexts.
 --
 --------------------------------------------------------------------------------
@@ -22,13 +22,11 @@ module Data.Comp.Param.Term
      Term(..),
      Trm,
      Context,
-     MonadTrm(..),
      simpCxt,
      toCxt
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
-import Data.Maybe (fromJust)
 import Data.Comp.Param.Difunctor
 import Unsafe.Coerce (unsafeCoerce)
 
@@ -67,16 +65,3 @@ simpCxt = Node . fmap Hole
 toCxt :: Difunctor f => Trm f a -> Cxt h f a b
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
-
-{-| Monads for which embedded @Trm@ values, which a parametric at top level, can
-  be made into embedded @Term@ values. -}
-class Monad m => MonadTrm m where
-    coerceTrmM :: (forall a. m (Trm f a)) -> m (Term f)
-
-instance MonadTrm Maybe where
-    coerceTrmM Nothing = Nothing
-    coerceTrmM x = Just (Term $ fromJust x)
-
-instance MonadTrm [] where
-    coerceTrmM [] = []
-    coerceTrmM l = Term (head l) : coerceTrmM (tail l)

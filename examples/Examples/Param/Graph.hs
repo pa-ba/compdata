@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, TemplateHaskell,
   FlexibleInstances, FlexibleContexts, UndecidableInstances,
-  OverlappingInstances, Rank2Types #-}
+  OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Param.Graph

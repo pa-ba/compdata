@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances, Rank2Types #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Param.EvalAlgM
@@ -47,7 +47,7 @@ $(derive [liftSum] [''EvalM])
 
 -- Lift the monadic evaluation algebra to a monadic catamorphism
 evalM :: (Ditraversable f Maybe, EvalM f v) => Term f -> Maybe (Term v)
-evalM t = coerceTrmM (cataM evalAlgM t)
+evalM t = trmM (cataM evalAlgM t)
 
 instance (Value :<: v) => EvalM Value v where
   evalAlgM (Const n)  = return $ iConst n

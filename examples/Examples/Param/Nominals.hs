@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances,
-  OverlappingInstances, Rank2Types #-}
+  OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Param.Nominals

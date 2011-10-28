@@ -14,7 +14,7 @@
 
 module Data.Comp.Param.Ditraversable
     (
-     Ditraversable(..),
+     Ditraversable(..)
     ) where
 
 import Data.Comp.Param.Difunctor

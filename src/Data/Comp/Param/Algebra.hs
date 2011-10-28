@@ -110,6 +110,7 @@ module Data.Comp.Param.Algebra (
 import Prelude hiding (sequence, mapM)
 import Control.Monad hiding (sequence, mapM)
 import Data.Comp.Param.Term
+import Data.Comp.Param.MonadTrm
 import Data.Comp.Param.Ops
 import Data.Comp.Param.Difunctor
 import Data.Comp.Param.Ditraversable
@@ -307,7 +308,7 @@ appHomM f = run
 {-| A restricted form of |appHomM| which only works for terms. -}
 appTHomM :: (Ditraversable f m, MonadTrm m, Difunctor g)
             => HomM m f g -> Term f -> m (Term g)
-appTHomM f (Term t) = coerceTrmM (appHomM f t)
+appTHomM f (Term t) = trmM (appHomM f t)
 
 
 -- | Apply a monadic term homomorphism recursively to a
@@ -328,7 +329,7 @@ dimapMCxt f = run
 {-| A restricted form of |appHomM'| which only works for terms. -}
 appTHomM' :: (Ditraversable g m, MonadTrm m, Difunctor g)
              => HomM m f g -> Term f -> m (Term g)
-appTHomM' f (Term t) = coerceTrmM (appHomM' f t)
+appTHomM' f (Term t) = trmM (appHomM' f t)
             
 
 {-| This function constructs the unique monadic homomorphism from the
@@ -354,7 +355,7 @@ appSigFunM f = run
 {-| A restricted form of |appSigFunM| which only works for terms. -}
 appTSigFunM :: (Ditraversable f m, MonadTrm m, Difunctor g)
                => SigFunM m f g -> Term f -> m (Term g)
-appTSigFunM f (Term t) = coerceTrmM (appSigFunM f t)
+appTSigFunM f (Term t) = trmM (appSigFunM f t)
 
 -- | This function applies a monadic signature function to the given
 -- context. This is a 'top-down variant of 'appSigFunM'.
@@ -368,7 +369,7 @@ appSigFunM' f = run
 {-| A restricted form of |appSigFunM'| which only works for terms. -}
 appTSigFunM' :: (Ditraversable g m, MonadTrm m, Difunctor g)
                 => SigFunM m f g -> Term f -> m (Term g)
-appTSigFunM' f (Term t) = coerceTrmM (appSigFunM' f t)
+appTSigFunM' f (Term t) = trmM (appSigFunM' f t)
 
 {-| This function applies a signature function to the given context. -}
 appSigFunMD :: forall f g m. (Ditraversable f m, Difunctor g)
@@ -382,7 +383,7 @@ appSigFunMD f = run
 {-| A restricted form of |appSigFunMD| which only works for terms. -}
 appTSigFunMD :: (Ditraversable f m, MonadTrm m, Difunctor g)
                 => SigFunMD m f g -> Term f -> m (Term g)
-appTSigFunMD f (Term t) = coerceTrmM (appSigFunMD f t)
+appTSigFunMD f (Term t) = trmM (appSigFunMD f t)
 
 {-| Compose two monadic term homomorphisms. -}
 compHomM :: (Ditraversable g m, Difunctor h)

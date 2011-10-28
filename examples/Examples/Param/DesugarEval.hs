@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances,
-  TypeSynonymInstances, OverlappingInstances, Rank2Types #-}
+  TypeSynonymInstances, OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Param.DesugarEval

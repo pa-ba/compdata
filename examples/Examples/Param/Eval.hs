@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances, Rank2Types #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Param.Eval
