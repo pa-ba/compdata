@@ -42,7 +42,24 @@ shortcutFusion = bgroup "shortcut-fusion" [
 
 standardBenchmarks :: (PExpr, SugarExpr, String) -> Benchmark
 standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (sExpr, aExpr,n)
-    where getBench (sExpr, aExpr,n) = bgroup n paperBenchmarks
+    where getBench (sExpr, aExpr,n) = bgroup n evalBenchmarks
+          -- these are the benchmarks for evaluation
+          evalBenchmarks = [
+                 bench "evalDesug" (nf A.desugEval2 aExpr),
+                 bench "evalDesug (fusion)" (nf A.desugEval2' aExpr),
+                 bench "evalDesug (comparison)" (nf S.desugEval2 sExpr),
+                 bench "evalDesugM" (nf A.desugEval aExpr),
+                 bench "evalDesugT" (nf A.desugEvalT aExpr),
+                 bench "evalDesugM (fusion)" (nf A.desugEval' aExpr),
+                 bench "evalDesugT (fusion)" (nf A.desugEvalT' aExpr),
+                 bench "evalDesugM (comparison)" (nf S.desugEval sExpr),
+                 bench "eval" (nf A.evalSugar2 aExpr),
+                 bench "evalDirect" (nf A.evalDirectE2 aExpr),
+                 bench "eval[Direct] (comparison)" (nf S.evalSugar2 sExpr),
+                 bench "evalM" (nf A.evalSugar aExpr),
+                 bench "evalT" (nf A.evalSugarT aExpr),
+                 bench "evalDirectM" (nf A.evalDirectE aExpr),
+                 bench "eval[Direct]M (comparison)" (nf S.evalSugar sExpr)]
           -- these are the benchmarks from the WGP '11 paper
           paperBenchmarks = [
                  bench "desugHom" (nf A.desugExpr aExpr),

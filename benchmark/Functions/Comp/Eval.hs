@@ -13,10 +13,82 @@ module Functions.Comp.Eval where
 import DataTypes.Comp
 import Functions.Comp.Desugar
 import Data.Comp
+import Data.Comp.Ops
+import Data.Comp.Thunk
 import Data.Comp.Derive
 import Control.Monad
 import Data.Traversable
 
+-- evaluation with thunks
+
+class (Monad m, Traversable v) => EvalT e v m where
+    evalTAlg :: AlgT m e v
+
+evalT :: (EvalT e v m, Functor e) => Term e -> m (Term v)
+evalT = nf . cata evalTAlg
+
+$(derive [liftSum] [''EvalT])
+
+instance (Monad m, Traversable v, Value :<: v) => EvalT Value v m where
+    evalTAlg = inject
+
+instance (Value :<: v, Traversable v, EqF v, Monad m) => EvalT Op v m where
+    evalTAlg (Plus x y) = thunk $ do
+                           VInt i <- whnfPr x
+                           VInt j <- whnfPr y
+                           return $ iVInt (i+j)
+    evalTAlg (Mult x y) = thunk $ do
+                           VInt i <- whnfPr x
+                           VInt j <- whnfPr y
+                           return $ iVInt (i*j)
+    evalTAlg (If x y z) = thunk $ do 
+                            VBool b <- whnfPr x
+                            return $ if b then y else z
+    evalTAlg (Eq x y) = thunk $ liftM iVBool $ eqT x y
+    evalTAlg (Lt x y) = thunk $ do
+                          VInt i <- whnfPr x
+                          VInt j <- whnfPr y
+                          return $ iVBool (i < j)
+    evalTAlg (And x y) = thunk $ do
+                           VBool b1 <- whnfPr x
+                           if b1 then do
+                                   VBool b2 <- whnfPr y
+                                   return $ iVBool b2
+                                 else return $ iVBool False
+    evalTAlg (Not x) = thunk $ do
+                           VBool b <- whnfPr x
+                           return $ iVBool (not b)
+    evalTAlg (Proj p x) = thunk $ do
+                            VPair a b <- whnfPr x
+                            return $ select a b
+         where select x y = case p of
+                              ProjLeft -> x
+                              ProjRight -> y
+
+instance (Value :<: v, Traversable v, Monad m) => EvalT Sugar v m where
+    evalTAlg (Neg x) = thunk $ do
+                         VInt i <- whnfPr x
+                         return $ iVInt (-i)
+    evalTAlg (Minus x y) = thunk $ do
+                           VInt i <- whnfPr x
+                           VInt j <- whnfPr y
+                           return $ iVInt (i-j)
+    evalTAlg (Gt x y) = thunk $ do
+                          VInt i <- whnfPr x
+                          VInt j <- whnfPr y
+                          return $ iVBool (i > j)
+    evalTAlg (Or x y) = thunk $ do
+                           VBool b1 <- whnfPr x
+                           if b1 then return $ iVBool True
+                                 else do
+                                   VBool b2 <- whnfPr y
+                                   return $ iVBool b2
+    evalTAlg (Impl x y) = thunk $ do
+                           VBool b1 <- whnfPr x
+                           if b1 then do
+                                   VBool b2 <- whnfPr y
+                                   return $ iVBool b2
+                                 else return $ iVBool True
 -- evaluation
 
 class Monad m => Eval e v m where
@@ -240,9 +312,15 @@ instance EvalDir2 Sugar where
 desugEval :: SugarExpr -> Err ValueExpr
 desugEval = eval . (desug :: SugarExpr -> Expr)
 
+desugEvalT :: SugarExpr -> Err ValueExpr
+desugEvalT = evalT . (desug :: SugarExpr -> Expr)
+
 
 evalSugar :: SugarExpr -> Err ValueExpr
 evalSugar = eval
+
+evalSugarT :: SugarExpr -> Err ValueExpr
+evalSugarT = evalT
 
 desugEvalAlg  :: AlgM Err SugarSig ValueExpr
 desugEvalAlg = evalAlg  `compAlgM'` (desugAlg :: Hom SugarSig ExprSig)
@@ -250,6 +328,13 @@ desugEvalAlg = evalAlg  `compAlgM'` (desugAlg :: Hom SugarSig ExprSig)
 
 desugEval' :: SugarExpr -> Err ValueExpr
 desugEval' = cataM desugEvalAlg
+
+desugEvalAlgT  :: AlgT Err SugarSig Value
+desugEvalAlgT = evalTAlg  `compAlg` (desugAlg :: Hom SugarSig ExprSig)
+
+desugEvalT' :: SugarExpr -> Err ValueExpr
+desugEvalT' = nf . cata desugEvalAlgT
+
 
 desugEval2 :: SugarExpr -> ValueExpr
 desugEval2 = eval2 . (desug :: SugarExpr -> Expr)

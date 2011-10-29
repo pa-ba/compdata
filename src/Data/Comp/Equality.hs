@@ -21,7 +21,7 @@ module Data.Comp.Equality
 import Data.Comp.Term
 import Data.Comp.Sum
 import Data.Comp.Ops
-import Data.Comp.Derive
+import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Utils
 import Data.Foldable
 import Control.Monad hiding (mapM_)

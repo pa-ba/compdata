@@ -31,6 +31,8 @@ module Data.Comp.Derive
      module Data.Comp.Derive.Foldable,
      -- ** Traversable
      module Data.Comp.Derive.Traversable,
+     -- ** HaskellStrict
+     module Data.Comp.Derive.HaskellStrict,
      -- ** Arbitrary
      module Data.Comp.Derive.Arbitrary,
      NFData(..),
@@ -47,6 +49,7 @@ module Data.Comp.Derive
 
 import Control.DeepSeq (NFData(..))
 import Data.Comp.Derive.Utils (derive)
+import Data.Comp.Derive.HaskellStrict
 import Data.Comp.Derive.Foldable
 import Data.Comp.Derive.Traversable
 import Data.Comp.Derive.DeepSeq

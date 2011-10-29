@@ -54,6 +54,15 @@ normalConExp c = do
   ts' <- mapM expandSyns ts
   return (n, ts')
 
+
+-- | Same as normalConExp' but retains strictness annotations.
+normalConStrExp :: Con -> Q (Name,[StrictType])
+normalConStrExp c = do 
+  let (n,ts) = normalCon c
+  ts' <- mapM (\ (st,ty) -> do ty' <- expandSyns ty; return (st,ty')) ts
+  return (n, ts')
+
+
 {-|
   This function provides the name and the arity of the given data constructor.
 -}

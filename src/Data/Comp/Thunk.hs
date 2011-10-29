@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, FlexibleContexts, RankNTypes #-}
+{-# LANGUAGE TypeOperators, FlexibleContexts, RankNTypes, ScopedTypeVariables #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -30,15 +30,19 @@ module Data.Comp.Thunk
     ,(#>)
     ,(#>>)
     ,AlgT
+    ,cataT
+    ,cataTM
+    ,eqT
     ,strict
     ,strictAt) where
 
 import Data.Comp.Term
+import Data.Comp.Equality
 import Data.Comp.Algebra
 import Data.Comp.Ops
 import Data.Comp.Sum
-import Data.Comp.Derive
 import Data.Comp.Zippable
+import Data.Foldable hiding (and)
 
 import qualified Data.Set as Set
 
@@ -81,10 +85,8 @@ whnfPr t = do res <- whnf t
 -- | This function inspects the topmost non-thunk node (using
 -- 'whnf') according to the given function.
 eval :: Monad m => (f (TermT m f) -> TermT m f) -> TermT m f -> TermT m f
-eval cont (Term (Inl m)) = thunk $ cont' =<< whnf =<< m 
+eval cont t = thunk $ cont' =<< whnf t
     where cont' = return . cont
-    -- alt: where cont' x = liftM inject $ whnf $ cont x
-eval cont (Term (Inr t)) = cont t
 
 infixl 1 #>
 
@@ -133,6 +135,18 @@ deepEval2 cont x y = (\ x' -> cont x' `deepEval` y ) `deepEval` x
 -- carrier.
 type AlgT m f g = Alg f (TermT m g)
 
+-- | This combinator runs a monadic catamorphism on a term with thunks
+cataTM :: forall m f a . (Traversable f, Monad m) => AlgM m f a -> TermT m f -> m a
+cataTM alg = run where
+    -- implemented directly, otherwise Traversable m constraint needed
+    run :: TermT m f -> m a
+    run (Term (Inl m)) = m >>= run
+    run (Term (Inr t)) =  mapM run t >>= alg
+
+-- | This combinator runs a catamorphism on a term with thunks.
+cataT :: (Traversable f, Monad m) => Alg f a -> TermT m f -> m a
+cataT alg = cataTM (return . alg)
+
 -- | This combinator makes the evaluation of the given functor
 -- application strict by evaluating all thunks of immediate subterms.
 strict :: (f :<: g, Traversable f, Monad m) => f (TermT m g) -> TermT m g
@@ -154,3 +168,12 @@ strictAt p s = thunk $ liftM inject $ mapM run s'
           isStrict e = Set.member e $ Set.fromList $ p s'
           run e | isStrict e = whnf' $ unNumbered e
                 | otherwise  = return $ unNumbered e
+
+
+-- | This function decides equality of terms with thunks.
+eqT :: (EqF f, Foldable f, Functor f, Monad m) => TermT m f -> TermT m f -> m Bool
+eqT s t = do s' <- whnf s
+             t' <- whnf t
+             case eqMod s' t' of
+               Nothing -> return False
+               Just l -> liftM and $ mapM (uncurry eqT) l

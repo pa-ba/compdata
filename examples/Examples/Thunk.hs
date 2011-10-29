@@ -25,7 +25,7 @@ import Data.Comp.Show()
 import Control.Monad
 
 -- Signature for values and operators
-data Value e = Const Int | Pair e e
+data Value e = Const Int | Pair e !e
 data Op e = Add e e | Mult e e | Fst e | Snd e
 
 -- Signature for the simple expression language
@@ -33,7 +33,7 @@ type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell
 $(derive [makeFunctor, makeTraversable, makeFoldable,
-          makeEqF, makeShowF, smartConstructors]
+          makeEqF, makeShowF, smartConstructors,makeHaskellStrict]
          [''Value, ''Op])
 
 instance Zippable Value where
@@ -58,9 +58,7 @@ instance (Value :<: v) => EvalT Value v where
 --  evalAlgT x = inject x
 
 -- or only partially strict
-  evalAlgT = strictAt spec where
-      spec (Pair _ b) = [b]
-      spec _          = []
+  evalAlgT = haskellStrict
 
 instance (Value :<: v) => EvalT Op v where
   evalAlgT (Add x y) = thunk $ do
@@ -87,4 +85,14 @@ instance Monad (Either String) where
     fail = Left
 
 evalTEx :: Either String (Term Value)
-evalTEx = evalT (iFst (iFst (iConst 5) `iPair` iConst 4) :: Term Sig)
+evalTEx = evalT (iSnd (iFst (iConst 5) `iPair` iConst 4) :: Term Sig)
+
+
+
+data Bar a = F a
+
+data Foo a = A a Int !a | B a | C ![[(Bar a)]] !(Bar a) ![[[(Bar a)]]]
+
+$(derive [makeFunctor, makeTraversable, makeFoldable,
+          smartConstructors,makeHaskellStrict]
+         [''Bar,''Foo])

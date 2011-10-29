@@ -25,6 +25,7 @@ module Data.Comp.Param.Thunk
     ,whnfPr
     ,nf
     ,nfPr
+    ,evalStrict
     ,AlgT
     ,strict
     ,strict')
@@ -56,13 +57,13 @@ thunk = inject . Thunk
 
 -- | This function evaluates all thunks until a non-thunk node is
 -- found.
-whnf :: Monad m => TermT m f -> m (f Any (TermT m f))
+whnf :: Monad m => TrmT m f a -> m (Either a (f a (TrmT m f a)))
 whnf (Term (Inl (Thunk m))) = m >>= whnf
-whnf (Term (Inr t)) = return t
-whnf (Var _) = undefined
+whnf (Term (Inr t)) = return $ Right t
+whnf (Var x) = return $ Left x
 
 whnf' :: Monad m => TermT m f -> m (TermT m f)
-whnf' = liftM inject . whnf
+whnf'  = liftM (either Var inject) . whnf
 
 -- | This function first evaluates the argument term into whnf via
 -- 'whnf' and then projects the top-level signature to the desired
@@ -70,15 +71,17 @@ whnf' = liftM inject . whnf
 -- failure in the monad.
 whnfPr :: (Monad m, g :<: f) => TermT m f -> m (g Any (TermT m f))
 whnfPr t = do res <- whnf t
-              case proj res of
-                Just res' -> return res'
-                Nothing -> fail "projection failed"
+              case res of
+                Left _  -> fail "cannot project variable"
+                Right t ->
+                    case proj t of
+                      Just res' -> return res'
+                      Nothing -> fail "projection failed"
 
 
 -- | This function evaluates all thunks.
 nf :: (Monad m, Ditraversable f m Any) => TermT m f -> m (Term f)
-nf = liftM Term . dimapM nf <=< whnf
-
+nf = either (return . Var) (liftM Term . dimapM nf) <=< whnf
 
 -- | This function evaluates all thunks while simultaneously
 -- projecting the term to a smaller signature. Failure to do the
@@ -86,6 +89,17 @@ nf = liftM Term . dimapM nf <=< whnf
 nfPr :: (Monad m, Ditraversable g m Any, g :<: f) => TermT m f -> m (Term g)
 nfPr = liftM Term . dimapM nfPr <=< whnfPr
 
+
+evalStrict :: (Ditraversable g Maybe (TrmT m f a), 
+               Ditraversable g m (TrmT m f a), Monad m, g :<: f) => 
+              (g (TrmT m f a) (f a (TrmT m f a)) -> TrmT m f a)
+           -> g (TrmT m f a) (TrmT m f a) -> TrmT m f a
+evalStrict cont t = thunk $ do 
+                      t' <- dimapM (liftM (either (const Nothing) Just) . whnf) t
+                      case disequence t' of
+                        Nothing -> return $ inject' t
+                        Just s -> return $ cont s
+                      
 
 -- | This type represents algebras which have terms with thunks as
 -- carrier.
