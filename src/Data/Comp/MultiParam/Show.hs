@@ -29,13 +29,13 @@ $(derive [liftSum] [''ShowHD])
 {-| From an 'ShowHD' higher-order difunctor an 'ShowHD' instance of the
   corresponding term type can be derived. -}
 instance (HDifunctor f, ShowHD f) => ShowHD (Cxt h f) where
-    showHD (Term t) = showHD $ hfmap (K . showHD) t
+    showHD (In t) = showHD $ hfmap (K . showHD) t
     showHD (Hole h) = unK h
     showHD (Var p) = return $ show p
 
 {-| Printing of terms. -}
 instance (HDifunctor f, ShowHD f) => Show (Term f i) where
-    show = evalFreshM . showHD . toCxt . coerceCxt
+    show = evalFreshM . showHD . toCxt . unTerm
 
 instance (ShowHD f, Show p) => ShowHD (f :&: p) where
     showHD (x :&: p) = do sx <- showHD x

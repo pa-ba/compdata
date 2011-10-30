@@ -28,7 +28,7 @@ $(derive [liftSum] [''ShowD])
 {-| From an 'ShowD' difunctor an 'ShowD' instance of the corresponding term type
   can be derived. -}
 instance (Difunctor f, ShowD f) => ShowD (Cxt h f) where
-    showD (Node t) = showD $ fmap showD t
+    showD (In t) = showD $ fmap showD t
     showD (Hole h) = h
     showD (Var p) = return $ show p
 

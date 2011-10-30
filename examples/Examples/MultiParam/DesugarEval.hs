@@ -21,7 +21,8 @@
 
 module Examples.MultiParam.DesugarEval where
 
-import Data.Comp.MultiParam hiding (Const)
+import Data.Comp.MultiParam
+import Data.Comp.MultiParam.HDitraversable
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
 import Data.Comp.MultiParam.Desugar
@@ -58,8 +59,9 @@ type GValue = Const
 -- Derive boilerplate code using Template Haskell
 $(derive [makeHDifunctor, makeEqHD, makeOrdHD, makeShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op, ''IfThenElse, ''Sug])
-$(derive [makeHFoldable, makeHTraversable]
-         [''Const, ''App, ''Op])
+
+instance Monad m => HDitraversable Const m where
+  hdimapM _ (Const n) = return $ Const n
 
 instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, HDifunctor f)
   => Desugar Sug f where
@@ -68,13 +70,13 @@ instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, HDifunctor f)
 
 -- Term evaluation algebra
 class Eval f v where
-  evalAlg :: Alg f (Term v)
+  evalAlg :: Alg f (Trm v a)
 
 $(derive [liftSum] [''Eval])
 
 -- Compose the evaluation algebra and the desugaring homomorphism to an algebra
 eval :: Term Sig' :-> Term Value
-eval = cata (evalAlg `compAlg` (desugHom :: Hom Sig' Sig))
+eval t = Term (cata (evalAlg `compAlg` (desugHom :: Hom Sig' Sig)) t)
 
 instance (Const :<: v) => Eval Const v where
   evalAlg (Const n) = iConst n
@@ -92,10 +94,10 @@ instance (Fun :<: v) => Eval Lam v where
 instance (Const :<: v) => Eval IfThenElse v where
   evalAlg (IfThenElse c v1 v2) = if projC c /= 0 then v1 else v2
 
-projC :: (Const :<: v) => Term v Int -> Int
+projC :: (Const :<: v) => Trm v a Int -> Int
 projC v = case project v of Just (Const n) -> n
 
-projF :: (Fun :<: v) => Term v (i -> j) -> Term v i -> Term v j
+projF :: (Fun :<: v) => Trm v a (i -> j) -> Trm v a i -> Trm v a j
 projF v = case project v of Just (Fun f) -> f
 
 -- |Evaluation of expressions to ground values.
@@ -104,4 +106,4 @@ evalG = deepProject . (eval :: Term Sig' :-> Term Value)
 
 -- Example: evalEx = Just (iConst -6)
 evalEx :: Maybe (Term GValue Int)
-evalEx = evalG $ iLet (iConst 6) $ \x -> iNeg x
+evalEx = evalG $ Term $ iLet (iConst 6) $ \x -> iNeg x

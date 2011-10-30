@@ -61,11 +61,11 @@ instance (OrdD f, OrdD g) => OrdD (f :+: g) where
 {-| From an 'OrdD' difunctor an 'Ord' instance of the corresponding term type
   can be derived. -}
 instance OrdD f => OrdD (Cxt h f) where
-    compareD (Node e1) (Node e2) = compareD e1 e2
+    compareD (In e1) (In e2) = compareD e1 e2
     compareD (Hole h1) (Hole h2) = pcompare h1 h2
     compareD (Var p1) (Var p2) = pcompare p1 p2
-    compareD (Node _) _ = return LT
-    compareD (Hole _) (Node _) = return GT
+    compareD (In _) _ = return LT
+    compareD (Hole _) (In _) = return GT
     compareD (Hole _) (Var _) = return LT
     compareD (Var _) _ = return GT
 

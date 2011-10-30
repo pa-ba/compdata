@@ -81,7 +81,7 @@ projectn n = do
           genDecl x n = [| case $(varE x) of
                              Hole _ -> Nothing
                              Var _ -> Nothing
-                             Node t -> $(varE $ mkName $ "proj" ++ show n) t |]
+                             In t -> $(varE $ mkName $ "proj" ++ show n) t |]
 
 deepProjectn :: Int -> Q [Dec]
 deepProjectn n = do

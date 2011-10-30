@@ -28,7 +28,8 @@
 
 module Examples.MultiParam.Eval where
 
-import Data.Comp.MultiParam hiding (Const)
+import Data.Comp.MultiParam
+import Data.Comp.MultiParam.HDitraversable
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
 
@@ -55,18 +56,19 @@ type GValue = Const
 -- Derive boilerplate code using Template Haskell
 $(derive [makeHDifunctor, makeEqHD, makeOrdHD, makeShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op])
-$(derive [makeHFoldable, makeHTraversable]
-         [''Const, ''App, ''Op])
+
+instance Monad m => HDitraversable Const m where
+  hdimapM _ (Const n) = return $ Const n
 
 -- Term evaluation algebra
 class Eval f v where
-  evalAlg :: Alg f (Term v)
+  evalAlg :: Alg f (Trm v a)
 
 $(derive [liftSum] [''Eval])
 
 -- Lift the evaluation algebra to a catamorphism
 eval :: (HDifunctor f, Eval f v) => Term f :-> Term v
-eval = cata evalAlg
+eval t = Term (cata evalAlg t)
 
 instance (Const :<: v) => Eval Const v where
   evalAlg (Const n) = iConst n
@@ -81,10 +83,10 @@ instance (Fun :<: v) => Eval App v where
 instance (Fun :<: v) => Eval Lam v where
   evalAlg (Lam f) = inject $ Fun f
 
-projC :: (Const :<: v) => Term v Int -> Int
+projC :: (Const :<: v) => Trm v a Int -> Int
 projC v = case project v of Just (Const n) -> n
 
-projF :: (Fun :<: v) => Term v (i -> j) -> Term v i -> Term v j
+projF :: (Fun :<: v) => Trm v a (i -> j) -> Trm v a i -> Trm v a j
 projF v = case project v of Just (Fun f) -> f
 
 -- |Evaluation of expressions to ground values.
@@ -93,4 +95,4 @@ evalG = deepProject . (eval :: Term Sig :-> Term Value)
 
 -- Example: evalEx = Just (iConst 4)
 evalEx :: Maybe (Term GValue Int)
-evalEx = evalG $ iLam (\x -> x `iAdd` x) `iApp` iConst 2
+evalEx = evalG $ Term $ iLam (\x -> x `iAdd` x) `iApp` iConst 2

@@ -67,7 +67,7 @@ injectn n = do
             let tp'' = arrowT `appT` (tp `appT` varT avar `appT` tp') `appT` tp'
             forallT (map PlainTV $ hvar : gvar : avar : bvar : fvars)
                     (sequence cxt) tp''
-          genDecl n = [| Node . $(varE $ mkName $ "inj" ++ show n) |]
+          genDecl n = [| In . $(varE $ mkName $ "inj" ++ show n) |]
 
 deepInjectn :: Int -> Q [Dec]
 deepInjectn n = do

@@ -54,7 +54,7 @@ instance (EqD f, EqD g) => EqD (f :+: g) where
 {-| From an 'EqD' difunctor an 'Eq' instance of the corresponding term type can
   be derived. -}
 instance EqD f => EqD (Cxt h f) where
-    eqD (Node e1) (Node e2) = eqD e1 e2
+    eqD (In e1) (In e2) = eqD e1 e2
     eqD (Hole h1) (Hole h2) = peq h1 h2
     eqD (Var p1) (Var p2) = peq p1 p2
     eqD _ _ = return False

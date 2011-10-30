@@ -23,7 +23,8 @@
 
 module Examples.MultiParam.EvalM where
 
-import Data.Comp.MultiParam hiding (Const)
+import Data.Comp.MultiParam
+import Data.Comp.MultiParam.HDitraversable
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
 import Control.Monad ((<=<))
@@ -51,18 +52,19 @@ type GValue = Const
 -- Derive boilerplate code using Template Haskell
 $(derive [makeHDifunctor, makeEqHD, makeOrdHD, makeShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op])
-$(derive [makeHFoldable, makeHTraversable]
-         [''Const, ''App, ''Op])
+
+instance Monad m => HDitraversable Const m where
+  hdimapM _ (Const n) = return $ Const n
 
 -- Term evaluation algebra.
 class EvalM f v where
-  evalAlgM :: AlgM' Maybe f (Term v)
+  evalAlgM :: AlgM' Maybe f (Trm v a)
 
 $(derive [liftSum] [''EvalM])
 
 -- Lift the evaluation algebra to a catamorphism
 evalM :: (HDifunctor f, EvalM f v) => Term f i -> Maybe (Term v i)
-evalM = cataM' evalAlgM
+evalM t = trmM (cataM' evalAlgM t)
 
 instance (Const :<: v) => EvalM Const v where
   evalAlgM (Const n) = return $ iConst n
@@ -82,14 +84,14 @@ instance (FunM Maybe :<: v) => EvalM App v where
 instance (FunM Maybe :<: v) => EvalM Lam v where
   evalAlgM (Lam f) = return $ inject $ FunM $ getCompose . f
 
-projC :: (Const :<: v) => Term v Int -> Maybe Int
+projC :: (Const :<: v) => Trm v a Int -> Maybe Int
 projC v = case project v of
             Just (Const n) -> return n; _ -> Nothing
 
 projF :: (FunM Maybe :<: v)
-         => Term v (i -> j) -> Maybe (Term v i -> Maybe (Term v j))
+         => Trm v a (i -> j) -> Maybe (Trm v a i -> Maybe (Trm v a j))
 projF v = case project v of
-            Just (FunM f :: FunM Maybe Any (Term v) (i -> j)) -> return f
+            Just (FunM f :: FunM Maybe a (Trm v a) (i -> j)) -> return f
             _ -> Nothing
 
 -- |Evaluation of expressions to ground values.
@@ -98,5 +100,5 @@ evalMG = deepProject <=< (evalM :: Term Sig i -> Maybe (Term Value i))
 
 -- Example: evalEx = Just (iConst 12) (3 * (2 + 2) = 12)
 evalMEx :: Maybe (Term GValue Int)
-evalMEx = evalMG $ iLam (\x -> iLam $ \y -> y `iMult` (x `iAdd` x))
-                   `iApp` iConst 2 `iApp` iConst 3
+evalMEx = evalMG $ Term (iLam (\x -> iLam $ \y -> y `iMult` (x `iAdd` x))
+                         `iApp` iConst 2 `iApp` iConst 3)

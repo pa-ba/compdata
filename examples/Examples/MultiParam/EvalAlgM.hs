@@ -26,7 +26,7 @@ import Data.Comp.MultiParam
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.HDitraversable
 import Data.Comp.MultiParam.Derive
-import Control.Monad (liftM)
+import Control.Monad (liftM, liftM2)
 
 -- Signature for values and operators
 data Value :: (* -> *) -> (* -> *) -> * -> * where
@@ -42,20 +42,28 @@ data Op :: (* -> *) -> (* -> *) -> * -> * where
 type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell
-$(derive [makeHDifunctor, makeHTraversable, makeHFoldable,
-          makeEqHD, makeOrdHD, makeShowHD, smartConstructors]
+$(derive [makeHDifunctor, makeEqHD, makeOrdHD, makeShowHD, smartConstructors]
          [''Value, ''Op])
+
+instance Monad m => HDitraversable Value m where
+  hdimapM _ (Const n) = return $ Const n
+  hdimapM f (Pair x y) = liftM2 Pair (f x) (f y)
+
+instance Monad m => HDitraversable Op m where
+  hdimapM f (Add x y) = liftM2 Add (f x) (f y)
+  hdimapM f (Mult x y) = liftM2 Mult (f x) (f y)
+  hdimapM f (Fst x) = liftM Fst (f x)
+  hdimapM f (Snd x) = liftM Snd (f x)
 
 -- Monadic term evaluation algebra
 class EvalM f v where
-  evalAlgM :: AlgM Maybe f (Term v)
+  evalAlgM :: AlgM Maybe f (Trm v a)
 
 $(derive [liftSum] [''EvalM])
 
 -- Lift the monadic evaluation algebra to a monadic catamorphism
-evalM :: (HDitraversable f Maybe (Term v), EvalM f v)
-         => Term f i -> Maybe (Term v i)
-evalM = cataM evalAlgM
+evalM :: (HDitraversable f Maybe, EvalM f v) => Term f i -> Maybe (Term v i)
+evalM t = trmM (cataM evalAlgM t)
 
 instance (Value :<: v) => EvalM Value v where
   evalAlgM (Const n) = return $ iConst n
@@ -71,16 +79,16 @@ instance (Value :<: v) => EvalM Op v where
   evalAlgM (Fst v)    = liftM fst $ projP v
   evalAlgM (Snd v)    = liftM snd $ projP v
 
-projC :: (Value :<: v) => Term v Int -> Maybe Int
+projC :: (Value :<: v) => Trm v a Int -> Maybe Int
 projC v = case project v of
             Just (Const n) -> return n
             _ -> Nothing
 
-projP :: (Value :<: v) => Term v (i,j) -> Maybe (Term v i, Term v j)
+projP :: (Value :<: v) => Trm v a (i,j) -> Maybe (Trm v a i, Trm v a j)
 projP v = case project v of
             Just (Pair x y) -> return (x,y)
             _ -> Nothing
 
 -- Example: evalMEx = Just (iConst 5)
 evalMEx :: Maybe (Term Value Int)
-evalMEx = evalM (iConst 1 `iAdd` (iConst 2 `iMult` iConst 2) :: Term Sig Int)
+evalMEx = evalM (Term (iConst 1 `iAdd` (iConst 2 `iMult` iConst 2)) :: Term Sig Int)

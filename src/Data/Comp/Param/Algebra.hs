@@ -124,7 +124,7 @@ free :: forall h f a b. Difunctor f
         => Alg f a -> (b -> a) -> Cxt h f a b -> a
 free f g = run
     where run :: Cxt h f a b -> a
-          run (Node t) = f (fmap run t)
+          run (In t) = f (fmap run t)
           run (Hole x) = g x
           run (Var p) = p
 
@@ -133,7 +133,7 @@ cata :: forall f a. Difunctor f => Alg f a -> Term f -> a
 {-# NOINLINE [1] cata #-}
 cata f (Term t) = run t
     where run :: Trm f a -> a
-          run (Node t) = f (fmap run t)
+          run (In t) = f (fmap run t)
           run (Var x) = x
 
 {-| A generalisation of 'cata' from terms over @f@ to contexts over @f@, where
@@ -144,7 +144,7 @@ cata' f = free f id
 
 {-| This function applies a whole context into another context. -}
 appCxt :: Difunctor f => Context f a (Cxt h f a b) -> Cxt h f a b
-appCxt (Node t) = Node (fmap appCxt t)
+appCxt (In t) = In (fmap appCxt t)
 appCxt (Hole x) = x
 appCxt (Var p) = Var p
 
@@ -163,7 +163,7 @@ freeM :: forall m h f a b. Ditraversable f m
          => AlgM m f a -> (b -> m a) -> Cxt h f a b -> m a
 freeM f g = run
     where run :: Cxt h f a b -> m a
-          run (Node t) = f =<< dimapM run t
+          run (In t) = f =<< dimapM run t
           run (Hole x) = g x
           run (Var p) = return p
 
@@ -172,7 +172,7 @@ cataM :: forall m f a. Ditraversable f m => AlgM m f a -> Term f -> m a
 {-# NOINLINE [1] cataM #-}
 cataM algm (Term t) = run t
     where run :: Trm f a  -> m a
-          run (Node t) = algm =<< dimapM run t
+          run (In t) = algm =<< dimapM run t
           run (Var x) = return x
 
 {-| A generalisation of 'cataM' from terms over @f@ to contexts over @f@, where
@@ -197,7 +197,7 @@ appHom :: forall f g. (Difunctor f, Difunctor g) => Hom f g -> CxtFun f g
 {-# NOINLINE [1] appHom #-}
 appHom f = run where
     run :: CxtFun f g
-    run (Node t) = appCxt (f (fmap run t))
+    run (In t) = appCxt (f (fmap run t))
     run (Hole x) = Hole x
     run (Var p) = Var p
 
@@ -206,13 +206,13 @@ appHom' :: forall f g. (Difunctor g) => Hom f g -> CxtFun f g
 {-# NOINLINE [1] appHom' #-}
 appHom' f = run where
     run :: CxtFun f g
-    run (Node t) = appCxt (fmapCxt run (f t))
+    run (In t) = appCxt (fmapCxt run (f t))
     run (Hole x) = Hole x
     run (Var p) = Var p
 
 fmapCxt :: Difunctor f => (b -> b') -> Cxt h f a b -> Cxt h f a b'
 fmapCxt f = run
-    where run (Node t) = Node $ fmap run t
+    where run (In t) = In $ fmap run t
           run (Var a) = Var a
           run (Hole b)  = Hole $ f b
 
@@ -234,7 +234,7 @@ compAlgSigFun alg sig = alg . sig
 appSigFun :: forall f g. (Difunctor f) => SigFun f g -> CxtFun f g
 {-# NOINLINE [1] appSigFun #-}
 appSigFun f = run
-    where run (Node t) = Node $ f $ fmap run t
+    where run (In t) = In $ f $ fmap run t
           run (Var x) = Var x
           run (Hole x) = Hole x
 -- implementation via term homomorphisms
@@ -246,7 +246,7 @@ appSigFun f = run
 appSigFun' :: forall f g. (Difunctor g) => SigFun f g -> CxtFun f g
 {-# NOINLINE [1] appSigFun' #-}
 appSigFun' f = run
-    where run (Node t) = Node $ fmap run $ f t
+    where run (In t) = In $ fmap run $ f t
           run (Var x) = Var x
           run (Hole x) = Hole x
 
@@ -301,7 +301,7 @@ appHomM :: forall f g m. (Ditraversable f m, Difunctor g)
 {-# NOINLINE [1] appHomM #-}
 appHomM f = run
     where run :: CxtFunM m f g
-          run (Node t) = liftM appCxt . f =<< dimapM run t
+          run (In t) = liftM appCxt . f =<< dimapM run t
           run (Hole x) = return (Hole x)
           run (Var p) = return (Var p)
 
@@ -316,13 +316,13 @@ appTHomM f (Term t) = trmM (appHomM f t)
 appHomM' :: forall f g m. Ditraversable g m => HomM m f g -> CxtFunM m f g
 appHomM' f = run
     where run :: CxtFunM m f g
-          run (Node t)  = liftM appCxt . dimapMCxt run =<< f t
+          run (In t)  = liftM appCxt . dimapMCxt run =<< f t
           run (Var p) = return (Var p)
           run (Hole x) = return (Hole x)
 
 dimapMCxt :: Ditraversable f m => (b -> m b') -> Cxt h f a b -> m (Cxt h f a b')
 dimapMCxt f = run
-              where run (Node t) = liftM Node $ dimapM run t
+              where run (In t) = liftM In $ dimapM run t
                     run (Var a)  = return $ Var a
                     run (Hole b) = liftM Hole (f b)
 
@@ -338,7 +338,7 @@ homMD :: forall f g m. (Difunctor f, Difunctor g, Monad m)
          => HomMD m f g -> CxtFunM m f g
 homMD f = run 
     where run :: CxtFunM m f g
-          run (Node t) = liftM appCxt (f (fmap run t))
+          run (In t) = liftM appCxt (f (fmap run t))
           run (Hole x) = return (Hole x)
           run (Var p) = return (Var p)
 
@@ -346,7 +346,7 @@ homMD f = run
 appSigFunM :: forall m f g. Ditraversable f m => SigFunM m f g -> CxtFunM m f g
 appSigFunM f = run
     where run :: CxtFunM m f g
-          run (Node t) = liftM Node . f =<< dimapM run t
+          run (In t) = liftM In . f =<< dimapM run t
           run (Var x) = return $ Var x
           run (Hole x) = return $ Hole x
 -- implementation via term homomorphisms
@@ -362,7 +362,7 @@ appTSigFunM f (Term t) = trmM (appSigFunM f t)
 appSigFunM' :: forall m f g. Ditraversable g m => SigFunM m f g -> CxtFunM m f g
 appSigFunM' f = run
     where run :: CxtFunM m f g
-          run (Node t) = liftM Node . dimapM run =<< f t
+          run (In t) = liftM In . dimapM run =<< f t
           run (Var x) = return $ Var x
           run (Hole x) = return $ Hole x
 
@@ -376,7 +376,7 @@ appSigFunMD :: forall f g m. (Ditraversable f m, Difunctor g)
                => SigFunMD m f g -> CxtFunM m f g
 appSigFunMD f = run 
     where run :: CxtFunM m f g
-          run (Node t) = liftM Node (f (fmap run t))
+          run (In t) = liftM In (f (fmap run t))
           run (Hole x) = return (Hole x)
           run (Var p) = return (Var p)
 
@@ -457,7 +457,7 @@ ana f x = Term $ anaAux f x
           anaAux f x = run (x,[])
               where run (a,bs) = case f a bs of
                                    Left p -> Var p
-                                   Right t -> Node $ fmap run t
+                                   Right t -> In $ fmap run t
 
 {-| This type represents a monadic coalgebra over a difunctor @f@ and carrier
   @a@. -}
@@ -470,7 +470,7 @@ anaM f x = run (x,[])
     where run (a,bs) = do c <- f a bs
                           case c of
                             Left p -> return $ Var p
-                            Right t -> liftM Node $ dimapM run t
+                            Right t -> liftM In $ dimapM run t
 
 
 --------------------------------
@@ -484,7 +484,7 @@ type RAlg f a = f a (Trm f a, a) -> a
 para :: forall f a. Difunctor f => RAlg f a -> Term f -> a
 para f (Term t) = run t
     where run :: Trm f a -> a
-          run (Node t) = f $ fmap (\x -> (x, run x)) t
+          run (In t) = f $ fmap (\x -> (x, run x)) t
           run (Var x) = x
 
 {-| This type represents a monadic r-algebra over a difunctor @f@ and carrier
@@ -494,7 +494,7 @@ type RAlgM m f a = f a (Trm f a, a) -> m a
 paraM :: forall m f a. Ditraversable f m => RAlgM m f a -> Term f -> m a
 paraM f (Term t) = run t
     where run :: Trm f a -> m a
-          run (Node t) = f =<< dimapM (\x -> run x >>= \y -> return (x, y)) t
+          run (In t) = f =<< dimapM (\x -> run x >>= \y -> return (x, y)) t
           run (Var x) = return x
 
 
@@ -513,7 +513,7 @@ apo f x = Term (apoAux f x)
               where -- run :: (a,[(a,b)]) -> Trm f b
                 run (a,bs) = case coa a bs of
                                Left x -> Var x
-                               Right t -> Node $ fmap run' t
+                               Right t -> In $ fmap run' t
                 -- run' :: Either (Trm f b) (a,[(a,b)]) -> Trm f b
                 run' (Left t) = t
                 run' (Right x) = run x
@@ -532,7 +532,7 @@ apoM coa x = run (x,[])
             res <- coa a bs
             case res of
               Left x -> return $ Var x
-              Right t -> liftM Node $ dimapM run' t
+              Right t -> liftM In $ dimapM run' t
           run' (Left t) = return t
           run' (Right x) = run x
 
@@ -546,7 +546,7 @@ type CVAlg f a f' = f a (Trm f' a) -> a
 
 -- | This function applies 'projectA' at the tip of the term.
 projectTip  :: DistAnn f a f' => Trm f' a -> a
-projectTip (Node v) = snd $ projectA v
+projectTip (In v) = snd $ projectA v
 projectTip (Var p) = p
 
 {-| Construct a histomorphism from the given cv-algebra. -}
@@ -554,7 +554,7 @@ histo :: forall f f' a. (Difunctor f, DistAnn f a f')
          => CVAlg f a f' -> Term f -> a
 histo alg = projectTip . cata run
     where run :: Alg f (Trm f' a)
-          run v = Node $ injectA (alg v') v'
+          run v = In $ injectA (alg v') v'
               where v' = dimap Var id v
 
 {-| This type represents a monadic cv-algebra over a functor @f@ and carrier
@@ -566,9 +566,9 @@ histoM :: forall f f' m a. (Ditraversable f m, DistAnn f a f')
           => CVAlgM m f a f' -> Term f -> m a
 histoM alg (Term t) = liftM projectTip (run t)
     where run :: Trm f a -> m (Trm f' a)
-          run (Node t) = do t' <- dimapM run t
-                            r <- alg t'
-                            return $ Node $ injectA r t'
+          run (In t) = do t' <- dimapM run t
+                          r <- alg t'
+                          return $ In $ injectA r t'
           run (Var p) = return $ Var p
 
 
@@ -592,8 +592,8 @@ futu f x = Term (futuAux f x)
           futuAux coa x = run (x,[])
               where run (a,bs) = case coa a bs of
                                    Left p -> Var p
-                                   Right t -> Node $ fmap run' t
-                    run' (Node t) = Node $ fmap run' t
+                                   Right t -> In $ fmap run' t
+                    run' (In t) = In $ fmap run' t
                     run' (Hole x) = run x
                     run' (Var p) = Var p
 
@@ -609,8 +609,8 @@ futuM coa x = run (x,[])
     where run (a,bs) = do c <- coa a bs
                           case c of 
                             Left p -> return $ Var p
-                            Right t -> liftM Node $ dimapM run' t
-          run' (Node t) = liftM Node $ dimapM run' t
+                            Right t -> liftM In $ dimapM run' t
+          run' (In t) = liftM In $ dimapM run' t
           run' (Hole x) = run x
           run' (Var p) = return $ Var p
 
@@ -624,7 +624,7 @@ futu' f x = Term (futuAux' f x)
     where futuAux' :: Difunctor f => CVCoalg' f a -> a -> (forall a. Trm f a)
           futuAux' coa x = run (x,[])
               where run (a,bs) = run' $ coa a bs
-                    run' (Node t) = Node $ fmap run' t
+                    run' (In t) = In $ fmap run' t
                     run' (Hole x) = run x
                     run' (Var p) = Var p
 
@@ -636,10 +636,10 @@ appAlgHom :: forall f g d. Difunctor g => Alg g d -> Hom f g -> Term f -> d
 {-# NOINLINE [1] appAlgHom #-}
 appAlgHom alg hom (Term t) = run t where
     run :: Trm f d -> d
-    run (Node t) = run' $ hom t
+    run (In t) = run' $ hom t
     run (Var a) = a
     run' :: Context g d (Trm f d) -> d
-    run' (Node t) = alg $ fmap run' t
+    run' (In t) = alg $ fmap run' t
     run' (Var a) = a
     run' (Hole x) = run x
 
@@ -650,11 +650,11 @@ appSigFunHom :: forall f g h. (Difunctor g)
 {-# NOINLINE [1] appSigFunHom #-}
 appSigFunHom f g = run where
     run :: CxtFun f h
-    run (Node t) = run' $ g t
+    run (In t) = run' $ g t
     run (Var a) = Var a
     run (Hole h) = Hole h
     run' :: Context g a (Cxt h' f a b) -> Cxt h' h a b
-    run' (Node t) = Node $ f $ fmap run' t
+    run' (In t) = In $ f $ fmap run' t
     run' (Var a) = Var a
     run' (Hole h) = run h
 
@@ -662,10 +662,10 @@ appAlgHomM :: forall m g f d. Ditraversable g m
               => AlgM m g d -> HomM m f g -> Term f -> m d
 appAlgHomM alg hom (Term t) = run t where
     run :: Trm f d -> m d
-    run (Node t) = run' =<< hom t
+    run (In t) = run' =<< hom t
     run (Var a) = return a
     run' :: Context g d (Trm f d) -> m d
-    run' (Node t) = alg =<< dimapM run' t
+    run' (In t) = alg =<< dimapM run' t
     run' (Var a) = return a
     run' (Hole x) = run x
 
@@ -673,11 +673,11 @@ appHomHomM :: forall m f g h. (Ditraversable g m, Difunctor h)
               => HomM m g h -> HomM m f g -> CxtFunM m f h
 appHomHomM f g = run where
 --    run :: CxtFunM m f h
-    run (Node t) = run' =<< g t
+    run (In t) = run' =<< g t
     run (Var a) = return $ Var a
     run (Hole h) = return $ Hole h
 --    run' :: Context g Any (Cxt h' f Any b) -> m (Cxt h' h Any b)
-    run' (Node t) = liftM appCxt $ f =<< dimapM run' t
+    run' (In t) = liftM appCxt $ f =<< dimapM run' t
     run' (Var a) = return $ Var a
     run' (Hole h) = run h
 
@@ -685,11 +685,11 @@ appSigFunHomM :: forall m f g h. Ditraversable g m
                  => SigFunM m g h -> HomM m f g -> CxtFunM m f h
 appSigFunHomM f g = run where
 --    run :: CxtFunM m f h
-    run (Node t) = run' =<< g t
+    run (In t) = run' =<< g t
     run (Var a) = return $ Var a
     run (Hole h) = return $ Hole h
 --    run' :: Context g Any (Cxt h' f Any b) -> m (Cxt h' h Any b)
-    run' (Node t) = liftM Node $ f =<< dimapM run' t
+    run' (In t) = liftM In $ f =<< dimapM run' t
     run' (Var a) = return $ Var a
     run' (Hole h) = run h
 

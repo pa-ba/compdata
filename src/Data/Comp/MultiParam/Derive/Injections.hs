@@ -72,7 +72,7 @@ injectn n = do
                               `appT` (tp' `appT` varT ivar)
             forallT (map PlainTV $ hvar : gvar : avar : bvar : ivar : fvars)
                     (sequence cxt) tp''
-          genDecl n = [| Term . $(varE $ mkName $ "inj" ++ show n) |]
+          genDecl n = [| In . $(varE $ mkName $ "inj" ++ show n) |]
 
 deepInjectn :: Int -> Q [Dec]
 deepInjectn n = do

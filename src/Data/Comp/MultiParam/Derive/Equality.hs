@@ -68,9 +68,9 @@ makeEqHD fname = do
                           | a == coArg -> [| peq $(varE x) $(varE y) |]
                       AppT (AppT ArrowT (AppT (VarT a) _)) _
                           | a == conArg ->
-                              [| do {v <- getVar;
-                                     nextVar (peq ($(varE x) $ varCoerce v) 
-                                                  ($(varE y) $ varCoerce v))} |]
+                              [| do {v <- getNom;
+                                     nextNom (peq ($(varE x) $ nomCoerce v) 
+                                                  ($(varE y) $ nomCoerce v))} |]
                       SigT tp' _ ->
                           eqHDB conArg coArg (x, y, tp')
                       _ ->

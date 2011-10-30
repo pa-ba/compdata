@@ -20,7 +20,7 @@
 
 module Examples.MultiParam.EvalI where
 
-import Data.Comp.MultiParam hiding (Const)
+import Data.Comp.MultiParam
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
 
@@ -41,35 +41,30 @@ type Sig = Const :+: Lam :+: App :+: Op
 -- Derive boilerplate code using Template Haskell
 $(derive [makeHDifunctor, makeEqHD, makeOrdHD, makeShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op])
-$(derive [makeHFoldable, makeHTraversable]
-         [''Const, ''App, ''Op])
 
 -- Term evaluation algebra
 class Eval f where
-  evalAlg :: Alg f I
-  evalAlg = I . evalAlg'
-  evalAlg' :: f I I i -> i
-  evalAlg' = unI . evalAlg
+  evalAlg :: f I I i -> i
 
 $(derive [liftSum] [''Eval])
 
 -- Lift the evaluation algebra to a catamorphism
 eval :: (HDifunctor f, Eval f) => Term f i -> i
-eval = unI . cata evalAlg
+eval = unI . cata (I . evalAlg)
 
 instance Eval Const where
-  evalAlg' (Const n) = n
+  evalAlg (Const n) = n
 
 instance Eval Op where
-  evalAlg' (Add (I x) (I y))  = x + y
-  evalAlg' (Mult (I x) (I y)) = x * y
+  evalAlg (Add (I x) (I y))  = x + y
+  evalAlg (Mult (I x) (I y)) = x * y
 
 instance Eval App where
-  evalAlg' (App (I f) (I x)) = f x
+  evalAlg (App (I f) (I x)) = f x
 
 instance Eval Lam where
-  evalAlg' (Lam f) = unI . f . I
+  evalAlg (Lam f) = unI . f . I
 
 -- Example: evalEx = 4
 evalEx :: Int
-evalEx = eval (iLam (\x -> x `iAdd` x) `iApp` iConst 2 :: Term Sig Int)
+evalEx = eval (Term (iLam (\x -> x `iAdd` x) `iApp` iConst 2) :: Term Sig Int)

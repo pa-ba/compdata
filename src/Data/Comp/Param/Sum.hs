@@ -103,7 +103,7 @@ $(liftM concat $ mapM projn [2..10])
 -- |Project the outermost layer of a term to a sub signature. If the signature
 -- @g@ is compound of /n/ atomic signatures, use @project@/n/ instead.
 project :: (g :<: f) => Cxt h f a b -> Maybe (g a (Cxt h f a b))
-project (Node t) = proj t
+project (In t) = proj t
 project (Hole _) = Nothing
 project (Var _) = Nothing
 
@@ -132,7 +132,7 @@ $(liftM concat $ mapM injn [2..10])
 -- |Inject a term where the outermost layer is a sub signature. If the signature
 -- @g@ is compound of /n/ atomic signatures, use @inject@/n/ instead.
 inject :: (g :<: f) => g a (Cxt h f a b) -> Cxt h f a b
-inject = Node . inj
+inject = In . inj
 
 -- |Inject a term where the outermost layer is a sub signature. If the signature
 -- @g@ is compound of /n/ atomic signatures, use @inject@/n/ instead.
@@ -161,7 +161,7 @@ $(liftM concat $ mapM deepInjectn [2..10])
 
 {-| This function injects a whole context into another context. -}
 injectCxt :: (Difunctor g, g :<: f) => Cxt h g a (Cxt h f a b) -> Cxt h f a b
-injectCxt (Node t) = inject $ fmap injectCxt t
+injectCxt (In t) = inject $ fmap injectCxt t
 injectCxt (Hole x) = x
 injectCxt (Var p) = Var p
 

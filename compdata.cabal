@@ -220,7 +220,6 @@ library
                         Data.Comp.MultiParam,
                         Data.Comp.MultiParam.Term,
                         Data.Comp.MultiParam.FreshM,
-                        Data.Comp.MultiParam.Any,
                         Data.Comp.MultiParam.Sum,
                         Data.Comp.MultiParam.HDifunctor,
                         Data.Comp.MultiParam.HDitraversable,

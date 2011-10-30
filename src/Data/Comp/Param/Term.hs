@@ -37,7 +37,7 @@ import Unsafe.Coerce (unsafeCoerce)
   "Data.Comp.Param.Difunctor". The third parameter is the type of parameters,
   and the fourth parameter is the type of holes. -}
 data Cxt :: * -> (* -> * -> *) -> * -> * -> * where
-            Node :: f a (Cxt h f a b) -> Cxt h f a b
+            In :: f a (Cxt h f a b) -> Cxt h f a b
             Hole :: b -> Cxt Hole f a b
             Var :: a -> Cxt h f a b
 
@@ -60,7 +60,7 @@ newtype Term f = Term{unTerm :: forall a. Trm f a}
 {-| Convert a difunctorial value into a context. -}
 simpCxt :: Difunctor f => f a b -> Cxt Hole f a b
 {-# INLINE simpCxt #-}
-simpCxt = Node . fmap Hole
+simpCxt = In . fmap Hole
 
 toCxt :: Difunctor f => Trm f a -> Cxt h f a b
 {-# INLINE toCxt #-}
