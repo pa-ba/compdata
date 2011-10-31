@@ -219,6 +219,7 @@ library
 
                         Data.Comp.MultiParam,
                         Data.Comp.MultiParam.Term,
+                        Data.Comp.MultiParam.MonadTrm,
                         Data.Comp.MultiParam.FreshM,
                         Data.Comp.MultiParam.Sum,
                         Data.Comp.MultiParam.HDifunctor,
