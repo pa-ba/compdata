@@ -49,7 +49,7 @@ deepThunk d = iter d [|thunkSequence|]
           iter 1 e = e
           iter n e = iter (n-1) ([|mapM|] `appE` e)
 
-{-| Derive an instance of 'Traversable' for a type constructor of any
+{-| Derive an instance of 'HaskellStrict' for a type constructor of any
   first-order kind taking at least one argument. -}
 makeHaskellStrict :: Name -> Q [Dec]
 makeHaskellStrict fname = do
@@ -66,11 +66,12 @@ makeHaskellStrict fname = do
      injectDecl' <- valD (varP 'thunkSequenceInject') (normalB [|inject|]) []
      return [InstanceD [] classType [sequenceDecl, injectDecl, injectDecl']]
    else do
-     constrs' <- P.mapM mkPatAndVars constrs_
-     sequenceDecl <- funD 'thunkSequence (map sequenceClause' constrs')
+     (sc',matchPat,ic') <- liftM unzip3 $ P.mapM mkClauses constrs_
      xn <- newName "x"
-     injectDecl <- funD 'thunkSequenceInject [clause [varP xn] (normalB ([|thunk|] `appE` caseE (varE xn) (map injectMatch constrs'))) []] 
-     injectDecl' <- funD 'thunkSequenceInject' (map injectClause' constrs')
+     doThunk <- [|thunk|]
+     let sequenceDecl = FunD 'thunkSequence sc'
+         injectDecl = FunD 'thunkSequenceInject [Clause [VarP xn] (NormalB (doThunk `AppE` CaseE (VarE xn) matchPat)) []] 
+         injectDecl' = FunD 'thunkSequenceInject' ic'
      return [InstanceD [] classType [sequenceDecl, injectDecl, injectDecl']]
       where isFarg fArg (constr, args) = (constr, map (containsStr fArg) args)
             containsStr _ (NotStrict,_) = []
@@ -81,66 +82,21 @@ makeHaskellStrict fname = do
             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
             mkCPat constr varNs = ConP constr $ map mkPat varNs
             mkPat = VarP
-            mkPatAndVars (constr, args) =
+            mkClauses (constr, args) =
                 do varNs <- newNames (length args) "x"
-                   return (conE constr, mkCPat constr varNs,
-                           any (not . null) args, map varE varNs, catMaybes $ filterVars args varNs (curry Just) (const Nothing))
-            sequenceClause' (con, pat,hasFargs,allVars, fvars) =
-                do let conAp = P.foldl appE con allVars
+                   let pat = mkCPat constr varNs
+                       fvars = catMaybes $ filterVars args varNs (curry Just) (const Nothing)
+                       allVars = map varE varNs
+                       conAp = P.foldl appE (conE constr) allVars
                        conBind (d, x) y = [| $(deepThunk d `appE` (varE x))  >>= $(lamE [varP x] y)|]
-                   body <- P.foldr conBind [|return $conAp|] fvars
-                   return $ Clause [pat] (NormalB body) []
-            injectMatch (con, pat,hasFargs,allVars, fvars) =
-                do let conAp = P.foldl appE con allVars
-                       conBind (d, x) y = [| $(deepThunk d `appE` (varE x))  >>= $(lamE [varP x] y)|]
-                   body <- case fvars of
+                   bodySC' <- P.foldr conBind [|return $conAp|] fvars
+                   let sc' = Clause [pat] (NormalB bodySC') []
+                   bodyMatch <- case fvars of
                              [] -> [|return (inject $conAp)|]
                              _ -> P.foldr conBind [|return (inject $conAp)|] fvars
-                   return $ Match pat (NormalB body) []
-            injectClause' (con, pat,hasFargs,allVars, fvars) =
-                do let conAp = P.foldl appE con allVars
-                       conBind (d, x) y = [| $(deepThunk d `appE` (varE x))  >>= $(lamE [varP x] y)|]
-                   body <- case fvars of
+                   let matchPat = Match pat (NormalB bodyMatch) []
+                   bodyIC' <- case fvars of
                              [] -> [|inject $conAp|]
                              _ -> [| thunk |] `appE` P.foldr conBind [|return (inject $conAp)|] fvars
-                   return $ Clause [pat] (NormalB body) []
-
-
--- {-| Derive an instance of 'Traversable' for a type constructor of any
---   first-order kind taking at least one argument. -}
--- makeHaskellStrict :: Name -> Q [Dec]
--- makeHaskellStrict fname = do
---   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
---   let fArg = VarT . tyVarBndrName $ last args
---       argNames = map (VarT . tyVarBndrName) (init args)
---       complType = foldl AppT (ConT name) argNames
---       classType = AppT (ConT ''HaskellStrict) complType
---   constrs_ <- P.mapM (liftM (isFarg fArg) . normalConStrExp) constrs
---   if foldr (\ y x -> x && P.all null (snd y)) True constrs_
---    then do
---      sequenceDecl' <- valD (varP 'thunkSequence') (normalB [|return|]) []
---      sequenceDecl <- valD (varP 'thunkSequence) (normalB [|inject|]) []
---      return [InstanceD [] classType [sequenceDecl', sequenceDecl]]
---    else do
---      constrs' <- P.mapM mkPatAndVars constrs_
---      sequenceDecl' <- funD 'thunkSequence' (map sequenceClause' constrs')
---      sequenceDecl <- funD 'thunkSequence (map sequenceClause constrs')
---      return [InstanceD [] classType [sequenceDecl', sequenceDecl]]
---       where isFarg fArg (constr, args) = (constr, map (containsStr fArg) args)
---             containsStr _ (NotStrict,_) = []
---             containsStr fArg (IsStrict,ty) = ty `containsType'` fArg
---             filterVar _ nonFarg [] x  = nonFarg x
---             filterVar farg _ [depth] x = farg depth x
---             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
---             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
---             mkCPat constr varNs = ConP constr $ map mkPat varNs
---             mkPat = VarP
---             mkPatAndVars (constr, args) =
---                 do varNs <- newNames (length args) "x"
---                    return (conE constr, mkCPat constr varNs,
---                            any (not . null) args, map varE varNs, catMaybes $ filterVars args varNs (curry Just) (const Nothing))
---             sequenceClause' (con, pat,hasFargs,allVars, fvars) =
---                 do let conAp = P.foldl appE con allVars
---                        conBind (d, x) y = [| $(deepThunk d `appE` (varE x))  >>= $(lamE [varP x] y)|]
---                    body <- P.foldr conBind [|return $conAp|] fvars
---                    return $ Clause [pat] (NormalB body) []
+                   let ic' = Clause [pat] (NormalB bodyIC') []
+                   return (sc', matchPat, ic')
