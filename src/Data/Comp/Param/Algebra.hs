@@ -124,7 +124,7 @@ free :: forall h f a b. Difunctor f
         => Alg f a -> (b -> a) -> Cxt h f a b -> a
 free f g = run
     where run :: Cxt h f a b -> a
-          run (In t) = f (fmap run t)
+          run (In t) = f (difmap run t)
           run (Hole x) = g x
           run (Var p) = p
 
@@ -133,7 +133,7 @@ cata :: forall f a. Difunctor f => Alg f a -> Term f -> a
 {-# NOINLINE [1] cata #-}
 cata f (Term t) = run t
     where run :: Trm f a -> a
-          run (In t) = f (fmap run t)
+          run (In t) = f (difmap run t)
           run (Var x) = x
 
 {-| A generalisation of 'cata' from terms over @f@ to contexts over @f@, where
@@ -144,7 +144,7 @@ cata' f = free f id
 
 {-| This function applies a whole context into another context. -}
 appCxt :: Difunctor f => Context f a (Cxt h f a b) -> Cxt h f a b
-appCxt (In t) = In (fmap appCxt t)
+appCxt (In t) = In (difmap appCxt t)
 appCxt (Hole x) = x
 appCxt (Var p) = Var p
 
@@ -197,7 +197,7 @@ appHom :: forall f g. (Difunctor f, Difunctor g) => Hom f g -> CxtFun f g
 {-# NOINLINE [1] appHom #-}
 appHom f = run where
     run :: CxtFun f g
-    run (In t) = appCxt (f (fmap run t))
+    run (In t) = appCxt (f (difmap run t))
     run (Hole x) = Hole x
     run (Var p) = Var p
 
@@ -212,7 +212,7 @@ appHom' f = run where
 
 fmapCxt :: Difunctor f => (b -> b') -> Cxt h f a b -> Cxt h f a b'
 fmapCxt f = run
-    where run (In t) = In $ fmap run t
+    where run (In t) = In $ difmap run t
           run (Var a) = Var a
           run (Hole b)  = Hole $ f b
 
@@ -234,7 +234,7 @@ compAlgSigFun alg sig = alg . sig
 appSigFun :: forall f g. (Difunctor f) => SigFun f g -> CxtFun f g
 {-# NOINLINE [1] appSigFun #-}
 appSigFun f = run
-    where run (In t) = In $ f $ fmap run t
+    where run (In t) = In $ f $ difmap run t
           run (Var x) = Var x
           run (Hole x) = Hole x
 -- implementation via term homomorphisms
@@ -246,7 +246,7 @@ appSigFun f = run
 appSigFun' :: forall f g. (Difunctor g) => SigFun f g -> CxtFun f g
 {-# NOINLINE [1] appSigFun' #-}
 appSigFun' f = run
-    where run (In t) = In $ fmap run $ f t
+    where run (In t) = In $ difmap run $ f t
           run (Var x) = Var x
           run (Hole x) = Hole x
 
@@ -338,7 +338,7 @@ homMD :: forall f g m. (Difunctor f, Difunctor g, Monad m)
          => HomMD m f g -> CxtFunM m f g
 homMD f = run 
     where run :: CxtFunM m f g
-          run (In t) = liftM appCxt (f (fmap run t))
+          run (In t) = liftM appCxt (f (difmap run t))
           run (Hole x) = return (Hole x)
           run (Var p) = return (Var p)
 
@@ -376,7 +376,7 @@ appSigFunMD :: forall f g m. (Ditraversable f m, Difunctor g)
                => SigFunMD m f g -> CxtFunM m f g
 appSigFunMD f = run 
     where run :: CxtFunM m f g
-          run (In t) = liftM In (f (fmap run t))
+          run (In t) = liftM In (f (difmap run t))
           run (Hole x) = return (Hole x)
           run (Var p) = return (Var p)
 
@@ -457,7 +457,7 @@ ana f x = Term $ anaAux f x
           anaAux f x = run (x,[])
               where run (a,bs) = case f a bs of
                                    Left p -> Var p
-                                   Right t -> In $ fmap run t
+                                   Right t -> In $ difmap run t
 
 {-| This type represents a monadic coalgebra over a difunctor @f@ and carrier
   @a@. -}
@@ -484,7 +484,7 @@ type RAlg f a = f a (Trm f a, a) -> a
 para :: forall f a. Difunctor f => RAlg f a -> Term f -> a
 para f (Term t) = run t
     where run :: Trm f a -> a
-          run (In t) = f $ fmap (\x -> (x, run x)) t
+          run (In t) = f $ difmap (\x -> (x, run x)) t
           run (Var x) = x
 
 {-| This type represents a monadic r-algebra over a difunctor @f@ and carrier
@@ -513,7 +513,7 @@ apo f x = Term (apoAux f x)
               where -- run :: (a,[(a,b)]) -> Trm f b
                 run (a,bs) = case coa a bs of
                                Left x -> Var x
-                               Right t -> In $ fmap run' t
+                               Right t -> In $ difmap run' t
                 -- run' :: Either (Trm f b) (a,[(a,b)]) -> Trm f b
                 run' (Left t) = t
                 run' (Right x) = run x
@@ -592,8 +592,8 @@ futu f x = Term (futuAux f x)
           futuAux coa x = run (x,[])
               where run (a,bs) = case coa a bs of
                                    Left p -> Var p
-                                   Right t -> In $ fmap run' t
-                    run' (In t) = In $ fmap run' t
+                                   Right t -> In $ difmap run' t
+                    run' (In t) = In $ difmap run' t
                     run' (Hole x) = run x
                     run' (Var p) = Var p
 
@@ -624,7 +624,7 @@ futu' f x = Term (futuAux' f x)
     where futuAux' :: Difunctor f => CVCoalg' f a -> a -> (forall a. Trm f a)
           futuAux' coa x = run (x,[])
               where run (a,bs) = run' $ coa a bs
-                    run' (In t) = In $ fmap run' t
+                    run' (In t) = In $ difmap run' t
                     run' (Hole x) = run x
                     run' (Var p) = Var p
 

@@ -19,6 +19,7 @@ module Data.Comp.Param.MonadTrm
 
 import Data.Maybe (fromJust)
 import Data.Comp.Param.Term
+import Control.Monad.Error.Class ()
 
 {-| Monads for which embedded @Trm@ values, which are parametric at top level,
   can be made into monadic @Term@ values, i.e. \"pushing the parametricity

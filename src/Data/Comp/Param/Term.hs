@@ -60,7 +60,7 @@ newtype Term f = Term{unTerm :: forall a. Trm f a}
 {-| Convert a difunctorial value into a context. -}
 simpCxt :: Difunctor f => f a b -> Cxt Hole f a b
 {-# INLINE simpCxt #-}
-simpCxt = In . fmap Hole
+simpCxt = In . difmap Hole
 
 toCxt :: Difunctor f => Trm f a -> Cxt h f a b
 {-# INLINE toCxt #-}

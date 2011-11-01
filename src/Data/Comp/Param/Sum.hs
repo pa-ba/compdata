@@ -161,7 +161,7 @@ $(liftM concat $ mapM deepInjectn [2..10])
 
 {-| This function injects a whole context into another context. -}
 injectCxt :: (Difunctor g, g :<: f) => Cxt h g a (Cxt h f a b) -> Cxt h f a b
-injectCxt (In t) = inject $ fmap injectCxt t
+injectCxt (In t) = inject $ difmap injectCxt t
 injectCxt (Hole x) = x
 injectCxt (Var p) = Var p
 
