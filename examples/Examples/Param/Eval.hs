@@ -22,7 +22,7 @@
 
 module Examples.Param.Eval where
 
-import Data.Comp.Param hiding (Const)
+import Data.Comp.Param
 import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
 
@@ -48,13 +48,13 @@ $(derive [makeDitraversable]
 
 -- Term evaluation algebra
 class Eval f v where
-  evalAlg :: Alg f (Term v)
+  evalAlg :: Alg f (Trm v a)
 
 $(derive [liftSum] [''Eval])
 
 -- Lift the evaluation algebra to a catamorphism
 eval :: (Difunctor f, Eval f v) => Term f -> Term v
-eval = cata evalAlg
+eval t = Term (cata evalAlg t)
 
 instance (Const :<: v) => Eval Const v where
   evalAlg (Const n) = iConst n
@@ -69,10 +69,10 @@ instance (Fun :<: v) => Eval App v where
 instance (Fun :<: v) => Eval Lam v where
   evalAlg (Lam f) = inject $ Fun f
 
-projC :: (Const :<: v) => Term v -> Int
+projC :: (Const :<: v) => Trm v a -> Int
 projC v = case project v of Just (Const n) -> n
 
-projF :: (Fun :<: v) => Term v -> Term v -> Term v
+projF :: (Fun :<: v) => Trm v a -> Trm v a -> Trm v a
 projF v = case project v of Just (Fun f) -> f
 
 -- |Evaluation of expressions to ground values.
@@ -81,4 +81,4 @@ evalG = deepProject . (eval :: Term Sig -> Term Value)
 
 -- Example: evalEx = Just (iConst 4)
 evalEx :: Maybe (Term GValue)
-evalEx = evalG $ iLam (\x -> x `iAdd` x) `iApp` iConst 2
+evalEx = evalG $ Term $ iLam (\x -> x `iAdd` x) `iApp` iConst 2

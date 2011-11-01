@@ -33,8 +33,8 @@ instance (HDifunctor f, HDifunctor g) => HDifunctor (f :+: g) where
     hdimap f g (Inl e) = Inl (hdimap f g e)
     hdimap f g (Inr e) = Inr (hdimap f g e)
 
-instance (HDitraversable f m a, HDitraversable g m a)
-    => HDitraversable (f :+: g) m a where
+instance (HDitraversable f m, HDitraversable g m)
+    => HDitraversable (f :+: g) m where
     hdimapM f (Inl e) = Inl `liftM` hdimapM f e
     hdimapM f (Inr e) = Inr `liftM` hdimapM f e
 
@@ -84,7 +84,7 @@ data (f :&: p) (a :: * -> *) (b :: * -> *) i = f a b i :&: p
 instance HDifunctor f => HDifunctor (f :&: p) where
     hdimap f g (v :&: c) = hdimap f g v :&: c
 
-instance HDitraversable f m a => HDitraversable (f :&: p) m a where
+instance HDitraversable f m => HDitraversable (f :&: p) m where
     hdimapM f (v :&: c) = liftM (:&: c) (hdimapM f v)
 
 {-| This class defines how to distribute an annotation over a sum of

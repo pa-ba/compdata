@@ -19,6 +19,7 @@
 --------------------------------------------------------------------------------
 module Data.Comp.MultiParam (
     module Data.Comp.MultiParam.Term
+  , module Data.Comp.MultiParam.MonadTrm
   , module Data.Comp.MultiParam.Algebra
   , module Data.Comp.MultiParam.HDifunctor
   , module Data.Comp.MultiParam.Sum
@@ -27,6 +28,7 @@ module Data.Comp.MultiParam (
     ) where
 
 import Data.Comp.MultiParam.Term
+import Data.Comp.MultiParam.MonadTrm
 import Data.Comp.MultiParam.Algebra
 import Data.Comp.MultiParam.HDifunctor
 import Data.Comp.MultiParam.Sum

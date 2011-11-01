@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, IncoherentInstances,
   FlexibleInstances, FlexibleContexts, GADTs, TypeSynonymInstances,
-  ScopedTypeVariables, TemplateHaskell #-}
+  ScopedTypeVariables, TemplateHaskell, Rank2Types #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Sum
@@ -84,11 +84,6 @@ module Data.Comp.Param.Sum
      deepInject9,
      deepInject10,
 
-     -- * Injections and Projections for Constants
-     injectConst,
-     injectConst2,
-     injectConst3,
-     projectConst,
      injectCxt,
      liftCxt
     ) where
@@ -108,7 +103,7 @@ $(liftM concat $ mapM projn [2..10])
 -- |Project the outermost layer of a term to a sub signature. If the signature
 -- @g@ is compound of /n/ atomic signatures, use @project@/n/ instead.
 project :: (g :<: f) => Cxt h f a b -> Maybe (g a (Cxt h f a b))
-project (Term t) = proj t
+project (In t) = proj t
 project (Hole _) = Nothing
 project (Var _) = Nothing
 
@@ -117,9 +112,9 @@ $(liftM concat $ mapM projectn [2..10])
 -- | Tries to coerce a term/context to a term/context over a sub-signature. If
 -- the signature @g@ is compound of /n/ atomic signatures, use
 -- @deepProject@/n/ instead.
-deepProject :: (Ditraversable g Maybe Any, g :<: f) => CxtFunM Maybe f g
+deepProject :: (Ditraversable g Maybe, g :<: f) => Term f -> Maybe (Term g)
 {-# INLINE deepProject #-}
-deepProject = appSigFunM' proj
+deepProject = appTSigFunM' proj
 
 $(liftM concat $ mapM deepProjectn [2..10])
 {-# INLINE deepProject2 #-}
@@ -137,7 +132,7 @@ $(liftM concat $ mapM injn [2..10])
 -- |Inject a term where the outermost layer is a sub signature. If the signature
 -- @g@ is compound of /n/ atomic signatures, use @inject@/n/ instead.
 inject :: (g :<: f) => g a (Cxt h f a b) -> Cxt h f a b
-inject = Term . inj
+inject = In . inj
 
 -- |Inject a term where the outermost layer is a sub signature. If the signature
 -- @g@ is compound of /n/ atomic signatures, use @inject@/n/ instead.
@@ -149,9 +144,9 @@ $(liftM concat $ mapM injectn [2..10])
 -- |Inject a term over a sub signature to a term over larger signature. If the
 -- signature @g@ is compound of /n/ atomic signatures, use @deepInject@/n/
 -- instead.
-deepInject :: (Difunctor g, g :<: f) => CxtFun g f
+deepInject :: (Difunctor g, g :<: f) => Term g -> Term f
 {-# INLINE deepInject #-}
-deepInject = appSigFun inj
+deepInject (Term t) = Term (appSigFun inj t)
 
 $(liftM concat $ mapM deepInjectn [2..10])
 {-# INLINE deepInject2 #-}
@@ -164,24 +159,9 @@ $(liftM concat $ mapM deepInjectn [2..10])
 {-# INLINE deepInject9 #-}
 {-# INLINE deepInject10 #-}
 
-injectConst :: (Difunctor g, g :<: f) => Const g -> Cxt h f Any a
-injectConst = inject . difmap (const undefined)
-
-injectConst2 :: (Difunctor f1, Difunctor f2, Difunctor g, f1 :<: g, f2 :<: g)
-             => Const (f1 :+: f2) -> Cxt h g Any a
-injectConst2 = inject2 . fmap (const undefined)
-
-injectConst3 :: (Difunctor f1, Difunctor f2, Difunctor f3, Difunctor g,
-                 f1 :<: g, f2 :<: g, f3 :<: g)
-             => Const (f1 :+: f2 :+: f3) -> Cxt h g Any a
-injectConst3 = inject3 . fmap (const undefined)
-
-projectConst :: (Difunctor g, g :<: f) => Cxt h f Any a -> Maybe (Const g)
-projectConst = fmap (difmap (const ())) . project
-
 {-| This function injects a whole context into another context. -}
 injectCxt :: (Difunctor g, g :<: f) => Cxt h g a (Cxt h f a b) -> Cxt h f a b
-injectCxt (Term t) = inject $ difmap injectCxt t
+injectCxt (In t) = inject $ fmap injectCxt t
 injectCxt (Hole x) = x
 injectCxt (Var p) = Var p
 

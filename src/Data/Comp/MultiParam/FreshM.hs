@@ -15,44 +15,44 @@
 module Data.Comp.MultiParam.FreshM
     (
      FreshM,
-     Var,
-     getVar,
-     nextVar,
-     varCoerce,
+     Nom,
+     getNom,
+     nextNom,
+     nomCoerce,
      evalFreshM
     ) where
 
 import Control.Monad.Reader
 
--- |Monad for generating fresh (abstract) variables.
+-- |Monad for generating fresh (abstract) nominals.
 newtype FreshM a = FreshM{unFreshM :: Reader [String] a}
     deriving Monad
 
--- |Abstract notion of a variable (the constructor is hidden).
-data Var i = Var String
+-- |Abstract notion of a nominal (the constructor is hidden).
+data Nom i = Nom String
              deriving Eq
 
-instance Show (Var i) where
-    show (Var x) = x
+instance Show (Nom i) where
+    show (Nom x) = x
 
-instance Ord (Var i) where
-    compare (Var x) (Var y) = compare x y
+instance Ord (Nom i) where
+    compare (Nom x) (Nom y) = compare x y
 
--- |Change the type tag of a variable.
-varCoerce :: Var i -> Var j
-varCoerce (Var x) = Var x
+-- |Change the type tag of a nominal.
+nomCoerce :: Nom i -> Nom j
+nomCoerce (Nom x) = Nom x
 
--- |Get the current variable.
-getVar :: FreshM (Var i)
-getVar = FreshM $ asks (Var . head)
+-- |Get the current nominal.
+getNom :: FreshM (Nom i)
+getNom = FreshM $ asks (Nom . head)
 
--- |Use the next available variable in the monadic computation.
-nextVar :: FreshM a -> FreshM a
-nextVar = FreshM . local tail . unFreshM
+-- |Use the next available nominal in the monadic computation.
+nextNom :: FreshM a -> FreshM a
+nextNom = FreshM . local tail . unFreshM
 
--- |Evaluate a computation that uses fresh variables.
+-- |Evaluate a computation that uses fresh nominals.
 evalFreshM :: FreshM a -> a
-evalFreshM (FreshM m) = runReader m vars
-    where baseVars = ['a'..'z']
-          vars = map (:[]) baseVars ++ vars' 1
-          vars' n = map (: show n) baseVars ++ vars' (n + 1)
+evalFreshM (FreshM m) = runReader m noms
+    where baseNoms = ['a'..'z']
+          noms = map (:[]) baseNoms ++ noms' 1
+          noms' n = map (: show n) baseNoms ++ noms' (n + 1)

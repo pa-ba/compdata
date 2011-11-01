@@ -142,6 +142,7 @@ extra-source-files:
   examples/Examples/Param/DesugarPos.hs
   examples/Examples/Param/Nominals.hs
   examples/Examples/Param/Graph.hs
+  examples/Examples/Param/Lambda.hs
   examples/Examples/MultiParam/Eval.hs
   examples/Examples/MultiParam/EvalI.hs
   examples/Examples/MultiParam/EvalM.hs
@@ -202,8 +203,8 @@ library
 
                         Data.Comp.Param,
                         Data.Comp.Param.Term,
+                        Data.Comp.Param.MonadTrm,
                         Data.Comp.Param.FreshM,
-                        Data.Comp.Param.Any,
                         Data.Comp.Param.Sum,
                         Data.Comp.Param.Difunctor,
                         Data.Comp.Param.Ditraversable,
@@ -218,8 +219,8 @@ library
 
                         Data.Comp.MultiParam,
                         Data.Comp.MultiParam.Term,
+                        Data.Comp.MultiParam.MonadTrm,
                         Data.Comp.MultiParam.FreshM,
-                        Data.Comp.MultiParam.Any,
                         Data.Comp.MultiParam.Sum,
                         Data.Comp.MultiParam.HDifunctor,
                         Data.Comp.MultiParam.HDitraversable,

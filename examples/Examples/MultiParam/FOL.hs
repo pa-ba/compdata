@@ -25,11 +25,11 @@
 
 module Examples.MultiParam.FOL where
 
-import Data.Comp.MultiParam hiding (Const,Var)
+import Data.Comp.MultiParam hiding (Var)
 import qualified Data.Comp.MultiParam as MP
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
-import Data.Comp.MultiParam.FreshM (getVar,nextVar)
+import Data.Comp.MultiParam.FreshM (getNom,nextNom)
 import Data.List (intercalate)
 import Data.Maybe
 import Control.Monad.State
@@ -112,13 +112,13 @@ instance ShowHD Impl where
       liftM2 (\x y -> "(" ++ x ++ ") -> (" ++ y ++ ")") f1 f2
 
 instance ShowHD Exists where
-  showHD (Exists f) = do x <- getVar
-                         b <- nextVar $ unK $ f x
+  showHD (Exists f) = do x <- getNom
+                         b <- nextNom $ unK $ f x
                          return $ "exists " ++ show x ++ ". " ++ b
 
 instance ShowHD Forall where
-  showHD (Forall f) = do x <- getVar
-                         b <- nextVar $ unK $ f x
+  showHD (Forall f) = do x <- getNom
+                         b <- nextNom $ unK $ f x
                          return $ "forall " ++ show x ++ ". " ++ b
 
 --------------------------------------------------------------------------------
@@ -129,7 +129,7 @@ type Input = Const :+: TT :+: FF :+: Atom :+: Not :+: Or :+: And :+:
              Impl :+: Exists :+: Forall
 
 foodFact :: Term Input TFormula
-foodFact =
+foodFact = Term $
   iExists (\p -> iAtom "Person" [p] `iAnd`
                  iForall (\f -> iAtom "Food" [f] `iImpl`
                                 iAtom "Eats" [p,f])) `iImpl`
@@ -159,7 +159,7 @@ instance ElimImp Impl where
   elimImpHom' (Impl f1 f2) = iNot f1 `iOr` f2
 
 elimImp :: Term Input :-> Term Stage1
-elimImp = appHom elimImpHom
+elimImp (Term t) = Term (appHom elimImpHom t)
 
 foodFact1 :: Term Stage1 TFormula
 foodFact1 = elimImp foodFact
@@ -203,11 +203,11 @@ instance Dualize Exists where
 instance Dualize Forall where
   dualizeHom (Forall f) = inject $ Exists f
 
-dualize :: Term Stage2 :-> Term Stage2
+dualize :: Trm Stage2 a :-> Trm Stage2 a
 dualize = appHom (dualizeHom . hfmap Hole)
 
 class PushNot f where
-  pushNotAlg :: Alg f (Term Stage2)
+  pushNotAlg :: Alg f (Trm Stage2 a)
 
 $(derive [liftSum] [''PushNot])
 
@@ -218,7 +218,7 @@ instance PushNot Not where
   pushNotAlg (Not f) = dualize f
 
 pushNotInwards :: Term Stage1 :-> Term Stage2
-pushNotInwards = cata pushNotAlg
+pushNotInwards t = Term (cata pushNotAlg t)
 
 foodFact2 :: Term Stage2 TFormula
 foodFact2 = pushNotInwards foodFact1
@@ -244,25 +244,25 @@ getUnique :: UniqueSupply -> (Unique, UniqueSupply)
 getUnique (UniqueSupply n l _) = (n,l)
 
 type Supply = State UniqueSupply
-type S = ReaderT [Term Stage4 TTerm] Supply
+type S a = ReaderT [Trm Stage4 a TTerm] Supply
 
-evalS :: S a -> [Term Stage4 TTerm] -> UniqueSupply -> a
+evalS :: S a b -> [Trm Stage4 a TTerm] -> UniqueSupply -> b
 evalS m env = evalState (runReaderT m env)
 
-fresh :: S Int
+fresh :: S a Int
 fresh = do supply <- get
            let (uniq,rest) = getUnique supply
            put rest
            return uniq
 
-freshes :: S UniqueSupply
+freshes :: S a UniqueSupply
 freshes = do supply <- get
              let (l,r) = splitUniqueSupply supply
              put r
              return l
 
 class Skolem f where
-  skolemAlg :: AlgM' S f (Term Stage4)
+  skolemAlg :: AlgM' (S a) f (Trm Stage4 a)
 
 $(derive [liftSum] [''Skolem])
 
@@ -300,7 +300,7 @@ instance Skolem Exists where
     getCompose $ f (iConst ("Skol" ++ show uniq) xs)
 
 skolemize :: Term Stage2 :-> Term Stage4
-skolemize f = evalState (runReaderT (cataM' skolemAlg f) []) initialUniqueSupply
+skolemize f = Term (evalState (runReaderT (cataM' skolemAlg f) []) initialUniqueSupply)
 
 foodFact4 :: Term Stage4 TFormula
 foodFact4 = skolemize foodFact2
@@ -312,7 +312,7 @@ foodFact4 = skolemize foodFact2
 type Stage5 = Const :+: Var :+: TT :+: FF :+: Atom :+: NAtom :+: Or :+: And
 
 class Prenex f where
-  prenexAlg :: AlgM' S f (Term Stage5)
+  prenexAlg :: AlgM' (S a) f (Trm Stage5 a)
 
 $(derive [liftSum] [''Prenex])
 
@@ -342,7 +342,7 @@ instance Prenex Forall where
                             getCompose $ f (iVar ('x' : show uniq))
 
 prenex :: Term Stage4 :-> Term Stage5
-prenex f = evalState (runReaderT (cataM' prenexAlg f) []) initialUniqueSupply
+prenex f = Term (evalState (runReaderT (cataM' prenexAlg f) []) initialUniqueSupply)
 
 foodFact5 :: Term Stage5 TFormula
 foodFact5 = prenex foodFact4
@@ -351,18 +351,12 @@ foodFact5 = prenex foodFact4
 -- Stage 6
 --------------------------------------------------------------------------------
 
-type Literal     = Term (Const :+: Var :+: Atom :+: NAtom)
-newtype Clause i = Clause {unClause :: [Literal i]} -- implicit disjunction
-newtype CNF i    = CNF {unCNF :: [Clause i]} -- implicit conjunction
-
-instance Show (Clause i) where
-  show c = intercalate " or " $ map show $ unClause c
-
-instance Show (CNF i) where
-  show c = intercalate "\n" $ map show $ unCNF c
+type Literal a     = Trm (Const :+: Var :+: Atom :+: NAtom) a
+newtype Clause a i = Clause {unClause :: [Literal a i]} -- implicit disjunction
+newtype CNF a i    = CNF {unCNF :: [Clause a i]} -- implicit conjunction
 
 class ToCNF f where
-  cnfAlg :: Alg f CNF
+  cnfAlg :: Alg f (CNF a)
 
 $(derive [liftSum] [''ToCNF])
 
@@ -394,38 +388,30 @@ instance ToCNF Or where
   cnfAlg (Or f1 f2) =
       CNF [Clause (x ++ y) | Clause x <- unCNF f1, Clause y <- unCNF f2]
 
-cnf :: Term Stage5 :-> CNF
+cnf :: Term Stage5 :-> CNF a
 cnf = cata cnfAlg
 
-foodFact6 :: CNF TFormula
+foodFact6 :: CNF a TFormula
 foodFact6 = cnf foodFact5
 
 --------------------------------------------------------------------------------
 -- Stage 7
 --------------------------------------------------------------------------------
 
-type T            = Const :+: Var :+: Atom :+: NAtom
-newtype IClause i = IClause ([Term T i], -- implicit conjunction
-                             [Term T i]) -- implicit disjunction
-newtype INF i     = INF [IClause i] -- implicit conjunction
+type T              = Const :+: Var :+: Atom :+: NAtom
+newtype IClause a i = IClause ([Trm T a i], -- implicit conjunction
+                               [Trm T a i]) -- implicit disjunction
+newtype INF a i     = INF [IClause a i] -- implicit conjunction
 
-instance Show (IClause i) where
-  show (IClause (cs,ds)) = let cs' = intercalate " and " $ map show cs
-                               ds' = intercalate " or " $ map show ds
-                           in "(" ++ cs' ++ ") -> (" ++ ds' ++ ")"
-
-instance Show (INF i) where
-  show (INF fs) = intercalate "\n" $ map show fs
-
-inf :: CNF TFormula -> INF TFormula
+inf :: CNF a TFormula -> INF a TFormula
 inf (CNF f) = INF $ map (toImpl . unClause) f
-    where toImpl :: [Literal TFormula] -> IClause TFormula
+    where --toImpl :: [Literal TFormula] -> IClause TFormula
           toImpl disj = IClause ([iAtom p t | NAtom p t <- mapMaybe proj1 disj],
                                  [inject t | t <- mapMaybe proj2 disj])
-          proj1 :: NatM Maybe (Term T) (NAtom Any (Term T))
+          proj1 :: NatM Maybe (Trm T a) (NAtom a (Trm T a))
           proj1 = project
-          proj2 :: NatM Maybe (Term T) (Atom Any (Term T))
+          proj2 :: NatM Maybe (Trm T a) (Atom a (Trm T a))
           proj2 = project
 
-foodFact7 :: INF TFormula
+foodFact7 :: INF a TFormula
 foodFact7 = inf foodFact6

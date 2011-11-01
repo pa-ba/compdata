@@ -36,7 +36,7 @@ instance Ord a => POrd (K a) where
 {-| Signature ordering. An instance @OrdHD f@ gives rise to an instance
   @Ord (Term f)@. -}
 class EqHD f => OrdHD f where
-    compareHD :: POrd a => f Var a i -> f Var a j -> FreshM Ordering
+    compareHD :: POrd a => f Nom a i -> f Nom a j -> FreshM Ordering
 
 {-| 'OrdHD' is propagated through sums. -}
 instance (OrdHD f, OrdHD g) => OrdHD (f :+: g) where
@@ -48,20 +48,20 @@ instance (OrdHD f, OrdHD g) => OrdHD (f :+: g) where
 {-| From an 'OrdHD' difunctor an 'Ord' instance of the corresponding term type
   can be derived. -}
 instance OrdHD f => OrdHD (Cxt h f) where
-    compareHD (Term e1) (Term e2) = compareHD e1 e2
+    compareHD (In e1) (In e2) = compareHD e1 e2
     compareHD (Hole h1) (Hole h2) = pcompare h1 h2
     compareHD (Var p1) (Var p2) = pcompare p1 p2
-    compareHD (Term _) _ = return LT
-    compareHD (Hole _) (Term _) = return GT
+    compareHD (In _) _ = return LT
+    compareHD (Hole _) (In _) = return GT
     compareHD (Hole _) (Var _) = return LT
     compareHD (Var _) _ = return GT
 
-instance POrd Var where
-    pcompare x y = return $ compare (varCoerce x) y
+instance POrd Nom where
+    pcompare x y = return $ compare (nomCoerce x) y
 
-instance (OrdHD f, POrd a) => POrd (Cxt h f Var a) where
+instance (OrdHD f, POrd a) => POrd (Cxt h f Nom a) where
     pcompare = compareHD
 
 {-| Ordering of terms. -}
 instance (HDifunctor f, OrdHD f) => Ord (Term f i) where
-    compare x y = evalFreshM $ compareHD (coerceCxt x) (coerceCxt y)
+    compare (Term x) (Term y) = evalFreshM $ compareHD x y

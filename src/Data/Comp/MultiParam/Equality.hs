@@ -37,7 +37,7 @@ instance Eq a => PEq (K a) where
   @Eq (Term f i)@. The equality test is performed inside the 'FreshM' monad for
   generating fresh identifiers. -}
 class EqHD f where
-    eqHD :: PEq a => f Var a i -> f Var a j -> FreshM Bool
+    eqHD :: PEq a => f Nom a i -> f Nom a j -> FreshM Bool
 
 {-| 'EqHD' is propagated through sums. -}
 instance (EqHD f, EqHD g) => EqHD (f :+: g) where
@@ -45,20 +45,20 @@ instance (EqHD f, EqHD g) => EqHD (f :+: g) where
     eqHD (Inr x) (Inr y) = eqHD x y
     eqHD _ _ = return False
 
-instance PEq Var where
-   peq x y = return $ varCoerce x == y
+instance PEq Nom where
+   peq x y = return $ nomCoerce x == y
 
 {-| From an 'EqHD' difunctor an 'Eq' instance of the corresponding term type can
   be derived. -}
 instance EqHD f => EqHD (Cxt h f) where
-    eqHD (Term e1) (Term e2) = eqHD e1 e2
+    eqHD (In e1) (In e2) = eqHD e1 e2
     eqHD (Hole h1) (Hole h2) = peq h1 h2
     eqHD (Var p1) (Var p2) = peq p1 p2
     eqHD _ _ = return False
 
-instance (EqHD f, PEq a) => PEq (Cxt h f Var a) where
+instance (EqHD f, PEq a) => PEq (Cxt h f Nom a) where
     peq = eqHD
 
 {-| Equality on terms. -}
 instance (HDifunctor f, EqHD f) => Eq (Term f i) where
-    (==) x y = evalFreshM $ eqHD (coerceCxt x) (coerceCxt y)
+    (==) (Term x) (Term y) = evalFreshM $ eqHD x y

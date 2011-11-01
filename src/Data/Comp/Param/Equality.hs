@@ -43,7 +43,7 @@ instance Eq a => PEq a where
   @Eq (Term f)@. The equality test is performed inside the 'FreshM' monad for
   generating fresh identifiers. -}
 class EqD f where
-    eqD :: PEq a => f Var a -> f Var a -> FreshM Bool
+    eqD :: PEq a => f Nom a -> f Nom a -> FreshM Bool
 
 {-| 'EqD' is propagated through sums. -}
 instance (EqD f, EqD g) => EqD (f :+: g) where
@@ -54,14 +54,14 @@ instance (EqD f, EqD g) => EqD (f :+: g) where
 {-| From an 'EqD' difunctor an 'Eq' instance of the corresponding term type can
   be derived. -}
 instance EqD f => EqD (Cxt h f) where
-    eqD (Term e1) (Term e2) = eqD e1 e2
+    eqD (In e1) (In e2) = eqD e1 e2
     eqD (Hole h1) (Hole h2) = peq h1 h2
     eqD (Var p1) (Var p2) = peq p1 p2
     eqD _ _ = return False
 
-instance (EqD f, PEq a) => PEq (Cxt h f Var a) where
+instance (EqD f, PEq a) => PEq (Cxt h f Nom a) where
     peq = eqD
 
 {-| Equality on terms. -}
 instance (Difunctor f, EqD f) => Eq (Term f) where
-    (==) x y = evalFreshM $ eqD (coerceCxt x) (coerceCxt y)
+    (==) (Term x) (Term y) = evalFreshM $ eqD x y

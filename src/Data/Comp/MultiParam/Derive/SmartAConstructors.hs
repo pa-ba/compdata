@@ -44,5 +44,5 @@ smartAConstructors fname = do
                     vars = map varE varNs
                     val = appE [|injectA $(varE varPr)|] $
                           appE [|inj . hdimap Var id|] $ foldl appE (conE name) vars
-                    function = [funD sname [clause pats (normalB [|Term $val|]) []]]
+                    function = [funD sname [clause pats (normalB [|In $val|]) []]]
                 sequence function

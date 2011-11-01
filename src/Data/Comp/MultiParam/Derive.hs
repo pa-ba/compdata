@@ -27,10 +27,6 @@ module Data.Comp.MultiParam.Derive
      module Data.Comp.MultiParam.Derive.Show,
      -- ** HDifunctor
      module Data.Comp.MultiParam.Derive.HDifunctor,
-     -- ** HFoldable
-     module Data.Comp.Multi.Derive.HFoldable,
-     -- ** HTraversable
-     module Data.Comp.Multi.Derive.HTraversable,
      -- ** Smart Constructors
      module Data.Comp.MultiParam.Derive.SmartConstructors,
      -- ** Smart Constructors w/ Annotations
@@ -44,8 +40,6 @@ import Data.Comp.MultiParam.Derive.Equality
 import Data.Comp.MultiParam.Derive.Ordering
 import Data.Comp.MultiParam.Derive.Show
 import Data.Comp.MultiParam.Derive.HDifunctor
-import Data.Comp.Multi.Derive.HFoldable
-import Data.Comp.Multi.Derive.HTraversable
 import Data.Comp.MultiParam.Derive.SmartConstructors
 import Data.Comp.MultiParam.Derive.SmartAConstructors
 import Data.Comp.MultiParam.Derive.LiftSum

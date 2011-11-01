@@ -49,7 +49,7 @@ instance Ord a => POrd a where
 {-| Signature ordering. An instance @OrdD f@ gives rise to an instance
   @Ord (Term f)@. -}
 class EqD f => OrdD f where
-    compareD :: POrd a => f Var a -> f Var a -> FreshM Ordering
+    compareD :: POrd a => f Nom a -> f Nom a -> FreshM Ordering
 
 {-| 'OrdD' is propagated through sums. -}
 instance (OrdD f, OrdD g) => OrdD (f :+: g) where
@@ -61,17 +61,17 @@ instance (OrdD f, OrdD g) => OrdD (f :+: g) where
 {-| From an 'OrdD' difunctor an 'Ord' instance of the corresponding term type
   can be derived. -}
 instance OrdD f => OrdD (Cxt h f) where
-    compareD (Term e1) (Term e2) = compareD e1 e2
+    compareD (In e1) (In e2) = compareD e1 e2
     compareD (Hole h1) (Hole h2) = pcompare h1 h2
     compareD (Var p1) (Var p2) = pcompare p1 p2
-    compareD (Term _) _ = return LT
-    compareD (Hole _) (Term _) = return GT
+    compareD (In _) _ = return LT
+    compareD (Hole _) (In _) = return GT
     compareD (Hole _) (Var _) = return LT
     compareD (Var _) _ = return GT
 
-instance (OrdD f, POrd a) => POrd (Cxt h f Var a) where
+instance (OrdD f, POrd a) => POrd (Cxt h f Nom a) where
     pcompare = compareD
 
 {-| Ordering of terms. -}
 instance (Difunctor f, OrdD f) => Ord (Term f) where
-    compare x y = evalFreshM $ compareD (coerceCxt x) (coerceCxt y)
+    compare (Term x) (Term y) = evalFreshM $ compareD x y

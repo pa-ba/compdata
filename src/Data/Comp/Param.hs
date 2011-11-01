@@ -17,6 +17,7 @@
 --------------------------------------------------------------------------------
 module Data.Comp.Param (
     module Data.Comp.Param.Term
+  , module Data.Comp.Param.MonadTrm
   , module Data.Comp.Param.Algebra
   , module Data.Comp.Param.Difunctor
   , module Data.Comp.Param.Sum
@@ -25,6 +26,7 @@ module Data.Comp.Param (
     ) where
 
 import Data.Comp.Param.Term
+import Data.Comp.Param.MonadTrm
 import Data.Comp.Param.Algebra
 import Data.Comp.Param.Difunctor
 import Data.Comp.Param.Sum

@@ -23,7 +23,7 @@ import Language.Haskell.TH hiding (Cxt)
 import Control.Monad (liftM)
 import Data.Comp.MultiParam.HDitraversable (HDitraversable)
 import Data.Comp.MultiParam.Term
-import Data.Comp.MultiParam.Algebra (CxtFunM, appSigFunM')
+import Data.Comp.MultiParam.Algebra (appTSigFunM')
 import Data.Comp.MultiParam.Ops ((:+:)(..), (:<:)(..))
 
 projn :: Int -> Q [Dec]
@@ -87,7 +87,7 @@ projectn n = do
           genDecl x n = [| case $(varE x) of
                              Hole _ -> Nothing
                              Var _ -> Nothing
-                             Term t -> $(varE $ mkName $ "proj" ++ show n) t |]
+                             In t -> $(varE $ mkName $ "proj" ++ show n) t |]
 
 deepProjectn :: Int -> Q [Dec]
 deepProjectn n = do
@@ -97,11 +97,12 @@ deepProjectn n = do
   sequence $ (sigD p $ genSig gvars) : d
     where genSig gvars = do
             let fvar = mkName "f"
+            let ivar = mkName "i"
             let cxt = map (\g -> classP ''(:<:) [varT g, varT fvar]) gvars
             let tp = foldl1 (\a g -> conT ''(:+:) `appT` g `appT` a)
                             (map varT gvars)
-            let cxt' = classP ''HDitraversable [tp, conT ''Maybe, conT ''Any]
-            let tp' = conT ''CxtFunM `appT` conT ''Maybe
-                                     `appT` varT fvar `appT` tp
-            forallT (map PlainTV $ fvar : gvars) (sequence $ cxt' : cxt) tp'
-          genDecl n = [| appSigFunM' $(varE $ mkName $ "proj" ++ show n) |]
+            let cxt' = classP ''HDitraversable [tp, conT ''Maybe]
+            let tp' = arrowT `appT` (conT ''Term `appT` varT fvar `appT` varT ivar)
+                             `appT` (conT ''Maybe `appT` (conT ''Term `appT` tp `appT` varT ivar))
+            forallT (map PlainTV $ fvar : ivar : gvars) (sequence $ cxt' : cxt) tp'
+          genDecl n = [| appTSigFunM' $(varE $ mkName $ "proj" ++ show n) |]

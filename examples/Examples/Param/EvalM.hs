@@ -22,16 +22,16 @@
 
 module Examples.Param.EvalM where
 
-import Data.Comp.Param hiding (Const)
+import Data.Comp.Param
 import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
 import Control.Monad ((<=<))
 
 -- Signatures for values and operators
-data Const a e = Const Int
-data Lam a e = Lam (a -> e) -- Note: not e -> e
-data App a e = App e e
-data Op a e = Add e e | Mult e e
+data Const a e  = Const Int
+data Lam a e    = Lam (a -> e) -- Note: not e -> e
+data App a e    = App e e
+data Op a e     = Add e e | Mult e e
 data FunM m a e = FunM (e -> m e) -- Note: not a -> m e
 
 -- Signature for the simple expression language
@@ -42,10 +42,8 @@ type Value = Const :+: FunM Maybe
 type GValue = Const
 
 -- Derive boilerplate code using Template Haskell
-$(derive [makeDifunctor, makeEqD, makeOrdD, makeShowD, smartConstructors]
-         [''Const, ''Lam, ''App, ''Op])
-$(derive [makeDitraversable]
-         [''Const, ''App, ''Op])
+$(derive [makeDifunctor, makeDitraversable, makeEqD, makeOrdD, makeShowD,
+          smartConstructors] [''Const, ''Lam, ''App, ''Op])
 
 -- Term evaluation algebra. Note that we cannot use @AlgM Maybe f (Term v)@
 -- because that would force @FunM@ to have the type @e -> e@ rather than
@@ -55,13 +53,13 @@ $(derive [makeDitraversable]
 -- abstraction is applied to a non-functional, whereas @(\x -> x x)(\y -> y)@
 -- will not.
 class EvalM f v where
-  evalAlgM :: Alg f (Maybe (Term v))
+  evalAlgM :: Alg f (Maybe (Trm v a))
 
 $(derive [liftSum] [''EvalM])
 
 -- Lift the evaluation algebra to a catamorphism
 evalM :: (Difunctor f, EvalM f v) => Term f -> Maybe (Term v)
-evalM = cata evalAlgM
+evalM t = trmM (cata evalAlgM t)
 
 instance (Const :<: v) => EvalM Const v where
   evalAlgM (Const n) = return $ iConst n
@@ -81,24 +79,22 @@ instance (FunM Maybe :<: v) => EvalM App v where
 instance (FunM Maybe :<: v) => EvalM Lam v where
   evalAlgM (Lam f) = return $ inject $ FunM $ f . return
 
-projC :: (Const :<: v) => Term v -> Maybe Int
-projC v = do Const n <- project v
-             return n
+projC :: (Const :<: v) => Trm v a -> Maybe Int
+projC v = do Const n <- project v; return n
 
-projF :: (FunM Maybe :<: v) => Term v -> Maybe (Term v -> Maybe (Term v))
-projF v = do FunM f <- project v
-             return f
+projF :: (FunM Maybe :<: v) => Trm v a -> Maybe (Trm v a -> Maybe (Trm v a))
+projF v = do FunM f <- project v; return f
 
 -- |Evaluation of expressions to ground values.
 evalMG :: Term Sig -> Maybe (Term GValue)
 evalMG = deepProject <=< (evalM :: Term Sig -> Maybe (Term Value))
 
--- Example: evalEx = Just (iConst 12) (3 * (2 + 2) = 12)
+-- Example: evalMEx = Just (iConst 12) (3 * (2 + 2) = 12)
 evalMEx :: Maybe (Term GValue)
-evalMEx = evalMG $ iLam (\x -> iLam $ \y -> y `iMult` (x `iAdd` x))
-                   `iApp` iConst 2 `iApp` iConst 3
+evalMEx = evalMG $ Term $ iLam (\x -> iLam $ \y -> y `iMult` (x `iAdd` x))
+                          `iApp` iConst 2 `iApp` iConst 3
 
--- Example: evalEx = Just (iConst 12) (3 * (2 + 2) = 12)
+-- Example: evalMEx' = Nothing
 evalMEx' :: Maybe (Term GValue)
-evalMEx' = evalMG $ iLam (\x -> iLam $ \y -> x `iMult` (x `iAdd` x))
-                   `iApp` iConst 2 `iApp` (iLam (\x -> x) `iAdd` iConst 2)
+evalMEx' = evalMG $ Term $ iLam (\x -> iLam $ \y -> x `iMult` (x `iAdd` x))
+                           `iApp` iConst 2 `iApp` (iLam (\x -> x) `iAdd` iConst 2)

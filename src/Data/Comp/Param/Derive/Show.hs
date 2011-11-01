@@ -27,7 +27,7 @@ import qualified Data.Traversable as T
 {-| Signature printing. An instance @ShowD f@ gives rise to an instance
   @Show (Term f)@. -}
 class ShowD f where
-    showD :: f Var (FreshM String) -> FreshM String
+    showD :: f Nom (FreshM String) -> FreshM String
 
 newtype Dummy = Dummy String
 
@@ -80,8 +80,8 @@ makeShowD fname = do
                           | a == coArg -> [| $(varE x) |]
                       AppT (AppT ArrowT (VarT a)) _
                           | a == conArg ->
-                              [| do {v <- getVar;
-                                     body <- nextVar ($(varE x) v);
+                              [| do {v <- getNom;
+                                     body <- nextNom ($(varE x) v);
                                      return $ "\\" ++ show v ++ " -> " ++ body} |]
                       SigT tp' _ ->
                           showDB conArg coArg (x, tp')

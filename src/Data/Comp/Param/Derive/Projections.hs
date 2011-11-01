@@ -23,7 +23,7 @@ import Language.Haskell.TH hiding (Cxt)
 import Control.Monad (liftM)
 import Data.Comp.Param.Ditraversable (Ditraversable)
 import Data.Comp.Param.Term
-import Data.Comp.Param.Algebra (CxtFunM, appSigFunM')
+import Data.Comp.Param.Algebra (appTSigFunM')
 import Data.Comp.Param.Ops ((:+:)(..), (:<:)(..))
 
 projn :: Int -> Q [Dec]
@@ -81,7 +81,7 @@ projectn n = do
           genDecl x n = [| case $(varE x) of
                              Hole _ -> Nothing
                              Var _ -> Nothing
-                             Term t -> $(varE $ mkName $ "proj" ++ show n) t |]
+                             In t -> $(varE $ mkName $ "proj" ++ show n) t |]
 
 deepProjectn :: Int -> Q [Dec]
 deepProjectn n = do
@@ -94,8 +94,8 @@ deepProjectn n = do
             let cxt = map (\g -> classP ''(:<:) [varT g, varT fvar]) gvars
             let tp = foldl1 (\a g -> conT ''(:+:) `appT` g `appT` a)
                             (map varT gvars)
-            let cxt' = classP ''Ditraversable [tp, conT ''Maybe, conT ''Any]
-            let tp' = conT ''CxtFunM `appT` conT ''Maybe
-                                     `appT` varT fvar `appT` tp
+            let cxt' = classP ''Ditraversable [tp, conT ''Maybe]
+            let tp' = arrowT `appT` (conT ''Term `appT` varT fvar)
+                             `appT` (conT ''Maybe `appT` (conT ''Term `appT` tp))
             forallT (map PlainTV $ fvar : gvars) (sequence $ cxt' : cxt) tp'
-          genDecl n = [| appSigFunM' $(varE $ mkName $ "proj" ++ show n) |]
+          genDecl n = [| appTSigFunM' $(varE $ mkName $ "proj" ++ show n) |]
