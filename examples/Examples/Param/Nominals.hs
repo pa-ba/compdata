@@ -13,7 +13,7 @@
 -- From nominals to parametric higher-order abstract syntax and back
 --
 -- The example illustrates how to convert a parse tree with explicit nominal
--- variables into an AST which uses parametric higher-order abstract syntax,
+-- variables into an AST that uses parametric higher-order abstract syntax,
 -- and back again. The example shows how we can easily convert object language
 -- binders to Haskell binders, without having to worry about capture avoidance.
 --
@@ -30,26 +30,26 @@ import Data.Maybe
 import qualified Data.Map as Map
 import Control.Monad.Reader
 
-type VarId   = String -- The type of nominals
-data Val a b = Const Int | Pair b b
-data Op a b  = Mult b b | Fst b | Snd b
-data Abs a b = Abs VarId b
-data Var a b = Var VarId -- Nominal
-data Lam a b = Lam VarId (a -> b) -- The VarId is the original nominal
-data App a b = App b b
-type SigB    = App :+: Op :+: Val -- The base signature
-type SigN    = Abs :+: Var :+: SigB -- The nominal signature
-type SigP    = Lam :+: SigB -- The PHOAS signature
+data Lam a b   = Lam (a -> b)
+data App a b   = App b b
+data Const a b = Const Int
+data Plus a b  = Plus b b
+type Nom       = String                 -- The type of nominals
+data NLam a b  = NLam Nom b
+data NVar a b  = NVar Nom
+type SigB      = App :+: Const :+: Plus
+type SigN      = NLam :+: NVar :+: SigB -- The nominal signature
+type SigP      = Lam :+: SigB           -- The PHOAS signature
 
 $(derive [makeDifunctor, makeDitraversable, makeShowD, makeEqD, smartConstructors]
-         [''Val, ''Op, ''Abs, ''Var, ''Lam, ''App])
+         [''Lam, ''App, ''Const, ''Plus, ''NLam, ''NVar])
 
 
 --------------------------------------------------------------------------------
 -- Nominal to PHOAS translation
 --------------------------------------------------------------------------------
 
-type M f a = Reader (Map.Map VarId (Trm f a))
+type M f a = Reader (Map.Map Nom (Trm f a))
 
 class N2PTrans f g where
   n2pAlg :: Alg f (M g a (Trm g a))
@@ -59,24 +59,24 @@ $(derive [liftSum] [''N2PTrans])
 n2p :: (Difunctor f, N2PTrans f g) => Term f -> Term g
 n2p t = Term $ runReader (cata n2pAlg t) Map.empty
 
-instance (Val :<: g) => N2PTrans Val g where
-  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
+instance (Lam :<: g) => N2PTrans NLam g where
+  n2pAlg (NLam x b) = do vars <- ask
+                         return $ iLam $ \y -> runReader b (Map.insert x y vars)
 
-instance (Op :<: g) => N2PTrans Op g where
-  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
+instance N2PTrans NVar g where
+  n2pAlg (NVar x) = liftM fromJust (asks (Map.lookup x))
 
 instance (App :<: g) => N2PTrans App g where
   n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
 
-instance (Lam :<: g) => N2PTrans Abs g where
-  n2pAlg (Abs x b) = do vars <- ask
-                        return $ iLam x $ \y -> runReader b (Map.insert x y vars)
+instance (Const :<: g) => N2PTrans Const g where
+  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
 
-instance N2PTrans Var g where
-  n2pAlg (Var x) = liftM fromJust (asks (Map.lookup x))
+instance (Plus :<: g) => N2PTrans Plus g where
+  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
 
 en :: Term SigN
-en = Term $ iAbs "a" $ iAbs "b" (iAbs "a" $ iVar "b") `iApp` iVar "a"
+en = Term $ iNLam "x1" $ iNLam "x2" (iNLam "x3" $ iNVar "x2") `iApp` iNVar "x1"
 
 ep :: Term SigP
 ep = n2p en
@@ -86,22 +86,31 @@ ep = n2p en
 -- PHOAS to nominal translation
 --------------------------------------------------------------------------------
 
+type M' = Reader [Nom]
+
 class P2NTrans f g where
-  p2nAlg :: Alg f (Trm g a)
+  p2nAlg :: Alg f (M' (Trm g a))
 
 $(derive [liftSum] [''P2NTrans])
 
 p2n :: (Difunctor f, P2NTrans f g) => Term f -> Term g
-p2n t = Term (cata p2nAlg t)
+p2n t = Term $ runReader (cata p2nAlg t) ['x' : show n | n <- [1..]]
 
-instance (Difunctor f, f :<: g) => P2NTrans f g where
-  p2nAlg = inject . dimap P.Var id -- default
+instance (NLam :<: g, NVar :<: g) => P2NTrans Lam g where
+  p2nAlg (Lam f) = do n:noms <- ask
+                      return $ iNLam n (runReader (f (return $ iNVar n)) noms)
 
-instance (Abs :<: g, Var :<: g) => P2NTrans Lam g where
-  p2nAlg (Lam x f) = iAbs x (f $ iVar x)
+instance (App :<: g) => P2NTrans App g where
+  p2nAlg = liftM inject . disequence . dimap (return . P.Var) id
+
+instance (Const :<: g) => P2NTrans Const g where
+  p2nAlg = liftM inject . disequence . dimap (return . P.Var) id
+
+instance (Plus :<: g) => P2NTrans Plus g where
+  p2nAlg = liftM inject . disequence . dimap (return . P.Var) id
 
 ep' :: Term SigP
-ep' = Term $ iLam "a" $ \a -> iLam "b" (\b -> (iLam "a" $ \a -> b)) `iApp` a
+ep' = Term $ iLam $ \a -> iLam (\b -> (iLam $ \a -> b)) `iApp` a
 
 en' :: Term SigN
 en' = p2n ep'
