@@ -182,6 +182,7 @@ library
                         Data.Comp.Automata,
                         Data.Comp.Automata.Product,
                         Data.Comp.Zippable,
+                        Data.Comp.Thunk,
 
                         Data.Comp.Multi,
                         Data.Comp.Multi.Term,
@@ -216,6 +217,7 @@ library
                         Data.Comp.Param.Show
                         Data.Comp.Param.Derive,
                         Data.Comp.Param.Desugar
+                        Data.Comp.Param.Thunk
 
                         Data.Comp.MultiParam,
                         Data.Comp.MultiParam.Term,
@@ -246,6 +248,7 @@ library
                         Data.Comp.Derive.Traversable,
                         Data.Comp.Derive.Injections,
                         Data.Comp.Derive.Projections,
+                        Data.Comp.Derive.HaskellStrict,
                         Data.Comp.Automata.Product.Derive,
 
                         Data.Comp.Multi.Derive.HFunctor,

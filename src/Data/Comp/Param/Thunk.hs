@@ -58,18 +58,18 @@ thunk = inject . Thunk
 -- | This function evaluates all thunks until a non-thunk node is
 -- found.
 whnf :: Monad m => TrmT m f a -> m (Either a (f a (TrmT m f a)))
-whnf (Term (Inl (Thunk m))) = m >>= whnf
-whnf (Term (Inr t)) = return $ Right t
+whnf (In (Inl (Thunk m))) = m >>= whnf
+whnf (In (Inr t)) = return $ Right t
 whnf (Var x) = return $ Left x
 
-whnf' :: Monad m => TermT m f -> m (TermT m f)
-whnf'  = liftM (either Var inject) . whnf
+whnf' :: Monad m => TrmT m f a -> m (TrmT m f a)
+whnf' =  liftM (either Var inject) . whnf
 
 -- | This function first evaluates the argument term into whnf via
 -- 'whnf' and then projects the top-level signature to the desired
 -- subsignature. Failure to do the projection is signalled as a
 -- failure in the monad.
-whnfPr :: (Monad m, g :<: f) => TermT m f -> m (g Any (TermT m f))
+whnfPr :: (Monad m, g :<: f) => TrmT m f a -> m (g a (TrmT m f a))
 whnfPr t = do res <- whnf t
               case res of
                 Left _  -> fail "cannot project variable"
@@ -80,18 +80,18 @@ whnfPr t = do res <- whnf t
 
 
 -- | This function evaluates all thunks.
-nf :: (Monad m, Ditraversable f m Any) => TermT m f -> m (Term f)
-nf = either (return . Var) (liftM Term . dimapM nf) <=< whnf
+nf :: (Monad m, Ditraversable f m) => TrmT m f a -> m (Trm f a)
+nf = either (return . Var) (liftM In . dimapM nf) <=< whnf
 
 -- | This function evaluates all thunks while simultaneously
 -- projecting the term to a smaller signature. Failure to do the
 -- projection is signalled as a failure in the monad as in 'whnfPr'.
-nfPr :: (Monad m, Ditraversable g m Any, g :<: f) => TermT m f -> m (Term g)
-nfPr = liftM Term . dimapM nfPr <=< whnfPr
+nfPr :: (Monad m, Ditraversable g m, g :<: f) => TrmT m f a -> m (Trm g a)
+nfPr = liftM In . dimapM nfPr <=< whnfPr
 
 
-evalStrict :: (Ditraversable g Maybe (TrmT m f a), 
-               Ditraversable g m (TrmT m f a), Monad m, g :<: f) => 
+evalStrict :: (Ditraversable g Maybe, 
+               Ditraversable g m, Monad m, g :<: f) => 
               (g (TrmT m f a) (f a (TrmT m f a)) -> TrmT m f a)
            -> g (TrmT m f a) (TrmT m f a) -> TrmT m f a
 evalStrict cont t = thunk $ do 
@@ -107,27 +107,10 @@ type AlgT m f g = Alg f (TermT m g)
 
 -- | This combinator makes the evaluation of the given functor
 -- application strict by evaluating all thunks of immediate subterms.
-strict :: (f :<: g, Ditraversable f m Any, Monad m) => f Any (TermT m g) -> TermT m g
+strict :: (f :<: g, Ditraversable f m, Monad m) => f a (TrmT m g a) -> TrmT m g a
 strict x = thunk $ liftM inject $ dimapM whnf' x
 
 -- | This combinator makes the evaluation of the given functor
 -- application strict by evaluating all thunks of immediate subterms.
-strict' :: (f :<: g, Ditraversable f m Any, Monad m) => f (TermT m g) (TermT m g) -> TermT m g
+strict' :: (f :<: g, Ditraversable f m, Monad m) => f (TrmT m g a) (TrmT m g a) -> TrmT m g a
 strict'  = strict . dimap Var id
-
--- -- | This type represents position representations for a functor
--- -- @f@. It is a function that extracts a number of components (of
--- -- polymorphic type @a@) from a functorial value and puts it into a
--- -- list.
--- type Pos f = forall a . Ord a => f a -> [a]
-
--- -- | This combinator is a variant of 'strict' that only makes a subset
--- -- of the arguments of a functor application strict. The first
--- -- argument of this combinator specifies which positions are supposed
--- -- to be strict.
--- strictAt :: (f :<: g, Traversable f, Zippable f, Monad m) => Pos f ->  f (TermT m g) -> TermT m g
--- strictAt p s = thunk $ liftM inject $ mapM run s'
---     where s'  = number s
---           isStrict e = Set.member e $ Set.fromList $ p s'
---           run e | isStrict e = whnf' $ unNumbered e
---                 | otherwise  = return $ unNumbered e
