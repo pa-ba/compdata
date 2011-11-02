@@ -101,7 +101,7 @@ deepProjectn n = do
             let cxt = map (\g -> classP ''(:<:) [varT g, varT fvar]) gvars
             let tp = foldl1 (\a g -> conT ''(:+:) `appT` g `appT` a)
                             (map varT gvars)
-            let cxt' = classP ''HDitraversable [tp, conT ''Maybe]
+            let cxt' = classP ''HDitraversable [tp]
             let tp' = arrowT `appT` (conT ''Term `appT` varT fvar `appT` varT ivar)
                              `appT` (conT ''Maybe `appT` (conT ''Term `appT` tp `appT` varT ivar))
             forallT (map PlainTV $ fvar : ivar : gvars) (sequence $ cxt' : cxt) tp'

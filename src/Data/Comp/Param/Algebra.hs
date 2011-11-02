@@ -154,12 +154,12 @@ type AlgM m f a = f a a -> m a
 
 {-| Convert a monadic algebra into an ordinary algebra with a monadic
   carrier. -}
-algM :: Ditraversable f m => AlgM m f a -> Alg f (m a)
+algM :: (Ditraversable f, Monad m) => AlgM m f a -> Alg f (m a)
 algM f x = disequence (dimap return id x) >>= f
 
 {-| Construct a monadic catamorphism for contexts over @f@ with holes of type
   @b@, from the given monadic algebra. -}
-freeM :: forall m h f a b. Ditraversable f m
+freeM :: forall m h f a b. (Ditraversable f, Monad m)
          => AlgM m f a -> (b -> m a) -> Cxt h f a b -> m a
 freeM f g = run
     where run :: Cxt h f a b -> m a
@@ -168,7 +168,7 @@ freeM f g = run
           run (Var p) = return p
 
 {-| Construct a monadic catamorphism from the given monadic algebra. -}
-cataM :: forall m f a. Ditraversable f m => AlgM m f a -> Term f -> m a
+cataM :: forall m f a. (Ditraversable f, Monad m) => AlgM m f a -> Term f -> m a
 {-# NOINLINE [1] cataM #-}
 cataM algm (Term t) = run t
     where run :: Trm f a  -> m a
@@ -177,7 +177,7 @@ cataM algm (Term t) = run t
 
 {-| A generalisation of 'cataM' from terms over @f@ to contexts over @f@, where
   the holes have the type of the monadic algebra carrier. -}
-cataM' :: forall m h f a. Ditraversable f m
+cataM' :: forall m h f a. (Ditraversable f, Monad m)
           => AlgM m f a -> Cxt h f a (m a) -> m a
 {-# NOINLINE [1] cataM' #-}
 cataM' f = freeM f id
@@ -296,7 +296,7 @@ homM f = liftM simpCxt . f
 
 -- | Apply a monadic term homomorphism recursively to a
 -- term/context. The monad is sequenced bottom-up.
-appHomM :: forall f g m. (Ditraversable f m, Difunctor g)
+appHomM :: forall f g m. (Ditraversable f, Difunctor g, Monad m)
            => HomM m f g -> CxtFunM m f g
 {-# NOINLINE [1] appHomM #-}
 appHomM f = run
@@ -306,28 +306,30 @@ appHomM f = run
           run (Var p) = return (Var p)
 
 {-| A restricted form of |appHomM| which only works for terms. -}
-appTHomM :: (Ditraversable f m, MonadTrm m, Difunctor g)
+appTHomM :: (Ditraversable f, MonadTrm m, Difunctor g)
             => HomM m f g -> Term f -> m (Term g)
 appTHomM f (Term t) = trmM (appHomM f t)
 
 
 -- | Apply a monadic term homomorphism recursively to a
 -- term/context. The monad is sequence top-down.
-appHomM' :: forall f g m. Ditraversable g m => HomM m f g -> CxtFunM m f g
+appHomM' :: forall f g m. (Ditraversable g, Monad m)
+            => HomM m f g -> CxtFunM m f g
 appHomM' f = run
     where run :: CxtFunM m f g
           run (In t)  = liftM appCxt . dimapMCxt run =<< f t
           run (Var p) = return (Var p)
           run (Hole x) = return (Hole x)
 
-dimapMCxt :: Ditraversable f m => (b -> m b') -> Cxt h f a b -> m (Cxt h f a b')
+dimapMCxt :: (Ditraversable f, Monad m)
+             => (b -> m b') -> Cxt h f a b -> m (Cxt h f a b')
 dimapMCxt f = run
               where run (In t) = liftM In $ dimapM run t
                     run (Var a)  = return $ Var a
                     run (Hole b) = liftM Hole (f b)
 
 {-| A restricted form of |appHomM'| which only works for terms. -}
-appTHomM' :: (Ditraversable g m, MonadTrm m, Difunctor g)
+appTHomM' :: (Ditraversable g, MonadTrm m, Difunctor g)
              => HomM m f g -> Term f -> m (Term g)
 appTHomM' f (Term t) = trmM (appHomM' f t)
             
@@ -343,7 +345,8 @@ homMD f = run
           run (Var p) = return (Var p)
 
 {-| This function applies a monadic signature function to the given context. -}
-appSigFunM :: forall m f g. Ditraversable f m => SigFunM m f g -> CxtFunM m f g
+appSigFunM :: forall m f g. (Ditraversable f, Monad m)
+              => SigFunM m f g -> CxtFunM m f g
 appSigFunM f = run
     where run :: CxtFunM m f g
           run (In t) = liftM In . f =<< dimapM run t
@@ -353,13 +356,14 @@ appSigFunM f = run
 --  appSigFunM f = appHomM $ hom' f
 
 {-| A restricted form of |appSigFunM| which only works for terms. -}
-appTSigFunM :: (Ditraversable f m, MonadTrm m, Difunctor g)
+appTSigFunM :: (Ditraversable f, MonadTrm m, Difunctor g)
                => SigFunM m f g -> Term f -> m (Term g)
 appTSigFunM f (Term t) = trmM (appSigFunM f t)
 
 -- | This function applies a monadic signature function to the given
 -- context. This is a 'top-down variant of 'appSigFunM'.
-appSigFunM' :: forall m f g. Ditraversable g m => SigFunM m f g -> CxtFunM m f g
+appSigFunM' :: forall m f g. (Ditraversable g, Monad m)
+               => SigFunM m f g -> CxtFunM m f g
 appSigFunM' f = run
     where run :: CxtFunM m f g
           run (In t) = liftM In . dimapM run =<< f t
@@ -367,12 +371,12 @@ appSigFunM' f = run
           run (Hole x) = return $ Hole x
 
 {-| A restricted form of |appSigFunM'| which only works for terms. -}
-appTSigFunM' :: (Ditraversable g m, MonadTrm m, Difunctor g)
+appTSigFunM' :: (Ditraversable g, MonadTrm m, Difunctor g)
                 => SigFunM m f g -> Term f -> m (Term g)
 appTSigFunM' f (Term t) = trmM (appSigFunM' f t)
 
 {-| This function applies a signature function to the given context. -}
-appSigFunMD :: forall f g m. (Ditraversable f m, Difunctor g)
+appSigFunMD :: forall f g m. (Ditraversable f, Difunctor g, Monad m)
                => SigFunMD m f g -> CxtFunM m f g
 appSigFunMD f = run 
     where run :: CxtFunM m f g
@@ -381,17 +385,17 @@ appSigFunMD f = run
           run (Var p) = return (Var p)
 
 {-| A restricted form of |appSigFunMD| which only works for terms. -}
-appTSigFunMD :: (Ditraversable f m, MonadTrm m, Difunctor g)
+appTSigFunMD :: (Ditraversable f, MonadTrm m, Difunctor g)
                 => SigFunMD m f g -> Term f -> m (Term g)
 appTSigFunMD f (Term t) = trmM (appSigFunMD f t)
 
 {-| Compose two monadic term homomorphisms. -}
-compHomM :: (Ditraversable g m, Difunctor h)
+compHomM :: (Ditraversable g, Difunctor h, Monad m)
             => HomM m g h -> HomM m f g -> HomM m f h
 compHomM f g = appHomM f <=< g
 
 {-| Compose two monadic term homomorphisms. -}
-compHomM' :: Ditraversable h m => HomM m g h -> HomM m f g -> HomM m f h
+compHomM' :: (Ditraversable h, Monad m) => HomM m g h -> HomM m f g -> HomM m f h
 compHomM' f g = appHomM' f <=< g
 
 {-{-| Compose two monadic term homomorphisms. -}
@@ -404,22 +408,24 @@ compHomSigFunM :: Monad m => HomM m g h -> SigFunM m f g -> HomM m f h
 compHomSigFunM f g = f <=< g-}
 
 {-| Compose two monadic term homomorphisms. -}
-compSigFunHomM :: Ditraversable g m => SigFunM m g h -> HomM m f g -> HomM m f h
+compSigFunHomM :: (Ditraversable g, Monad m)
+                  => SigFunM m g h -> HomM m f g -> HomM m f h
 compSigFunHomM f g = appSigFunM f <=< g
 
 {-| Compose two monadic term homomorphisms. -}
-compSigFunHomM' :: Ditraversable h m => SigFunM m g h -> HomM m f g -> HomM m f h
+compSigFunHomM' :: (Ditraversable h, Monad m)
+                   => SigFunM m g h -> HomM m f g -> HomM m f h
 compSigFunHomM' f g = appSigFunM' f <=< g
 
 {-| Compose a monadic algebra with a monadic term homomorphism to get a new
   monadic algebra. -}
-compAlgM :: Ditraversable g m => AlgM m g a -> HomM m f g -> AlgM m f a
+compAlgM :: (Ditraversable g, Monad m) => AlgM m g a -> HomM m f g -> AlgM m f a
 compAlgM alg talg = freeM alg return <=< talg
 
 
 {-| Compose a monadic algebra with a term homomorphism to get a new monadic
   algebra. -}
-compAlgM' :: Ditraversable g m => AlgM m g a -> Hom f g -> AlgM m f a
+compAlgM' :: (Ditraversable g, Monad m) => AlgM m g a -> Hom f g -> AlgM m f a
 compAlgM' alg talg = freeM alg return . talg
 
 {-| Compose a monadic algebra with a monadic signature function to get a new
@@ -464,7 +470,7 @@ ana f x = Term $ anaAux f x
 type CoalgM m f a = forall b. a -> [(a,b)] -> m (Either b (f b (a,[(a,b)])))
 
 {-| Construct a monadic anamorphism from the given monadic coalgebra. -}
-anaM :: forall a m f. (Ditraversable f m, Monad m)
+anaM :: forall a m f. (Ditraversable f, Monad m)
      => CoalgM m f a -> a -> forall a. m (Trm f a)
 anaM f x = run (x,[])
     where run (a,bs) = do c <- f a bs
@@ -491,7 +497,7 @@ para f (Term t) = run t
   @a@. -}
 type RAlgM m f a = f a (Trm f a, a) -> m a
 {-| Construct a monadic paramorphism from the given monadic r-algebra. -}
-paraM :: forall m f a. Ditraversable f m => RAlgM m f a -> Term f -> m a
+paraM :: forall m f a. (Ditraversable f, Monad m) => RAlgM m f a -> Term f -> m a
 paraM f (Term t) = run t
     where run :: Trm f a -> m a
           run (In t) = f =<< dimapM (\x -> run x >>= \y -> return (x, y)) t
@@ -525,7 +531,7 @@ apo f x = Term (apoAux f x)
 type RCoalgM m f a = forall b. a -> [(a,b)] -> m (Either b (f b (Either (Trm f b) (a,[(a,b)]))))
 
 {-| Construct a monadic apomorphism from the given monadic r-coalgebra. -}
-apoM :: forall f m a. Ditraversable f m
+apoM :: forall f m a. (Ditraversable f, Monad m)
         => RCoalgM m f a -> a -> forall a. m (Trm f a)
 apoM coa x = run (x,[]) 
     where run (a,bs) = do
@@ -562,7 +568,7 @@ histo alg = projectTip . cata run
 type CVAlgM m f a f' = f a (Trm f' a) -> m a
 
 {-| Construct a monadic histomorphism from the given monadic cv-algebra. -}
-histoM :: forall f f' m a. (Ditraversable f m, DistAnn f a f')
+histoM :: forall f f' m a. (Ditraversable f, Monad m, DistAnn f a f')
           => CVAlgM m f a f' -> Term f -> m a
 histoM alg (Term t) = liftM projectTip (run t)
     where run :: Trm f a -> m (Trm f' a)
@@ -603,7 +609,7 @@ type CVCoalgM m f a = forall b. a -> [(a,b)]
                     -> m (Either b (f b (Context f b (a,[(a,b)]))))
 
 {-| Construct a monadic futumorphism from the given monadic cv-coalgebra. -}
-futuM :: forall f a m. Ditraversable f m =>
+futuM :: forall f a m. (Ditraversable f, Monad m) =>
          CVCoalgM m f a -> a -> forall a. m (Trm f a)
 futuM coa x = run (x,[])
     where run (a,bs) = do c <- coa a bs
@@ -658,7 +664,7 @@ appSigFunHom f g = run where
     run' (Var a) = Var a
     run' (Hole h) = run h
 
-appAlgHomM :: forall m g f d. Ditraversable g m
+appAlgHomM :: forall m g f d. Ditraversable g
               => AlgM m g d -> HomM m f g -> Term f -> m d
 appAlgHomM alg hom (Term t) = run t where
     run :: Trm f d -> m d
@@ -669,7 +675,7 @@ appAlgHomM alg hom (Term t) = run t where
     run' (Var a) = return a
     run' (Hole x) = run x
 
-appHomHomM :: forall m f g h. (Ditraversable g m, Difunctor h)
+appHomHomM :: forall m f g h. (Ditraversable g, Difunctor h)
               => HomM m g h -> HomM m f g -> CxtFunM m f h
 appHomHomM f g = run where
 --    run :: CxtFunM m f h
@@ -681,7 +687,7 @@ appHomHomM f g = run where
     run' (Var a) = return $ Var a
     run' (Hole h) = run h
 
-appSigFunHomM :: forall m f g h. Ditraversable g m
+appSigFunHomM :: forall m f g h. Ditraversable g
                  => SigFunM m g h -> HomM m f g -> CxtFunM m f h
 appSigFunHomM f g = run where
 --    run :: CxtFunM m f h

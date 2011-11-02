@@ -25,5 +25,5 @@ import Data.Comp.MultiParam.HDifunctor
 
 {-| HDifunctors representing data structures that can be traversed from left to
   right. -}
-class (HDifunctor f, Monad m) => HDitraversable f m where
-    hdimapM :: NatM m b c -> NatM m (f a b) (f a c)
+class HDifunctor f => HDitraversable f where
+    hdimapM :: Monad m => NatM m b c -> NatM m (f a b) (f a c)

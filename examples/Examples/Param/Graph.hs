@@ -27,9 +27,11 @@ data N p a b = N p [b] -- Node
 data R a b = R (a -> b) -- Recursion
 data S a b = S (a -> b) b -- Sharing
 
-$(derive [makeDifunctor, makeDitraversable, makeShowD,
+$(derive [makeDifunctor, makeShowD,
           makeEqD, makeOrdD, smartConstructors]
          [''N, ''R, ''S])
+$(derive [makeDitraversable]
+         [''N])
 
 type Graph p = Term (N p :+: R :+: S)
 
@@ -67,34 +69,12 @@ instance SumG R where
 instance SumG S where
   sumGAlg (S f g) = f g
 
-class MapG f g a b where
-  mapGHom :: HomM (Reader (a -> b)) f g
-
-$(derive [liftSum] [''MapG])
-
-mapG :: (Ditraversable f (Reader (a -> b)), Difunctor g, MapG f g a b)
-        => (a -> b) -> Term f -> Term g
-mapG f (Term e) = Term (runReader (appHomM mapGHom e) f)
-
-instance (Difunctor f, f :<: g) => MapG f g a b where
-  mapGHom = return . inject . fmap Hole
-
-instance (N b :<: f) => MapG (N a) f a b where
-  mapGHom (N p ps) = do f <- ask; return $ iN (f p) (map Hole ps)
-
-g0 :: Graph Int
-g0 = Term $ iR (\x -> iS (\z -> iN (0 :: Int) [z,iR $ \y -> iN (1 :: Int) [y,z]])
-                         (iN (2 :: Int) [x]))
+g :: Graph Int
+g = Term $ iR (\x -> iS (\z -> iN (0 :: Int) [z,iR $ \y -> iN (1 :: Int) [y,z]])
+                        (iN (2 :: Int) [x]))
 
 f :: [Int]
-f = flatG g0
+f = flatG g
 
 n :: Int
-n = sumG g0
-
-g0' :: Graph String
-g0' = mapG (show :: Int -> String) g0
-
-g1 :: Graph Int
-g1 = Term $ iR (\a -> iS (\z -> iN (0 :: Int) [z,iR $ \y -> iN (1 :: Int) [y,z]])
-                         (iN (2 :: Int) [a]))
+n = sumG g

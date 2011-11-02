@@ -80,18 +80,17 @@ whnfPr t = do res <- whnf t
 
 
 -- | This function evaluates all thunks.
-nf :: (Monad m, Ditraversable f m) => TrmT m f a -> m (Trm f a)
+nf :: (Monad m, Ditraversable f) => TrmT m f a -> m (Trm f a)
 nf = either (return . Var) (liftM In . dimapM nf) <=< whnf
 
 -- | This function evaluates all thunks while simultaneously
 -- projecting the term to a smaller signature. Failure to do the
 -- projection is signalled as a failure in the monad as in 'whnfPr'.
-nfPr :: (Monad m, Ditraversable g m, g :<: f) => TrmT m f a -> m (Trm g a)
+nfPr :: (Monad m, Ditraversable g, g :<: f) => TrmT m f a -> m (Trm g a)
 nfPr = liftM In . dimapM nfPr <=< whnfPr
 
 
-evalStrict :: (Ditraversable g Maybe, 
-               Ditraversable g m, Monad m, g :<: f) => 
+evalStrict :: (Ditraversable g, Monad m, g :<: f) => 
               (g (TrmT m f a) (f a (TrmT m f a)) -> TrmT m f a)
            -> g (TrmT m f a) (TrmT m f a) -> TrmT m f a
 evalStrict cont t = thunk $ do 
@@ -107,10 +106,10 @@ type AlgT m f g = Alg f (TermT m g)
 
 -- | This combinator makes the evaluation of the given functor
 -- application strict by evaluating all thunks of immediate subterms.
-strict :: (f :<: g, Ditraversable f m, Monad m) => f a (TrmT m g a) -> TrmT m g a
+strict :: (f :<: g, Ditraversable f, Monad m) => f a (TrmT m g a) -> TrmT m g a
 strict x = thunk $ liftM inject $ dimapM whnf' x
 
 -- | This combinator makes the evaluation of the given functor
 -- application strict by evaluating all thunks of immediate subterms.
-strict' :: (f :<: g, Ditraversable f m, Monad m) => f (TrmT m g a) (TrmT m g a) -> TrmT m g a
+strict' :: (f :<: g, Ditraversable f, Monad m) => f (TrmT m g a) (TrmT m g a) -> TrmT m g a
 strict'  = strict . dimap Var id

@@ -60,5 +60,5 @@ desugarPosTest = DesugarPos.desugPEx == Term (
                                                         (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
                                                              DesugarPos.iAApp (DesugarPos.Pos 1 1) f (DesugarPos.iAApp (DesugarPos.Pos 1 1) x x))))
 nominalsTest = Nominals.en == Nominals.en' && Nominals.ep == Nominals.ep'
-graphTest = Graph.g0 == Graph.g1 && Graph.n == 5 && Graph.f == [0,2,1,2] && Graph.flatG Graph.g0' == ["0","2","1","2"]
+graphTest = Graph.g == Graph.g && Graph.n == 5 && Graph.f == [0,2,1,2]
 lambdaTest = Lambda.e' == Term ((Lambda.iLam (\a -> a)) `Lambda.iApp` (Lambda.iLam (\a -> a))) && Lambda.e1' == Term (Lambda.iLam (\a -> a `Lambda.iApp` Lambda.iLam (\b -> Lambda.iLam (\c -> b `Lambda.iApp` b `Lambda.iApp` c))))

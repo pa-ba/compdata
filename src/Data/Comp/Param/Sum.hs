@@ -112,7 +112,7 @@ $(liftM concat $ mapM projectn [2..10])
 -- | Tries to coerce a term/context to a term/context over a sub-signature. If
 -- the signature @g@ is compound of /n/ atomic signatures, use
 -- @deepProject@/n/ instead.
-deepProject :: (Ditraversable g Maybe, g :<: f) => Term f -> Maybe (Term g)
+deepProject :: (Ditraversable g, g :<: f) => Term f -> Maybe (Term g)
 {-# INLINE deepProject #-}
 deepProject = appTSigFunM' proj
 

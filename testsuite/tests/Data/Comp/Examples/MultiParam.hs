@@ -10,6 +10,7 @@ import qualified Examples.MultiParam.DesugarPos as DesugarPos
 import qualified Examples.MultiParam.FOL as FOL
 
 import Data.Comp.MultiParam
+import Data.Comp.MultiParam.FreshM (Nom)
 
 import Test.Framework
 import Test.Framework.Providers.QuickCheck2
@@ -30,8 +31,8 @@ tests = testGroup "Parametric Compositional Data Types" [
          testProperty "evalM" evalMTest,
          testProperty "evalAlgM" evalAlgMTest,
          testProperty "desugarEval" desugarEvalTest,
-         testProperty "desugarPos" desugarPosTest
---         testProperty "fol" folTest
+         testProperty "desugarPos" desugarPosTest,
+         testProperty "fol" folTest
         ]
 
 
@@ -52,7 +53,7 @@ desugarPosTest = DesugarPos.desugPEx ==
                  Term (DesugarPos.iAApp (DesugarPos.Pos 1 0)
                                         (DesugarPos.iALam (DesugarPos.Pos 1 0) $ \x -> DesugarPos.iAMult (DesugarPos.Pos 1 2) (DesugarPos.iAConst (DesugarPos.Pos 1 2) (-1)) x)
                                         (DesugarPos.iAConst (DesugarPos.Pos 1 1) 6))
-{-folTest = show FOL.foodFact7 == "(Person(x1) and Food(x2)) -> (Food(Skol2(x1)) or Person(Skol6(x2)))\n" ++
+folTest = show (FOL.foodFact7 :: FOL.INF Nom FOL.TFormula) == "(Person(x1) and Food(x2)) -> (Food(Skol2(x1)) or Person(Skol6(x2)))\n" ++
           "(Person(x1) and Food(x2)) -> (Food(Skol2(x1)) or Eats(Skol6(x2), x2))\n" ++
                                                                                         "(Person(x1) and Eats(x1, Skol2(x1)) and Food(x2)) -> (Person(Skol6(x2)))\n" ++
-                                                                                        "(Person(x1) and Eats(x1, Skol2(x1)) and Food(x2)) -> (Eats(Skol6(x2), x2))"-}
+                                                                                        "(Person(x1) and Eats(x1, Skol2(x1)) and Food(x2)) -> (Eats(Skol6(x2), x2))"

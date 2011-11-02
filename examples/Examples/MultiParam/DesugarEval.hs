@@ -60,7 +60,7 @@ type GValue = Const
 $(derive [makeHDifunctor, makeEqHD, makeOrdHD, makeShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op, ''IfThenElse, ''Sug])
 
-instance Monad m => HDitraversable Const m where
+instance HDitraversable Const where
   hdimapM _ (Const n) = return $ Const n
 
 instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, HDifunctor f)

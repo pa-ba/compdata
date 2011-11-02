@@ -41,8 +41,10 @@ type SigB      = App :+: Const :+: Plus
 type SigN      = NLam :+: NVar :+: SigB -- The nominal signature
 type SigP      = Lam :+: SigB           -- The PHOAS signature
 
-$(derive [makeDifunctor, makeDitraversable, makeShowD, makeEqD, smartConstructors]
+$(derive [makeDifunctor, makeShowD, makeEqD, smartConstructors]
          [''Lam, ''App, ''Const, ''Plus, ''NLam, ''NVar])
+$(derive [makeDitraversable]
+         [''App, ''Const, ''Plus, ''NLam, ''NVar])
 
 
 --------------------------------------------------------------------------------
@@ -63,17 +65,11 @@ instance (Lam :<: g) => N2PTrans NLam g where
   n2pAlg (NLam x b) = do vars <- ask
                          return $ iLam $ \y -> runReader b (Map.insert x y vars)
 
+instance (Ditraversable f, f :<: g) => N2PTrans f g where
+  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id -- default
+
 instance N2PTrans NVar g where
   n2pAlg (NVar x) = liftM fromJust (asks (Map.lookup x))
-
-instance (App :<: g) => N2PTrans App g where
-  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
-
-instance (Const :<: g) => N2PTrans Const g where
-  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
-
-instance (Plus :<: g) => N2PTrans Plus g where
-  n2pAlg = liftM inject . disequence . dimap (return . P.Var) id
 
 en :: Term SigN
 en = Term $ iNLam "x1" $ iNLam "x2" (iNLam "x3" $ iNVar "x2") `iApp` iNVar "x1"
@@ -96,18 +92,12 @@ $(derive [liftSum] [''P2NTrans])
 p2n :: (Difunctor f, P2NTrans f g) => Term f -> Term g
 p2n t = Term $ runReader (cata p2nAlg t) ['x' : show n | n <- [1..]]
 
+instance (Ditraversable f, f :<: g) => P2NTrans f g where
+  p2nAlg = liftM inject . disequence . dimap (return . P.Var) id -- default
+
 instance (NLam :<: g, NVar :<: g) => P2NTrans Lam g where
   p2nAlg (Lam f) = do n:noms <- ask
                       return $ iNLam n (runReader (f (return $ iNVar n)) noms)
-
-instance (App :<: g) => P2NTrans App g where
-  p2nAlg = liftM inject . disequence . dimap (return . P.Var) id
-
-instance (Const :<: g) => P2NTrans Const g where
-  p2nAlg = liftM inject . disequence . dimap (return . P.Var) id
-
-instance (Plus :<: g) => P2NTrans Plus g where
-  p2nAlg = liftM inject . disequence . dimap (return . P.Var) id
 
 ep' :: Term SigP
 ep' = Term $ iLam $ \a -> iLam (\b -> (iLam $ \a -> b)) `iApp` a

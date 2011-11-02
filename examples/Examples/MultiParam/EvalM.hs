@@ -53,7 +53,7 @@ type GValue = Const
 $(derive [makeHDifunctor, makeEqHD, makeOrdHD, makeShowHD, smartConstructors]
          [''Const, ''Lam, ''App, ''Op])
 
-instance Monad m => HDitraversable Const m where
+instance HDitraversable Const where
   hdimapM _ (Const n) = return $ Const n
 
 -- Term evaluation algebra.

@@ -30,8 +30,8 @@ data App a e = App e e
 type Sig     = Lam :+: App
 
 -- Derive boilerplate code using Template Haskell
-$(derive [makeDifunctor, makeDitraversable, makeEqD, makeOrdD, makeShowD,
-          smartConstructors] [''Lam, ''App])
+$(derive [makeDifunctor, makeEqD, makeOrdD, makeShowD, smartConstructors]
+         [''Lam, ''App])
 
 --------------------------------------------------------------------------------
 -- Parallel reduction

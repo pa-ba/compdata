@@ -81,7 +81,7 @@ hfmapCxt f = run
           run (Hole b) = Hole $ f b
 
 -- | This is an instance of 'hdimapM' for 'Cxt'.
-hdimapMCxt :: forall h f a b b' m . HDitraversable f m
+hdimapMCxt :: forall h f a b b' m . (HDitraversable f, Monad m)
           => NatM m b b' -> NatM m (Cxt h f a b) (Cxt h f a b')
 hdimapMCxt f = run
     where run :: NatM m (Cxt h f a b) (Cxt h f a b')

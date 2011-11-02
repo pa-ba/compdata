@@ -113,7 +113,7 @@ type AlgM m f a = NatM m (f a a) a
 
 {-| Construct a monadic catamorphism for contexts over @f@ with holes of type
   @b@, from the given monadic algebra. -}
-freeM :: forall m h f a b. (HDitraversable f m, Monad m)
+freeM :: forall m h f a b. (HDitraversable f, Monad m)
          => AlgM m f a -> NatM m b a -> NatM m (Cxt h f a b) a
 freeM f g = run
     where run :: NatM m (Cxt h f a b) a
@@ -122,7 +122,7 @@ freeM f g = run
           run (Var p) = return p
 
 {-| Construct a monadic catamorphism from the given monadic algebra. -}
-cataM :: forall m f a. (HDitraversable f m, Monad m)
+cataM :: forall m f a. (HDitraversable f, Monad m)
          => AlgM m f a -> NatM m (Term f) a
 {-# NOINLINE [1] cataM #-}
 cataM algm (Term t) = run t
@@ -241,7 +241,7 @@ homM :: (HDifunctor g, Monad m) => SigFun f g -> HomM m f g
 homM f = sigFunM $ hom f
 
 {-| Apply a monadic term homomorphism recursively to a term/context. -}
-appHomM :: forall f g m. (HDitraversable f m, HDifunctor g)
+appHomM :: forall f g m. (HDitraversable f, Monad m, HDifunctor g)
                => HomM m f g -> CxtFunM m f g
 {-# NOINLINE [1] appHomM #-}
 appHomM f = run
@@ -251,13 +251,14 @@ appHomM f = run
           run (Var p) = return (Var p)
 
 {-| A restricted form of |appHomM| which only works for terms. -}
-appTHomM :: (HDitraversable f m, MonadTrm m, HDifunctor g)
+appTHomM :: (HDitraversable f, MonadTrm m, HDifunctor g)
             => HomM m f g -> Term f i -> m (Term g i)
 appTHomM f (Term t) = trmM (appHomM f t)
 
 -- | Apply a monadic term homomorphism recursively to a
 -- term/context. This is a top-down variant of 'appHomM'.
-appHomM' :: forall f g m. HDitraversable g m => HomM m f g -> CxtFunM m f g
+appHomM' :: forall f g m. (HDitraversable g, Monad m)
+            => HomM m f g -> CxtFunM m f g
 {-# NOINLINE [1] appHomM' #-}
 appHomM' f = run
     where run :: CxtFunM m f g
@@ -266,12 +267,13 @@ appHomM' f = run
           run (Var p) = return (Var p)
 
 {-| A restricted form of |appHomM'| which only works for terms. -}
-appTHomM' :: (HDitraversable g m, MonadTrm m, HDifunctor g)
+appTHomM' :: (HDitraversable g, MonadTrm m, HDifunctor g)
              => HomM m f g -> Term f i -> m (Term g i)
 appTHomM' f (Term t) = trmM (appHomM' f t)
 
 {-| This function applies a monadic signature function to the given context. -}
-appSigFunM :: forall m f g. HDitraversable f m => SigFunM m f g -> CxtFunM m f g
+appSigFunM :: forall m f g. (HDitraversable f, Monad m)
+              => SigFunM m f g -> CxtFunM m f g
 appSigFunM f = run
     where run :: CxtFunM m f g
           run (In t)   = liftM In (f =<< hdimapM run t)
@@ -279,13 +281,14 @@ appSigFunM f = run
           run (Var p)  = return (Var p)
 
 {-| A restricted form of |appSigFunM| which only works for terms. -}
-appTSigFunM :: (HDitraversable f m, MonadTrm m, HDifunctor g)
+appTSigFunM :: (HDitraversable f, MonadTrm m, HDifunctor g)
                => SigFunM m f g -> Term f i -> m (Term g i)
 appTSigFunM f (Term t) = trmM (appSigFunM f t)
 
 -- | This function applies a monadic signature function to the given
 -- context. This is a top-down variant of 'appSigFunM'.
-appSigFunM' :: forall m f g. HDitraversable g m => SigFunM m f g -> CxtFunM m f g
+appSigFunM' :: forall m f g. (HDitraversable g, Monad m)
+               => SigFunM m f g -> CxtFunM m f g
 appSigFunM' f = run
     where run :: CxtFunM m f g
           run (In t)   = liftM In (hdimapM run =<< f t)
@@ -293,25 +296,23 @@ appSigFunM' f = run
           run (Var p)  = return (Var p)
 
 {-| A restricted form of |appSigFunM'| which only works for terms. -}
-appTSigFunM' :: (HDitraversable g m, MonadTrm m, HDifunctor g)
+appTSigFunM' :: (HDitraversable g, MonadTrm m, HDifunctor g)
                 => SigFunM m f g -> Term f i -> m (Term g i)
 appTSigFunM' f (Term t) = trmM (appSigFunM' f t)
 
 {-| Compose two monadic term homomorphisms. -}
-compHomM :: (HDitraversable g m, HDifunctor h, Monad m)
+compHomM :: (HDitraversable g, HDifunctor h, Monad m)
                 => HomM m g h -> HomM m f g -> HomM m f h
 compHomM f g = appHomM f <=< g
 
 {-| Compose a monadic algebra with a monadic term homomorphism to get a new
   monadic algebra. -}
-compAlgM :: (HDitraversable g m, Monad m)
-            => AlgM m g a -> HomM m f g -> AlgM m f a
+compAlgM :: (HDitraversable g, Monad m) => AlgM m g a -> HomM m f g -> AlgM m f a
 compAlgM alg talg = freeM alg return <=< talg
 
 {-| Compose a monadic algebra with a term homomorphism to get a new monadic
   algebra. -}
-compAlgM' :: (HDitraversable g m, Monad m) => AlgM m g a
-          -> Hom f g -> AlgM m f a
+compAlgM' :: (HDitraversable g, Monad m) => AlgM m g a -> Hom f g -> AlgM m f a
 compAlgM' alg talg = freeM alg return . talg
 
 {-| This function composes two monadic signature functions. -}

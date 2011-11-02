@@ -42,8 +42,9 @@ type Value = Const :+: FunM Maybe
 type GValue = Const
 
 -- Derive boilerplate code using Template Haskell
-$(derive [makeDifunctor, makeDitraversable, makeEqD, makeOrdD, makeShowD,
-          smartConstructors] [''Const, ''Lam, ''App, ''Op])
+$(derive [makeDifunctor, makeEqD, makeOrdD, makeShowD, smartConstructors]
+         [''Const, ''Lam, ''App, ''Op])
+$(derive [makeDitraversable] [''Const, ''App, ''Op])
 
 -- Term evaluation algebra. Note that we cannot use @AlgM Maybe f (Term v)@
 -- because that would force @FunM@ to have the type @e -> e@ rather than

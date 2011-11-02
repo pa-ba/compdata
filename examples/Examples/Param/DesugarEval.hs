@@ -47,8 +47,9 @@ type Value = Const :+: Fun
 type GValue = Const
 
 -- Derive boilerplate code using Template Haskell
-$(derive [makeDifunctor, makeDitraversable, makeEqD, makeOrdD, makeShowD,
-          smartConstructors] [''Const, ''Lam, ''App, ''Op, ''IfThenElse, ''Sug])
+$(derive [makeDifunctor, makeEqD, makeOrdD, makeShowD, smartConstructors]
+         [''Const, ''Lam, ''App, ''Op, ''IfThenElse, ''Sug])
+$(derive [makeDitraversable] [''Const, ''App, ''Op, ''IfThenElse])
 
 instance (Op :<: f, Const :<: f, Lam :<: f, App :<: f, Difunctor f)
   => Desugar Sug f where
