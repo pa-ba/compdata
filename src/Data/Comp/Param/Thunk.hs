@@ -24,7 +24,9 @@ module Data.Comp.Param.Thunk
     ,whnf'
     ,whnfPr
     ,nf
+    ,nfT
     ,nfPr
+    ,nfTPr
     ,evalStrict
     ,AlgT
     ,strict
@@ -80,8 +82,18 @@ whnfPr t = do res <- whnf t
 
 
 -- | This function evaluates all thunks.
+nfT :: (ParamFunctor m, Monad m, Ditraversable f) => TermT m f -> m (Term f)
+nfT t = termM $ nf $ unTerm  t
+
+-- | This function evaluates all thunks.
 nf :: (Monad m, Ditraversable f) => TrmT m f a -> m (Trm f a)
 nf = either (return . Var) (liftM In . dimapM nf) <=< whnf
+
+-- | This function evaluates all thunks while simultaneously
+-- projecting the term to a smaller signature. Failure to do the
+-- projection is signalled as a failure in the monad as in 'whnfPr'.
+nfTPr :: (ParamFunctor m, Monad m, Ditraversable g, g :<: f) => TermT m f -> m (Term g)
+nfTPr t = termM $ nfPr $ unTerm t
 
 -- | This function evaluates all thunks while simultaneously
 -- projecting the term to a smaller signature. Failure to do the

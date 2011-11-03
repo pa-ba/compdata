@@ -70,7 +70,6 @@ import Prelude hiding (sequence, mapM)
 import Control.Monad hiding (sequence, mapM)
 import Data.Functor.Compose -- Functor composition
 import Data.Comp.MultiParam.Term
-import Data.Comp.MultiParam.MonadTrm
 import Data.Comp.MultiParam.HDifunctor
 import Data.Comp.MultiParam.HDitraversable
 
@@ -251,9 +250,9 @@ appHomM f = run
           run (Var p) = return (Var p)
 
 {-| A restricted form of |appHomM| which only works for terms. -}
-appTHomM :: (HDitraversable f, MonadTrm m, HDifunctor g)
+appTHomM :: (HDitraversable f, Monad m, ParamFunctor m, HDifunctor g)
             => HomM m f g -> Term f i -> m (Term g i)
-appTHomM f (Term t) = trmM (appHomM f t)
+appTHomM f (Term t) = termM (appHomM f t)
 
 -- | Apply a monadic term homomorphism recursively to a
 -- term/context. This is a top-down variant of 'appHomM'.
@@ -267,9 +266,9 @@ appHomM' f = run
           run (Var p) = return (Var p)
 
 {-| A restricted form of |appHomM'| which only works for terms. -}
-appTHomM' :: (HDitraversable g, MonadTrm m, HDifunctor g)
+appTHomM' :: (HDitraversable g, Monad m, ParamFunctor m, HDifunctor g)
              => HomM m f g -> Term f i -> m (Term g i)
-appTHomM' f (Term t) = trmM (appHomM' f t)
+appTHomM' f (Term t) = termM (appHomM' f t)
 
 {-| This function applies a monadic signature function to the given context. -}
 appSigFunM :: forall m f g. (HDitraversable f, Monad m)
@@ -281,9 +280,9 @@ appSigFunM f = run
           run (Var p)  = return (Var p)
 
 {-| A restricted form of |appSigFunM| which only works for terms. -}
-appTSigFunM :: (HDitraversable f, MonadTrm m, HDifunctor g)
+appTSigFunM :: (HDitraversable f, Monad m, ParamFunctor m, HDifunctor g)
                => SigFunM m f g -> Term f i -> m (Term g i)
-appTSigFunM f (Term t) = trmM (appSigFunM f t)
+appTSigFunM f (Term t) = termM (appSigFunM f t)
 
 -- | This function applies a monadic signature function to the given
 -- context. This is a top-down variant of 'appSigFunM'.
@@ -296,9 +295,9 @@ appSigFunM' f = run
           run (Var p)  = return (Var p)
 
 {-| A restricted form of |appSigFunM'| which only works for terms. -}
-appTSigFunM' :: (HDitraversable g, MonadTrm m, HDifunctor g)
+appTSigFunM' :: (HDitraversable g, Monad m, ParamFunctor m, HDifunctor g)
                 => SigFunM m f g -> Term f i -> m (Term g i)
-appTSigFunM' f (Term t) = trmM (appSigFunM' f t)
+appTSigFunM' f (Term t) = termM (appSigFunM' f t)
 
 {-| Compose two monadic term homomorphisms. -}
 compHomM :: (HDitraversable g, HDifunctor h, Monad m)

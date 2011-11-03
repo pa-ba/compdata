@@ -23,12 +23,15 @@ module Data.Comp.Param.Term
      Trm,
      Context,
      simpCxt,
-     toCxt
+     toCxt,
+     ParamFunctor(..)
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
 import Data.Comp.Param.Difunctor
 import Unsafe.Coerce (unsafeCoerce)
+
+import Data.Maybe (fromJust)
 
 {-| This data type represents contexts over a signature. Contexts are terms
   containing zero or more holes, and zero or more parameters. The first
@@ -65,3 +68,34 @@ simpCxt = In . difmap Hole
 toCxt :: Difunctor f => Trm f a -> Cxt h f a b
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
+
+-- Param Functor
+
+{-| Monads for which embedded @Trm@ values, which are parametric at top level,
+  can be made into monadic @Term@ values, i.e. \"pushing the parametricity
+  inwards\". -}
+class ParamFunctor m where
+    termM :: (forall a. m (Trm f a)) -> m (Term f)
+
+coerceTermM :: ParamFunctor m => (forall a. m (Trm f a)) -> m (Term f)
+{-# INLINE coerceTermM #-}
+coerceTermM t = unsafeCoerce t
+
+{-# RULES
+    "termM/coerce" termM = coerceTermM
+ #-}
+
+instance ParamFunctor Maybe where
+    termM Nothing = Nothing
+    termM x       = Just (Term $ fromJust x)
+
+instance ParamFunctor (Either a) where
+    termM (Left x) = Left x
+    termM x        = Right (Term $ fromRight x)
+                             where fromRight :: Either a b -> b
+                                   fromRight (Right x) = x
+                                   fromRight _ = error "fromRight: Left"
+
+instance ParamFunctor [] where
+    termM [] = []
+    termM l  = Term (head l) : termM (tail l)

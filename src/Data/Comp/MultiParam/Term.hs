@@ -25,7 +25,8 @@ module Data.Comp.MultiParam.Term
      simpCxt,
      toCxt,
      hfmapCxt,
-     hdimapMCxt
+     hdimapMCxt,
+     ParamFunctor (..)
     ) where
 
 import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
@@ -33,6 +34,7 @@ import Data.Comp.MultiParam.HDifunctor
 import Data.Comp.MultiParam.HDitraversable
 import Control.Monad 
 import Unsafe.Coerce
+import Data.Maybe (fromJust)
 
 {-| This data type represents contexts over a signature. Contexts are terms
   containing zero or more holes, and zero or more parameters. The first
@@ -88,3 +90,34 @@ hdimapMCxt f = run
           run (In t)   = liftM In $ hdimapM run t
           run (Var a)  = return $ Var a
           run (Hole b) = liftM Hole (f b)
+          
+          
+          
+{-| Monads for which embedded @Trm@ values, which are parametric at top level,
+  can be made into monadic @Term@ values, i.e. \"pushing the parametricity
+  inwards\". -}
+class ParamFunctor m where
+    termM :: (forall a. m (Trm f a i)) -> m (Term f i)
+
+coerceTermM :: ParamFunctor m => (forall a. m (Trm f a i)) -> m (Term f i)
+{-# INLINE coerceTermM #-}
+coerceTermM t = unsafeCoerce t
+
+{-# RULES
+    "termM/coerce'" termM = coerceTermM
+ #-}
+
+instance ParamFunctor Maybe where
+    termM Nothing = Nothing
+    termM x       = Just (Term $ fromJust x)
+
+instance ParamFunctor (Either a) where
+    termM (Left x) = Left x
+    termM x        = Right (Term $ fromRight x)
+                             where fromRight :: Either a b -> b
+                                   fromRight (Right x) = x
+                                   fromRight _ = error "fromRight: Left"
+
+instance ParamFunctor [] where
+    termM [] = []
+    termM l  = Term (head l) : termM (tail l)

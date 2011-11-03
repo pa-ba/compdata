@@ -13,12 +13,10 @@
 
 module Examples.Param.Thunk where
 
-import Data.Comp.Param hiding (Const)
+import Data.Comp.Param
 import Data.Comp.Param.Show ()
 import Data.Comp.Param.Derive
 import Data.Comp.Param.Thunk
-
-import Control.Monad ((<=<),liftM)
 
 -- Signatures for values and operators
 data Const a e = Const Int
@@ -48,13 +46,13 @@ $(derive [makeDitraversable]
 -- abstraction is applied to a non-functional, whereas @(\x -> x x)(\y -> y)@
 -- will not.
 class EvalT f v where
-  evalAlgT :: Alg f (TermT Maybe v)
+  evalAlgT :: Alg f (TrmT Maybe v a)
 
 $(derive [liftSum] [''EvalT])
 
 -- Lift the evaluation algebra to a catamorphism
-evalT :: (Difunctor f, Ditraversable v Maybe Any, EvalT f v) => Term f -> Maybe (Term v)
-evalT = nf . cata evalAlgT
+evalT :: (Difunctor f, Ditraversable v, EvalT f v) => Term f -> Maybe (Term v)
+evalT t = nfT $ Term (cata evalAlgT t)
 
 -- instance (Ditraversable f Maybe Any, f :<: v) => EvalT f v where
 --   evalAlgT  = strict'
@@ -86,22 +84,23 @@ instance (Fun :<: v) => EvalT Lam v where
 
 -- |Evaluation of expressions to ground values.
 evalMG :: Term Sig -> Maybe (Term GValue)
-evalMG e = nfPr  (cata evalAlgT e :: TermT Maybe Value)
-
+evalMG e = termM $ nfPr $ eval e
+  where eval :: Term Sig -> TrmT Maybe Value a
+        eval = cata evalAlgT
 
 
 -- Example: evalEx = Just (iConst 12) (3 * (2 + 2) = 12)
 evalMEx :: Maybe (Term GValue)
-evalMEx = evalMG $ iLam (\x -> iLam $ \y -> y `iMult` (x `iAdd` x))
+evalMEx = evalMG $ Term $ iLam (\x -> iLam $ \y -> y `iMult` (x `iAdd` x))
                    `iApp` iConst 2 `iApp` iConst 3
 
 -- Example: type error
 evalMEx' :: Maybe (Term GValue)
-evalMEx' = evalMG $ iLam (\x -> iLam $ \y -> x `iMult` (x `iAdd` x))
+evalMEx' = evalMG $ Term $ iLam (\x -> iLam $ \y -> x `iMult` (x `iAdd` x))
                    `iApp` iConst 2 `iApp` (iLam (\x -> x) `iAdd` iConst 2)
 
 -- Example: non-termination
 evalMExY :: Maybe (Term GValue)
-evalMExY = evalMG $ iLam (\x -> iLam $ \y -> x `iMult` (x `iAdd` x))
+evalMExY = evalMG $ Term $ iLam (\x -> iLam $ \y -> x `iMult` (x `iAdd` x))
                    `iApp` iConst 2 `iApp` omega
     where omega = iLam (\x -> x `iApp` x) `iApp` iLam (\x -> x `iApp` x)

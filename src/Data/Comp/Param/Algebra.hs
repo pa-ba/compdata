@@ -110,13 +110,13 @@ module Data.Comp.Param.Algebra (
 import Prelude hiding (sequence, mapM)
 import Control.Monad hiding (sequence, mapM)
 import Data.Comp.Param.Term
-import Data.Comp.Param.MonadTrm
 import Data.Comp.Param.Ops
 import Data.Comp.Param.Difunctor
 import Data.Comp.Param.Ditraversable
 
 {-| This type represents an algebra over a difunctor @f@ and carrier @a@. -}
 type Alg f a = f a a -> a
+
 
 {-| Construct a catamorphism for contexts over @f@ with holes of type @b@, from
   the given algebra. -}
@@ -306,9 +306,9 @@ appHomM f = run
           run (Var p) = return (Var p)
 
 {-| A restricted form of |appHomM| which only works for terms. -}
-appTHomM :: (Ditraversable f, MonadTrm m, Difunctor g)
+appTHomM :: (Ditraversable f, ParamFunctor m, Monad m, Difunctor g)
             => HomM m f g -> Term f -> m (Term g)
-appTHomM f (Term t) = trmM (appHomM f t)
+appTHomM f (Term t) = termM (appHomM f t)
 
 
 -- | Apply a monadic term homomorphism recursively to a
@@ -329,9 +329,9 @@ dimapMCxt f = run
                     run (Hole b) = liftM Hole (f b)
 
 {-| A restricted form of |appHomM'| which only works for terms. -}
-appTHomM' :: (Ditraversable g, MonadTrm m, Difunctor g)
+appTHomM' :: (Ditraversable g, ParamFunctor m, Monad m, Difunctor g)
              => HomM m f g -> Term f -> m (Term g)
-appTHomM' f (Term t) = trmM (appHomM' f t)
+appTHomM' f (Term t) = termM (appHomM' f t)
             
 
 {-| This function constructs the unique monadic homomorphism from the
@@ -356,9 +356,9 @@ appSigFunM f = run
 --  appSigFunM f = appHomM $ hom' f
 
 {-| A restricted form of |appSigFunM| which only works for terms. -}
-appTSigFunM :: (Ditraversable f, MonadTrm m, Difunctor g)
+appTSigFunM :: (Ditraversable f, ParamFunctor m, Monad m, Difunctor g)
                => SigFunM m f g -> Term f -> m (Term g)
-appTSigFunM f (Term t) = trmM (appSigFunM f t)
+appTSigFunM f (Term t) = termM (appSigFunM f t)
 
 -- | This function applies a monadic signature function to the given
 -- context. This is a 'top-down variant of 'appSigFunM'.
@@ -371,9 +371,9 @@ appSigFunM' f = run
           run (Hole x) = return $ Hole x
 
 {-| A restricted form of |appSigFunM'| which only works for terms. -}
-appTSigFunM' :: (Ditraversable g, MonadTrm m, Difunctor g)
+appTSigFunM' :: (Ditraversable g, ParamFunctor m, Monad m, Difunctor g)
                 => SigFunM m f g -> Term f -> m (Term g)
-appTSigFunM' f (Term t) = trmM (appSigFunM' f t)
+appTSigFunM' f (Term t) = termM (appSigFunM' f t)
 
 {-| This function applies a signature function to the given context. -}
 appSigFunMD :: forall f g m. (Ditraversable f, Difunctor g, Monad m)
@@ -385,9 +385,9 @@ appSigFunMD f = run
           run (Var p) = return (Var p)
 
 {-| A restricted form of |appSigFunMD| which only works for terms. -}
-appTSigFunMD :: (Ditraversable f, MonadTrm m, Difunctor g)
+appTSigFunMD :: (Ditraversable f, ParamFunctor m, Monad m, Difunctor g)
                 => SigFunMD m f g -> Term f -> m (Term g)
-appTSigFunMD f (Term t) = trmM (appSigFunMD f t)
+appTSigFunMD f (Term t) = termM (appSigFunMD f t)
 
 {-| Compose two monadic term homomorphisms. -}
 compHomM :: (Ditraversable g, Difunctor h, Monad m)
