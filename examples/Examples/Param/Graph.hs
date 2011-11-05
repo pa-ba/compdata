@@ -27,11 +27,9 @@ data N p a b = N p [b] -- Node
 data R a b = R (a -> b) -- Recursion
 data S a b = S (a -> b) b -- Sharing
 
-$(derive [makeDifunctor, makeShowD,
-          makeEqD, makeOrdD, smartConstructors]
+$(derive [makeDifunctor, makeShowD, makeEqD, makeOrdD, smartConstructors]
          [''N, ''R, ''S])
-$(derive [makeDitraversable]
-         [''N])
+$(derive [makeDitraversable] [''N])
 
 type Graph p = Term (N p :+: R :+: S)
 

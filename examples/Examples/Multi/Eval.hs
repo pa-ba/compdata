@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs,
+  OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Multi.Eval
@@ -20,24 +21,8 @@
 module Examples.Multi.Eval where
 
 import Data.Comp.Multi
-import Data.Comp.Multi.Show ()
 import Data.Comp.Multi.Derive
-
--- Signature for values and operators
-data Value e l where
-  Const ::        Int -> Value e Int
-  Pair  :: e s -> e t -> Value e (s,t)
-data Op e l where
-  Add, Mult :: e Int -> e Int   -> Op e Int
-  Fst       ::          e (s,t) -> Op e s
-  Snd       ::          e (s,t) -> Op e t
-
--- Signature for the simple expression language
-type Sig = Op :+: Value
-
--- Derive boilerplate code using Template Haskell (GHC 7 needed)
-$(derive [makeHFunctor, makeShowHF, makeEqHF, makeOrdHF, smartConstructors] 
-         [''Value, ''Op])
+import Examples.Multi.Common
 
 -- Term evaluation algebra
 class Eval f v where
@@ -49,8 +34,8 @@ $(derive [liftSum] [''Eval])
 eval :: (HFunctor f, Eval f v) => Term f :-> Term v
 eval = cata evalAlg
 
-instance (Value :<: v) => Eval Value v where
-  evalAlg = inject
+instance (f :<: v) => Eval f v where
+  evalAlg = inject -- default instance
 
 instance (Value :<: v) => Eval Op v where
   evalAlg (Add x y)  = iConst $ projC x + projC y

@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances,
+  OverlappingInstances, Rank2Types, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Param.Lambda
@@ -11,10 +12,9 @@
 --
 -- Lambda calculus examples
 --
--- Parallel reduction and CPS translation for lambda calculus. The examples are
--- taken from Washburn and Weirich (Journal of Functional Programming, 2008
--- vol. 18 (01) pp. 87-140, http://dx.doi.org/10.1017/S0956796807006557).
---
+-- We define a pretty printer, a desugaring transformation, constant folding,
+-- and call-by-value interpreter for an extended variant of the simply typed
+-- lambda calculus.
 --
 --------------------------------------------------------------------------------
 
@@ -22,74 +22,110 @@ module Examples.Param.Lambda where
 
 import Data.Comp.Param
 import Data.Comp.Param.Show ()
+import Data.Comp.Param.Equality ()
+import Data.Comp.Param.Ordering ()
 import Data.Comp.Param.Derive
+import Data.Comp.Param.Desugar
 
--- Signatures for the lambda calculus
-data Lam a e = Lam (a -> e) -- Note: not e -> e
-data App a e = App e e
-type Sig     = Lam :+: App
+data Lam a b   = Lam (a -> b)
+data App a b   = App b b
+data Const a b = Const Int
+data Plus a b  = Plus b b
+data Let a b   = Let b (a -> b)
+data Err a b   = Err
 
--- Derive boilerplate code using Template Haskell
-$(derive [makeDifunctor, makeEqD, makeOrdD, makeShowD, smartConstructors]
-         [''Lam, ''App])
+type Sig       = Lam :+: App :+: Const :+: Plus :+: Let :+: Err
+type Sig'      = Lam :+: App :+: Const :+: Plus :+: Err
 
---------------------------------------------------------------------------------
--- Parallel reduction
---------------------------------------------------------------------------------
+$(derive [smartConstructors, makeDifunctor, makeShowD, makeEqD, makeOrdD]
+         [''Lam, ''App, ''Const, ''Plus, ''Let, ''Err])
 
-data Par f a = Par{par :: Trm f a, apply :: Trm f a -> Trm f a}
+-- * Pretty printing
+data Stream a = Cons a (Stream a)
 
-class ParRed f v where
-  parRedAlg :: Alg f (Par v a)
+class Pretty f where
+  prettyAlg :: Alg f (Stream String -> String)
 
-$(derive [liftSum] [''ParRed])
+$(derive [liftSum] [''Pretty])
 
-parRed :: (Difunctor f, ParRed f v) => Term f -> Term v
-parRed t = Term $ par $ cata parRedAlg t
+pretty :: (Difunctor f, Pretty f) => Term f -> String
+pretty t = cata prettyAlg t (nominals 1)
+    where nominals n = Cons ('x' : show n) (nominals (n + 1))
 
-instance (App :<: v) => ParRed App v where
-  parRedAlg (App x y) = Par{par = apply x (par y),
-                            apply = iApp (apply x (par y))}
+instance Pretty Lam where
+  prettyAlg (Lam f) (Cons x xs) = "(\\" ++ x ++ ". " ++ f (const x) xs ++ ")"
 
-instance (Lam :<: v, App :<: v) => ParRed Lam v where
-  parRedAlg (Lam f) = Par{par = iLam (par . f . var),
-                          apply = par . f . var}
-      where var :: (App :<: f) => Trm f a -> Par f a
-            var x = Par{par = x, apply = iApp x}
+instance Pretty App where
+  prettyAlg (App e1 e2) xs = "(" ++ e1 xs ++ " " ++ e2 xs ++ ")"
+
+instance Pretty Const where
+  prettyAlg (Const n) _ = show n
+
+instance Pretty Plus where
+  prettyAlg (Plus e1 e2) xs = "(" ++ e1 xs ++ " + " ++ e2 xs ++ ")"
+
+instance Pretty Err where
+  prettyAlg Err _ = "error"
+
+instance Pretty Let where
+  prettyAlg (Let e1 e2) (Cons x xs) = "let " ++ x ++ " = " ++ e1 xs ++ " in " ++ e2 (const x) xs
+
+-- * Desugaring
+instance (Difunctor f, App :<: f, Lam :<: f) => Desugar Let f where
+  desugHom' (Let e1 e2) = inject (Lam e2) `iApp` e1
+
+-- * Constant folding
+class Constf f g where
+  constfAlg :: forall a. Alg f (Trm g a)
+
+$(derive [liftSum] [''Constf])
+
+constf :: (Difunctor f, Constf f g) => Term f -> Term g
+constf t = Term (cata constfAlg t)
+
+instance (Difunctor f, f :<: g) => Constf f g where
+  constfAlg = inject . dimap Var id -- default instance
+
+instance (Plus :<: f, Const :<: f) => Constf Plus f where
+  constfAlg (Plus e1 e2) = case (project e1, project e2) of
+                             (Just (Const n),Just (Const m)) -> iConst (n + m)
+                             _                               -> e1 `iPlus` e2
+
+-- * Call-by-value evaluation
+data Monad m => Sem m = Fun (Sem m -> m (Sem m)) | Int Int
+
+class Monad m => Eval f m where
+  evalAlg :: Alg f (m (Sem m))
+
+$(derive [liftSum] [''Eval])
+
+eval :: (Difunctor f, Eval f m) => Term f -> m (Sem m)
+eval = cata evalAlg
+
+instance Monad m => Eval Lam m where
+  evalAlg (Lam f) = return (Fun (f . return))
+
+instance Monad m => Eval App m where
+  evalAlg (App mx my) = do x <- mx
+                           case x of Fun f -> f =<< my; _ -> fail "stuck"
+
+instance Monad m => Eval Const m where
+  evalAlg (Const n) = return (Int n)
+
+instance Monad m => Eval Plus m where
+  evalAlg (Plus mx my) = do x <- mx
+                            y <- my
+                            case (x,y) of (Int n,Int m) -> return (Int (n + m))
+                                          _             -> fail "stuck"
+
+instance Monad m => Eval Err m where
+  evalAlg Err = fail "error"
 
 e :: Term Sig
-e = Term $ iApp (iLam (\x -> iApp x x)) (iLam (\y -> y))
+e = Term (iLet (iConst 2) (\x -> (iLam (\y -> y `iPlus` x) `iApp` iConst 3)))
 
-e' :: Term Sig
-e' = parRed e
+e' :: Term Sig'
+e' = desugar e
 
-
---------------------------------------------------------------------------------
--- CPS translation
---------------------------------------------------------------------------------
-
-data CPS f a = CPS{cpsmeta :: (Trm f a -> Trm f a) -> Trm f a,
-                   cpsobj :: Trm f a -> Trm f a}
-
-class CPSTrans f v where
-  cpsTransAlg :: Alg f (CPS v a)
-
-$(derive [liftSum] [''CPSTrans])
-
-cpsTrans :: (Difunctor f, CPSTrans f v, Lam :<: v, App :<: v) => Term f -> Term v
-cpsTrans t = Term $ iLam (\a -> cpsmeta (cata cpsTransAlg t) (\m -> iApp a m))
-
-instance (App :<: v, Lam :<: v) => CPSTrans App v where
-  cpsTransAlg (App x y) = CPS{cpsmeta = \k -> appexp (iLam k),
-                              cpsobj = appexp}
-    where appexp c = cpsmeta x (\y1 -> cpsmeta y (\y2 -> iApp (iApp y1 y2) c))
-
-instance (Lam :<: v, App :<: v) => CPSTrans Lam v where
-  cpsTransAlg (Lam f) = value (iLam (iLam . cpsobj . f . value))
-    where value x = CPS{cpsmeta = \k -> k x, cpsobj = \c -> iApp c x}
-
-e1 :: Term Sig
-e1 = Term $ iLam (\x -> iApp x x)
-
-e1' :: Term Sig
-e1' = cpsTrans e1
+evalEx :: Maybe (Sem Maybe)
+evalEx = eval e'

@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs,
+  OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Multi.EvalM
@@ -20,26 +21,9 @@
 module Examples.Multi.EvalM where
 
 import Data.Comp.Multi
-import Data.Comp.Multi.Show ()
 import Data.Comp.Multi.Derive
 import Control.Monad (liftM)
-
--- Signature for values and operators
-data Value e l where
-  Const ::        Int -> Value e Int
-  Pair  :: e s -> e t -> Value e (s,t)
-data Op e l where
-  Add, Mult :: e Int -> e Int   -> Op e Int
-  Fst       ::          e (s,t) -> Op e s
-  Snd       ::          e (s,t) -> Op e t
-
--- Signature for the simple expression language
-type Sig = Op :+: Value
-
--- Derive boilerplate code using Template Haskell (GHC 7 needed)
-$(derive [makeHFunctor, makeHTraversable, makeHFoldable,
-          makeEqHF, makeOrdHF, makeShowHF, smartConstructors]
-         [''Value, ''Op])
+import Examples.Multi.Common
 
 -- Monadic term evaluation algebra
 class EvalM f v where
@@ -47,11 +31,11 @@ class EvalM f v where
 
 $(derive [liftSum] [''EvalM])
 
-evalM :: (HTraversable f, EvalM f v) => Term f l -> Maybe (Term v l)
+evalM :: (HTraversable f, EvalM f v) => Term f i -> Maybe (Term v i)
 evalM = cataM evalAlgM
 
-instance (Value :<: v) => EvalM Value v where
-  evalAlgM = return . inject
+instance (f :<: v) => EvalM f v where
+  evalAlgM = return . inject -- default instance
 
 instance (Value :<: v) => EvalM Op v where
   evalAlgM (Add x y)  = do n1 <- projC x

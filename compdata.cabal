@@ -130,25 +130,15 @@ extra-source-files:
   examples/Examples/EvalM.hs
   examples/Examples/Desugar.hs
   examples/Examples/Automata.hs,
+  examples/Examples/Multi/Common.hs
   examples/Examples/Multi/Eval.hs
   examples/Examples/Multi/EvalI.hs
   examples/Examples/Multi/EvalM.hs
-  examples/Examples/Multi/DesugarEval.hs
-  examples/Examples/Multi/DesugarPos.hs
-  examples/Examples/Param/Eval.hs
-  examples/Examples/Param/EvalM.hs
-  examples/Examples/Param/EvalAlgM.hs
-  examples/Examples/Param/DesugarEval.hs
-  examples/Examples/Param/DesugarPos.hs
+  examples/Examples/Multi/Desugar.hs
+  examples/Examples/Param/Lambda.hs
   examples/Examples/Param/Nominals.hs
   examples/Examples/Param/Graph.hs
-  examples/Examples/Param/Lambda.hs
-  examples/Examples/MultiParam/Eval.hs
-  examples/Examples/MultiParam/EvalI.hs
-  examples/Examples/MultiParam/EvalM.hs
-  examples/Examples/MultiParam/EvalAlgM.hs
-  examples/Examples/MultiParam/DesugarEval.hs
-  examples/Examples/MultiParam/DesugarPos.hs
+  examples/Examples/MultiParam/Lambda.hs
   examples/Examples/MultiParam/FOL.hs
 
 flag test

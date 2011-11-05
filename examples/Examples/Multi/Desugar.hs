@@ -3,45 +3,41 @@
   OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Examples.Multi.DesugarEval
+-- Module      :  Examples.Multi.Desugar
 -- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Desugaring + Expression Evaluation
+-- Desugaring
 --
 -- The example illustrates how to compose a term homomorphism and an algebra,
 -- exemplified via a desugaring term homomorphism and an evaluation algebra.
+-- The example also illustrates how to lift a term homomorphism to products,
+-- exemplified via a desugaring term homomorphism lifted to terms annotated with
+-- source position information.
 --
 --------------------------------------------------------------------------------
 
-module Examples.Multi.DesugarEval where
+module Examples.Multi.Desugar where
 
 import Data.Comp.Multi
-import Data.Comp.Multi.Show ()
 import Data.Comp.Multi.Derive
 import Data.Comp.Multi.Desugar
+import Examples.Multi.Common
+import Examples.Multi.Eval
 
--- Signature for values, operators, and syntactic sugar
-data Value e l where
-  Const ::        Int -> Value e Int
-  Pair  :: e s -> e t -> Value e (s,t)
-data Op e l where
-  Add, Mult :: e Int -> e Int   -> Op e Int
-  Fst       ::          e (s,t) -> Op e s
-  Snd       ::          e (s,t) -> Op e t
-data Sugar e l where
-  Neg  :: e Int   -> Sugar e Int
-  Swap :: e (s,t) -> Sugar e (t,s)
+-- Signature for syntactic sugar
+data Sugar a i where
+  Neg  :: a Int   -> Sugar a Int
+  Swap :: a (i,j) -> Sugar a (j,i)
 
 -- Source position information (line number, column number)
 data Pos = Pos Int Int
-           deriving Show
+           deriving (Eq, Show)
 
 -- Signature for the simple expression language
-type Sig = Op :+: Value
 type SigP = Op :&: Pos :+: Value :&: Pos
 
 -- Signature for the simple expression language, extended with syntactic sugar
@@ -49,40 +45,31 @@ type Sig' = Sugar :+: Op :+: Value
 type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 
 -- Derive boilerplate code using Template Haskell (GHC 7 needed)
-$(derive [makeHFunctor, makeHTraversable, makeHFoldable,
-          makeEqHF, makeShowHF, makeOrdHF, smartConstructors]
-         [''Value, ''Op, ''Sugar])
+$(derive [makeHFunctor, makeHTraversable, makeHFoldable, makeEqHF, makeShowHF,
+          makeOrdHF, smartConstructors, smartAConstructors]
+         [''Sugar])
 
 instance (Op :<: v, Value :<: v, HFunctor v) => Desugar Sugar v where
   desugHom' (Neg x)  = iConst (-1) `iMult` x
   desugHom' (Swap x) = iSnd x `iPair` iFst x
 
--- Term evaluation algebra
-class Eval f v where
-  evalAlg :: Alg f (Term v)
-
-$(derive [liftSum] [''Eval])
-
-instance (Value :<: v) => Eval Value v where
-  evalAlg = inject
-
-instance (Value :<: v) => Eval Op v where
-  evalAlg (Add x y)  = iConst $ projC x + projC y
-  evalAlg (Mult x y) = iConst $ projC x * projC y
-  evalAlg (Fst x)    = fst $ projP x
-  evalAlg (Snd x)    = snd $ projP x
-
-projC :: (Value :<: v) => Term v Int -> Int
-projC v = case project v of Just (Const n) -> n
-
-projP :: (Value :<: v) => Term v (s,t) -> (Term v s, Term v t)
-projP v = case project v of Just (Pair x y) -> (x,y)
-
 -- Compose the evaluation algebra and the desugaring homomorphism to an
 -- algebra
-eval :: Term Sig' :-> Term Value
-eval = cata (evalAlg `compAlg` (desugHom :: Hom Sig' Sig))
+evalDesug :: Term Sig' :-> Term Value
+evalDesug = cata (evalAlg `compAlg` (desugHom :: Hom Sig' Sig))
 
 -- Example: evalEx = iPair (iConst 2) (iConst 1)
 evalEx :: Term Value (Int,Int)
-evalEx = eval $ iSwap $ iPair (iConst 1) (iConst 2)
+evalEx = evalDesug $ iSwap $ iPair (iConst 1) (iConst 2)
+
+-- Example: desugPEx = iAPair (Pos 1 0)
+--                            (iASnd (Pos 1 0) (iAPair (Pos 1 1)
+--                                                     (iAConst (Pos 1 2) 1)
+--                                                     (iAConst (Pos 1 3) 2)))
+--                            (iAFst (Pos 1 0) (iAPair (Pos 1 1)
+--                                                     (iAConst (Pos 1 2) 1)
+--                                                     (iAConst (Pos 1 3) 2)))
+desugPEx :: Term SigP (Int,Int)
+desugPEx = desugarA (iASwap (Pos 1 0) (iAPair (Pos 1 1) (iAConst (Pos 1 2) 1)
+                                                        (iAConst (Pos 1 3) 2))
+                     :: Term SigP' (Int,Int))

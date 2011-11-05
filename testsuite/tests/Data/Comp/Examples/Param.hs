@@ -1,14 +1,8 @@
 {-# LANGUAGE TypeOperators #-}
 module Data.Comp.Examples.Param where
 
-import qualified Examples.Param.Eval as Eval
-import qualified Examples.Param.EvalM as EvalM
-import qualified Examples.Param.EvalAlgM as EvalAlgM
-import qualified Examples.Param.DesugarEval as DesugarEval
-import qualified Examples.Param.DesugarPos as DesugarPos
-import qualified Examples.Param.Nominals as Nominals
-import qualified Examples.Param.Graph as Graph
-import qualified Examples.Param.Lambda as Lambda
+import Examples.Param.Nominals as Nominals
+import Examples.Param.Graph as Graph
 
 import Data.Comp.Param
 
@@ -26,14 +20,8 @@ import Test.Utils
 --------------------------------------------------------------------------------
 
 tests = testGroup "Parametric Compositional Data Types" [
-         testProperty "eval" evalTest,
-         testProperty "evalM" evalMTest,
-         testProperty "evalAlgM" evalAlgMTest,
-         testProperty "desugarEval" desugarEvalTest,
-         testProperty "desugarPos" desugarPosTest,
          testProperty "nominals" nominalsTest,
-         testProperty "graph" graphTest,
-         testProperty "lambda" lambdaTest
+         testProperty "graph" graphTest
         ]
 
 
@@ -46,19 +34,5 @@ instance (EqD f, PEq p) => EqD (f :&: p) where
                                      b2 <- eqD v1 v2
                                      return $ b1 && b2
 
-evalTest = Eval.evalEx == Just (Term $ Eval.iConst 4)
-evalMTest = EvalM.evalMEx == Just (Term $ EvalM.iConst 12)
-evalAlgMTest = EvalAlgM.evalMEx == Just (Term $ EvalAlgM.iConst 5)
-desugarEvalTest = DesugarEval.evalEx == Just (Term $ DesugarEval.iConst 720)
-desugarPosTest = DesugarPos.desugPEx == Term (
-                 DesugarPos.iAApp (DesugarPos.Pos 1 0)
-                                  (DesugarPos.iALam (DesugarPos.Pos 1 0) id)
-                                  (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \f ->
-                                       DesugarPos.iAApp (DesugarPos.Pos 1 1)
-                                                        (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
-                                                             DesugarPos.iAApp (DesugarPos.Pos 1 1) f (DesugarPos.iAApp (DesugarPos.Pos 1 1) x x))
-                                                        (DesugarPos.iALam (DesugarPos.Pos 1 1) $ \x ->
-                                                             DesugarPos.iAApp (DesugarPos.Pos 1 1) f (DesugarPos.iAApp (DesugarPos.Pos 1 1) x x))))
-nominalsTest = Nominals.en == Nominals.en' && Nominals.ep == Nominals.ep'
-graphTest = Graph.g == Graph.g && Graph.n == 5 && Graph.f == [0,2,1,2]
-lambdaTest = Lambda.e' == Term ((Lambda.iLam (\a -> a)) `Lambda.iApp` (Lambda.iLam (\a -> a))) && Lambda.e1' == Term (Lambda.iLam (\a -> a `Lambda.iApp` Lambda.iLam (\b -> Lambda.iLam (\c -> b `Lambda.iApp` b `Lambda.iApp` c))))
+nominalsTest = en == en' && ep == ep'
+graphTest = g == g && n == 5 && f == [0,2,1,2]

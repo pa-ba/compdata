@@ -9,7 +9,7 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Intrinsic Expression Evaluation
+-- Intrinsic, Tag-less Expression Evaluation
 --
 -- The example illustrates how to use generalised compositional data types 
 -- to implement a small expression language, and  an evaluation function mapping
@@ -20,24 +20,8 @@
 module Examples.Multi.EvalI where
 
 import Data.Comp.Multi
-import Data.Comp.Multi.Show ()
 import Data.Comp.Multi.Derive
-
--- Signature for values and operators
-data Value e l where
-  Const  ::        Int -> Value e Int
-  Pair   :: e s -> e t -> Value e (s,t)
-data Op e l where
-  Add, Mult  :: e Int -> e Int   -> Op e Int
-  Fst        ::          e (s,t) -> Op e s
-  Snd        ::          e (s,t) -> Op e t
-
--- Signature for the simple expression language
-type Sig = Op :+: Value
-
--- Derive boilerplate code using Template Haskell (GHC 7 needed)
-$(derive [makeHFunctor, makeShowHF, makeEqHF, makeOrdHF, smartConstructors] 
-         [''Value, ''Op])
+import Examples.Multi.Common
 
 -- Term evaluation algebra
 class EvalI f where
