@@ -23,18 +23,18 @@ import Data.Comp.Thunk
 import Data.Comp.Derive
 import Data.Comp.Show()
 import Control.Monad
+import Examples.Common hiding (Value(..), Sig)
 
--- Signature for values and operators
-data Value e = Const Int | Pair !e !e
-data Op e = Add e e | Mult e e | Fst e | Snd e
+-- Signature for values, strict pairs
+data Value a = Const Int | Pair !a !a
 
 -- Signature for the simple expression language
 type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell
 $(derive [makeFunctor, makeTraversable, makeFoldable,
-          makeEqF, makeShowF, smartConstructors,makeHaskellStrict]
-         [''Value, ''Op])
+          makeEqF, makeShowF, smartConstructors, makeHaskellStrict]
+         [''Value])
 
 instance Zippable Value where
     fzip (Cons x (Cons y _)) (Pair x' y') = Pair (x,x') (y,y')
@@ -77,12 +77,12 @@ instance (Value :<: v) => EvalT Op v where
                           return y
 
 
-instance Monad (Either String) where
+{-instance Monad (Either String) where
     Left msg >>= _ = Left msg
     Right x >>= f = f x
                       
     return = Right
-    fail = Left
+    fail = Left-}
 
 evalTEx :: Either String (Term Value)
 evalTEx = evalT (iSnd (iFst (iConst 5) `iPair` iConst 4) :: Term Sig)

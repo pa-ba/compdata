@@ -64,7 +64,7 @@ $(derive [liftSum] [''EvalM])
 
 -- Lift the evaluation algebra to a catamorphism
 evalM :: (HDifunctor f, EvalM f v) => Term f i -> Maybe (Term v i)
-evalM t = trmM (cataM' evalAlgM t)
+evalM t = termM (cataM' evalAlgM t)
 
 instance (Const :<: v) => EvalM Const v where
   evalAlgM (Const n) = return $ iConst n

@@ -125,10 +125,10 @@ extra-source-files:
   benchmark/Functions/Standard/Inference.hs
   benchmark/Functions/Standard.hs
   -- example files
+  examples/Examples/Common.hs
   examples/Examples/Eval.hs
   examples/Examples/EvalM.hs
-  examples/Examples/DesugarEval.hs
-  examples/Examples/DesugarPos.hs
+  examples/Examples/Desugar.hs
   examples/Examples/Automata.hs,
   examples/Examples/Multi/Eval.hs
   examples/Examples/Multi/EvalI.hs

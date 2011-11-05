@@ -60,7 +60,7 @@ $(derive [liftSum] [''EvalM])
 
 -- Lift the evaluation algebra to a catamorphism
 evalM :: (Difunctor f, EvalM f v) => Term f -> Maybe (Term v)
-evalM t = trmM (cata evalAlgM t)
+evalM t = termM (cata evalAlgM t)
 
 instance (Const :<: v) => EvalM Const v where
   evalAlgM (Const n) = return $ iConst n

@@ -3,58 +3,64 @@
   OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Examples.DesugarPos
+-- Module      :  Examples.Desugar
 -- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- Desugaring + Propagation of Annotations
+-- Desugaring
 --
--- The example illustrates how to lift a term homomorphism to products,
+-- The example illustrates how to compose a term homomorphism and an algebra,
+-- exemplified via a desugaring term homomorphism and an evaluation algebra.
+-- The example also illustrates how to lift a term homomorphism to annotations,
 -- exemplified via a desugaring term homomorphism lifted to terms annotated with
 -- source position information.
 --
 --------------------------------------------------------------------------------
 
-module Examples.DesugarPos where
+module Examples.Desugar where
 
 import Data.Comp
 import Data.Comp.Show ()
-import Data.Comp.Equality ()
 import Data.Comp.Derive
 import Data.Comp.Desugar
+import Examples.Common
+import Examples.Eval
 
--- Signature for values, operators, and syntactic sugar
-data Value e = Const Int | Pair e e
-data Op e = Add e e | Mult e e | Fst e | Snd e
-data Sugar e = Neg e | Swap e
+-- Signature for syntactic sugar
+data Sugar a = Neg a | Swap a
 
 -- Source position information (line number, column number)
 data Pos = Pos Int Int
            deriving (Show, Eq)
 
--- Signature for the simple expression language
-type Sig = Op :+: Value
-type SigP = Op :&: Pos :+: Value :&: Pos
-
 -- Signature for the simple expression language, extended with syntactic sugar
 type Sig' = Sugar :+: Op :+: Value
+
+-- Signature for the simple expression language with annotations
+type SigP = Op :&: Pos :+: Value :&: Pos
+
+-- Signature for the simple expression language, extended with syntactic sugar,
+-- with annotations
 type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 
 -- Derive boilerplate code using Template Haskell
 $(derive [makeFunctor, makeTraversable, makeFoldable,
           makeEqF, makeShowF, makeOrdF, smartConstructors, smartAConstructors]
-         [''Value, ''Op, ''Sugar])
+         [''Sugar])
 
 instance (Op :<: f, Value :<: f, Functor f) => Desugar Sugar f where
   desugHom' (Neg x)  = iConst (-1) `iMult` x
   desugHom' (Swap x) = iSnd x `iPair` iFst x
 
--- Example: desugEx = iPair (iConst 2) (iConst 1)
-desugEx :: Term Sig
-desugEx = desugar (iSwap $ iPair (iConst 1) (iConst 2) :: Term Sig')
+evalDesug :: Term Sig' -> Term Value
+evalDesug = eval . (desugar :: Term Sig' -> Term Sig)
+
+-- Example: evalEx = iPair (iConst 2) (iConst 1)
+evalEx :: Term Value
+evalEx = evalDesug $ iSwap $ iPair (iConst 1) (iConst 2)
 
 -- Lift desugaring to terms annotated with source positions
 desugP :: Term SigP' -> Term SigP

@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances,
+  OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.EvalM
@@ -22,18 +23,7 @@ module Examples.EvalM where
 import Data.Comp
 import Data.Comp.Derive
 import Control.Monad (liftM)
-
--- Signature for values and operators
-data Value e = Const Int | Pair e e
-data Op e = Add e e | Mult e e | Fst e | Snd e
-
--- Signature for the simple expression language
-type Sig = Op :+: Value
-
--- Derive boilerplate code using Template Haskell
-$(derive [makeFunctor, makeTraversable, makeFoldable,
-          makeEqF, makeShowF, makeOrdF, smartConstructors]
-         [''Value, ''Op])
+import Examples.Common
 
 -- Monadic term evaluation algebra
 class EvalM f v where
@@ -45,8 +35,8 @@ $(derive [liftSum] [''EvalM])
 evalM :: (Traversable f, EvalM f v) => Term f -> Maybe (Term v)
 evalM = cataM evalAlgM
 
-instance (Value :<: v) => EvalM Value v where
-  evalAlgM = return . inject
+instance (f :<: v) => EvalM f v where
+  evalAlgM = return . inject -- default instance
 
 instance (Value :<: v) => EvalM Op v where
   evalAlgM (Add x y)  = do n1 <- projC x

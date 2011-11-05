@@ -47,7 +47,7 @@ $(derive [liftSum] [''EvalM])
 
 -- Lift the monadic evaluation algebra to a monadic catamorphism
 evalM :: (Ditraversable f, EvalM f v) => Term f -> Maybe (Term v)
-evalM t = trmM (cataM evalAlgM t)
+evalM t = termM (cataM evalAlgM t)
 
 instance (Value :<: v) => EvalM Value v where
   evalAlgM (Const n)  = return $ iConst n
