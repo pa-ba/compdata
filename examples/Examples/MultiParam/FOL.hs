@@ -29,7 +29,7 @@ import Data.Comp.MultiParam hiding (Var)
 import qualified Data.Comp.MultiParam as MP
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
-import Data.Comp.MultiParam.FreshM (Nom, getNom,nextNom, evalFreshM)
+import Data.Comp.MultiParam.FreshM (Nom, withNom, evalFreshM)
 import Data.List (intercalate)
 import Data.Maybe
 import Control.Monad.State
@@ -112,14 +112,14 @@ instance ShowHD Impl where
       liftM2 (\x y -> "(" ++ x ++ ") -> (" ++ y ++ ")") f1 f2
 
 instance ShowHD Exists where
-  showHD (Exists f) = do x <- getNom
-                         b <- nextNom $ unK $ f x
-                         return $ "exists " ++ show x ++ ". " ++ b
+  showHD (Exists f) =
+      withNom (\x -> do b <- unK (f x)
+                        return $ "exists " ++ show x ++ ". " ++ b)
 
 instance ShowHD Forall where
-  showHD (Forall f) = do x <- getNom
-                         b <- nextNom $ unK $ f x
-                         return $ "forall " ++ show x ++ ". " ++ b
+  showHD (Forall f) =
+      withNom (\x -> do b <- unK (f x)
+                        return $ "forall " ++ show x ++ ". " ++ b)
 
 --------------------------------------------------------------------------------
 -- Stage 0

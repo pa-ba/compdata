@@ -16,8 +16,7 @@ module Data.Comp.MultiParam.FreshM
     (
      FreshM,
      Nom,
-     getNom,
-     nextNom,
+     withNom,
      nomCoerce,
      evalFreshM
     ) where
@@ -42,13 +41,10 @@ instance Ord (Nom i) where
 nomCoerce :: Nom i -> Nom j
 nomCoerce (Nom x) = Nom x
 
--- |Get the current nominal.
-getNom :: FreshM (Nom i)
-getNom = FreshM $ asks (Nom . head)
-
--- |Use the next available nominal in the monadic computation.
-nextNom :: FreshM a -> FreshM a
-nextNom = FreshM . local tail . unFreshM
+-- |Run the given computation with the next available nominal.
+withNom :: (Nom i -> FreshM a) -> FreshM a
+withNom m = do nom <- FreshM (asks (Nom . head))
+               FreshM $ local tail $ unFreshM $ m nom
 
 -- |Evaluate a computation that uses fresh nominals.
 evalFreshM :: FreshM a -> a

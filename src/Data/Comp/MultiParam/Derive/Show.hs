@@ -75,9 +75,8 @@ makeShowHD fname = do
                           | a == coArg -> [| unK $(varE x) |]
                       AppT (AppT ArrowT (AppT (VarT a) _)) _
                           | a == conArg ->
-                              [| do {v <- getNom;
-                                     body <- nextNom ((unK . $(varE x)) v);
-                                     return $ "\\" ++ show v ++ " -> " ++ body} |]
+                              [| withNom (\v -> do body <- (unK . $(varE x)) v
+                                                   return $ "\\" ++ show v ++ " -> " ++ body) |]
                       SigT tp' _ ->
                           showHDB conArg coArg (x, tp')
                       _ ->

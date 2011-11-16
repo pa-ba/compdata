@@ -80,9 +80,8 @@ makeShowD fname = do
                           | a == coArg -> [| $(varE x) |]
                       AppT (AppT ArrowT (VarT a)) _
                           | a == conArg ->
-                              [| do {v <- getNom;
-                                     body <- nextNom ($(varE x) v);
-                                     return $ "\\" ++ show v ++ " -> " ++ body} |]
+                              [| withNom (\v -> do body <- $(varE x) v;
+                                                   return $ "\\" ++ show v ++ " -> " ++ body) |]
                       SigT tp' _ ->
                           showDB conArg coArg (x, tp')
                       _ ->

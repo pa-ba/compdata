@@ -16,8 +16,7 @@ module Data.Comp.Param.FreshM
     (
      FreshM,
      Nom,
-     getNom,
-     nextNom,
+     withNom,
      evalFreshM
     ) where
 
@@ -37,13 +36,10 @@ instance Show Nom where
 instance Ord Nom where
     compare (Nom x) (Nom y) = compare x y
 
--- |Get the current nominal.
-getNom :: FreshM Nom
-getNom = FreshM $ asks (Nom . head)
-
--- |Use the next available nominal in the monadic computation.
-nextNom :: FreshM a -> FreshM a
-nextNom = FreshM . local tail . unFreshM
+-- |Run the given computation with the next available nominal.
+withNom :: (Nom -> FreshM a) -> FreshM a
+withNom m = do nom <- FreshM (asks (Nom . head))
+               FreshM $ local tail $ unFreshM $ m nom
 
 -- |Evaluate a computation that uses fresh nominals.
 evalFreshM :: FreshM a -> a
