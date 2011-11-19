@@ -27,24 +27,7 @@ import Data.Comp.Param.Ops ((:+:)(..))
   lift it to sums of difunctors. Example: @class ShowD f where ...@ is lifted
   as @instance (ShowD f, ShowD g) => ShowD (f :+: g) where ... @. -}
 liftSum :: Name -> Q [Dec]
-liftSum fname = do
-  ClassI (ClassD _ name targs _ decs) _ <- abstractNewtypeQ $ reify fname
-  let targs' = map tyVarBndrName $ tail targs
-  let f = mkName "f"
-  let g = mkName "g"
-  let cxt = [ClassP name (map VarT $ f : targs'),
-             ClassP name (map VarT $ g : targs')]
-  let tp = ConT name `AppT` ((ConT ''(:+:) `AppT` VarT f) `AppT` VarT g)
-  let complType = foldl (\a x -> a `AppT` VarT x) tp targs'
-  decs' <- sequence $ concatMap decl decs
-  return [InstanceD cxt complType decs']
-      where decl :: Dec -> [DecQ]
-            decl (SigD f _) = [funD f [clause f]]
-            decl _ = []
-            clause :: Name -> ClauseQ
-            clause f = do x <- newName "x"
-                          b <- normalB [|caseD $(varE f) $(varE f) $(varE x)|]
-                          return $ Clause [VarP x] b []
+liftSum = liftSumGen 'caseD ''(:+:)
 
 {-| Utility function to case on a difunctor sum, without exposing the internal
   representation of sums. -}

@@ -117,3 +117,70 @@ tupleTypes n m = map tupleTypeName [n..m]
  -}
 derive :: [Name -> Q [Dec]] -> [Name] -> Q [Dec]
 derive ders names = liftM concat $ sequence [der name | der <- ders, name <- names]
+
+-- | This function lifts type class instances over sums
+-- ofsignatures. To this end it assumes that it contains only methods
+-- with types of the form @f t1 .. tn -> t@ where @f@ is the signature
+-- that is used to construct sums. Since this function is generic it
+-- assumes as its first argument the name of the function that is
+-- used to lift methods over sums i.e. a function of type
+--
+-- @
+-- (f t1 .. tn -> t) -> (g t1 .. tn -> t) -> ((f :+: g) t1 .. tn -> t)
+-- @
+--
+-- where @:+:@ is the sum type constructor. The second argument to
+-- this function is expected to be the name of that constructor. The
+-- last argument is the name of the class whose instances should be
+-- lifted over sums.
+
+liftSumGen :: Name -> Name -> Name -> Q [Dec]
+liftSumGen caseName sumName fname = do
+  ClassI (ClassD _ name targs_ _ decs) _ <- reify fname
+  let targs = map tyVarBndrName targs_
+  splitM <- findSig targs decs
+  case splitM of 
+    Nothing -> do report True $ "Class " ++ show name ++ " cannot be lifted to sums!"
+                  return []
+    Just (ts1_, ts2_) -> do
+      let f = VarT $ mkName "f"
+      let g = VarT $ mkName "g"
+      let ts1 = map VarT ts1_
+      let ts2 = map VarT ts2_
+      let cxt = [ClassP name (ts1 ++ f : ts2),
+                 ClassP name (ts1 ++ g : ts2)]
+      let tp = ((ConT sumName `AppT` f) `AppT` g)
+      let complType = foldl AppT (foldl AppT (ConT name) ts1 `AppT` tp) ts2
+      decs' <- sequence $ concatMap decl decs
+      return [InstanceD cxt complType decs']
+        where decl :: Dec -> [DecQ]
+              decl (SigD f _) = [funD f [clause f]]
+              decl _ = []
+              clause :: Name -> ClauseQ
+              clause f = do x <- newName "x"
+                            let b = NormalB (VarE caseName `AppE` VarE f `AppE` VarE f `AppE` VarE x)
+                            return $ Clause [VarP x] b []
+                          
+                          
+findSig :: [Name] -> [Dec] -> Q (Maybe ([Name],[Name]))
+findSig targs decs = case map run decs of
+                       []  -> return Nothing
+                       mx:_ -> do x <- mx
+                                  case x of
+                                    Nothing -> return Nothing
+                                    Just n -> return $ splitNames n targs
+  where run :: Dec -> Q (Maybe Name)
+        run (SigD _ ty) = do 
+          ty' <- expandSyns ty
+          return $ getSig False ty'
+        run _ = return Nothing
+        getSig t (ForallT _ _ ty) = getSig t ty
+        getSig False (AppT (AppT ArrowT ty) _) = getSig True ty
+        getSig True (AppT ty _) = getSig True ty
+        getSig True (VarT n) = Just n
+        getSig _ _ = Nothing
+        splitNames y (x:xs) 
+          | y == x = Just ([],xs)
+          | otherwise = do (xs1,xs2) <- splitNames y xs
+                           return (x:xs1,xs2)
+        splitNames _ [] = Nothing
