@@ -36,7 +36,7 @@ instance Ord a => POrd (K a) where
 {-| Signature ordering. An instance @OrdHD f@ gives rise to an instance
   @Ord (Term f)@. -}
 class EqHD f => OrdHD f where
-    compareHD :: POrd a => f Nom a i -> f Nom a j -> FreshM Ordering
+    compareHD :: POrd a => f Name a i -> f Name a j -> FreshM Ordering
 
 {-| 'OrdHD' is propagated through sums. -}
 instance (OrdHD f, OrdHD g) => OrdHD (f :+: g) where
@@ -56,10 +56,10 @@ instance OrdHD f => OrdHD (Cxt h f) where
     compareHD (Hole _) (Var _) = return LT
     compareHD (Var _) _ = return GT
 
-instance POrd Nom where
-    pcompare x y = return $ compare (nomCoerce x) y
+instance POrd Name where
+    pcompare x y = return $ compare (nameCoerce x) y
 
-instance (OrdHD f, POrd a) => POrd (Cxt h f Nom a) where
+instance (OrdHD f, POrd a) => POrd (Cxt h f Name a) where
     pcompare = compareHD
 
 {-| Ordering of terms. -}

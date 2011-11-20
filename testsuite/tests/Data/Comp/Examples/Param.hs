@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeOperators #-}
 module Data.Comp.Examples.Param where
 
-import Examples.Param.Nominals as Nominals
+import Examples.Param.Names as Names
 import Examples.Param.Graph as Graph
 
 import Data.Comp.Param
@@ -20,7 +20,7 @@ import Test.Utils
 --------------------------------------------------------------------------------
 
 tests = testGroup "Parametric Compositional Data Types" [
-         testProperty "nominals" nominalsTest,
+         testProperty "names" namesTest,
          testProperty "graph" graphTest
         ]
 
@@ -34,5 +34,5 @@ instance (EqD f, PEq p) => EqD (f :&: p) where
                                      b2 <- eqD v1 v2
                                      return $ b1 && b2
 
-nominalsTest = en == en' && ep == ep'
+namesTest = en == en' && ep == ep'
 graphTest = g == g && n == 5 && f == [0,2,1,2]

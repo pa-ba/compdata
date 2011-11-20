@@ -19,7 +19,8 @@ module Data.Comp.MultiParam.Derive.Show
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.MultiParam.FreshM
+import Data.Comp.MultiParam.FreshM hiding (Name)
+import qualified Data.Comp.MultiParam.FreshM as FreshM
 import Data.Comp.MultiParam.HDifunctor
 import Control.Monad
 import Language.Haskell.TH hiding (Cxt, match)
@@ -28,7 +29,7 @@ import qualified Data.Traversable as T
 {-| Signature printing. An instance @ShowHD f@ gives rise to an instance
   @Show (Term f i)@. -}
 class ShowHD f where
-    showHD :: f Nom (K (FreshM String)) i -> FreshM String
+    showHD :: f FreshM.Name (K (FreshM String)) i -> FreshM String
 
 newtype Dummy = Dummy String
 
@@ -75,8 +76,8 @@ makeShowHD fname = do
                           | a == coArg -> [| unK $(varE x) |]
                       AppT (AppT ArrowT (AppT (VarT a) _)) _
                           | a == conArg ->
-                              [| withNom (\v -> do body <- (unK . $(varE x)) v
-                                                   return $ "\\" ++ show v ++ " -> " ++ body) |]
+                              [| withName (\v -> do body <- (unK . $(varE x)) v
+                                                    return $ "\\" ++ show v ++ " -> " ++ body) |]
                       SigT tp' _ ->
                           showHDB conArg coArg (x, tp')
                       _ ->

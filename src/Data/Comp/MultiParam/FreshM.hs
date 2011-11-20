@@ -8,47 +8,47 @@
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- This module defines a monad for generating fresh, abstract variables, useful
+-- This module defines a monad for generating fresh, abstract names, useful
 -- e.g. for defining equality on terms.
 --
 --------------------------------------------------------------------------------
 module Data.Comp.MultiParam.FreshM
     (
      FreshM,
-     Nom,
-     withNom,
-     nomCoerce,
+     Name,
+     withName,
+     nameCoerce,
      evalFreshM
     ) where
 
 import Control.Monad.Reader
 
--- |Monad for generating fresh (abstract) nominals.
+-- |Monad for generating fresh (abstract) names.
 newtype FreshM a = FreshM{unFreshM :: Reader [String] a}
     deriving Monad
 
--- |Abstract notion of a nominal (the constructor is hidden).
-data Nom i = Nom String
-             deriving Eq
+-- |Abstract notion of a name (the constructor is hidden).
+data Name i = Name String
+              deriving Eq
 
-instance Show (Nom i) where
-    show (Nom x) = x
+instance Show (Name i) where
+    show (Name x) = x
 
-instance Ord (Nom i) where
-    compare (Nom x) (Nom y) = compare x y
+instance Ord (Name i) where
+    compare (Name x) (Name y) = compare x y
 
--- |Change the type tag of a nominal.
-nomCoerce :: Nom i -> Nom j
-nomCoerce (Nom x) = Nom x
+-- |Change the type tag of a name.
+nameCoerce :: Name i -> Name j
+nameCoerce (Name x) = Name x
 
--- |Run the given computation with the next available nominal.
-withNom :: (Nom i -> FreshM a) -> FreshM a
-withNom m = do nom <- FreshM (asks (Nom . head))
-               FreshM $ local tail $ unFreshM $ m nom
+-- |Run the given computation with the next available name.
+withName :: (Name i -> FreshM a) -> FreshM a
+withName m = do name <- FreshM (asks (Name . head))
+                FreshM $ local tail $ unFreshM $ m name
 
--- |Evaluate a computation that uses fresh nominals.
+-- |Evaluate a computation that uses fresh names.
 evalFreshM :: FreshM a -> a
-evalFreshM (FreshM m) = runReader m noms
-    where baseNoms = ['a'..'z']
-          noms = map (:[]) baseNoms ++ noms' 1
-          noms' n = map (: show n) baseNoms ++ noms' (n + 1)
+evalFreshM (FreshM m) = runReader m names
+    where baseNames = ['a'..'z']
+          names = map (:[]) baseNames ++ names' 1
+          names' n = map (: show n) baseNames ++ names' (n + 1)

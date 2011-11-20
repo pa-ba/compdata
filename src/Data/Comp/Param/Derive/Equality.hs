@@ -19,7 +19,7 @@ module Data.Comp.Param.Derive.Equality
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.Param.FreshM
+import Data.Comp.Param.FreshM hiding (Name)
 import Data.Comp.Param.Equality
 import Control.Monad
 import Language.Haskell.TH hiding (Cxt, match)
@@ -74,7 +74,7 @@ makeEqD fname = do
                           | a == coArg -> [| peq $(varE x) $(varE y) |]
                       AppT (AppT ArrowT (VarT a)) _
                           | a == conArg ->
-                              [| withNom (\v -> peq ($(varE x) v) ($(varE y) v)) |]
+                              [| withName (\v -> peq ($(varE x) v) ($(varE y) v)) |]
                       SigT tp' _ ->
                           eqDB conArg coArg (x, y, tp')
                       _ ->

@@ -29,7 +29,7 @@ import Data.Comp.MultiParam hiding (Var)
 import qualified Data.Comp.MultiParam as MP
 import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Derive
-import Data.Comp.MultiParam.FreshM (Nom, withNom, evalFreshM)
+import Data.Comp.MultiParam.FreshM (Name, withName, evalFreshM)
 import Data.List (intercalate)
 import Data.Maybe
 import Control.Monad.State
@@ -113,13 +113,13 @@ instance ShowHD Impl where
 
 instance ShowHD Exists where
   showHD (Exists f) =
-      withNom (\x -> do b <- unK (f x)
-                        return $ "exists " ++ show x ++ ". " ++ b)
+      withName (\x -> do b <- unK (f x)
+                         return $ "exists " ++ show x ++ ". " ++ b)
 
 instance ShowHD Forall where
   showHD (Forall f) =
-      withNom (\x -> do b <- unK (f x)
-                        return $ "forall " ++ show x ++ ". " ++ b)
+      withName (\x -> do b <- unK (f x)
+                         return $ "forall " ++ show x ++ ". " ++ b)
 
 --------------------------------------------------------------------------------
 -- Stage 0
@@ -357,13 +357,13 @@ type Literal a     = Trm (Const :+: Var :+: Atom :+: NAtom) a
 newtype Clause a i = Clause {unClause :: [Literal a i]} -- implicit disjunction
 newtype CNF a i    = CNF {unCNF :: [Clause a i]}        -- implicit conjunction
 
-instance (HDifunctor f, ShowHD f) => Show (Trm f Nom i) where
+instance (HDifunctor f, ShowHD f) => Show (Trm f Name i) where
   show = evalFreshM . showHD . toCxt
 
-instance Show (Clause Nom i) where
+instance Show (Clause Name i) where
   show c = intercalate " or " $ map show $ unClause c
 
-instance Show (CNF Nom i) where
+instance Show (CNF Name i) where
   show c = intercalate "\n" $ map show $ unCNF c
 
 class ToCNF f where
@@ -414,12 +414,12 @@ newtype IClause a i = IClause ([Trm T a i], -- implicit conjunction
                                [Trm T a i]) -- implicit disjunction
 newtype INF a i     = INF [IClause a i]     -- implicit conjunction
 
-instance Show (IClause Nom i) where
+instance Show (IClause Name i) where
   show (IClause (cs,ds)) = let cs' = intercalate " and " $ map show cs
                                ds' = intercalate " or " $ map show ds
                            in "(" ++ cs' ++ ") -> (" ++ ds' ++ ")"
 
-instance Show (INF Nom i) where
+instance Show (INF Name i) where
   show (INF fs) = intercalate "\n" $ map show fs
 
 inf :: CNF a TFormula -> INF a TFormula

@@ -49,7 +49,7 @@ instance Ord a => POrd a where
 {-| Signature ordering. An instance @OrdD f@ gives rise to an instance
   @Ord (Term f)@. -}
 class EqD f => OrdD f where
-    compareD :: POrd a => f Nom a -> f Nom a -> FreshM Ordering
+    compareD :: POrd a => f Name a -> f Name a -> FreshM Ordering
 
 {-| 'OrdD' is propagated through sums. -}
 instance (OrdD f, OrdD g) => OrdD (f :+: g) where
@@ -69,7 +69,7 @@ instance OrdD f => OrdD (Cxt h f) where
     compareD (Hole _) (Var _) = return LT
     compareD (Var _) _ = return GT
 
-instance (OrdD f, POrd a) => POrd (Cxt h f Nom a) where
+instance (OrdD f, POrd a) => POrd (Cxt h f Name a) where
     pcompare = compareD
 
 {-| Ordering of terms. -}

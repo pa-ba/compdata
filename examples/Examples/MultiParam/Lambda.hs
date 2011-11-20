@@ -22,6 +22,7 @@ import Data.Comp.MultiParam.Show ()
 import Data.Comp.MultiParam.Equality ()
 import Data.Comp.MultiParam.Derive
 import Control.Monad (liftM2)
+import Control.Monad.Error (MonadError, throwError)
 
 data Lam :: (* -> *) -> (* -> *) -> * -> * where
   Lam :: (a i -> b j) -> Lam a b (i -> j)
@@ -69,37 +70,37 @@ type instance Sem m Int = Int
 
 newtype M m i = M {unM :: m (Sem m i)}
 
-class Monad m => EvalM f m where
+class Monad m => EvalM m f where
   evalMAlg :: f (M m) (M m) i -> m (Sem m i) -- M . evalMAlg :: Alg f (M m)
 
 $(derive [liftSum] [''EvalM])
 
-evalM :: (Monad m, HDifunctor f, EvalM f m) => Term f i -> m (Sem m i)
+evalM :: (Monad m, HDifunctor f, EvalM m f) => Term f i -> m (Sem m i)
 evalM = unM . cata (M . evalMAlg)
 
-instance Monad m => EvalM Lam m where
+instance Monad m => EvalM m Lam where
   evalMAlg (Lam f) = return $ unM . f . M . return
 
-instance Monad m => EvalM App m where
+instance Monad m => EvalM m App where
   evalMAlg (App (M mf) (M mx)) = do f <- mf; f =<< mx
   
-instance Monad m => EvalM Const m where
+instance Monad m => EvalM m Const where
   evalMAlg (Const n) = return n
 
-instance Monad m => EvalM Plus m where
+instance Monad m => EvalM m Plus where
   evalMAlg (Plus (M mx) (M my)) = liftM2 (+) mx my
 
-instance Monad m => EvalM Err m where
-  evalMAlg Err = fail "error" -- 'fail' rather than 'error'
+instance MonadError String m => EvalM m Err where
+  evalMAlg Err = throwError "error" -- 'throwError' rather than 'error'
 
 e :: Term Sig Int
 e = Term ((iLam $ \x -> (iLam (\y -> y `iPlus` x) `iApp` iConst 3)) `iApp` iConst 2)
 
-v :: Maybe Int
+v :: Either String Int
 v = evalM e
 
 e' :: Term Sig (Int -> Int)
 e' = Term iErr --(iLam id)
 
-v' :: Maybe (Int -> Maybe Int)
+v' :: Either String (Int -> Either String Int)
 v' = evalM e'

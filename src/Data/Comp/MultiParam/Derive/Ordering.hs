@@ -18,7 +18,7 @@ module Data.Comp.MultiParam.Derive.Ordering
      makeOrdHD
     ) where
 
-import Data.Comp.MultiParam.FreshM
+import Data.Comp.MultiParam.FreshM hiding (Name)
 import Data.Comp.MultiParam.Ordering
 import Data.Comp.Derive.Utils
 import Data.Maybe
@@ -78,8 +78,8 @@ makeOrdHD fname = do
                           | a == coArg -> [| pcompare $(varE x) $(varE y) |]
                       AppT (AppT ArrowT (AppT (VarT a) _)) _
                           | a == conArg ->
-                              [| withNom (\v -> pcompare ($(varE x) $ nomCoerce v)
-                                                         ($(varE y) $ nomCoerce v)) |]
+                              [| withName (\v -> pcompare ($(varE x) $ nameCoerce v)
+                                                          ($(varE y) $ nameCoerce v)) |]
                       SigT tp' _ ->
                           eqDB conArg coArg (x, y, tp')
                       _ ->

@@ -136,7 +136,7 @@ extra-source-files:
   examples/Examples/Multi/EvalM.hs
   examples/Examples/Multi/Desugar.hs
   examples/Examples/Param/Lambda.hs
-  examples/Examples/Param/Nominals.hs
+  examples/Examples/Param/Names.hs
   examples/Examples/Param/Graph.hs
   examples/Examples/MultiParam/Lambda.hs
   examples/Examples/MultiParam/FOL.hs

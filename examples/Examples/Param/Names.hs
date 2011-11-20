@@ -3,23 +3,23 @@
   OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
--- Module      :  Examples.Param.Nominals
+-- Module      :  Examples.Param.Names
 -- Copyright   :  (c) 2011 Patrick Bahr, Tom Hvitved
 -- License     :  BSD3
 -- Maintainer  :  Tom Hvitved <hvitved@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
 --
--- From nominals to parametric higher-order abstract syntax and back
+-- From names to parametric higher-order abstract syntax and back
 --
--- The example illustrates how to convert a parse tree with explicit nominal
+-- The example illustrates how to convert a parse tree with explicit names
 -- variables into an AST that uses parametric higher-order abstract syntax,
 -- and back again. The example shows how we can easily convert object language
 -- binders to Haskell binders, without having to worry about capture avoidance.
 --
 --------------------------------------------------------------------------------
 
-module Examples.Param.Nominals where
+module Examples.Param.Names where
 
 import Data.Comp.Param hiding (Var)
 import qualified Data.Comp.Param as P
@@ -34,11 +34,11 @@ data Lam a b   = Lam (a -> b)
 data App a b   = App b b
 data Const a b = Const Int
 data Plus a b  = Plus b b
-type Nom       = String                 -- The type of nominals
-data NLam a b  = NLam Nom b
-data NVar a b  = NVar Nom
+type Name      = String                 -- The type of names
+data NLam a b  = NLam Name b
+data NVar a b  = NVar Name
 type SigB      = App :+: Const :+: Plus
-type SigN      = NLam :+: NVar :+: SigB -- The nominal signature
+type SigN      = NLam :+: NVar :+: SigB -- The name signature
 type SigP      = Lam :+: SigB           -- The PHOAS signature
 
 $(derive [makeDifunctor, makeShowD, makeEqD, smartConstructors]
@@ -48,10 +48,10 @@ $(derive [makeDitraversable]
 
 
 --------------------------------------------------------------------------------
--- Nominal to PHOAS translation
+-- Names to PHOAS translation
 --------------------------------------------------------------------------------
 
-type M f a = Reader (Map.Map Nom (Trm f a))
+type M f a = Reader (Map.Map Name (Trm f a))
 
 class N2PTrans f g where
   n2pAlg :: Alg f (M g a (Trm g a))
@@ -79,10 +79,10 @@ ep = n2p en
 
 
 --------------------------------------------------------------------------------
--- PHOAS to nominal translation
+-- PHOAS to names translation
 --------------------------------------------------------------------------------
 
-type M' = Reader [Nom]
+type M' = Reader [Name]
 
 class P2NTrans f g where
   p2nAlg :: Alg f (M' (Trm g a))
@@ -96,8 +96,8 @@ instance (Ditraversable f, f :<: g) => P2NTrans f g where
   p2nAlg = liftM inject . disequence . dimap (return . P.Var) id -- default
 
 instance (NLam :<: g, NVar :<: g) => P2NTrans Lam g where
-  p2nAlg (Lam f) = do n:noms <- ask
-                      return $ iNLam n (runReader (f (return $ iNVar n)) noms)
+  p2nAlg (Lam f) = do n:names <- ask
+                      return $ iNLam n (runReader (f (return $ iNVar n)) names)
 
 ep' :: Term SigP
 ep' = Term $ iLam $ \a -> iLam (\b -> (iLam $ \a -> b)) `iApp` a

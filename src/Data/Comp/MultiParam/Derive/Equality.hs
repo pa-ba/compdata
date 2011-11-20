@@ -19,7 +19,7 @@ module Data.Comp.MultiParam.Derive.Equality
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.MultiParam.FreshM
+import Data.Comp.MultiParam.FreshM hiding (Name)
 import Data.Comp.MultiParam.Equality
 import Control.Monad
 import Language.Haskell.TH hiding (Cxt, match)
@@ -68,7 +68,7 @@ makeEqHD fname = do
                           | a == coArg -> [| peq $(varE x) $(varE y) |]
                       AppT (AppT ArrowT (AppT (VarT a) _)) _
                           | a == conArg ->
-                              [| withNom (\v -> peq ($(varE x) $ nomCoerce v)                                                       ($(varE y) $ nomCoerce v)) |]
+                              [| withName (\v -> peq ($(varE x) $ nameCoerce v)                                                      ($(varE y) $ nameCoerce v)) |]
                       SigT tp' _ ->
                           eqHDB conArg coArg (x, y, tp')
                       _ ->

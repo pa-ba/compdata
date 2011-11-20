@@ -18,7 +18,7 @@ module Data.Comp.Param.Derive.Ordering
      makeOrdD
     ) where
 
-import Data.Comp.Param.FreshM
+import Data.Comp.Param.FreshM hiding (Name)
 import Data.Comp.Param.Ordering
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH hiding (Cxt)
@@ -79,7 +79,7 @@ makeOrdD fname = do
                           | a == coArg -> [| pcompare $(varE x) $(varE y) |]
                       AppT (AppT ArrowT (VarT a)) _
                           | a == conArg ->
-                              [| withNom (\v -> pcompare ($(varE x) v) ($(varE y) v)) |]
+                              [| withName (\v -> pcompare ($(varE x) v) ($(varE y) v)) |]
                       SigT tp' _ ->
                           eqDB conArg coArg (x, y, tp')
                       _ ->
