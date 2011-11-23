@@ -16,10 +16,10 @@
 -- (Knowles, The Monad.Reader Issue 11, '08) using Generalised Parametric
 -- Compositional Data Types.
 --
--- Rather than having a fixed domain 'Term' for binders as Knowles, our
--- encoding uses a mutually recursive data structure for terms and formulae.
--- This makes terms modular too, and hence we only introduce variables when they
--- are actually needed in stage 5.
+-- Rather than using a fixed domain 'Term' for binders as Knowles, our encoding
+-- uses a mutually recursive data structure for terms and formulae. This makes
+-- terms modular too, and hence we only introduce variables when they are
+-- actually needed in stage 5.
 --
 --------------------------------------------------------------------------------
 

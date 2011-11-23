@@ -12,10 +12,10 @@
 --
 -- From names to parametric higher-order abstract syntax and back
 --
--- The example illustrates how to convert a parse tree with explicit names
--- variables into an AST that uses parametric higher-order abstract syntax,
--- and back again. The example shows how we can easily convert object language
--- binders to Haskell binders, without having to worry about capture avoidance.
+-- The example illustrates how to convert a parse tree with explicit names into
+-- an AST that uses parametric higher-order abstract syntax, and back again. The
+-- example shows how we can easily convert object language binders to Haskell
+-- binders, without having to worry about capture avoidance.
 --
 --------------------------------------------------------------------------------
 
@@ -30,22 +30,21 @@ import Data.Maybe
 import qualified Data.Map as Map
 import Control.Monad.Reader
 
-data Lam a b   = Lam (a -> b)
-data App a b   = App b b
-data Const a b = Const Int
-data Plus a b  = Plus b b
-type Name      = String                 -- The type of names
-data NLam a b  = NLam Name b
-data NVar a b  = NVar Name
-type SigB      = App :+: Const :+: Plus
-type SigN      = NLam :+: NVar :+: SigB -- The name signature
-type SigP      = Lam :+: SigB           -- The PHOAS signature
+data Lam a b  = Lam (a -> b)
+data App a b  = App b b
+data Lit a b  = Lit Int
+data Plus a b = Plus b b
+type Name     = String                 -- The type of names
+data NLam a b = NLam Name b
+data NVar a b = NVar Name
+type SigB     = App :+: Lit :+: Plus
+type SigN     = NLam :+: NVar :+: SigB -- The name signature
+type SigP     = Lam :+: SigB           -- The PHOAS signature
 
 $(derive [makeDifunctor, makeShowD, makeEqD, smartConstructors]
-         [''Lam, ''App, ''Const, ''Plus, ''NLam, ''NVar])
+         [''Lam, ''App, ''Lit, ''Plus, ''NLam, ''NVar])
 $(derive [makeDitraversable]
-         [''App, ''Const, ''Plus, ''NLam, ''NVar])
-
+         [''App, ''Lit, ''Plus, ''NLam, ''NVar])
 
 --------------------------------------------------------------------------------
 -- Names to PHOAS translation
@@ -76,7 +75,6 @@ en = Term $ iNLam "x1" $ iNLam "x2" (iNLam "x3" $ iNVar "x2") `iApp` iNVar "x1"
 
 ep :: Term SigP
 ep = n2p en
-
 
 --------------------------------------------------------------------------------
 -- PHOAS to names translation
