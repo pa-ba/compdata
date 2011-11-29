@@ -21,7 +21,6 @@ import Data.Comp.Param
 import Data.Comp.Param.Derive
 import Data.Comp.Param.Show ()
 import Data.Comp.Param.Equality ()
-import Control.Monad.Reader
 
 data N p a b = N p [b] -- Node
 data R a b = R (a -> b) -- Recursion

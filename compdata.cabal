@@ -88,8 +88,8 @@ License:		BSD3
 License-file:		LICENSE
 Author:			Patrick Bahr, Tom Hvitved
 Maintainer:		paba@diku.dk
-Build-Type:		Custom
-Cabal-Version:          >=1.8.0.6
+Build-Type:		Simple
+Cabal-Version:          >=1.9.2
 
 extra-source-files:
   -- test files
@@ -140,10 +140,6 @@ extra-source-files:
   examples/Examples/Param/Graph.hs
   examples/Examples/MultiParam/Lambda.hs
   examples/Examples/MultiParam/FOL.hs
-
-flag test
-  description: Build test executable.
-  default:     False
 
 flag benchmark
   description: Build benchmark executable.
@@ -278,14 +274,12 @@ library
   if flag(benchmark)
     buildable:     False
 
-Executable test
+
+Test-Suite test
+  Type:                 exitcode-stdio-1.0
   Main-is:		Data_Test.hs
   hs-source-dirs:	src testsuite/tests examples
-  ghc-options:          -fhpc
-  if !flag(test)
-    buildable:          False
-  else
-    Build-Depends:      base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq, transformers
+  Build-Depends:        base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, test-framework, test-framework-quickcheck2, derive, th-expand-syns, deepseq, transformers
 
 Executable benchmark
   Main-is:		Benchmark.hs
