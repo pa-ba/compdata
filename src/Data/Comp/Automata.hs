@@ -79,12 +79,13 @@ module Data.Comp.Automata
     , o
     ) where
 
-import Data.Comp.Zippable
+import Data.Comp.Number
 import Data.Comp.Automata.Product
 import Data.Comp.Term
 import Data.Comp.Algebra
 import Data.Map (Map)
 import qualified Data.Map as Map
+
 
 
 -- The following are operators to specify finite mappings.
@@ -108,12 +109,12 @@ o = Map.empty
 -- | This function provides access to components of the states from
 -- "below".
 below :: (?below :: a -> q, p :< q) => a -> p
-below = get . ?below
+below = pr . ?below
 
 -- | This function provides access to components of the state from
 -- "above"
 above :: (?above :: q, p :< q) => p
-above = get ?above
+above = pr ?above
 
 -- | Turns the explicit parameters @?above@ and @?below@ into explicit
 -- ones.
@@ -341,23 +342,24 @@ prodMap p q mp mq = Map.map final $ Map.unionWith combine ps qs
           final (RState q) = (p, q)
           final (BState p q) = (p,q)
 
+
 -- | Apply the given state mapping to the given functorial value by
 -- adding the state to the corresponding index if it is in the map and
 -- otherwise adding the provided default state.
-appMap :: Zippable f => (forall i . Ord i => f i -> Map i q)
+appMap :: Traversable f => (forall i . Ord i => f i -> Map i q)
                        -> q -> f b -> f (q,b)
 appMap qmap q s = fmap qfun s'
     where s' = number s
           qfun k@(Numbered (_,a)) = (Map.findWithDefault q k (qmap s') ,a)
 
 -- | This function constructs a DDTT from a given stateful term-- homomorphism with the state propagated by the given DDTA.
-downTrans :: Zippable f => DownState f q -> QHom f q g -> DownTrans f q g
+downTrans :: Traversable f => DownState f q -> QHom f q g -> DownTrans f q g
 downTrans st f (q, s) = explicit q fst f (appMap (curry st q) q s)
 
 
 -- | This function applies a given stateful term homomorphism with a
 -- state space propagated by the given DDTA to a term.
-runDownHom :: (Zippable f, Functor g)
+runDownHom :: (Traversable f, Functor g)
             => DownState f q -> QHom f q g -> q -> Term f -> Term g
 runDownHom st h = runDownTrans (downTrans st h)
 
@@ -394,7 +396,7 @@ prodDDownState sp sq t = prodMap above above (sp t) (sq t)
 -- | This combinator combines a bottom-up and a top-down state
 -- transformations. Both state transformations can depend mutually
 -- recursive on each other.
-runDState :: Zippable f => DUpState f (u,d) u -> DDownState f (u,d) d -> d -> Term f -> u
+runDState :: Traversable f => DUpState f (u,d) u -> DDownState f (u,d) d -> d -> Term f -> u
 runDState up down d (Term t) = u where
         t' = fmap bel $ number t
         bel (Numbered (i,s)) = 
@@ -406,7 +408,7 @@ runDState up down d (Term t) = u where
 -- | This combinator runs a stateful term homomorphisms with a state
 -- space produced both on a bottom-up and a top-down state
 -- transformation.
-runQHom :: (Zippable f, Functor g) =>
+runQHom :: (Traversable f, Functor g) =>
            DUpState f (u,d) u -> DDownState f (u,d) d -> 
            QHom f (u,d) g ->
            d -> Term f -> (u, Term g)

@@ -167,7 +167,7 @@ library
                         Data.Comp.Desugar,
                         Data.Comp.Automata,
                         Data.Comp.Automata.Product,
-                        Data.Comp.Zippable,
+                        Data.Comp.Number,
                         Data.Comp.Thunk,
 
                         Data.Comp.Multi,

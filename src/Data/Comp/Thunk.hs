@@ -41,7 +41,7 @@ import Data.Comp.Equality
 import Data.Comp.Algebra
 import Data.Comp.Ops
 import Data.Comp.Sum
-import Data.Comp.Zippable
+import Data.Comp.Number
 import Data.Foldable hiding (and)
 
 import qualified Data.Set as Set
@@ -162,7 +162,7 @@ type Pos f = forall a . Ord a => f a -> [a]
 -- of the arguments of a functor application strict. The first
 -- argument of this combinator specifies which positions are supposed
 -- to be strict.
-strictAt :: (f :<: g, Traversable f, Zippable f, Monad m) => Pos f ->  f (TermT m g) -> TermT m g
+strictAt :: (f :<: g, Traversable f, Monad m) => Pos f ->  f (TermT m g) -> TermT m g
 strictAt p s = thunk $ liftM inject $ mapM run s'
     where s'  = number s
           isStrict e = Set.member e $ Set.fromList $ p s'

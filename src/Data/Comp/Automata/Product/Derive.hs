@@ -16,9 +16,9 @@ module Data.Comp.Automata.Product.Derive where
 import Language.Haskell.TH
 
 -- | An instance @a :< b@ means that @a@ is a component of @b@. @a@
--- can be extracted from @b@ via the method 'get'.
+-- can be extracted from @b@ via the method 'pr'.
 class a :< b where
-    get :: b -> a
+    pr :: b -> a
 
 data Dir = L | R
          deriving Show
@@ -55,7 +55,7 @@ genEx :: [Dir] -> DecQ
 genEx dir = do
   n <- newName "x"
   p <- genPat n dir
-  return $ FunD (mkName "get") [Clause [p] (NormalB (VarE n)) []]
+  return $ FunD (mkName "pr") [Clause [p] (NormalB (VarE n)) []]
 
 genPatExp :: Name -> [Dir] -> Q (Pat, Exp)
 genPatExp n = gen where
