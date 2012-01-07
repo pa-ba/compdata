@@ -118,8 +118,8 @@ above = pr ?above
 
 -- | Turns the explicit parameters @?above@ and @?below@ into explicit
 -- ones.
-explicit :: q -> (a -> q) -> ((?above :: q, ?below :: a -> q) => b) -> b
-explicit ab be x = x where ?above = ab; ?below = be
+explicit :: ((?above :: q, ?below :: a -> q) => b) -> q -> (a -> q) -> b
+explicit x ab be = x where ?above = ab; ?below = be
 
 
 -- | This type represents stateful term homomorphisms. Stateful term
@@ -225,7 +225,7 @@ prodUpState sp sq t = (p,q) where
 upTrans :: (Functor f, Functor g) => UpState f q -> QHom f q g -> UpTrans f q g
 upTrans st f t = (q, c)
     where q = st $ fmap fst t
-          c = fmap snd $ explicit q fst f t
+          c = fmap snd $ explicit f q fst t
 
 -- | This function applies a given stateful term homomorphism with
 -- a state space propagated by the given DUTA to a term.
@@ -250,7 +250,7 @@ dUpState f = f . fmap below
 -- | This combinator turns a GDUTA with the smallest possible state
 -- space into a DUTA.
 upState :: DUpState f q q -> UpState f q
-upState f s = res where res = explicit res id f s
+upState f s = res where res = explicit f res id s
 
 -- | This combinator runs a GDUTA on a term.
 runDUpState :: Functor f => DUpState f q q -> Term f -> q
@@ -354,7 +354,7 @@ appMap qmap q s = fmap qfun s'
 
 -- | This function constructs a DDTT from a given stateful term-- homomorphism with the state propagated by the given DDTA.
 downTrans :: Traversable f => DownState f q -> QHom f q g -> DownTrans f q g
-downTrans st f (q, s) = explicit q fst f (appMap (curry st q) q s)
+downTrans st f (q, s) = explicit f q fst (appMap (curry st q) q s)
 
 
 -- | This function applies a given stateful term homomorphism with a
@@ -377,7 +377,7 @@ dDownState f t = f (above,t)
 -- space into a DDTA.
 downState :: DDownState f q q -> DownState f q
 downState f (q,s) = res
-    where res = explicit q bel f s
+    where res = explicit f q bel s
           bel k = Map.findWithDefault q k res
 
 
@@ -402,8 +402,8 @@ runDState up down d (Term t) = u where
         bel (Numbered (i,s)) = 
             let d' = Map.findWithDefault d (Numbered (i,undefined)) m
             in Numbered (i, (runDState up down d' s, d'))
-        m = explicit (u,d) unNumbered down t'
-        u = explicit (u,d) unNumbered up t'
+        m = explicit down (u,d) unNumbered t'
+        u = explicit up (u,d) unNumbered t'
 
 -- | This combinator runs a stateful term homomorphisms with a state
 -- space produced both on a bottom-up and a top-down state
@@ -418,6 +418,6 @@ runQHom up down trans d (Term t) = (u,t'') where
             let d' = Map.findWithDefault d (Numbered (i,undefined)) m
                 (u', s') = runQHom up down trans d' s
             in Numbered (i, ((u', d'),s'))
-        m = explicit (u,d) (fst . unNumbered) down t'
-        u = explicit (u,d) (fst . unNumbered) up t'
-        t'' = appCxt $ fmap (snd . unNumbered) $  explicit (u,d) (fst . unNumbered) trans t'
+        m = explicit down (u,d) (fst . unNumbered) t'
+        u = explicit up (u,d) (fst . unNumbered) t'
+        t'' = appCxt $ fmap (snd . unNumbered) $  explicit trans (u,d) (fst . unNumbered) t'
