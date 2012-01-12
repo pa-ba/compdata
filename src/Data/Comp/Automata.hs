@@ -2,7 +2,7 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata
--- Copyright   :  (c) 2010-2011 Patrick Bahr
+-- Copyright   :  (c) 2010-2012 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  experimental
@@ -11,14 +11,19 @@
 -- This module defines stateful term homomorphisms. This (slightly
 -- oxymoronic) notion extends per se stateless term homomorphisms with
 -- a state that is maintained separately by a bottom-up or top-down
--- tree automaton.
+-- state transformation. Additionally, this module also allows to run
+-- state transformations themselves. 
+-- 
+-- Like regular term homomorphisms also stateful homomorphisms (as
+-- well as transducers) can be lifted to annotated signatures
+-- (cf. Data.Comp.Annotation").
 --
 --------------------------------------------------------------------------------
 
 module Data.Comp.Automata
-    ( module Data.Comp.Automata.Product
+    (
     -- * Stateful Term Homomorphisms
-    , QHom
+      QHom
     , below
     , above
     -- ** Bottom-Up State Propagation
@@ -77,6 +82,8 @@ module Data.Comp.Automata
     , (&)
     , (|->)
     , o
+    -- * Product State Spaces
+    , module Data.Comp.Automata.Product
     ) where
 
 import Data.Comp.Number
@@ -124,7 +131,7 @@ explicit x ab be = x where ?above = ab; ?below = be
 
 -- | This type represents stateful term homomorphisms. Stateful term
 -- homomorphisms have access to a state that is provided (separately)
--- by a DUTA or a DDTA (or both).
+-- by a bottom-up or top-down state transformation function (or both).
 type QHom f q g = forall a . (?below :: a -> q, ?above :: q) => f a -> Context g a
 
 -- -- | This type represents (pure, i.e. stateless) homomorphism by
@@ -144,7 +151,7 @@ type QHom f q g = forall a . (?below :: a -> q, ?above :: q) => f a -> Context g
 
 type UpTrans f q g = forall a. f (q,a) -> (q, Context g a)
 
--- | This function transforms DUTT transition function into an
+-- | This function transforms a DUTT transition function into an
 -- algebra.
 
 upAlg :: (Functor g)  => UpTrans f q g -> Alg f (q, Term g)
