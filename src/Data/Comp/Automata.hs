@@ -11,8 +11,8 @@
 -- This module defines stateful term homomorphisms. This (slightly
 -- oxymoronic) notion extends per se stateless term homomorphisms with
 -- a state that is maintained separately by a bottom-up or top-down
--- state transformation. Additionally, this module also allows to run
--- state transformations themselves. 
+-- state transformation. Additionally, this module also provides
+-- combinators to run state transformations themselves.
 -- 
 -- Like regular term homomorphisms also stateful homomorphisms (as
 -- well as transducers) can be lifted to annotated signatures
