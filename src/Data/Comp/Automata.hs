@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, FlexibleContexts, ImplicitParams, GADTs #-}
+{-# LANGUAGE RankNTypes, FlexibleContexts, ImplicitParams, GADTs, TypeOperators #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata

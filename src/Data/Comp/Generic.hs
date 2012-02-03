@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, ScopedTypeVariables #-}
+{-# LANGUAGE GADTs, ScopedTypeVariables, TypeOperators #-}
 
 --------------------------------------------------------------------------------
 -- |

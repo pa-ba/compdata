@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell, TypeOperators, CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.HaskellStrict
@@ -76,6 +76,9 @@ makeHaskellStrict fname = do
       where isFarg fArg (constr, args) = (constr, map (containsStr fArg) args)
             containsStr _ (NotStrict,_) = []
             containsStr fArg (IsStrict,ty) = ty `containsType'` fArg
+#if __GLASGOW_HASKELL__ > 702
+            containsStr fArg (Unpacked,ty) = ty `containsType'` fArg
+#endif
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"

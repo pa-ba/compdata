@@ -92,7 +92,7 @@ instance (Plus :<: f, Const :<: f) => Constf Plus f where
                              _                               -> e1 `iPlus` e2
 
 -- * Call-by-value evaluation
-data Monad m => Sem m = Fun (Sem m -> m (Sem m)) | Int Int
+data Sem m = Fun (Sem m -> m (Sem m)) | Int Int
 
 class Monad m => Eval f m where
   evalAlg :: Alg f (m (Sem m))

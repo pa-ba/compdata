@@ -74,7 +74,6 @@ ann c = appSigFun (injectA c)
 
 {-| This function is similar to 'project' but applies to signatures
 with an annotation which is then ignored. -}
--- bug in type checker? below is the inferred type, however, the type checker
--- rejects it.
--- project' :: (RemA f g, f :<: f1) => Cxt h f1 a -> Maybe (g (Cxt h f1 a))
-project' v = liftM remA $ project v
+project' :: forall s s' f h a b .  (RemA s s', s :<: f) => 
+            Cxt h f a b -> Maybe (s' a (Cxt h f a b))
+project' v = liftM remA (project v :: Maybe (s a (Cxt h f a b)))

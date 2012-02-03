@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances,
-  UndecidableInstances, RankNTypes, GADTs #-}
+  UndecidableInstances, RankNTypes, GADTs, ScopedTypeVariables #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Annotation
@@ -104,5 +104,5 @@ ann c = appSigFun (injectA c)
 with an annotation which is then ignored. -}
 -- bug in type checker? below is the inferred type, however, the type checker
 -- rejects it.
--- project' :: (RemA f g, f :<: f1) => Cxt h f1 a -> Maybe (g (Cxt h f1 a))
-project' v = liftM remA $ project v
+project' :: forall f g f1 a h . (RemA f g, f :<: f1) => Cxt h f1 a -> Maybe (g (Cxt h f1 a))
+project' v = liftM remA (project v :: Maybe (f (Cxt h f1 a)))

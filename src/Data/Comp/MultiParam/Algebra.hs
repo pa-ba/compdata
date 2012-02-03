@@ -1,5 +1,5 @@
 {-# LANGUAGE GADTs, RankNTypes, ScopedTypeVariables, TypeOperators,
-  FlexibleContexts, CPP #-}
+  FlexibleContexts, CPP, KindSignatures #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.MultiParam.Algebra
@@ -153,7 +153,7 @@ cataM' algm (Term t) = run t
           run (Var x) = return x
 
 {-| This type represents a signature function. -}
-type SigFun f g = forall a b. f a b :-> g a b
+type SigFun f g = forall (a :: * -> *) (b :: * -> *) . f a b :-> g a b
 
 {-| This type represents a context function. -}
 type CxtFun f g = forall h. SigFun (Cxt h f) (Cxt h g)
@@ -215,7 +215,7 @@ hom :: HDifunctor g => SigFun f g -> Hom f g
 hom f = simpCxt . f
 
 {-| This type represents a monadic signature function. -}
-type SigFunM m f g = forall a b. NatM m (f a b) (g a b)
+type SigFunM m f g = forall (a :: * -> *) (b :: * -> *) . NatM m (f a b) (g a b)
 
 {-| This type represents a monadic context function. -}
 type CxtFunM m f g = forall h . SigFunM m (Cxt h f) (Cxt h g)

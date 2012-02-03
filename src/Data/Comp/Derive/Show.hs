@@ -45,6 +45,7 @@ makeShowF fname = do
   return [InstanceD preCond classType [showFDecl]]
       where showFClauses fArg = map (genShowFClause fArg)
             filterFarg fArg ty x = (fArg == ty, varE x)
+            mkShow :: (Bool, ExpQ) -> ExpQ
             mkShow (isFArg, var)
                 | isFArg = var
                 | otherwise = [| show $var |]
