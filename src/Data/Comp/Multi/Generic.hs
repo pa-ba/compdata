@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, ExistentialQuantification, TypeOperators, ScopedTypeVariables, RankNTypes #-}
+{-# LANGUAGE GADTs, ExistentialQuantification, TypeOperators, ScopedTypeVariables, Rank2Types #-}
 
 --------------------------------------------------------------------------------
 -- |

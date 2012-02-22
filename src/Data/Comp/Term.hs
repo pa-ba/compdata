@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes #-}
+{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, Rank2Types #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Term

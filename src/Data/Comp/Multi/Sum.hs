@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, GADTs, ScopedTypeVariables, IncoherentInstances,
-  RankNTypes, FlexibleContexts, TemplateHaskell #-}
+  Rank2Types, FlexibleContexts, TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Sum

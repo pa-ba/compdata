@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, FlexibleContexts, RankNTypes, GADTs #-}
+{-# LANGUAGE TypeOperators, FlexibleContexts, Rank2Types, GADTs #-}
 
 --------------------------------------------------------------------------------
 -- |

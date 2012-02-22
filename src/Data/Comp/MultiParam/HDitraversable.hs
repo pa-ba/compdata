@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, FlexibleInstances, MultiParamTypeClasses,
+{-# LANGUAGE Rank2Types, FlexibleInstances, MultiParamTypeClasses,
   FlexibleContexts, OverlappingInstances, TypeOperators, GADTs #-}
 --------------------------------------------------------------------------------
 -- |

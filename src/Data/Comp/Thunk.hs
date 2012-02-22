@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, FlexibleContexts, RankNTypes, ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators, FlexibleContexts, Rank2Types, ScopedTypeVariables #-}
 
 --------------------------------------------------------------------------------
 -- |

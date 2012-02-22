@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, RankNTypes, ScopedTypeVariables, TypeOperators,
+{-# LANGUAGE GADTs, Rank2Types, ScopedTypeVariables, TypeOperators,
   FlexibleContexts, CPP #-}
 --------------------------------------------------------------------------------
 -- |
