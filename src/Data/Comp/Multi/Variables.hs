@@ -26,7 +26,6 @@ module Data.Comp.Multi.Variables
      variables,
      variableList,
      variables',
-     substVars,
      appSubst,
      compSubst
     ) where
@@ -40,10 +39,6 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Maybe
 
-
--- type CxtSubst h a f v =  [A (v :*: (Cxt h f a))]
-
--- type Subst f v = CxtSubst NoHole Nothing f v
 
 type GSubst v a = NatM Maybe (K v) a
 
@@ -59,6 +54,14 @@ class HasVars (f  :: (* -> *) -> * -> *) v where
     isVar _ = Nothing
     bindsVars :: f a :=> [v]
     bindsVars _ = []
+    
+-- | Same as 'isVar' but it returns Nothing@ instead of @Just v@ if
+-- @v@ is contained in the given set of variables.
+isVar' :: (HasVars f v, Ord v) => Set v -> f a :=> Maybe v
+isVar' b t = do v <- isVar t
+                if v `Set.member` b
+                   then Nothing
+                   else return v
 
 $(derive [liftSum] [''HasVars])
 
@@ -133,31 +136,22 @@ variables' c =  case isVar c of
 {-| This function substitutes variables in a context according to a
 partial mapping from variables to contexts.-}
 class SubstVars v t a where
-    substVars :: GSubst v t -> a :-> a
+    substVars :: (Set v) -> GSubst v t -> a :-> a
 
 appSubst :: SubstVars v t a => GSubst v t -> a :-> a
-appSubst = substVars
+appSubst = substVars Set.empty
 
 instance (Ord v, HasVars f v, HFunctor f) => SubstVars v (Cxt h f a) (Cxt h f a) where
     -- have to use explicit GADT pattern matching!!
-    -- subst f = free (substAlg f) Hole
-    substVars _ (Hole a) = Hole a
-    substVars f (Term v) = substAlg f v
+    substVars _ _ (Hole a) = Hole a
+    substVars b f (Term v) = substAlg f (hfmap (substVars newBound f) v)
         where  substAlg :: (HasVars f v) => CxtSubst h a f v
                         -> Alg f (Cxt h f a)
-               substAlg f t = fromMaybe (Term t) (isVar t >>= f . K)
-    -- The code below does not work with GHC 7
-    -- substVars _ (Hole a) = Hole a
-    -- substVars f (Term v) = let f' = res (bindsVars v) f in
-    --                         substAlg f' $ hfmap (substVars f') v
-    --     where  substAlg :: (HasVars f v) => CxtSubst h a f v
-    --                     -> Alg f (Cxt h f a)
-    --            substAlg f t = fromMaybe (Term t) (isVar t >>= f . K)
-    --            res :: Eq v => [v] -> GSubst v t -> GSubst v t
-    --            res vars f x = if unK x `elem` vars then Nothing else f x
+               substAlg f t = fromMaybe (Term t) (isVar' b t >>= f . K)
+               newBound = b `Set.union` Set.fromList (bindsVars v)
 
 instance (SubstVars v t a, HFunctor f) => SubstVars v t (f a) where
-    substVars f = hfmap (substVars f) 
+    substVars b f = hfmap (substVars b f) 
 
 {-| This function composes two substitutions @s1@ and @s2@. That is,
 applying the resulting substitution is equivalent to first applying
