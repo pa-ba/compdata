@@ -57,6 +57,7 @@ class HasVars (f  :: (* -> *) -> * -> *) v where
     
 -- | Same as 'isVar' but it returns Nothing@ instead of @Just v@ if
 -- @v@ is contained in the given set of variables.
+    
 isVar' :: (HasVars f v, Ord v) => Set v -> f a :=> Maybe v
 isVar' b t = do v <- isVar t
                 if v `Set.member` b

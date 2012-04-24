@@ -3,7 +3,7 @@ Version:		0.5.2
 Synopsis:            	Compositional Data Types
 Description:
 
-  Based on Wouter Swierstra's Functional Pearl /Data types à la carte/
+  Based on Wouter Swierstra's Functional Pearl /Data types a la carte/
   (Journal of Functional Programming, 18(4):423-436, 2008,
   <http://dx.doi.org/10.1017/S0956796808006758>),
   this package provides a framework for defining recursive
@@ -29,7 +29,7 @@ Description:
   In concrete terms, this package provides the following features:
   .
   *  Compositional data types in the style of Wouter Swierstra's
-     Functional Pearl /Data types à la carte/.
+     Functional Pearl /Data types a la carte/.
   .
   *  Modular definition of functions on compositional data types through
      catamorphisms and anamorphisms as well as more structured
@@ -69,10 +69,12 @@ Description:
      to families of mutually recursive data types and (more generally) GADTs.
      This extension resides in the module "Data.Comp.Multi".
   .
-  *  /Parametric compositional data types/. All of the above is also lifted
-     to parametric data types, which enables support for parametric higher-order
-     abstract syntax (PHOAS). This extension resides in the module
-     "Data.Comp.Param".
+  * /Parametric compositional data types/ (Workshop on Mathematically
+     Structured Functional Programming, 3-24, 2012,
+     <http://dx.doi.org/10.4204/EPTCS.76.3>). All of the above is also
+     lifted to parametric data types, which enables support for
+     parametric higher-order abstract syntax (PHOAS). This extension
+     resides in the module "Data.Comp.Param".
   .
   *  /Generalised parametric compositional data types/. All of the above is also
      lifted to generalised parametric data types, which enables support for
