@@ -1,5 +1,5 @@
 Name:			compdata
-Version:		0.5.2
+Version:		0.5.3
 Synopsis:            	Compositional Data Types
 Description:
 
@@ -293,3 +293,7 @@ Executable benchmark
     buildable:          False
   else
     Build-Depends:      base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
+
+source-repository head
+  type:     hg
+  location: https://bitbucket.org/paba/compdata
