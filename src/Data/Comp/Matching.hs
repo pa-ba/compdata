@@ -24,9 +24,10 @@ import Data.Comp.Equality
 import Data.Comp.Variables
 import qualified Data.Map as Map
 import Data.Map (Map)
+import Data.Traversable
 import Data.Foldable
 
-import Prelude hiding (mapM_, all)
+import Prelude hiding (mapM_, mapM, all)
 
 {-| This is an auxiliary function for implementing 'matchCxt'. It behaves
 similarly as 'match' but is oblivious to non-linearity. Therefore, the
@@ -70,7 +71,7 @@ matchCxt c1 c2 = do
 {-| This function is similar to 'matchCxt' but instead of a context it
 matches a term with variables against a context.  -}
 
-matchTerm :: (Ord v, EqF f, Eq (Cxt h f a) , Functor f, Foldable f, HasVars f v)
+matchTerm :: (Ord v, EqF f, Eq (Cxt h f a) , Traversable f, HasVars f v)
           => Term f -> Cxt h f a -> Maybe (CxtSubst h a f v)
 matchTerm t = matchCxt (varsToHoles t)
 

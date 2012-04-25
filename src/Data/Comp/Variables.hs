@@ -30,6 +30,7 @@ module Data.Comp.Variables
     ) where
 
 import Data.Comp.Term
+import Data.Comp.Number
 import Data.Comp.Algebra
 import Data.Comp.Derive
 import Data.Foldable hiding (elem, notElem)
@@ -52,72 +53,95 @@ type Subst f v = CxtSubst NoHole () f v
   @HasVar f v@ denotes that values over @f@ might contain and bind variables of
   type @v@. -}
 class HasVars f v where
-    -- |Indicates whether the @f@ constructor is a variable.
+    -- | Indicates whether the @f@ constructor is a variable. The
+    -- default implementation returns @Nothing@.
     isVar :: f a -> Maybe v
     isVar _ = Nothing
-    -- |Indicates the set of variables bound by the @f@ constructor.
-    bindsVars :: f a -> [v]
-    bindsVars _ = []
+    
+    -- | Indicates the set of variables bound by the @f@ constructor
+    -- for each argument of the constructor. For example for a
+    -- non-recursive let binding:
+    -- @
+    -- data Let e = Let Var e e
+    -- instance HasVars Let Var where
+    --   bindsVars (Let v x y) = Map.fromList [(y, (Set.singleton v))]
+    -- @
+    -- If, instead, the let binding is recursive, the methods has to
+    -- be implemented like this:
+    -- @
+    --   bindsVars (Let v x y) = Map.fromList [(x, (Set.singleton v)),
+    --                                         (y, (Set.singleton v))]
+    -- @
+    -- This indicates that the scope of the bound variable also
+    -- extends to the right-hand side of the variable binding.
+    --
+    -- The default implementation returns the empty map.
+    bindsVars :: Ord a => f a -> Map a (Set v)
+    bindsVars _ = Map.empty
+
 
 $(derive [liftSum] [''HasVars])
-
-instance HasVars f v => HasVars (Cxt h f) v where
-    isVar (Term t) = isVar t
-    isVar _ = Nothing
-    bindsVars (Term t) = bindsVars t
-    bindsVars _ = []
+   
+getBoundVars :: (HasVars f v, Traversable f) => f a -> f (a, Set v)
+getBoundVars t = let n = number t
+                     m = bindsVars n
+                     trans x = (unNumbered x, Map.findWithDefault Set.empty x m)
+                 in fmap trans n
+                    
+-- | This combinator combines 'getBoundVars' with the generic 'fmap' function.
+fmapBoundVars :: (HasVars f v, Traversable f) => (a -> Set v -> b) -> f a -> f b
+fmapBoundVars f t = let n = number t
+                        m = bindsVars n
+                        trans x = f (unNumbered x) (Map.findWithDefault Set.empty x m)
+                    in fmap trans n                    
+                    
+-- | This combinator combines 'getBoundVars' with the generic 'foldl' function.   
+foldlBoundVars :: (HasVars f v, Traversable f) => (b -> a -> Set v -> b) -> b -> f a -> b
+foldlBoundVars f e t = let n = number t
+                           m = bindsVars n
+                           trans x y = f x (unNumbered y) (Map.findWithDefault Set.empty y m)
+                       in foldl trans e n
 
 -- | Convert variables to holes, except those that are bound.
-varsToHoles :: (Functor f, HasVars f v, Eq v) => Term f -> Context f v
-varsToHoles t = cata alg t []
-    where alg :: (Functor f, HasVars f v, Eq v) => Alg f ([v] -> Context f v)
-          alg t vars =
-              let vars' = vars ++ bindsVars t in
-              case isVar t of
-                Just v ->
-                    -- Check for scope
-                    if v `elem` vars' then
-                        Term $ fmap (\x -> x vars') t
-                    else
-                        Hole v
-                Nothing ->
-                    Term $ fmap (\x -> x vars') t
+varsToHoles :: (Traversable f, HasVars f v, Ord v) => Term f -> Context f v
+varsToHoles t = cata alg t Set.empty
+    where alg :: (Traversable f, HasVars f v, Ord v) => Alg f (Set v -> Context f v)
+          alg t vars = case isVar t of
+            Just v | v `Set.member` vars -> Hole v
+            _  -> Term $ fmapBoundVars run t
+              where 
+                run f newVars = f $ newVars `Set.union` vars
 
 -- |Algebra for checking whether a variable is contained in a term, except those
 -- that are bound.
-containsVarAlg :: (Eq v, HasVars f v, Foldable f) => v -> Alg f Bool
-containsVarAlg v t = v `notElem` bindsVars t && (local || or t)
+containsVarAlg :: (Eq v, HasVars f v, Traversable f, Ord v) => v -> Alg f Bool
+containsVarAlg v t = (foldlBoundVars run local t)
     where local = case isVar t of
                     Just v' -> v == v'
                     Nothing -> False
+          run acc b vars = acc || (not (v `Set.member` vars) && b)
 
 {-| This function checks whether a variable is contained in a context. -}
-containsVar :: (Eq v, HasVars f v, Foldable f, Functor f)
+containsVar :: (Eq v, HasVars f v, Traversable f, Ord v)
             => v -> Cxt h f a -> Bool
 containsVar v = free (containsVarAlg v) (const False)
 
 -- |Algebra for generating a set of variables contained in a term, except those
 -- that are bound.
-variablesAlg :: (Ord v, HasVars f v, Foldable f) => Alg f (Set v)
-variablesAlg t = Set.filter (`notElem` bindsVars t) $ foldl Set.union local t
+variablesAlg :: (Ord v, HasVars f v, Traversable f) => Alg f (Set v)
+variablesAlg t = foldlBoundVars run local t
     where local = case isVar t of
                     Just v -> Set.singleton v
                     Nothing -> Set.empty
+          run acc vars bvars = acc `Set.union` (vars `Set.difference` bvars)
 
--- |Algebra for generating a list of variables contained in a term, except those
--- that are bound.
-variableListAlg :: (Ord v, HasVars f v, Foldable f) => Alg f [v]
-variableListAlg t = filter (`notElem` bindsVars t) $ foldl (++) local t
-    where local = case isVar t of
-                    Just v -> [v]
-                    Nothing -> [] 
 
 {-| This function computes the list of variables occurring in a context. -}
-variableList :: (Ord v, HasVars f v, Foldable f, Functor f) => Cxt h f a -> [v]
-variableList = free variableListAlg (const [])
+variableList :: (Ord v, HasVars f v, Traversable f) => Cxt h f a -> [v]
+variableList = Set.toList . variables
 
 {-| This function computes the set of variables occurring in a context. -}
-variables :: (Ord v, HasVars f v, Foldable f, Functor f) => Cxt h f a -> Set v
+variables :: (Ord v, HasVars f v, Traversable f) => Cxt h f a -> Set v
 variables = free variablesAlg (const Set.empty)
 
 {-| This function computes the set of variables occurring in a constant. -}
@@ -136,18 +160,18 @@ appSubst :: (Ord v, SubstVars v t a) => Map v t -> a -> a
 appSubst subst = substVars f
     where f v = Map.lookup v subst
 
-instance (Ord v, HasVars f v, Functor f)
+instance (Ord v, HasVars f v, Traversable f)
     => SubstVars v (Cxt h f a) (Cxt h f a) where
         -- have to use explicit GADT pattern matching!!
         -- subst f = free (substAlg f) Hole
     substVars _ (Hole a) = Hole a
-    substVars f (Term v) = let f' = res (bindsVars v) f in
-                           substAlg f' $ fmap (substVars f') v
-            where substAlg :: (HasVars f v) => (v -> Maybe (Cxt h f a))
-                           -> Alg f (Cxt h f a)
-                  substAlg f t = fromMaybe (Term t) (isVar t >>= f)
-                  res :: Eq v => [v] -> (v -> Maybe t) -> v -> Maybe t
-                  res vars f x = if x `elem` vars then Nothing else f x
+    substVars f (Term t) = case isVar t >>= f of 
+      Just new -> new
+      Nothing  -> Term $ fmapBoundVars run t
+       where run s vars = let f' x = if x `Set.member` vars  
+                                       then Nothing
+                                       else f x  
+                            in substVars f' s
 
 instance (SubstVars v t a, Functor f) => SubstVars v t (f a) where
     substVars f = fmap (substVars f) 
@@ -155,6 +179,6 @@ instance (SubstVars v t a, Functor f) => SubstVars v t (f a) where
 {-| This function composes two substitutions @s1@ and @s2@. That is,
 applying the resulting substitution is equivalent to first applying
 @s2@ and then @s1@. -}
-compSubst :: (Ord v, HasVars f v, Functor f)
+compSubst :: (Ord v, HasVars f v, Traversable f)
           => CxtSubst h a f v -> CxtSubst h a f v -> CxtSubst h a f v
 compSubst s1 s2 = fmap (appSubst s1) s2 `Map.union` s1

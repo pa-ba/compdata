@@ -22,6 +22,8 @@ import Data.Comp.Decompose
 import Control.Monad.Error
 import Control.Monad.State
 
+import Data.Traversable
+
 import qualified Data.Map as Map
 
 {-| This type represents equations between terms over a specific
@@ -56,7 +58,7 @@ headSymbolMismatch f g = throwError $ HeadSymbolMismatch f g
 
 -- | This function applies a substitution to each term in a list of
 -- equations.
-appSubstEq :: (Ord v,  HasVars f v, Functor f) =>
+appSubstEq :: (Ord v,  HasVars f v, Traversable f) =>
      Subst f v -> Equation f -> Equation f
 appSubstEq s (t1,t2) = (appSubst s t1,appSubst s t2)
 
@@ -64,7 +66,7 @@ appSubstEq s (t1,t2) = (appSubst s t1,appSubst s t2)
 {-| This function returns the most general unifier of the given
 equations using the algorithm of Martelli and Montanari. -}
 
-unify :: (MonadError (UnifError f v) m, Decompose f v, Ord v, Eq (Const f))
+unify :: (MonadError (UnifError f v) m, Decompose f v, Ord v, Eq (Const f), Traversable f)
       => Equations f -> m (Subst f v)
 unify = runUnifyM runUnify
 
@@ -95,18 +97,18 @@ putEqs :: Monad m
 putEqs eqs = modify addEqs
     where addEqs s = s {usEqs = eqs ++ usEqs s}
 
-putBinding :: (Monad m, Ord v, HasVars f v, Functor f) => (v, Term f) -> UnifyM f v m ()
+putBinding :: (Monad m, Ord v, HasVars f v, Traversable f) => (v, Term f) -> UnifyM f v m ()
 putBinding bind = modify appSubst
     where binds = Map.fromList [bind]
           appSubst s = s { usEqs = map (appSubstEq binds) (usEqs s),
                              usSubst = compSubst binds (usSubst s)}
 
 
-runUnify :: (MonadError (UnifError f v) m, Decompose f v, Ord v, Eq (Const f))
+runUnify :: (MonadError (UnifError f v) m, Decompose f v, Ord v, Eq (Const f), Traversable f)
          => UnifyM f v m ()
 runUnify = withNextEq (\ e -> unifyStep e >> runUnify)
 
-unifyStep :: (MonadError (UnifError f v) m, Decompose f v, Ord v, Eq (Const f)) 
+unifyStep :: (MonadError (UnifError f v) m, Decompose f v, Ord v, Eq (Const f), Traversable f) 
           => Equation f -> UnifyM f v m ()
 unifyStep (s,t) = case decompose s of
                     Var v1 -> case decompose t of
