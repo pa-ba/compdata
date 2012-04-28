@@ -81,25 +81,37 @@ class HasVars f v where
 
 
 $(derive [liftSum] [''HasVars])
+
+-- | Same as 'isVar' but it returns Nothing@ instead of @Just v@ if
+-- @v@ is contained in the given set of variables.
+    
+isVar' :: (HasVars f v, Ord v) => Set v -> f a -> Maybe v
+isVar' b t = do v <- isVar t
+                if v `Set.member` b
+                   then Nothing
+                   else return v
    
-getBoundVars :: (HasVars f v, Traversable f) => f a -> f (a, Set v)
+-- | This combinator pairs every argument of a given constructor with
+-- the set of (newly) bound variables according to the corresponding
+-- 'HasVars' type class instance.
+getBoundVars :: (HasVars f v, Traversable f) => f a -> f (Set v, a)
 getBoundVars t = let n = number t
                      m = bindsVars n
-                     trans x = (unNumbered x, Map.findWithDefault Set.empty x m)
+                     trans x = (Map.findWithDefault Set.empty x m, unNumbered x)
                  in fmap trans n
                     
 -- | This combinator combines 'getBoundVars' with the generic 'fmap' function.
-fmapBoundVars :: (HasVars f v, Traversable f) => (a -> Set v -> b) -> f a -> f b
+fmapBoundVars :: (HasVars f v, Traversable f) => (Set v -> a -> b) -> f a -> f b
 fmapBoundVars f t = let n = number t
                         m = bindsVars n
-                        trans x = f (unNumbered x) (Map.findWithDefault Set.empty x m)
+                        trans x = f (Map.findWithDefault Set.empty x m) (unNumbered x)
                     in fmap trans n                    
                     
 -- | This combinator combines 'getBoundVars' with the generic 'foldl' function.   
-foldlBoundVars :: (HasVars f v, Traversable f) => (b -> a -> Set v -> b) -> b -> f a -> b
+foldlBoundVars :: (HasVars f v, Traversable f) => (b -> Set v -> a -> b) -> b -> f a -> b
 foldlBoundVars f e t = let n = number t
                            m = bindsVars n
-                           trans x y = f x (unNumbered y) (Map.findWithDefault Set.empty y m)
+                           trans x y = f x (Map.findWithDefault Set.empty y m) (unNumbered y) 
                        in foldl trans e n
 
 -- | Convert variables to holes, except those that are bound.
@@ -110,16 +122,16 @@ varsToHoles t = cata alg t Set.empty
             Just v | v `Set.member` vars -> Hole v
             _  -> Term $ fmapBoundVars run t
               where 
-                run f newVars = f $ newVars `Set.union` vars
+                run newVars f = f $ newVars `Set.union` vars
 
 -- |Algebra for checking whether a variable is contained in a term, except those
 -- that are bound.
 containsVarAlg :: (Eq v, HasVars f v, Traversable f, Ord v) => v -> Alg f Bool
-containsVarAlg v t = (foldlBoundVars run local t)
+containsVarAlg v t = foldlBoundVars run local t
     where local = case isVar t of
                     Just v' -> v == v'
                     Nothing -> False
-          run acc b vars = acc || (not (v `Set.member` vars) && b)
+          run acc vars b = acc || (not (v `Set.member` vars) && b)
 
 {-| This function checks whether a variable is contained in a context. -}
 containsVar :: (Eq v, HasVars f v, Traversable f, Ord v)
@@ -133,7 +145,7 @@ variablesAlg t = foldlBoundVars run local t
     where local = case isVar t of
                     Just v -> Set.singleton v
                     Nothing -> Set.empty
-          run acc vars bvars = acc `Set.union` (vars `Set.difference` bvars)
+          run acc bvars vars = acc `Set.union` (vars `Set.difference` bvars)
 
 
 {-| This function computes the list of variables occurring in a context. -}
@@ -164,14 +176,12 @@ instance (Ord v, HasVars f v, Traversable f)
     => SubstVars v (Cxt h f a) (Cxt h f a) where
         -- have to use explicit GADT pattern matching!!
         -- subst f = free (substAlg f) Hole
-    substVars _ (Hole a) = Hole a
-    substVars f (Term t) = case isVar t >>= f of 
-      Just new -> new
-      Nothing  -> Term $ fmapBoundVars run t
-       where run s vars = let f' x = if x `Set.member` vars  
-                                       then Nothing
-                                       else f x  
-                            in substVars f' s
+  substVars subst = doSubst Set.empty
+    where doSubst _ (Hole a) = Hole a
+          doSubst b (Term t) = case isVar' b t >>= subst of 
+            Just new -> new
+            Nothing  -> Term $ fmapBoundVars run t
+              where run vars s = doSubst (b `Set.union` vars) s
 
 instance (SubstVars v t a, Functor f) => SubstVars v t (f a) where
     substVars f = fmap (substVars f) 
