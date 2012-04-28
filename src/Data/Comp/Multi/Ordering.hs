@@ -33,8 +33,8 @@ class KEq f => KOrd f where
 class EqHF f => OrdHF f where
     compareHF :: KOrd a => f a i -> f a j -> Ordering
 
---instance KOrd f => Ord (f i) where
---    compare = kcompare
+instance KOrd f => Ord (A f) where
+    compare (A x) (A y) = kcompare x y
 
 instance Ord a => KOrd (K a) where
     kcompare (K x) (K y) = compare x y
