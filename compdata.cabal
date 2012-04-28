@@ -171,6 +171,7 @@ library
                         Data.Comp.Automata.Product,
                         Data.Comp.Number,
                         Data.Comp.Thunk,
+                        Data.Comp.Ops,
 
                         Data.Comp.Multi,
                         Data.Comp.Multi.Term,
@@ -185,7 +186,7 @@ library
                         Data.Comp.Multi.Ordering,
                         Data.Comp.Multi.Variables,
                         Data.Comp.Multi.Ops,
-                        Data.Comp.Ops,
+                        Data.Comp.Multi.Number,
                         Data.Comp.Multi.Derive
                         Data.Comp.Multi.Generic,
                         Data.Comp.Multi.Desugar,
