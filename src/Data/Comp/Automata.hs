@@ -26,6 +26,7 @@ module Data.Comp.Automata
       QHom
     , below
     , above
+    , pureHom
     -- ** Bottom-Up State Propagation
     , upTrans
     , runUpHom
@@ -141,17 +142,13 @@ explicit x ab be = x where ?above = ab; ?below = be
                            
 type QHom f q g = forall a . (?below :: a -> q, ?above :: q) => f a -> Context g a
 
--- -- | This type represents (pure, i.e. stateless) homomorphism by
--- -- universally quantifying over the state type.
--- type PHom f g = forall q . QHom f q g
 
--- -- | This combinator runs a stateless homomorphism. (use
--- -- 'Data.Comp.Algebra.appHom' instead).
--- runPHom :: forall f g . (Functor f, Functor g) => PHom f g -> CxtFun f g
--- runPHom hom = run where
---     run :: CxtFun f g
---     run (Hole x) = Hole x
---     run (Term t) = appCxt (explicit () (const ()) hom (fmap run t))
+-- | This function turns a stateful homomorphism with a fully
+-- polymorphic state type into a (stateless) homomorphism.
+pureHom :: (forall q . QHom f q g) -> Hom f g
+pureHom phom t = let ?above = undefined 
+                     ?below = const undefined
+                 in phom t
 
 -- | This type represents transition functions of deterministic
 -- bottom-up tree transducers (DUTTs).
