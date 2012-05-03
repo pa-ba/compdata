@@ -1,5 +1,5 @@
 {-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, Rank2Types,
-  MultiParamTypeClasses #-}
+  MultiParamTypeClasses, TypeSynonymInstances, FlexibleInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Term
@@ -24,6 +24,7 @@ module Data.Comp.Param.Term
      Context,
      simpCxt,
      toCxt,
+     cxtMap,
      ParamFunctor(..)
     ) where
 
@@ -68,6 +69,13 @@ simpCxt = In . difmap Hole
 toCxt :: Difunctor f => Trm f a -> Cxt h f a b
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
+
+-- | This combinator maps a function over a context by applying the
+-- function to each hole.
+cxtMap :: Difunctor f => (b -> c) -> Context f a b -> Context f a c
+cxtMap f (Hole x) = Hole (f x)
+cxtMap _ (Var x)  = Var x
+cxtMap f (In t)   = In (dimap id (cxtMap f) t)
 
 -- Param Functor
 
