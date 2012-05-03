@@ -8,6 +8,7 @@ import Data.Comp.Variables
 import Data.Comp.Derive
 import Data.Comp.Sum
 import Data.Comp.Term
+import Data.Comp.Show ()
 
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -15,8 +16,8 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 
 import Test.Framework
-import Test.Framework.Providers.QuickCheck2
-import Test.QuickCheck
+import Test.Framework.Providers.HUnit
+import Test.HUnit
 
 
 
@@ -81,14 +82,14 @@ subst = Map.fromList [(X, iInt 1), (Y, iInt 2), (Z, iInt 3)]
 -- Properties
 --------------------------------------------------------------------------------
 
-prop_letFree = variables letExp == Set.fromList [Z,X]
+case_letFree = Set.fromList [Z,X] @=? variables letExp
 
-prop_recFree = variables recExp == Set.fromList [Z]
+case_recFree = Set.fromList [Z] @=? variables recExp
 
-prop_letSubst = appSubst s letExp == letExp'
+case_letSubst = letExp' @=? appSubst s letExp
     where s = subst :: Subst SigLet Var
 
-prop_recSubst = appSubst s recExp == recExp'
+case_recSubst = recExp' @=? appSubst s recExp
     where s = subst :: Subst SigRec Var
 
 --------------------------------------------------------------------------------
@@ -98,6 +99,8 @@ prop_recSubst = appSubst s recExp == recExp'
 main = defaultMain [tests]
 
 tests = testGroup "Variables" [
-         testProperty "prop_letFree" prop_letFree
-        ,testProperty "prop_recFree" prop_recFree
+         testCase "case_letFree" case_letFree
+        ,testCase "case_recFree" case_recFree
+        ,testCase "case_letSubst" case_letSubst
+        ,testCase "case_recSubst" case_recSubst
         ]

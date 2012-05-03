@@ -7,8 +7,8 @@ import Examples.Param.Graph as Graph
 import Data.Comp.Param
 
 import Test.Framework
-import Test.Framework.Providers.QuickCheck2
-import Test.QuickCheck
+import Test.Framework.Providers.HUnit
+import Test.HUnit
 import Test.Utils
 
 
@@ -20,8 +20,8 @@ import Test.Utils
 --------------------------------------------------------------------------------
 
 tests = testGroup "Parametric Compositional Data Types" [
-         testProperty "names" namesTest,
-         testProperty "graph" graphTest
+         testCase "names" namesTest,
+         testCase "graph" graphTest
         ]
 
 
@@ -34,5 +34,5 @@ instance (EqD f, PEq p) => EqD (f :&: p) where
                                      b2 <- eqD v1 v2
                                      return $ b1 && b2
 
-namesTest = en == en' && ep == ep'
-graphTest = g == g && n == 5 && f == [0,2,1,2]
+namesTest = sequence_ [en @=? en', ep @=? ep']
+graphTest = sequence_ [n @=? 5, f @=? [0,2,1,2]]

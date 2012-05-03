@@ -39,7 +39,7 @@ instance (ShowHF f, HFunctor f) => ShowHF (Cxt h f) where
 instance (ShowHF f, HFunctor f, KShow a) => KShow (Cxt h f a) where
     kshow = free showHF kshow
 
-instance (KShow f) => Show (f i) where
+instance (KShow (Cxt h f a)) => Show (Cxt h f a i) where
     show = unK . kshow
 
 instance (ShowHF f, Show p) => ShowHF (f :&: p) where
