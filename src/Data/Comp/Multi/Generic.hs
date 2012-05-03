@@ -30,19 +30,19 @@ import Data.Maybe
 
 -- | This function returns a list of all subterms of the given
 -- term. This function is similar to Uniplate's @universe@ function.
-subterms :: forall f  . HFoldable f => Term f  :=> [A (Term f)]
+subterms :: forall f  . HFoldable f => Term f  :=> [E (Term f)]
 subterms t = build (f t)
-    where f :: Term f :=> (A (Term f) -> b -> b) -> b -> b
-          f t cons nil = A t `cons` hfoldl (\u s -> f s cons u) nil (unTerm t)
+    where f :: Term f :=> (E (Term f) -> b -> b) -> b -> b
+          f t cons nil = E t `cons` hfoldl (\u s -> f s cons u) nil (unTerm t)
 
 -- | This function returns a list of all subterms of the given term
 -- that are constructed from a particular functor.
-subterms' :: forall f g . (HFoldable f, g :<: f) => Term f :=> [A (g (Term f))]
+subterms' :: forall f g . (HFoldable f, g :<: f) => Term f :=> [E (g (Term f))]
 subterms' (Term t) = build (f t)
-    where f :: f (Term f) :=> (A (g (Term f)) -> b -> b) -> b -> b
+    where f :: f (Term f) :=> (E (g (Term f)) -> b -> b) -> b -> b
           f t cons nil = let rest = hfoldl (\u (Term s) -> f s cons u) nil t
                          in case proj t of
-                              Just t' -> A t' `cons` rest
+                              Just t' -> E t' `cons` rest
                               Nothing -> rest
 
 -- | This function transforms every subterm according to the given
@@ -66,12 +66,12 @@ query :: HFoldable f => (Term f :=>  r) -> (r -> r -> r) -> Term f :=> r
 --     where run i@(Term t) = foldl (\s x -> s `c` run x) (q i) t
 query q c i@(Term t) = hfoldl (\s x -> s `c` query q c x) (q i) t
 
-subs :: HFoldable f => Term f  :=> [A (Term f)]
-subs = query (\x-> [A x]) (++)
+subs :: HFoldable f => Term f  :=> [E (Term f)]
+subs = query (\x-> [E x]) (++)
 
-subs' :: (HFoldable f, g :<: f) => Term f :=> [A (g (Term f))]
+subs' :: (HFoldable f, g :<: f) => Term f :=> [E (g (Term f))]
 subs' = mapMaybe pr . subs
-        where pr (A v) = fmap A (project v)
+        where pr (E v) = fmap E (project v)
 
 -- | This function computes the generic size of the given term,
 -- i.e. the its number of subterm occurrences.

@@ -44,11 +44,18 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 
 
-type GSubst v a = NatM Maybe (K v) a
+type GSubst v a = Map v (A a)
 
 type CxtSubst h a f v =  GSubst v (Cxt h f a)
 
 type Subst f v = CxtSubst NoHole (K ()) f v
+
+type SubstFun v a = NatM Maybe (K v) a
+
+
+
+substFun :: Ord v => GSubst v a -> SubstFun v a
+substFun s (K v) = fmap unA $ Map.lookup v s
 
 {-| This multiparameter class defines functors with variables. An instance
   @HasVar f v@ denotes that values over @f@ might contain and bind variables of
@@ -77,7 +84,7 @@ class HasVars (f  :: (* -> *) -> * -> *) v where
     -- extends to the right-hand side of the variable binding.
     --
     -- The default implementation returns the empty map.
-    bindsVars :: KOrd a => f a :=> Map (A a) (Set v)
+    bindsVars :: KOrd a => f a :=> Map (E a) (Set v)
     bindsVars _ = Map.empty
 
 $(derive [liftSum] [''HasVars])
@@ -97,10 +104,10 @@ isVar' b t = do v <- isVar t
 getBoundVars :: forall f a v i . (HasVars f v, HTraversable f) => f a i -> f (a :*: K (Set v)) i
 getBoundVars t = let n :: f (Numbered a) i
                      n = number t
-                     m :: Map (A (Numbered a)) (Set v)
+                     m :: Map (E (Numbered a)) (Set v)
                      m = bindsVars n
                      trans :: Numbered a :-> (a :*: K (Set v))
-                     trans x = unNumbered x :*: (K (Map.findWithDefault Set.empty (A x) m))
+                     trans x = unNumbered x :*: (K (Map.findWithDefault Set.empty (E x) m))
                  in hfmap trans n
                     
 -- | This combinator combines 'getBoundVars' with the 'mfmap' function.
@@ -108,10 +115,10 @@ hfmapBoundVars :: forall f a b v i . (HasVars f v, HTraversable f)
                   => (Set v -> a :-> b) -> f a i -> f b i
 hfmapBoundVars f t = let n :: f (Numbered a) i
                          n = number t
-                         m :: Map (A (Numbered a)) (Set v)
+                         m :: Map (E (Numbered a)) (Set v)
                          m = bindsVars n
                          trans :: Numbered a :-> b
-                         trans x = f (Map.findWithDefault Set.empty (A x) m) (unNumbered x)
+                         trans x = f (Map.findWithDefault Set.empty (E x) m) (unNumbered x)
                      in hfmap trans n
                         
 -- | This combinator combines 'getBoundVars' with the generic 'hfoldl' function.   
@@ -119,10 +126,10 @@ hfoldlBoundVars :: forall f a b v i . (HasVars f v, HTraversable f)
                   => (b -> Set v ->  a :=> b) -> b -> f a i -> b
 hfoldlBoundVars f e t = let n :: f (Numbered a) i
                             n = number t
-                            m :: Map (A (Numbered a)) (Set v)
+                            m :: Map (E (Numbered a)) (Set v)
                             m = bindsVars n
                             trans :: b -> Numbered a :=> b
-                            trans x y = f x (Map.findWithDefault Set.empty (A y) m) (unNumbered y)
+                            trans x y = f x (Map.findWithDefault Set.empty (E y) m) (unNumbered y)
                        in hfoldl trans e n
 
 
@@ -185,10 +192,10 @@ variables' c =  case isVar c of
 {-| This function substitutes variables in a context according to a
 partial mapping from variables to contexts.-}
 class SubstVars v t a where
-    substVars :: GSubst v t -> a :-> a
+    substVars :: SubstFun v t -> a :-> a
 
-appSubst :: SubstVars v t a => GSubst v t -> a :-> a
-appSubst = substVars
+appSubst :: (Ord v, SubstVars v t a) => GSubst v t -> a :-> a
+appSubst subst = substVars (substFun subst)
 
 instance (Ord v, HasVars f v, HTraversable f) => SubstVars v (Cxt h f a) (Cxt h f a) where
     -- have to use explicit GADT pattern matching!!
@@ -210,6 +217,5 @@ applying the resulting substitution is equivalent to first applying
 
 compSubst :: (Ord v, HasVars f v, HTraversable f)
           => CxtSubst h a f v -> CxtSubst h a f v -> CxtSubst h a f v
-compSubst s1 s2 v = case s2 v of
-                      Nothing -> s1 v
-                      Just t -> Just $ appSubst s1 t
+compSubst s1 s2 = Map.map f s2
+    where f (A t) = A (appSubst s1 t)

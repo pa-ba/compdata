@@ -37,8 +37,8 @@ class EqHF f where
 instance Eq a => KEq (K a) where
     keq (K x) (K y) = x == y
 
-instance KEq a => Eq (A a) where
-     A x == A y = x `keq`  y
+instance KEq a => Eq (E a) where
+     E x == E y = x `keq`  y
 
 {-|
   'EqF' is propagated through sums.
@@ -69,7 +69,7 @@ sense, 'eqMod' returns a 'Just' value containing a list of pairs
 consisting of corresponding components of the two functorial
 values. -}
 
-heqMod :: (EqHF f, HFunctor f, HFoldable f) => f a i -> f b i -> Maybe [(A a, A b)]
+heqMod :: (EqHF f, HFunctor f, HFoldable f) => f a i -> f b i -> Maybe [(E a, E b)]
 heqMod s t
     | unit s `eqHF` unit' t = Just args
     | otherwise = Nothing

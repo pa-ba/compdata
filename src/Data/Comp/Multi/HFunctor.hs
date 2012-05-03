@@ -23,6 +23,7 @@ module Data.Comp.Multi.HFunctor
      I (..),
      K (..),
      A (..),
+     E (..),
      (:.:)(..)
      ) where
 
@@ -35,7 +36,9 @@ newtype K a i = K {unK :: a}
 instance Functor (K a) where
     fmap _ (K x) = K x
 
-data A f = forall i. A {unA :: f i}
+data E f = forall i. E {unE :: f i}
+
+data A f = A {unA :: forall i. f i}
 
 instance Eq a => Eq (K a i) where
     K x == K y = x == y

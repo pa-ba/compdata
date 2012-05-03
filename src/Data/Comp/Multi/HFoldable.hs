@@ -56,8 +56,8 @@ class HFunctor h => HFoldable h where
                 mf Nothing (K y) = Just y
                 mf (Just x) (K y) = Just (f x y)
 
-htoList :: (HFoldable f) => f a :=> [A a]
-htoList = hfoldr (\ n l ->  A n : l) []
+htoList :: (HFoldable f) => f a :=> [E a]
+htoList = hfoldr (\ n l ->  E n : l) []
     
 kfoldr :: (HFoldable f) => (a -> b -> b) -> b -> f (K a) :=> b
 kfoldr f = hfoldr (\ (K x) y -> f x y)

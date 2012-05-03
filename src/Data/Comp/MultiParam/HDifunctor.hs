@@ -22,6 +22,7 @@ module Data.Comp.MultiParam.HDifunctor
      HFunctor (..),
      I (..),
      K (..),
+     E (..),
      A (..),
      (:->),
      NatM
