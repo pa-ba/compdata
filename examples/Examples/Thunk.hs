@@ -18,7 +18,6 @@
 module Examples.Thunk where
 
 import Data.Comp
-import Data.Comp.Zippable
 import Data.Comp.Thunk
 import Data.Comp.Derive
 import Data.Comp.Show()
@@ -35,10 +34,6 @@ type Sig = Op :+: Value
 $(derive [makeFunctor, makeTraversable, makeFoldable,
           makeEqF, makeShowF, smartConstructors, makeHaskellStrict]
          [''Value])
-
-instance Zippable Value where
-    fzip (Cons x (Cons y _)) (Pair x' y') = Pair (x,x') (y,y')
-    fzip _ (Const i) = Const i
 
 -- Monadic term evaluation algebra
 class EvalT f v where
