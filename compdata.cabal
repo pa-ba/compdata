@@ -287,16 +287,14 @@ Test-Suite test
   hs-source-dirs:	src testsuite/tests examples
   Build-Depends:        base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2, derive, th-expand-syns, deepseq, transformers
 
-Executable benchmark
+Benchmark algebra
+  Type:                 exitcode-stdio-1.0
   Main-is:		Benchmark.hs
   hs-source-dirs:	src benchmark
   ghc-options:          -W -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
-  if !flag(benchmark)
-    buildable:          False
-  else
-    Build-Depends:      base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
+  Build-Depends:        base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
 
 source-repository head
   type:     hg

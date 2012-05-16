@@ -42,7 +42,7 @@ shortcutFusion = bgroup "shortcut-fusion" [
 
 standardBenchmarks :: (PExpr, SugarExpr, String) -> Benchmark
 standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (sExpr, aExpr,n)
-    where getBench (sExpr, aExpr,n) = bgroup n evalBenchmarks
+    where getBench (sExpr, aExpr,n) = bgroup n paperBenchmarks
           -- these are the benchmarks for evaluation
           evalBenchmarks = [
                  bench "evalDesug" (nf A.desugEval2 aExpr),
@@ -88,13 +88,13 @@ standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (
                  bench "evalDirectM" (nf A.evalDirectE aExpr),
                  bench "eval[Direct]M (comparison)" (nf S.evalSugar sExpr),
                  bench "contVar" (nf (A.contVar' 10) aExpr),
-                 bench "contVar (comparison)" (nf (S.contVar 10) sExpr),
                  bench "contVarG" (nf (A.contVarGen 10) aExpr),
                  bench "contVarU" (nf (S.contVarGen 10) sExpr),
-                 bench "freeVars[GU]" (nf A.freeVars' aExpr),
+                 bench "contVar (comparison)" (nf (S.contVar 10) sExpr),
+                 bench "freeVars" (nf A.freeVars' aExpr),
                  bench "freeVarsG" (nf A.freeVarsGen aExpr),
                  bench "freeVarsU" (nf S.freeVarsGen sExpr),
-                 bench "freeVars[GU] (comparison)" (nf S.freeVars sExpr)]
+                 bench "freeVars (comparison)" (nf S.freeVars sExpr)]
           -- these are all the benchmarks
           allBenchmarks = [
                  bench "Comp.desug" (nf A.desugExpr aExpr),

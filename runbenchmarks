@@ -1,2 +1,2 @@
 #!/bin/sh
-./dist/build/benchmark/benchmark --summary=results.csv
+cabal bench --benchmark-option=--summary=benchmark-results/results.csv
