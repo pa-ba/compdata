@@ -16,6 +16,7 @@ module Data.Comp.Number
     ( Numbered (..)
     , unNumbered
     , number
+    , numberFrom
     , Traversable ()) where
 
 import Data.Traversable
@@ -43,3 +44,10 @@ number x = fst $ runState (mapM run x) 0 where
   run b = do n <- get
              put (n+1)
              return $ Numbered (n,b)
+-- | This function numbers the components of the given functorial
+-- value with consecutive integers starting at 0.
+numberFrom :: (Traversable f, Enum n) => n -> f a -> f n
+numberFrom n x = fst $ runState (mapM run x) n where
+  run _ = do n <- get
+             put (succ n)
+             return n
