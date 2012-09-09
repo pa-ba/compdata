@@ -81,6 +81,12 @@ Description:
      typed parametric higher-order abstract syntax (PHOAS). This extension
      resides in the module "Data.Comp.MultiParam".
   .
+  * Advanced recursion schemes derived from tree automata. These
+    recursion schemes allow for a higher degree of modularity and make
+    it possible to apply fusion. See /Modular Tree Automata/
+    (Mathematics of Program Construction, 263-299, 2012,
+    <http://dx.doi.org/10.1007/978-3-642-31113-0_14>).
+  .
 
   Examples of using (generalised) (parametric) compositional data types are
   bundled with the package in the libray @examples@.
