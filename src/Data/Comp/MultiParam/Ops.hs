@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, FunctionalDependencies,
   FlexibleInstances, UndecidableInstances, IncoherentInstances,
-  KindSignatures #-}
+  KindSignatures, RankNTypes #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.MultiParam.Ops
@@ -70,7 +70,7 @@ data (f :*: g) a b = f a b :*: g a b
 ffst :: (f :*: g) a b -> f a b
 ffst (x :*: _) = x
 
-fsnd :: (f :*: g) a b -> g a b
+fsnd :: (f :*: g) a b -> g a b 
 fsnd (_ :*: x) = x
 
 
