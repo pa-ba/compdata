@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, Rank2Types,
+{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes,
   TypeOperators, ScopedTypeVariables, IncoherentInstances #-}
 --------------------------------------------------------------------------------
 -- |

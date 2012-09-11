@@ -1,4 +1,5 @@
 {-# LANGUAGE Rank2Types, FlexibleContexts, ImplicitParams, GADTs, TypeOperators #-}
+
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata
@@ -16,7 +17,13 @@
 -- 
 -- Like regular term homomorphisms also stateful homomorphisms (as
 -- well as transducers) can be lifted to annotated signatures
--- (cf. Data.Comp.Annotation").
+-- (cf. "Data.Comp.Annotation").
+--
+-- The recursion schemes provided in this module are derived from tree
+-- automata. They allow for a higher degree of modularity and make it
+-- possible to apply fusion. The implementation is based on the paper
+-- /Modular Tree Automata/ (Mathematics of Program Construction,
+-- 263-299, 2012, <http://dx.doi.org/10.1007/978-3-642-31113-0_14>).
 --
 --------------------------------------------------------------------------------
 

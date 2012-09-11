@@ -1,5 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances,
   OverlappingInstances, TypeOperators, TemplateHaskell #-}
+
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Variables
@@ -14,6 +15,7 @@
 -- account.
 --
 --------------------------------------------------------------------------------
+
 module Data.Comp.Variables
     (
      HasVars(..),
