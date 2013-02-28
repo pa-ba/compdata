@@ -121,7 +121,7 @@ varsToHoles :: (Traversable f, HasVars f v, Ord v) => Term f -> Context f v
 varsToHoles t = cata alg t Set.empty
     where alg :: (Traversable f, HasVars f v, Ord v) => Alg f (Set v -> Context f v)
           alg t vars = case isVar t of
-            Just v | v `Set.member` vars -> Hole v
+            Just v | not (v `Set.member` vars) -> Hole v
             _  -> Term $ fmapBoundVars run t
               where 
                 run newVars f = f $ newVars `Set.union` vars
