@@ -14,14 +14,13 @@
 
 module Data.Comp.Derive.LiftSum
     (
-     liftSum,
-     caseF
+     liftSum
     ) where
 
 import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
 import Data.Comp.Sum
-import Data.Comp.Ops ((:+:)(..))
+import Data.Comp.Ops ((:+:), caseF)
 
 
 {-| Given the name of a type class, where the first parameter is a functor,
@@ -29,13 +28,3 @@ import Data.Comp.Ops ((:+:)(..))
   as @instance (ShowF f, ShowF g) => ShowF (f :+: g) where ... @. -}
 liftSum :: Name -> Q [Dec]
 liftSum = liftSumGen 'caseF ''(:+:)
-                         
-
-
-{-| Utility function to case on a functor sum, without exposing the internal
-  representation of sums. -}
-caseF :: (f a -> b) -> (g a -> b) -> (f :+: g) a -> b
-{-# INLINE caseF #-}
-caseF f g x = case x of
-                Inl x -> f x
-                Inr x -> g x

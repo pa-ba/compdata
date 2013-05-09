@@ -27,6 +27,13 @@ infixr 6 :+:
 data (f :+: g) a b = Inl (f a b)
                    | Inr (g a b)
 
+{-| Utility function to case on a difunctor sum, without exposing the internal
+  representation of sums. -}
+caseD :: (f a b -> c) -> (g a b -> c) -> (f :+: g) a b -> c
+caseD f g x = case x of
+                Inl x -> f x
+                Inr x -> g x
+
 instance (Difunctor f, Difunctor g) => Difunctor (f :+: g) where
     dimap f g (Inl e) = Inl (dimap f g e)
     dimap f g (Inr e) = Inr (dimap f g e)

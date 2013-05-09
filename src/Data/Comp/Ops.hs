@@ -35,6 +35,14 @@ infixr 6 :+:
 data (f :+: g) e = Inl (f e)
                  | Inr (g e)
 
+{-| Utility function to case on a functor sum, without exposing the internal
+  representation of sums. -}
+caseF :: (f a -> b) -> (g a -> b) -> (f :+: g) a -> b
+{-# INLINE caseF #-}
+caseF f g x = case x of
+                Inl x -> f x
+                Inr x -> g x
+
 instance (Functor f, Functor g) => Functor (f :+: g) where
     fmap f (Inl e) = Inl (fmap f e)
     fmap f (Inr e) = Inr (fmap f e)
