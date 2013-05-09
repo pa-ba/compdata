@@ -140,7 +140,7 @@ liftSumGen caseName sumName fname = do
   let targs = map tyVarBndrName targs_
   splitM <- findSig targs decs
   case splitM of 
-    Nothing -> do report True $ "Class " ++ show name ++ " cannot be lifted to sums!"
+    Nothing -> do reportError $ "Class " ++ show name ++ " cannot be lifted to sums!"
                   return []
     Just (ts1_, ts2_) -> do
       let f = VarT $ mkName "f"
