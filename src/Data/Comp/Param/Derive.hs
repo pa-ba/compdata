@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Param.Derive
@@ -34,10 +35,10 @@ module Data.Comp.Param.Derive
      -- ** Smart Constructors w/ Annotations
      module Data.Comp.Param.Derive.SmartAConstructors,
      -- ** Lifting to Sums
-     module Data.Comp.Param.Derive.LiftSum
+     liftSum
     ) where
 
-import Data.Comp.Derive.Utils (derive)
+import Data.Comp.Derive.Utils (derive, liftSumGen)
 import Data.Comp.Param.Derive.Equality
 import Data.Comp.Param.Derive.Ordering
 import Data.Comp.Param.Derive.Show
@@ -45,4 +46,12 @@ import Data.Comp.Param.Derive.Difunctor
 import Data.Comp.Param.Derive.Ditraversable
 import Data.Comp.Param.Derive.SmartConstructors
 import Data.Comp.Param.Derive.SmartAConstructors
-import Data.Comp.Param.Derive.LiftSum
+import Data.Comp.Param.Ops ((:+:), caseD)
+
+import Language.Haskell.TH
+
+{-| Given the name of a type class, where the first parameter is a difunctor,
+  lift it to sums of difunctors. Example: @class ShowD f where ...@ is lifted
+  as @instance (ShowD f, ShowD g) => ShowD (f :+: g) where ... @. -}
+liftSum :: Name -> Q [Dec]
+liftSum = liftSumGen 'caseD ''(:+:)

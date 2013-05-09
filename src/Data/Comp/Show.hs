@@ -20,9 +20,9 @@ module Data.Comp.Show
 import Data.Comp.Term
 import Data.Comp.Annotation
 import Data.Comp.Algebra
+import Data.Comp.Derive (liftSum)
 import Data.Comp.Derive.Utils (derive)
 import Data.Comp.Derive.Show
-import Data.Comp.Derive.LiftSum
 
 instance (Functor f, ShowF f) => ShowF (Cxt h f) where
     showF (Hole s) = s

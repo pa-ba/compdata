@@ -234,7 +234,6 @@ library
                         Data.Comp.Derive.DeepSeq,
                         Data.Comp.Derive.SmartConstructors,
                         Data.Comp.Derive.SmartAConstructors,
-                        Data.Comp.Derive.LiftSum,
                         Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable,
                         Data.Comp.Derive.Injections,
@@ -250,7 +249,6 @@ library
                         Data.Comp.Multi.Derive.Show,
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Multi.Derive.SmartAConstructors
-                        Data.Comp.Multi.Derive.LiftSum,
                         Data.Comp.Multi.Derive.Injections,
                         Data.Comp.Multi.Derive.Projections,
 
@@ -261,7 +259,6 @@ library
                         Data.Comp.Param.Derive.Show,
                         Data.Comp.Param.Derive.SmartConstructors,
                         Data.Comp.Param.Derive.SmartAConstructors,
-                        Data.Comp.Param.Derive.LiftSum,
                         Data.Comp.Param.Derive.Injections,
                         Data.Comp.Param.Derive.Projections,
 
@@ -271,7 +268,6 @@ library
                         Data.Comp.MultiParam.Derive.Show,
                         Data.Comp.MultiParam.Derive.SmartConstructors,
                         Data.Comp.MultiParam.Derive.SmartAConstructors,
-                        Data.Comp.MultiParam.Derive.LiftSum,
                         Data.Comp.MultiParam.Derive.Injections,
                         Data.Comp.MultiParam.Derive.Projections
 

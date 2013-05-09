@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive
@@ -44,11 +45,11 @@ module Data.Comp.Derive
      -- ** Smart Constructors w/ Annotations
      module Data.Comp.Derive.SmartAConstructors,
      -- ** Lifting to Sums
-     module Data.Comp.Derive.LiftSum
+     liftSum
     ) where
 
 import Control.DeepSeq (NFData(..))
-import Data.Comp.Derive.Utils (derive)
+import Data.Comp.Derive.Utils (derive, liftSumGen)
 import Data.Comp.Derive.HaskellStrict
 import Data.Comp.Derive.Foldable
 import Data.Comp.Derive.Traversable
@@ -59,7 +60,7 @@ import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Arbitrary
 import Data.Comp.Derive.SmartConstructors
 import Data.Comp.Derive.SmartAConstructors
-import Data.Comp.Derive.LiftSum
+import Data.Comp.Ops ((:+:), caseF)
 
 import Language.Haskell.TH
 
@@ -74,3 +75,9 @@ makeFunctor = D.derive A.makeFunctor
 {-| Derive an instance of 'NFData' for a type constructor. -}
 makeNFData :: Name -> Q [Dec]
 makeNFData = D.derive A.makeNFData
+
+{-| Given the name of a type class, where the first parameter is a functor,
+  lift it to sums of functors. Example: @class ShowF f where ...@ is lifted
+  as @instance (ShowF f, ShowF g) => ShowF (f :+: g) where ... @. -}
+liftSum :: Name -> Q [Dec]
+liftSum = liftSumGen 'caseF ''(:+:)
