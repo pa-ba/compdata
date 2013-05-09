@@ -18,6 +18,7 @@ module Data.Comp.Multi.Sum
     (
      (:<:),
      (:+:),
+     caseH,
 
      -- * Projections for Signatures and Terms
      proj,
