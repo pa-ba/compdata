@@ -142,7 +142,7 @@ varsToHoles :: forall f v. (HTraversable f, HasVars f v, Ord v) =>
 varsToHoles t = unC (cata alg t) Set.empty
     where alg :: (HTraversable f, HasVars f v, Ord v) => Alg f (C (Set v) (Context f (K v)))
           alg t = C $ \vars -> case isVar t of
-            Just v | v `Set.member` vars -> Hole $ K v
+            Just v | not (v `Set.member` vars) -> Hole $ K v
             _  -> Term $ hfmapBoundVars run t
               where 
                 run :: Set v -> C (Set v) (Context f (K v))  :-> Context f (K v)

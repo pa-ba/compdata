@@ -24,6 +24,7 @@ module Data.Comp.Multi.HFunctor
      K (..),
      A (..),
      E (..),
+     runE,
      (:.:)(..)
      ) where
 
@@ -37,6 +38,9 @@ instance Functor (K a) where
     fmap _ (K x) = K x
 
 data E f = forall i. E {unE :: f i}
+
+runE :: (f :=> b) -> E f -> b
+runE f (E x) = f x
 
 data A f = A {unA :: forall i. f i}
 

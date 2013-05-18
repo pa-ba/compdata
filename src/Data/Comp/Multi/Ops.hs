@@ -35,6 +35,13 @@ infixr 5 :+:
 data (f :+: g) (h :: * -> *) e = Inl (f h e)
                     | Inr (g h e)
 
+{-| Utility function to case on a higher-order functor sum, without exposing the
+  internal representation of sums. -}
+caseH :: (f a b -> c) -> (g a b -> c) -> (f :+: g) a b -> c
+caseH f g x = case x of
+                Inl x -> f x
+                Inr x -> g x
+
 instance (HFunctor f, HFunctor g) => HFunctor (f :+: g) where
     hfmap f (Inl v) = Inl $ hfmap f v
     hfmap f (Inr v) = Inr $ hfmap f v

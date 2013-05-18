@@ -82,4 +82,4 @@ size (Term t) = hfoldl (\s x -> s + size x) 1 t
 -- | This function computes the generic depth of the given term.
 depth :: HFoldable f => Cxt h f a :=> Int
 depth (Hole {}) = 0
-depth (Term t) = 1 + hfoldl (\s x -> s + size x) 0 t
+depth (Term t) = 1 + hfoldl (\s x -> s `max` depth x) 0 t

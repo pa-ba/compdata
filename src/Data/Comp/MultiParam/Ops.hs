@@ -29,6 +29,13 @@ infixr 6 :+:
 data (f :+: g) (a :: * -> *) (b :: * -> *) i = Inl (f a b i)
                                              | Inr (g a b i)
 
+{-| Utility function to case on a higher-order difunctor sum, without exposing
+  the internal representation of sums. -}
+caseHD :: (f a b i -> c) -> (g a b i -> c) -> (f :+: g) a b i -> c
+caseHD f g x = case x of
+                 Inl x -> f x
+                 Inr x -> g x
+
 instance (HDifunctor f, HDifunctor g) => HDifunctor (f :+: g) where
     hdimap f g (Inl e) = Inl (hdimap f g e)
     hdimap f g (Inr e) = Inr (hdimap f g e)

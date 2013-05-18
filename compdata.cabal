@@ -1,5 +1,5 @@
 Name:			compdata
-Version:		0.6.1
+Version:		0.6.1.2
 Synopsis:            	Compositional Data Types
 Description:
 
@@ -152,11 +152,6 @@ extra-source-files:
   examples/Examples/MultiParam/Lambda.hs
   examples/Examples/MultiParam/FOL.hs
 
-flag benchmark
-  description: Build benchmark executable.
-  default:     False
-
-
 library
   Exposed-Modules:      Data.Comp,
                         Data.Comp.Annotation,
@@ -239,7 +234,6 @@ library
                         Data.Comp.Derive.DeepSeq,
                         Data.Comp.Derive.SmartConstructors,
                         Data.Comp.Derive.SmartAConstructors,
-                        Data.Comp.Derive.LiftSum,
                         Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable,
                         Data.Comp.Derive.Injections,
@@ -255,7 +249,6 @@ library
                         Data.Comp.Multi.Derive.Show,
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Multi.Derive.SmartAConstructors
-                        Data.Comp.Multi.Derive.LiftSum,
                         Data.Comp.Multi.Derive.Injections,
                         Data.Comp.Multi.Derive.Projections,
 
@@ -266,7 +259,6 @@ library
                         Data.Comp.Param.Derive.Show,
                         Data.Comp.Param.Derive.SmartConstructors,
                         Data.Comp.Param.Derive.SmartAConstructors,
-                        Data.Comp.Param.Derive.LiftSum,
                         Data.Comp.Param.Derive.Injections,
                         Data.Comp.Param.Derive.Projections,
 
@@ -276,15 +268,12 @@ library
                         Data.Comp.MultiParam.Derive.Show,
                         Data.Comp.MultiParam.Derive.SmartConstructors,
                         Data.Comp.MultiParam.Derive.SmartAConstructors,
-                        Data.Comp.MultiParam.Derive.LiftSum,
                         Data.Comp.MultiParam.Derive.Injections,
                         Data.Comp.MultiParam.Derive.Projections
 
   Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers
   hs-source-dirs:	src
   ghc-options:          -W
-  if flag(benchmark)
-    buildable:     False
 
 
 Test-Suite test
@@ -301,6 +290,7 @@ Benchmark algebra
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
   Build-Depends:        base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
+
 
 source-repository head
   type:     hg
