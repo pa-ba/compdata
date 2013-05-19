@@ -12,9 +12,7 @@ import Data.Comp.Multi.Term
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Show ()
 
-import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Set (Set)
 import qualified Data.Set as Set
 
 import Test.Framework
@@ -84,7 +82,7 @@ letExp = iLet X (iVar X `iPlus` iInt 1) (iAbs Y (iVar Y `iPlus` iVar X) `iApp` i
 letExp' = iLet X (iInt 1 `iPlus` iInt 1) (iAbs Y (iVar Y `iPlus` iVar X) `iApp` iInt 3)
 
 -- letrec x = x + 1 in (\y. y + x) z
-recExp, recExp :: Expression SigRec
+recExp, recExp' :: Expression SigRec
 recExp = iLetRec X (iVar X `iPlus` iInt 1) (iAbs Y (iVar Y `iPlus` iVar X) `iApp` iVar Z)
 recExp' = iLetRec X (iVar X `iPlus` iInt 1) (iAbs Y (iVar Y `iPlus` iVar X) `iApp` iInt 3)
 

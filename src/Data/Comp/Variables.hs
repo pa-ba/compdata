@@ -28,7 +28,8 @@ module Data.Comp.Variables
      variables',
      substVars,
      appSubst,
-     compSubst
+     compSubst,
+     getBoundVars
     ) where
 
 import Data.Comp.Term
