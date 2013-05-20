@@ -16,7 +16,7 @@
 module Data.Comp.Multi.Desugar where
 
 import Data.Comp.Multi
-import Data.Comp.Multi.Derive
+
 
 -- |The desugaring term homomorphism.
 class (HFunctor f, HFunctor g) => Desugar f g where
@@ -25,7 +25,11 @@ class (HFunctor f, HFunctor g) => Desugar f g where
     desugHom' :: Alg f (Context g a)
     desugHom' x = appCxt (desugHom x)
 
-$(derive [liftSum] [''Desugar])
+
+-- We make the lifting to sums explicit in order to make the Desugar
+-- class work with the default instance declaration further below.
+instance (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
+    desugHom = caseH desugHom desugHom
 
 -- |Desugar a term.
 desugar :: Desugar f g => Term f :-> Term g

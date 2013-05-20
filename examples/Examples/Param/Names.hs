@@ -55,7 +55,11 @@ type M f a = Reader (Map.Map Name (Trm f a))
 class N2PTrans f g where
   n2pAlg :: Alg f (M g a (Trm g a))
 
-$(derive [liftSum] [''N2PTrans])
+
+-- We make the lifting to sums explicit in order to make the N2PTrans
+-- work with the default instance declaration further below.
+instance (N2PTrans f1 g, N2PTrans f2 g) => N2PTrans (f1 :+: f2) g where
+    n2pAlg = caseD n2pAlg n2pAlg
 
 n2p :: (Difunctor f, N2PTrans f g) => Term f -> Term g
 n2p t = Term $ runReader (cata n2pAlg t) Map.empty
@@ -85,7 +89,12 @@ type M' = Reader [Name]
 class P2NTrans f g where
   p2nAlg :: Alg f (M' (Trm g a))
 
-$(derive [liftSum] [''P2NTrans])
+
+-- We make the lifting to sums explicit in order to make the P2NTrans
+-- work with the default instance declaration further below.
+instance (P2NTrans f1 g, P2NTrans f2 g) => P2NTrans (f1 :+: f2) g where
+    p2nAlg = caseD p2nAlg p2nAlg
+
 
 p2n :: (Difunctor f, P2NTrans f g) => Term f -> Term g
 p2n t = Term $ runReader (cata p2nAlg t) ['x' : show n | n <- [1..]]
@@ -98,7 +107,7 @@ instance (NLam :<: g, NVar :<: g) => P2NTrans Lam g where
                       return $ iNLam n (runReader (f (return $ iNVar n)) names)
 
 ep' :: Term SigP
-ep' = Term $ iLam $ \a -> iLam (\b -> (iLam $ \a -> b)) `iApp` a
+ep' = Term $ iLam $ \a -> iLam (\b -> (iLam $ \_ -> b)) `iApp` a
 
 en' :: Term SigN
 en' = p2n ep'

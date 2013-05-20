@@ -71,7 +71,7 @@ letExp = iLet X (iVar X `iPlus` iInt 1) (iAbs Y (iVar Y `iPlus` iVar X) `iApp` i
 letExp' = iLet X (iInt 1 `iPlus` iInt 1) (iAbs Y (iVar Y `iPlus` iVar X) `iApp` iInt 3)
 
 -- letrec x = x + 1 in (\y. y + x) z
-recExp, recExp :: Term SigRec
+recExp, recExp' :: Term SigRec
 recExp = iLetRec X (iVar X `iPlus` iInt 1) (iAbs Y (iVar Y `iPlus` iVar X) `iApp` iVar Z)
 recExp' = iLetRec X (iVar X `iPlus` iInt 1) (iAbs Y (iVar Y `iPlus` iVar X) `iApp` iInt 3)
 

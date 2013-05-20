@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Utils
@@ -18,6 +19,12 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Control.Monad
 import Language.Haskell.TH.ExpandSyns
+
+-- reportError is introduced only from version 7.6 of GHC
+#if __GLASGOW_HASKELL__ < 706
+reportError :: String -> Q ()
+reportError = report True
+#endif
 
 {-|
   This is the @Q@-lifted version of 'abstractNewtypeQ.

@@ -27,7 +27,8 @@ module Data.Comp.Multi.Variables
      variableList,
      variables',
      appSubst,
-     compSubst
+     compSubst,
+     getBoundVars
     ) where
 
 import Data.Comp.Multi.Term
