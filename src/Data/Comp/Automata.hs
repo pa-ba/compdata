@@ -170,7 +170,11 @@ type UpTrans f q g = forall a. f (q,a) -> (q, Context g a)
 -- | This is a variant of the 'UpTrans' type that makes it easier to
 -- define UTTs as it avoids the explicit use of 'Hole' to inject
 -- placeholders into the result.
+
 type UpTrans' f q g = forall a. f (q,Context g a) -> (q, Context g a)
+
+-- | This function turns a UTT defined using the type 'UpTrans'' in
+-- to the canonical form of type 'UpTrans'.
 
 mkUpTrans :: Functor f => UpTrans' f q g -> UpTrans f q g
 mkUpTrans tr t = tr $ fmap (\(q,a) -> (q, Hole a)) t
