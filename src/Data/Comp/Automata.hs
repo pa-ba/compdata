@@ -40,6 +40,7 @@ module Data.Comp.Automata
     , runUpHomSt
     -- ** Top-Down State Propagation
     , downTrans
+    , mkDownTrans
     , runDownHom
     -- ** Bidirectional State Propagation
     , runQHom
@@ -308,6 +309,18 @@ prodDUpState sp sq t = (sp t, sq t)
 -- top-down tree transducers (DTTs).
 
 type DownTrans f q g = forall a. q -> f (q -> a) -> Context g a
+
+
+-- | This is a variant of the 'DownTrans' type that makes it easier to
+-- define DTTs as it avoids the explicit use of 'Hole' to inject
+-- placeholders into the result.
+
+type DownTrans' f q g = forall a. q -> f (q -> Context g a) -> Context g a
+
+-- | This function turns a DTT defined using the type 'DownTrans'' in
+-- to the canonical form of type 'DownTrans'.
+mkDownTrans :: Functor f => DownTrans' f q g -> DownTrans f q g
+mkDownTrans tr q t = tr q (fmap (Hole .) t)
 
 -- | Thsis function runs the given DTT on the given tree.
 
