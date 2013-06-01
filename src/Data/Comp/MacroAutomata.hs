@@ -1,8 +1,8 @@
-{-# LANGUAGE Rank2Types, FlexibleContexts, ImplicitParams, GADTs, TypeOperators #-}
+{-# LANGUAGE GADTs, Rank2Types, ScopedTypeVariables, TypeOperators #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.MacroAutomata
--- Copyright   :  (c) 2012 Patrick Bahr
+-- Copyright   :  (c) 2013 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  experimental
@@ -15,67 +15,97 @@ module Data.Comp.MacroAutomata where
 
 import Data.Comp.Term
 import Data.Comp.Algebra
+import Data.Comp.Automata
 import Data.Comp.Ops
 
-type UpTrans f q g = forall a. f (q a, a) -> (q a, Context g a)
+-- | This type represents total deterministic macro tree transducers
+-- (MTTs).
 
-type GUpTrans f q g = forall a. f (q a, a) -> (q (Context g a), Context g a)
+type MacroTrans f q g = forall a. q a -> f (q (Context g a) -> a) -> Context g a
 
+-- | This is a variant of the type 'MacroTrans' that makes it easier
+-- to define MTTs as it avoids the explicit use of 'Hole' when using
+-- placeholders in the result.
 
-gUpTrans :: Functor q => UpTrans f q g -> GUpTrans f q g
-gUpTrans trans x = let (q,res) = trans x in (fmap Hole q, res)
+type MacroTrans' f q g = forall a . q (Context g a) -> f (q (Context g a) -> Context g a)
+                                 -> Context g a
 
--- | This function transforms a DUTT transition function into an
--- algebra.
+mkMacroTrans :: (Functor f, Functor q) => MacroTrans' f q g -> MacroTrans f q g
+mkMacroTrans tr q t = tr (fmap Hole q) (fmap (Hole .) t)
 
-gUpTransAlg :: (Functor g, Functor q)  => GUpTrans f q g -> Alg f (q (Term g), Term g)
-gUpTransAlg trans = joinCxt . trans
-    where joinCxt (q,r) = (fmap appCxt q, appCxt r)
+runMacroTrans :: (Functor g, Functor f, Functor q) => 
+                 MacroTrans f q g -> q (Cxt h g a) -> Cxt h f a -> Cxt h g a
+runMacroTrans tr q t = run t q where
+    run (Term t) q = appCxt (tr q (fmap run' t))
+    run (Hole a) _ = Hole a
+    run' t q = run t (fmap appCxt q)
+    
 
--- | This function runs the given DUTT on the given term.
+runMacroTrans' :: forall g f q h a. 
+                  (Functor g, Functor f, Functor q) => MacroTrans f q g -> q (Cxt h g a) 
+               -> Cxt h f (q (Cxt h g a) -> a) -> Cxt h g a
+runMacroTrans' tr q t = run t q where
+    run :: Cxt h f (q (Cxt h g a) -> a) -> q (Cxt h g a) -> Cxt h g a
+    run (Term t) q = appCxt (tr q (fmap run' t))
+    run (Hole a) q = Hole (a q)
 
-runGUpTrans :: (Functor f, Functor g, Functor q) => GUpTrans f q g -> Term f -> Term g
-runGUpTrans trans = snd . runGUpTransSt trans
+    run' :: Cxt h f (q (Cxt h g a) -> a) -> q (Context g (Cxt h g a)) -> Cxt h g a
+    run' t q = run t (fmap appCxt q)
 
--- | This function runs the given DUTT on the given term.
-runUpTrans :: (Functor f, Functor g, Functor q) => UpTrans f q g -> Term f -> Term g
-runUpTrans trans = runGUpTrans (gUpTrans trans)
+compMacroDown :: (Functor f, Functor g, Functor h, Functor p)
+              => MacroTrans g p h -> DownTrans f q g -> MacroTrans f (p :&: q) h
+compMacroDown t2 t1 (p :&: q) t = runMacroTrans' t2 (fmap Hole p) (t1 q (fmap curryF t))
+    where curryF :: ((p :&: q) a -> b) -> q -> p a -> b
+          curryF f q p = f (p :&: q)
 
--- | This function is a variant of 'runUpTrans' that additionally
--- returns the final state of the run.
-
-runGUpTransSt :: (Functor f, Functor g, Functor q) => GUpTrans f q g -> Term f -> (q (Term g), Term g)
-runGUpTransSt = cata . gUpTransAlg
-
--- | This function generalises 'runUpTrans' to contexts. Therefore,
--- additionally, a transition function for the holes is needed.
-runGUpTrans' :: (Functor f, Functor g, Functor q) => GUpTrans f q g -> Context f (q a ,a)
-            -> (q (Context g a), Context g a)
-runGUpTrans' trans = run where
-    run (Hole (q,a)) = (fmap Hole q, Hole a)
-    run (Term t) = let (q,r) = trans $ fmap run t
-                   in (fmap appCxt q, appCxt r)
-
--- | This function composes two DUTTs.
-compGUpTrans :: (Functor f, Functor g, Functor h, Functor p, Functor q)
-               => GUpTrans g p h -> UpTrans f q g -> GUpTrans f (q :*: p) h
-compGUpTrans t2 t1 x = ((fmap (Hole . snd) q1 :*: q2), c2) where
-    (q1, c1) = t1 $ fmap (\((q1 :*: q2),a) -> (fmap (\x-> (undefined,x) ) q1,(q2,a))) x
-    (q2, c2) = runGUpTrans' t2 c1
--- NB: the above construction is not correct
-
--- | This function composes a DUTT with an algebra.
-compAlgGUpTrans :: (Functor g, Functor q)
-               => Alg g a -> GUpTrans f q g -> Alg f (q a,a)
-compAlgGUpTrans alg trans x = let (q,r) = trans x
-                              in (fmap (cata' alg) q,cata' alg r)
-
--- annGUpTrans :: GUpTrans f q g -> GUpTrans f q g
+runDownTrans' :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f (q -> a) -> Cxt h g a
+runDownTrans' tr q (Term t) = appCxt $ tr q $ fmap (\s q -> runDownTrans' tr q s) t
+runDownTrans' _ q (Hole a) = Hole (a q)
 
 
 
-type Macro f q g = forall a b . (q a, f b) -> RHS q g a b
+data (q :^: p) a = q (p -> a) :^: p
 
-data RHS q g a b = Con (Context g (RHS q g a b))
-                 | Var a
-                 | State (q (RHS q g a b),b)
+instance Functor q => Functor (q :^: p) where
+    fmap f (q :^: p) = fmap (f .) q :^: p
+
+compDownMacro :: forall f g h q p . (Functor f, Functor g, Functor h, Functor q)
+              => DownTrans g p h -> MacroTrans f q g -> MacroTrans f (q :^: p) h
+compDownMacro t2 t1 (q :^: p) t = runDownTrans' t2 p (t1 (fmap (\a p' -> a p') q) (fmap reshape t))
+    where reshape :: ((q :^: p) (Context h a) -> a) -> (q (Context g (p -> a)) -> p -> a)
+          reshape f q' p' = f (fmap (\s p'' -> runDownTrans' t2 p'' s) q' :^: p')
+
+
+type MacroTransId  f g = forall a. a           -> f (Context g a -> a)           -> Context g a
+type MacroTransId' f g = forall a. Context g a -> f (Context g a -> Context g a) -> Context g a
+
+data Id a = Id {unId :: a} 
+
+instance Functor Id where
+    fmap f (Id x) = Id (f x)
+
+macroTransId :: Functor f => MacroTransId f g -> MacroTrans f Id g
+macroTransId tr (Id a) t = tr a (fmap (. Id) t)
+
+macroTransId' :: Functor f => MacroTransId' f g -> MacroTrans f Id g
+macroTransId' tr (Id a) t = tr (Hole a) (fmap (\f -> Hole . f . Id) t)
+
+-- macro tree transducers with regular look-ahead
+type MacroTransLA  f q p g = forall a. q a             -> p -> 
+                             f (q (Context g a) -> a,           p) -> Context g a
+type MacroTransLA' f q p g = forall a. q (Context g a) -> p -> 
+                             f (q (Context g a) -> Context g a, p) -> Context g a
+
+macroTransLA :: (Functor q, Functor f) => MacroTransLA' f q p g -> MacroTransLA f q p g
+macroTransLA tr q p t = tr (fmap Hole q) p (fmap (\ (f, p) -> (Hole . f,p)) t)
+
+runMacroTransLA :: forall g f q p. (Functor g, Functor f, Functor q) => 
+                   UpState f p -> MacroTransLA f q p g -> q (Term g) -> Term f -> Term g
+runMacroTransLA st tr q t = fst (run t) q where
+    run :: Term f -> (q (Term g) -> Term g, p)
+    run (Term t) = let p = st $ fmap snd t'
+                       t' = fmap run' t
+                   in (\ q -> appCxt (tr q p t'), p)
+    run' :: Term f -> (q (Context g (Term g)) -> (Term g), p)
+    run' t = let (res, p) = run t
+             in  (res . fmap appCxt, p)
