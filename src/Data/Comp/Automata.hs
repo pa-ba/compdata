@@ -40,12 +40,13 @@ module Data.Comp.Automata
     , runUpHomSt
     -- ** Top-Down State Propagation
     , downTrans
-    , mkDownTrans
     , runDownHom
     -- ** Bidirectional State Propagation
     , runQHom
     -- * Deterministic Bottom-Up Tree Transducers
     , UpTrans
+    , UpTrans'
+    , mkUpTrans
     , runUpTrans
     , compUpTrans
     , compUpTransHom
@@ -68,6 +69,8 @@ module Data.Comp.Automata
     , (<*>)
     -- * Deterministic Top-Down Tree Transducers
     , DownTrans
+    , DownTrans'
+    , mkDownTrans
     , runDownTrans
     , compDownTrans
     , compDownTransSig
@@ -162,6 +165,15 @@ pureHom phom t = let ?above = undefined
 -- bottom-up tree transducers (UTTs).
 
 type UpTrans f q g = forall a. f (q,a) -> (q, Context g a)
+
+
+-- | This is a variant of the 'UpTrans' type that makes it easier to
+-- define UTTs as it avoids the explicit use of 'Hole' to inject
+-- placeholders into the result.
+type UpTrans' f q g = forall a. f (q,Context g a) -> (q, Context g a)
+
+mkUpTrans :: Functor f => UpTrans' f q g -> UpTrans f q g
+mkUpTrans tr t = tr $ fmap (\(q,a) -> (q, Hole a)) t
 
 -- | This function transforms a UTT transition function into an
 -- algebra.
