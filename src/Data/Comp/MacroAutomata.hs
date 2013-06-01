@@ -15,7 +15,27 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.MacroAutomata where
+module Data.Comp.MacroAutomata
+    (
+     -- * Macro Tree Transducers
+      MacroTrans
+    , MacroTrans'
+    , mkMacroTrans
+    , runMacroTrans
+    , compMacroDown
+    , compDownMacro
+    -- * Macro Tree Transducers with Singleton State Space
+    , MacroTransId
+    , MacroTransId'
+    , fromMacroTransId
+    , fromMacroTransId'
+    -- * Macro Tree Transducers with Regular Look-Ahead
+    , MacroTransLA
+    , MacroTransLA'
+    , mkMacroTransLA
+    , runMacroTransLA
+    )
+    where
 
 import Data.Comp.Term
 import Data.Comp.Algebra
@@ -115,7 +135,7 @@ type MacroTransId' f g = forall a. Context g a -> f (Context g a -> Context g a)
 
 -- | The identity functor.
 
-data Id a = Id {unId :: a} 
+data Id a = Id a
 
 instance Functor Id where
     fmap f (Id x) = Id (f x)
