@@ -307,52 +307,53 @@ prodDUpState sp sq t = (sp t, sq t)
 -- | This type represents transition functions of deterministic
 -- top-down tree transducers (DDTTs).
 
-type DownTrans f q g = forall a. (q, f a) -> Context g (q,a)
+type DownTrans f q g = forall a. q -> f (q -> a) -> Context g a
 
 -- | Thsis function runs the given DDTT on the given tree.
 
 runDownTrans :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f a -> Cxt h g a
-runDownTrans tr q t = run (q,t) where
-    run (q,Term t) = appCxt $ fmap run $  tr (q, t)
-    run (_,Hole a)      = Hole a
+runDownTrans tr q t = run t q where
+    run (Term t) q = appCxt $ tr q $ fmap run t
+    run (Hole a) _ = Hole a
 
 -- | This function runs the given DDTT on the given tree.
     
-runDownTrans' :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f a -> Cxt h g (q,a)
-runDownTrans' tr q t = run (q,t) where
-    run (q,Term t) = appCxt $ fmap run $  tr (q, t)
-    run (q,Hole a)      = Hole (q,a)
+runDownTrans' :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f (q -> a) -> Cxt h g a
+runDownTrans' tr q t = run t q where
+    run (Term t) q = appCxt $ tr q $ fmap run $ t
+    run (Hole a) q = Hole (a q)
 
 -- | This function composes two DDTTs. (see Z. Fulop, H. Vogler
 -- /Syntax-Directed Semantics/, Theorem 3.39)
     
 compDownTrans :: (Functor f, Functor g, Functor h)
               => DownTrans g p h -> DownTrans f q g -> DownTrans f (q,p) h
-compDownTrans t2 t1 ((q,p), t) = fmap (\(p, (q, a)) -> ((q,p),a)) $ runDownTrans' t2 p (t1 (q, t))
+compDownTrans t2 t1 (q,p) t = runDownTrans' t2  p $ t1 q (fmap curry t)
+
 
 
 -- | This function composes a signature function after a DDTT.
 
 compSigDownTrans :: (Functor g) => SigFun g h -> DownTrans f q g -> DownTrans f q h
-compSigDownTrans sig trans = appSigFun sig . trans
+compSigDownTrans sig trans q = appSigFun sig . trans q
 
 -- | This function composes a DDTT after a function.
 
 compDownTransSig :: DownTrans g q h -> SigFun f g -> DownTrans f q h
-compDownTransSig trans hom (q,t) = trans (q, hom t)
+compDownTransSig trans hom q t = trans q (hom t)
 
 
 -- | This function composes a homomorphism after a DDTT.
 
 compHomDownTrans :: (Functor g, Functor h)
               => Hom g h -> DownTrans f q g -> DownTrans f q h
-compHomDownTrans hom trans = appHom hom . trans
+compHomDownTrans hom trans q = appHom hom . trans q
 
 -- | This function composes a DDTT after a homomorphism.
 
 compDownTransHom :: (Functor g, Functor h)
               => DownTrans g q h -> Hom f g -> DownTrans f q h
-compDownTransHom trans hom (q,t) = runDownTrans' trans q (hom t)
+compDownTransHom trans hom q t = runDownTrans' trans q (hom t)
 
 
 -- | This type represents transition functions of deterministic
@@ -397,16 +398,17 @@ prodMap p q mp mq = Map.map final $ Map.unionWith combine ps qs
 -- otherwise adding the provided default state.
           
 appMap :: Traversable f => (forall i . Ord i => f i -> Map i q)
-                       -> q -> f b -> f (q,b)
+                       -> q -> f (q -> b) -> f (q,b)
 appMap qmap q s = fmap qfun s'
     where s' = number s
-          qfun k@(Numbered (_,a)) = (Map.findWithDefault q k (qmap s') ,a)
+          qfun k@(Numbered (_,a)) = let q' = Map.findWithDefault q k (qmap s')
+                                    in (q', a q') 
 
 -- | This function constructs a DDTT from a given stateful term--
 -- homomorphism with the state propagated by the given DDTA.
           
-downTrans :: Traversable f => DownState f q -> QHom f q g -> DownTrans f q g
-downTrans st f (q, s) = explicit f q fst (appMap (curry st q) q s)
+downTrans :: (Traversable f, Functor g) => DownState f q -> QHom f q g -> DownTrans f q g
+downTrans st f q s = fmap snd $ explicit f q fst (appMap (curry st q) q s)
 
 
 -- | This function applies a given stateful term homomorphism with a
