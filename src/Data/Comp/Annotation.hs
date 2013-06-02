@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Annotation
--- Copyright   :  (c) 2010-2011 Patrick Bahr
+-- Copyright   :  (c) 2010-2013 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  experimental
@@ -30,6 +30,7 @@ module Data.Comp.Annotation
      propAnnMacroLA,
      propAnnM,
      ann,
+     pathAnn,
      project'
     ) where
 
@@ -40,6 +41,8 @@ import Data.Comp.Algebra
 import Data.Comp.Automata
 import Data.Comp.MacroAutomata
 import Control.Monad
+import Data.Traversable
+import Data.Comp.Number
 
 {-| Transform a function with a domain constructed from a functor to a function
  with a domain constructed with the same functor, but with an additional
@@ -122,9 +125,18 @@ propAnnM hom f' = liftM (ann p) (hom f)
 ann :: (DistAnn f p g, Functor f) => p -> CxtFun f g
 ann c = appSigFun (injectA c)
 
+
+-- | This function adds unique annotations to a term/context. Each
+-- node in the term/context is annotated with its path from the root,
+-- which is represented as an integer list. It is implemented as a
+-- DTT.
+pathAnn :: forall g. (Traversable g) => CxtFun g (g :&: [Int])
+pathAnn = runDownTrans trans [] where
+    trans :: DownTrans g [Int] (g :&: [Int])
+    trans q t = simpCxt (fmap (\ (Numbered (n,s)) -> s (n:q)) (number t) :&: q)
+
+
 {-| This function is similar to 'project' but applies to signatures
 with an annotation which is then ignored. -}
--- bug in type checker? below is the inferred type, however, the type checker
--- rejects it.
 project' :: forall f g f1 a h . (RemA f g, f :<: f1) => Cxt h f1 a -> Maybe (g (Cxt h f1 a))
 project' v = liftM remA (project v :: Maybe (f (Cxt h f1 a)))
