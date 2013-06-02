@@ -16,24 +16,23 @@
 
 module Data.Comp.DeepSeq
     (
-     NFDataF(..),
-     rnfF'
+     NFDataF(..)
     )
     where
 
 import Data.Comp.Term
 import Control.DeepSeq
 import Data.Comp.Derive
-import Data.Foldable
-import Prelude hiding (foldr)
+import Data.Comp.Annotation
 
-{-| Fully evaluate a value over a foldable signature. -}
-rnfF' :: (Foldable f, NFDataF f, NFData a) => f a -> ()
-rnfF' x = foldr seq (rnfF x) x
 
 instance (NFDataF f, NFData a) => NFData (Cxt h f a) where
     rnf (Hole x) = rnf x
     rnf (Term x) = rnfF x
+
+instance (NFDataF f, NFData a) => NFDataF (f :&: a) where
+    rnfF (f :&: a) = rnfF f `seq` rnf a
+
 
 $(derive [liftSum] [''NFDataF])
 $(derive [makeNFDataF] [''Maybe, ''[], ''(,)])
