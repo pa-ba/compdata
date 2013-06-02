@@ -138,7 +138,7 @@ standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (
 
 randStdBenchmarks :: Int -> IO Benchmark
 randStdBenchmarks s = do
-  rand <- getStdGen
+  rand <- newStdGen
   let ty = unGen arbitrary rand s
   putStr "size of the type term: "
   print $ size ty
