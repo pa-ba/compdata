@@ -34,6 +34,8 @@ module Data.Comp.MacroAutomata
     , MacroTransLA'
     , mkMacroTransLA
     , runMacroTransLA
+    , (:^:) (..)
+    , Id (..)
     )
     where
 
