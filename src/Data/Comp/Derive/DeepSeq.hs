@@ -22,7 +22,6 @@ module Data.Comp.Derive.DeepSeq
 import Control.DeepSeq
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH
-import Data.Maybe
 
 {-| Signature normal form. An instance @NFDataF f@ gives rise to an instance
   @NFData (Term f)@. -}
@@ -43,16 +42,11 @@ makeNFDataF fname = do
   rnfFDecl <- funD 'rnfF (rnfFClauses fArg constrs')
   return [InstanceD preCond classType [rnfFDecl]]
       where rnfFClauses fArg = map (genRnfFClause fArg)
-            filterFarg excl x
-                | excl = Nothing
-                | otherwise = Just $ varE x
-            mkPat True _ = WildP
-            mkPat False x = VarP x
             genRnfFClause fArg (constr, args) = do 
               let isFargs = map (==fArg) args
                   n = length args
               varNs <- newNames n "x"
-              let pat = ConP constr $ zipWith mkPat isFargs varNs
-                  allVars = catMaybes $ zipWith filterFarg isFargs varNs
+              let pat = ConP constr $ map VarP varNs
+                  allVars = map varE varNs 
               body <- foldr (\ x y -> [|rnf $x `seq` $y|]) [| () |] allVars
               return $ Clause [pat] (NormalB body) []
