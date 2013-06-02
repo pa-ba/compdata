@@ -26,6 +26,8 @@ module Data.Comp.Annotation
      propAnnQ,
      propAnnUp,
      propAnnDown,
+     propAnnMacro,
+     propAnnMacroLA,
      propAnnM,
      ann,
      project'
@@ -36,6 +38,7 @@ import Data.Comp.Sum
 import Data.Comp.Ops
 import Data.Comp.Algebra
 import Data.Comp.Automata
+import Data.Comp.MacroAutomata
 import Control.Monad
 
 {-| Transform a function with a domain constructed from a functor to a function
@@ -86,8 +89,27 @@ propAnnUp trans f' = (q, ann p t)
 -- with annotations.
 propAnnDown :: (DistAnn f p f', DistAnn g p g', Functor g) 
         => DownTrans f q g -> DownTrans f' q g'
-propAnnDown trans (q, f') = ann p (trans (q, f))
+propAnnDown trans q f' = ann p (trans q f)
     where (f,p) = projectA f'
+
+-- | Lift a macro tree transducer over signatures @f@ and @g@ to a
+-- macro tree transducer over the same signatures, but extended
+-- with annotations.
+propAnnMacro :: (Functor f, Functor q, DistAnn f p f', DistAnn g p g', Functor g) 
+        => MacroTrans f q g -> MacroTrans f' q g'
+propAnnMacro trans q f' = ann p (trans q (fmap ann' f))
+    where (f,p) = projectA f'
+          ann' s q' = s (fmap (ann p) q')
+
+-- | Lift a macro tree transducer with regular look-ahead over
+-- signatures @f@ and @g@ to a macro tree transducer with regular
+-- look-ahead over the same signatures, but extended with annotations.
+propAnnMacroLA :: (Functor f, Functor q, DistAnn f p f', DistAnn g p g', Functor g) 
+                => MacroTransLA f q p g -> MacroTransLA f' q p g'
+propAnnMacroLA trans q p f' = ann an (trans q p (fmap ann' f))
+    where (f,an) = projectA f'
+          ann' (s,p) = (\q' -> s (fmap (ann an) q'), p)
+
 
 {-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
   term homomorphism over the same signatures, but extended with annotations. -}
