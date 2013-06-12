@@ -31,6 +31,9 @@ module Data.Comp.Multi.HFunctor
 -- | The identity Functor.
 newtype I a = I {unI :: a}
 
+instance Functor I where
+    fmap f (I x) = I (f x)
+
 -- | The parametrised constant functor.
 newtype K a i = K {unK :: a}
 

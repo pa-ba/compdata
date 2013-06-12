@@ -83,16 +83,16 @@ compTrans q (Catch x h) = iMARK (h q) (x $ iUNMARK q)
 
 
 compAnnFuse :: Term ArithExc -> Term (Code :&: [Int])
-compAnnFuse t = runMacroTrans (compMacroDown (propAnnMacro $ fromMacroTransId' compTrans) pathAnnTrans ) (Id (ann [] iNIL) :&: [])  t
+compAnnFuse t = runMacroTrans (compMacroDown (propAnnMacro $ fromMacroTransId' compTrans) pathAnnTrans ) (I (ann [] iNIL) :&: [])  t
 
 compAnnSeq :: Term ArithExc -> Term (Code :&: [Int])
-compAnnSeq t = runMacroTrans (propAnnMacro $ fromMacroTransId' compTrans) (Id (ann [] iNIL))
+compAnnSeq t = runMacroTrans (propAnnMacro $ fromMacroTransId' compTrans) (I (ann [] iNIL))
                (runDownTrans pathAnnTrans [] t)
 
 annCompFuse :: Term ArithExc -> Term (Code :&: [Int])
 annCompFuse t = runMacroTrans (compDownMacro pathAnnTrans (fromMacroTransId' compTrans)) 
-                (Id (`ann` iNIL) :^: []) t
+                (I (`ann` iNIL) :^: []) t
 
 annCompSeq :: Term ArithExc -> Term (Code :&: [Int])
 annCompSeq t = runDownTrans pathAnnTrans [] (runMacroTrans (fromMacroTransId' compTrans)
-                (Id iNIL) t)
+                (I iNIL) t)
