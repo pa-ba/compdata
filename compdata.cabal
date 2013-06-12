@@ -172,6 +172,7 @@ library
                         Data.Comp.Matching,
                         Data.Comp.Desugar,
                         Data.Comp.Automata,
+                        Data.Comp.MacroAutomata,
                         Data.Comp.Automata.Product,
                         Data.Comp.Number,
                         Data.Comp.Thunk,
