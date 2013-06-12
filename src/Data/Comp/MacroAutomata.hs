@@ -34,6 +34,7 @@ module Data.Comp.MacroAutomata
     , MacroTransLA'
     , mkMacroTransLA
     , runMacroTransLA
+    , compDownMacroLA
     -- * Macro Tree Transducers with Regular Look-Ahead
     , (:^:) (..)
     , I (..)
@@ -184,3 +185,12 @@ runMacroTransLA st tr q t = fst (run t) q where
     run' :: Term f -> (q (Context g (Term g)) -> (Term g), p)
     run' t = let (res, p) = run t
              in  (res . fmap appCxt, p)
+
+-- | This function composes an MTT with regular look-ahead followed by
+-- a DTT.
+
+compDownMacroLA :: forall f g h q1 q2 p . (Functor f, Functor g, Functor h, Functor q1) =>
+                 DownTrans g q2 h -> MacroTransLA f q1 p g -> MacroTransLA f (q1 :^: q2) p h
+compDownMacroLA t2 t1 (q1 :^: q2) p t = runDownTrans' t2 q2 (t1 (fmap (\a q2' -> a q2') q1) p (fmap reshape t))
+    where reshape :: ((q1 :^: q2) (Context h a) -> a,p) -> (q1 (Context g (q2 -> a)) -> q2 -> a,p)
+          reshape (f,p) = (\q1' q2' -> f (fmap (\s q2'' -> runDownTrans' t2 q2'' s) q1' :^: q2'),p)
