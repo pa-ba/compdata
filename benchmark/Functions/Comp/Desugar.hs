@@ -60,7 +60,8 @@ desugExpr2 = desug2
 desug2 :: (Functor f, Desug2 f g) => Term f -> Term g
 desug2 = cata desugAlg2
 
-$(derive [liftSum] [''Desug2])
+instance (Desug2 f1 g, Desug2 f2 g) => Desug2 (f1 :+: f2) g where
+    desugAlg2 = caseF desugAlg2 desugAlg2
 
 instance (Value :<: v) => Desug2 Value v where
     desugAlg2 = inject

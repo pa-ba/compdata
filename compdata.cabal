@@ -172,6 +172,7 @@ library
                         Data.Comp.Matching,
                         Data.Comp.Desugar,
                         Data.Comp.Automata,
+                        Data.Comp.MacroAutomata,
                         Data.Comp.Automata.Product,
                         Data.Comp.Number,
                         Data.Comp.Thunk,
@@ -286,6 +287,15 @@ Benchmark algebra
   Type:                 exitcode-stdio-1.0
   Main-is:		Benchmark.hs
   hs-source-dirs:	src benchmark
+  ghc-options:          -W -O2
+  -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
+  cpp-options:          -DNO_RULES
+  Build-Depends:        base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
+
+Benchmark macro
+  Type:                 exitcode-stdio-1.0
+  Main-is:		Benchmark.hs
+  hs-source-dirs:	src benchmark-macro
   ghc-options:          -W -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES

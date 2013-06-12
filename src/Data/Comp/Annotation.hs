@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Annotation
--- Copyright   :  (c) 2010-2011 Patrick Bahr
+-- Copyright   :  (c) 2010-2013 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  experimental
@@ -26,8 +26,11 @@ module Data.Comp.Annotation
      propAnnQ,
      propAnnUp,
      propAnnDown,
+     propAnnMacro,
+     propAnnMacroLA,
      propAnnM,
      ann,
+     pathAnn,
      project'
     ) where
 
@@ -36,7 +39,11 @@ import Data.Comp.Sum
 import Data.Comp.Ops
 import Data.Comp.Algebra
 import Data.Comp.Automata
+import Data.Comp.MacroAutomata
 import Control.Monad
+import Data.Traversable
+import Data.Comp.Number
+
 
 {-| Transform a function with a domain constructed from a functor to a function
  with a domain constructed with the same functor, but with an additional
@@ -86,8 +93,27 @@ propAnnUp trans f' = (q, ann p t)
 -- with annotations.
 propAnnDown :: (DistAnn f p f', DistAnn g p g', Functor g) 
         => DownTrans f q g -> DownTrans f' q g'
-propAnnDown trans (q, f') = ann p (trans (q, f))
+propAnnDown trans q f' = ann p (trans q f)
     where (f,p) = projectA f'
+
+-- | Lift a macro tree transducer over signatures @f@ and @g@ to a
+-- macro tree transducer over the same signatures, but extended
+-- with annotations.
+propAnnMacro :: (Functor f, Functor q, DistAnn f p f', DistAnn g p g', Functor g) 
+        => MacroTrans f q g -> MacroTrans f' q g'
+propAnnMacro trans q f' = ann p (trans q (fmap ann' f))
+    where (f,p) = projectA f'
+          ann' s q' = s (fmap (ann p) q')
+
+-- | Lift a macro tree transducer with regular look-ahead over
+-- signatures @f@ and @g@ to a macro tree transducer with regular
+-- look-ahead over the same signatures, but extended with annotations.
+propAnnMacroLA :: (Functor f, Functor q, DistAnn f p f', DistAnn g p g', Functor g) 
+                => MacroTransLA f q p g -> MacroTransLA f' q p g'
+propAnnMacroLA trans q p f' = ann an (trans q p (fmap ann' f))
+    where (f,an) = projectA f'
+          ann' (s,p) = (\q' -> s (fmap (ann an) q'), p)
+
 
 {-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
   term homomorphism over the same signatures, but extended with annotations. -}
@@ -100,9 +126,17 @@ propAnnM hom f' = liftM (ann p) (hom f)
 ann :: (DistAnn f p g, Functor f) => p -> CxtFun f g
 ann c = appSigFun (injectA c)
 
+
+-- | This function adds unique annotations to a term/context. Each
+-- node in the term/context is annotated with its path from the root,
+-- which is represented as an integer list. It is implemented as a
+-- DTT.
+pathAnn :: forall g. (Traversable g) => CxtFun g (g :&: [Int])
+pathAnn = runDownTrans trans [] where
+    trans :: DownTrans g [Int] (g :&: [Int])
+    trans q t = simpCxt (fmap (\ (Numbered (n,s)) -> s (n:q)) (number t) :&: q)
+
 {-| This function is similar to 'project' but applies to signatures
 with an annotation which is then ignored. -}
--- bug in type checker? below is the inferred type, however, the type checker
--- rejects it.
 project' :: forall f g f1 a h . (RemA f g, f :<: f1) => Cxt h f1 a -> Maybe (g (Cxt h f1 a))
 project' v = liftM remA (project v :: Maybe (f (Cxt h f1 a)))

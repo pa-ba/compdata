@@ -45,6 +45,8 @@ module Data.Comp.Automata
     , runQHom
     -- * Deterministic Bottom-Up Tree Transducers
     , UpTrans
+    , UpTrans'
+    , mkUpTrans
     , runUpTrans
     , compUpTrans
     , compUpTransHom
@@ -67,6 +69,8 @@ module Data.Comp.Automata
     , (<*>)
     -- * Deterministic Top-Down Tree Transducers
     , DownTrans
+    , DownTrans'
+    , mkDownTrans
     , runDownTrans
     , compDownTrans
     , compDownTransSig
@@ -157,18 +161,31 @@ pureHom phom t = let ?above = undefined
                      ?below = const undefined
                  in phom t
 
--- | This type represents transition functions of deterministic
--- bottom-up tree transducers (DUTTs).
+-- | This type represents transition functions of total, deterministic
+-- bottom-up tree transducers (UTTs).
 
 type UpTrans f q g = forall a. f (q,a) -> (q, Context g a)
 
--- | This function transforms a DUTT transition function into an
+
+-- | This is a variant of the 'UpTrans' type that makes it easier to
+-- define UTTs as it avoids the explicit use of 'Hole' to inject
+-- placeholders into the result.
+
+type UpTrans' f q g = forall a. f (q,Context g a) -> (q, Context g a)
+
+-- | This function turns a UTT defined using the type 'UpTrans'' in
+-- to the canonical form of type 'UpTrans'.
+
+mkUpTrans :: Functor f => UpTrans' f q g -> UpTrans f q g
+mkUpTrans tr t = tr $ fmap (\(q,a) -> (q, Hole a)) t
+
+-- | This function transforms a UTT transition function into an
 -- algebra.
 
 upAlg :: (Functor g)  => UpTrans f q g -> Alg f (q, Term g)
 upAlg trans = fmap appCxt . trans 
 
--- | This function runs the given DUTT on the given term.
+-- | This function runs the given UTT on the given term.
 
 runUpTrans :: (Functor f, Functor g) => UpTrans f q g -> Term f -> Term g
 runUpTrans trans = snd . runUpTransSt trans
@@ -187,7 +204,7 @@ runUpTrans' trans = run where
     run (Hole (q,a)) = (q, Hole a)
     run (Term t) = fmap appCxt $ trans $ fmap run t
 
--- | This function composes two DUTTs. (see TATA, Theorem 6.4.5)
+-- | This function composes two UTTs. (see TATA, Theorem 6.4.5)
     
 compUpTrans :: (Functor f, Functor g, Functor h)
                => UpTrans g p h -> UpTrans f q g -> UpTrans f (q,p) h
@@ -196,52 +213,52 @@ compUpTrans t2 t1 x = ((q1,q2), c2) where
     (q2, c2) = runUpTrans' t2 c1
 
 
--- | This function composes a DUTT with an algebra.
+-- | This function composes a UTT with an algebra.
     
 compAlgUpTrans :: (Functor g)
                => Alg g a -> UpTrans f q g -> Alg f (q,a)
 compAlgUpTrans alg trans = fmap (cata' alg) . trans
 
 
--- | This combinator composes a DUTT followed by a signature function.
+-- | This combinator composes a UTT followed by a signature function.
 
 compSigUpTrans :: (Functor g) => SigFun g h -> UpTrans f q g -> UpTrans f q h
 compSigUpTrans sig trans x = (q, appSigFun sig x') where
     (q, x') = trans x
 
--- | This combinator composes a signature function followed by a DUTT.
+-- | This combinator composes a signature function followed by a UTT.
     
 compUpTransSig :: UpTrans g q h -> SigFun f g -> UpTrans f q h
 compUpTransSig trans sig = trans . sig
 
--- | This combinator composes a DUTT followed by a homomorphism.
+-- | This combinator composes a UTT followed by a homomorphism.
 
 compHomUpTrans :: (Functor g, Functor h) => Hom g h -> UpTrans f q g -> UpTrans f q h
 compHomUpTrans hom trans x = (q, appHom hom x') where
     (q, x') = trans x
 
--- | This combinator composes a homomorphism followed by a DUTT.
+-- | This combinator composes a homomorphism followed by a UTT.
     
 compUpTransHom :: (Functor g, Functor h) => UpTrans g q h -> Hom f g -> UpTrans f q h
 compUpTransHom trans hom x  = runUpTrans' trans . hom $ x
 
--- | This type represents transition functions of deterministic
--- bottom-up tree acceptors (DUTAs).
+-- | This type represents transition functions of total, deterministic
+-- bottom-up tree acceptors (UTAs).
 
 type UpState f q = Alg f q
 
--- | Changes the state space of the DUTA using the given isomorphism.
+-- | Changes the state space of the UTA using the given isomorphism.
 
 tagUpState :: (Functor f) => (q -> p) -> (p -> q) -> UpState f q -> UpState f p
 tagUpState i o s = i . s . fmap o
 
--- | This combinator runs the given DUTA on a term returning the final
+-- | This combinator runs the given UTA on a term returning the final
 -- state of the run.
 
 runUpState :: (Functor f) => UpState f q -> Term f -> q
 runUpState = cata
 
--- | This function combines the product DUTA of the two given DUTAs.
+-- | This function combines the product UTA of the two given UTAs.
 
 prodUpState :: Functor f => UpState f p -> UpState f q -> UpState f (p,q)
 prodUpState sp sq t = (p,q) where
@@ -249,8 +266,8 @@ prodUpState sp sq t = (p,q) where
     q = sq $ fmap snd t
 
 
--- | This function constructs a DUTT from a given stateful term
--- homomorphism with the state propagated by the given DUTA.
+-- | This function constructs a UTT from a given stateful term
+-- homomorphism with the state propagated by the given UTA.
     
 upTrans :: (Functor f, Functor g) => UpState f q -> QHom f q g -> UpTrans f q g
 upTrans st f t = (q, c)
@@ -258,7 +275,7 @@ upTrans st f t = (q, c)
           c = fmap snd $ explicit f q fst t
 
 -- | This function applies a given stateful term homomorphism with
--- a state space propagated by the given DUTA to a term.
+-- a state space propagated by the given UTA to a term.
           
 runUpHom :: (Functor f, Functor g) => UpState f q -> QHom f q g -> Term f -> Term g
 runUpHom st hom = snd . runUpHomSt st hom
@@ -271,28 +288,28 @@ runUpHomSt alg h = runUpTransSt (upTrans alg h)
 
 
 -- | This type represents transition functions of generalised
--- deterministic bottom-up tree acceptors (GDUTAs) which have access
+-- deterministic bottom-up tree acceptors (GUTAs) which have access
 -- to an extended state space.
 
 type DUpState f p q = forall a . (?below :: a -> p, ?above :: p, q :< p) => f a -> q
 
--- | This combinator turns an arbitrary DUTA into a GDUTA.
+-- | This combinator turns an arbitrary UTA into a GUTA.
 
 dUpState :: Functor f => UpState f q -> DUpState f p q
 dUpState f = f . fmap below
 
--- | This combinator turns a GDUTA with the smallest possible state
--- space into a DUTA.
+-- | This combinator turns a GUTA with the smallest possible state
+-- space into a UTA.
 
 upState :: DUpState f q q -> UpState f q
 upState f s = res where res = explicit f res id s
 
--- | This combinator runs a GDUTA on a term.
+-- | This combinator runs a GUTA on a term.
                         
 runDUpState :: Functor f => DUpState f q q -> Term f -> q
 runDUpState = runUpState . upState
 
--- | This combinator constructs the product of two GDUTA.
+-- | This combinator constructs the product of two GUTA.
 
 prodDUpState :: (p :< c, q :< c)
              => DUpState f c p -> DUpState f c q -> DUpState f c (p,q)
@@ -304,75 +321,88 @@ prodDUpState sp sq t = (sp t, sq t)
 
 
 
--- | This type represents transition functions of deterministic
--- top-down tree transducers (DDTTs).
+-- | This type represents transition functions of total deterministic
+-- top-down tree transducers (DTTs).
 
-type DownTrans f q g = forall a. (q, f a) -> Context g (q,a)
+type DownTrans f q g = forall a. q -> f (q -> a) -> Context g a
 
--- | Thsis function runs the given DDTT on the given tree.
+
+-- | This is a variant of the 'DownTrans' type that makes it easier to
+-- define DTTs as it avoids the explicit use of 'Hole' to inject
+-- placeholders into the result.
+
+type DownTrans' f q g = forall a. q -> f (q -> Context g a) -> Context g a
+
+-- | This function turns a DTT defined using the type 'DownTrans'' in
+-- to the canonical form of type 'DownTrans'.
+mkDownTrans :: Functor f => DownTrans' f q g -> DownTrans f q g
+mkDownTrans tr q t = tr q (fmap (Hole .) t)
+
+-- | Thsis function runs the given DTT on the given tree.
 
 runDownTrans :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f a -> Cxt h g a
-runDownTrans tr q t = run (q,t) where
-    run (q,Term t) = appCxt $ fmap run $  tr (q, t)
-    run (_,Hole a)      = Hole a
+runDownTrans tr q t = run t q where
+    run (Term t) q = appCxt $ tr q $ fmap run t
+    run (Hole a) _ = Hole a
 
--- | This function runs the given DDTT on the given tree.
+-- | This function runs the given DTT on the given tree.
     
-runDownTrans' :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f a -> Cxt h g (q,a)
-runDownTrans' tr q t = run (q,t) where
-    run (q,Term t) = appCxt $ fmap run $  tr (q, t)
-    run (q,Hole a)      = Hole (q,a)
+runDownTrans' :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f (q -> a) -> Cxt h g a
+runDownTrans' tr q t = run t q where
+    run (Term t) q = appCxt $ tr q $ fmap run $ t
+    run (Hole a) q = Hole (a q)
 
--- | This function composes two DDTTs. (see Z. Fulop, H. Vogler
--- /Syntax-Directed Semantics/, Theorem 3.39)
+-- | This function composes two DTTs. (see W.C. Rounds /Mappings and
+-- grammars on trees/, Theorem 2.)
     
 compDownTrans :: (Functor f, Functor g, Functor h)
               => DownTrans g p h -> DownTrans f q g -> DownTrans f (q,p) h
-compDownTrans t2 t1 ((q,p), t) = fmap (\(p, (q, a)) -> ((q,p),a)) $ runDownTrans' t2 p (t1 (q, t))
+compDownTrans t2 t1 (q,p) t = runDownTrans' t2  p $ t1 q (fmap curry t)
 
 
--- | This function composes a signature function after a DDTT.
+
+-- | This function composes a signature function after a DTT.
 
 compSigDownTrans :: (Functor g) => SigFun g h -> DownTrans f q g -> DownTrans f q h
-compSigDownTrans sig trans = appSigFun sig . trans
+compSigDownTrans sig trans q = appSigFun sig . trans q
 
--- | This function composes a DDTT after a function.
+-- | This function composes a DTT after a function.
 
 compDownTransSig :: DownTrans g q h -> SigFun f g -> DownTrans f q h
-compDownTransSig trans hom (q,t) = trans (q, hom t)
+compDownTransSig trans hom q t = trans q (hom t)
 
 
--- | This function composes a homomorphism after a DDTT.
+-- | This function composes a homomorphism after a DTT.
 
 compHomDownTrans :: (Functor g, Functor h)
               => Hom g h -> DownTrans f q g -> DownTrans f q h
-compHomDownTrans hom trans = appHom hom . trans
+compHomDownTrans hom trans q = appHom hom . trans q
 
--- | This function composes a DDTT after a homomorphism.
+-- | This function composes a DTT after a homomorphism.
 
 compDownTransHom :: (Functor g, Functor h)
               => DownTrans g q h -> Hom f g -> DownTrans f q h
-compDownTransHom trans hom (q,t) = runDownTrans' trans q (hom t)
+compDownTransHom trans hom q t = runDownTrans' trans q (hom t)
 
 
--- | This type represents transition functions of deterministic
--- top-down tree acceptors (DDTAs).
+-- | This type represents transition functions of total, deterministic
+-- top-down tree acceptors (DTAs).
 
 type DownState f q = forall a. Ord a => (q, f a) -> Map a q
 
 
--- | Changes the state space of the DDTA using the given isomorphism.
+-- | Changes the state space of the DTA using the given isomorphism.
 
 tagDownState :: (q -> p) -> (p -> q) -> DownState f q -> DownState f p
 tagDownState i o t (q,s) = fmap i $ t (o q,s)
 
--- | This function constructs the product DDTA of the given two DDTAs.
+-- | This function constructs the product DTA of the given two DTAs.
 
 prodDownState :: DownState f p -> DownState f q -> DownState f (p,q)
 prodDownState sp sq ((p,q),t) = prodMap p q (sp (p, t)) (sq (q, t))
 
 
--- | This type is needed to construct the product of two DDTAs.
+-- | This type is needed to construct the product of two DTAs.
 
 data ProdState p q = LState p
                    | RState q
@@ -397,39 +427,40 @@ prodMap p q mp mq = Map.map final $ Map.unionWith combine ps qs
 -- otherwise adding the provided default state.
           
 appMap :: Traversable f => (forall i . Ord i => f i -> Map i q)
-                       -> q -> f b -> f (q,b)
+                       -> q -> f (q -> b) -> f (q,b)
 appMap qmap q s = fmap qfun s'
     where s' = number s
-          qfun k@(Numbered (_,a)) = (Map.findWithDefault q k (qmap s') ,a)
+          qfun k@(Numbered (_,a)) = let q' = Map.findWithDefault q k (qmap s')
+                                    in (q', a q') 
 
--- | This function constructs a DDTT from a given stateful term--
--- homomorphism with the state propagated by the given DDTA.
+-- | This function constructs a DTT from a given stateful term--
+-- homomorphism with the state propagated by the given DTA.
           
-downTrans :: Traversable f => DownState f q -> QHom f q g -> DownTrans f q g
-downTrans st f (q, s) = explicit f q fst (appMap (curry st q) q s)
+downTrans :: (Traversable f, Functor g) => DownState f q -> QHom f q g -> DownTrans f q g
+downTrans st f q s = fmap snd $ explicit f q fst (appMap (curry st q) q s)
 
 
 -- | This function applies a given stateful term homomorphism with a
--- state space propagated by the given DDTA to a term.
+-- state space propagated by the given DTA to a term.
 
 runDownHom :: (Traversable f, Functor g)
             => DownState f q -> QHom f q g -> q -> Term f -> Term g
 runDownHom st h = runDownTrans (downTrans st h)
 
 -- | This type represents transition functions of generalised
--- deterministic top-down tree acceptors (GDDTAs) which have access
+-- deterministic top-down tree acceptors (GDTAs) which have access
 
 -- to an extended state space.
 type DDownState f p q = forall i . (Ord i, ?below :: i -> p, ?above :: p, q :< p)
                                 => f i -> Map i q
 
--- | This combinator turns an arbitrary DDTA into a GDDTA.
+-- | This combinator turns an arbitrary DTA into a GDTA.
 
 dDownState :: DownState f q -> DDownState f p q
 dDownState f t = f (above,t)
 
--- | This combinator turns a GDDTA with the smallest possible state
--- space into a DDTA.
+-- | This combinator turns a GDTA with the smallest possible state
+-- space into a DTA.
 
 downState :: DDownState f q q -> DownState f q
 downState f (q,s) = res
