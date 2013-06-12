@@ -167,9 +167,18 @@ type MacroTransLA  f q p g = forall a. q a -> p -> f (q (Context g a) -> a, p) -
 type MacroTransLA' f q p g = forall a. q (Context g a) -> p -> 
                              f (q (Context g a) -> Context g a, p) -> Context g a
 
+
+-- | This function turns an MTT with regular look-ahead defined using
+-- the more convenient type |MacroTransLA'| into its canonical form of
+-- type |MacroTransLA|.
 mkMacroTransLA :: (Functor q, Functor f) => MacroTransLA' f q p g -> MacroTransLA f q p g
 mkMacroTransLA tr q p t = tr (fmap Hole q) p (fmap (\ (f, p) -> (Hole . f,p)) t)
 
+
+-- | This function defines the semantics of MTTs with regular
+-- look-ahead. It applies a given MTT with regular look-ahead
+-- (including an accompanying bottom-up state transition function) to
+-- an input with and an initial state.
 runMacroTransLA :: forall g f q p. (Functor g, Functor f, Functor q) => 
                    UpState f p -> MacroTransLA f q p g -> q (Term g) -> Term f -> Term g
 runMacroTransLA st tr q t = fst (run t) q where
