@@ -18,12 +18,39 @@ module Data.Comp.Generic where
 
 import Data.Comp.Term
 import Data.Comp.Sum
+import Data.Comp.Algebra
+import Data.Comp.Automata
 import Data.Foldable
 import Data.Maybe
 import Data.Traversable
 import GHC.Exts
 import Control.Monad hiding (mapM)
 import Prelude hiding (foldl,mapM)
+
+
+-- | This function returns the subterm of a given term at the position
+-- specified by the given path or @Nothing@ if the input term has no
+-- such subterm
+
+getSubterm :: (Functor g, Foldable g) => [Int] -> Term g -> Maybe (Term g)
+getSubterm path t = cata alg t path where
+    alg :: (Functor g, Foldable g) => Alg g ([Int] -> Maybe (Cxt h g a))
+    alg t [] = Just $ Term $ fmap ((fromJust) . ($[])) t
+    alg t (i:is) = case drop i (toList t) of
+                     [] -> Nothing
+                     x : _ -> x is
+
+-- | This function returns the subterm of a given term at the position
+-- specified by the given path. This function is a variant of
+-- 'getSubterm' which fails if there is no subterm at the given
+-- position.
+
+getSubterm' :: (Functor g, Foldable g) => [Int] -> Term g -> Term g
+getSubterm' path t = runDownTrans trans path t where
+    trans :: (Functor g, Foldable g) => DownTrans g [Int] g
+    trans [] t = simpCxt $ fmap ($[]) t
+    trans (i : is) t = Hole $ (toList t !! i) is
+
 
 -- | This function returns a list of all subterms of the given
 -- term. This function is similar to Uniplate's @universe@ function.

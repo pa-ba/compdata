@@ -42,9 +42,7 @@ import Data.Comp.Automata
 import Data.Comp.MacroAutomata
 import Control.Monad
 import Data.Traversable
-import Data.Foldable
 import Data.Comp.Number
-import Data.Maybe
 
 
 {-| Transform a function with a domain constructed from a functor to a function
@@ -137,30 +135,6 @@ pathAnn :: forall g. (Traversable g) => CxtFun g (g :&: [Int])
 pathAnn = runDownTrans trans [] where
     trans :: DownTrans g [Int] (g :&: [Int])
     trans q t = simpCxt (fmap (\ (Numbered (n,s)) -> s (n:q)) (number t) :&: q)
-
--- | This function returns the subterm of a given term at the position
--- specified by the given path or @Nothing@ if the input term has no
--- such subterm
-
-getSubterm :: (Functor g, Foldable g) => [Int] -> Term g -> Maybe (Term g)
-getSubterm path t = cata alg t path where
-    alg :: (Functor g, Foldable g) => Alg g ([Int] -> Maybe (Cxt h g a))
-    alg t [] = Just $ Term $ fmap ((fromJust) . ($[])) t
-    alg t (i:is) = case drop i (toList t) of
-                     [] -> Nothing
-                     x : _ -> x is
-
--- | This function returns the subterm of a given term at the position
--- specified by the given path. This function is a variant of
--- 'getSubterm' which fails if there is no subterm at the given
--- position.
-
-getSubterm' :: (Functor g, Foldable g) => [Int] -> Term g -> Term g
-getSubterm' path t = runDownTrans trans path t where
-    trans :: (Functor g, Foldable g) => DownTrans g [Int] g
-    trans [] t = simpCxt $ fmap ($[]) t
-    trans (i : is) t = Hole $ (toList t !! i) is
-
 
 {-| This function is similar to 'project' but applies to signatures
 with an annotation which is then ignored. -}
