@@ -138,5 +138,6 @@ pathAnn = runDownTrans trans [] where
 
 {-| This function is similar to 'project' but applies to signatures
 with an annotation which is then ignored. -}
-project' :: forall f g f1 a h . (RemA f g, f :<: f1) => Cxt h f1 a -> Maybe (g (Cxt h f1 a))
-project' v = liftM remA (project v :: Maybe (f (Cxt h f1 a)))
+project' :: (RemA f f', s :<: f') => Cxt h f a -> Maybe (s (Cxt h f a))
+project' (Term x) = proj $ remA x
+project' _ = Nothing

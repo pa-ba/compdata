@@ -74,6 +74,6 @@ ann c = appSigFun (injectA c)
 
 {-| This function is similar to 'project' but applies to signatures
 with an annotation which is then ignored. -}
-project' :: forall s s' f h a b .  (RemA s s', s :<: f) => 
-            Cxt h f a b -> Maybe (s' a (Cxt h f a b))
-project' v = liftM remA (project v :: Maybe (s a (Cxt h f a b)))
+project' :: (RemA f f', s :<: f') => Cxt h f a b -> Maybe (s a (Cxt h f a b))
+project' (In x) = proj $ remA x
+project' _ = Nothing

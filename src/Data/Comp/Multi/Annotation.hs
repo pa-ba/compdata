@@ -34,8 +34,6 @@ import qualified Data.Comp.Ops as O
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.HFunctor
 
-import Control.Monad
-
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
 -- same functor but with an additional annotation.
@@ -71,5 +69,6 @@ propAnn alg f' = ann p (alg f)
 
 -- | This function is similar to 'project' but applies to signatures
 -- with an annotation which is then ignored.
-project' :: forall s s' f h a i . (RemA s s', s :<: f) => Cxt h f a i -> Maybe (s' (Cxt h f a) i)
-project' v = liftM remA (project v :: Maybe (s (Cxt h f a) i))
+project' :: (RemA f f', s :<: f') => Cxt h f a i -> Maybe (s (Cxt h f a) i)
+project' (Term x) = proj $ remA x
+project' _ = Nothing
