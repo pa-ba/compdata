@@ -19,6 +19,10 @@ import Data.Comp.Automata.Product.Derive
 instance a :< a where
     pr = id
 
+
+instance (a,b) :< (a,b) where
+    pr = id
+
 $(genAllInsts 7)
 
 instance (c :< b) => c :< (a,b) where
