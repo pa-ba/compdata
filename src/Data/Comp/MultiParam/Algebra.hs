@@ -325,8 +325,7 @@ compSigFunM f g a = g a >>= f
     cata a (appHom h x) = cata (compAlg a h) x;
 
   "appHom/appHom" forall (a :: Hom g h) (h :: Hom f g) x.
-    appHom a (appHom h x) = appHom (compHom a h) x;
- #-}
+    appHom a (appHom h x) = appHom (compHom a h) x; #-}
 
 {-
 {-# RULES 
@@ -337,13 +336,11 @@ compSigFunM f g a = g a >>= f
      cataM a (appHom h x) = cataM (compAlgM' a h) x;
 
   "appHomM/appHomM" forall (a :: HomM m g h b) (h :: HomM m f g b) x.
-    appHomM h x >>= appHomM a = appHomM (compHomM a h) x;
- #-}
+    appHomM h x >>= appHomM a = appHomM (compHomM a h) x; #-}
 
 {-# RULES
   "cata/build"  forall alg (g :: forall a . Alg f a -> a) .
-                cata alg (build g) = g alg
- #-}
+                cata alg (build g) = g alg #-}
 -}
 #endif
 -}

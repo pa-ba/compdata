@@ -826,8 +826,7 @@ appSigFunHomM f g = run where
   "appSigFunHom/appSigFunHom" forall (f1 :: SigFun f4 f5) (f2 :: Hom f3 f4)
                                              (f3 :: SigFun f2 f3) (f4 :: Hom f1 f2) x.
     appSigFunHom f1 f2 (appSigFunHom f3 f4 x)
-      = appSigFunHom f1 (compHom (compHomSigFun f2 f3) f4) x;
- #-}
+      = appSigFunHom f1 (compHom (compHomSigFun f2 f3) f4) x; #-}
 
 {-# RULES 
   "cataM/appHomM" forall (a :: AlgM Maybe g d) (h :: HomM Maybe f g) x.
@@ -958,7 +957,6 @@ appSigFunHomM f g = run where
 
 
   "appHom/appHomM" forall (a :: Hom g h) (h :: HomM m f g) x.
-     appHomM h x >>= (return . appHom a) = appHomM (compHomM_ a h) x;
- #-}
+     appHomM h x >>= (return . appHom a) = appHomM (compHomM_ a h) x; #-}
 #endif
 -}
