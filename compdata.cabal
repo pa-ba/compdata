@@ -239,7 +239,6 @@ library
                         Data.Comp.Derive.SmartAConstructors,
                         Data.Comp.Derive.Foldable,
                         Data.Comp.Derive.Traversable,
-                        Data.Comp.Derive.Injections,
                         Data.Comp.Derive.Projections,
                         Data.Comp.Derive.HaskellStrict,
                         Data.Comp.Automata.Product.Derive,
