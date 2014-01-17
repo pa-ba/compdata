@@ -94,10 +94,12 @@ coerceTermM t = unsafeCoerce t
  #-}
 
 instance ParamFunctor Maybe where
+    {-# NOINLINE [1] termM #-}
     termM Nothing = Nothing
     termM x       = Just (Term $ fromJust x)
 
 instance ParamFunctor (Either a) where
+    {-# NOINLINE [1] termM #-}
     termM (Left x) = Left x
     termM x        = Right (Term $ fromRight x)
                              where fromRight :: Either a b -> b
@@ -105,5 +107,6 @@ instance ParamFunctor (Either a) where
                                    fromRight _ = error "fromRight: Left"
 
 instance ParamFunctor [] where
+    {-# NOINLINE [1] termM #-}
     termM [] = []
     termM l  = Term (head l) : termM (tail l)

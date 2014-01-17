@@ -51,6 +51,7 @@ import Data.Comp.Algebra
 import Data.Comp.Ops
 
 import Control.Monad hiding (mapM,sequence)
+import Control.Applicative (Applicative (..))
 import Prelude hiding (mapM,sequence)
 
 import Data.Maybe
@@ -143,6 +144,10 @@ substHoles' c m = substHoles c (fromJust . (`Map.lookup`  m))
 instance (Functor f) => Monad (Context f) where
     return = Hole
     (>>=) = substHoles
+
+instance (Functor f) => Applicative (Context f) where
+    pure = Hole
+    (<*>) = ap
 
 instance (Show (f a), Show (g a)) => Show ((f :+: g) a) where
     show (Inl v) = show v

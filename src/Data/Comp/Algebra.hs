@@ -607,6 +607,7 @@ futu' coa = run
 
 
 appAlgHom :: forall f g d . (Functor g) => Alg g d -> Hom f g -> Term f -> d
+{-# NOINLINE [1] appAlgHom #-}
 appAlgHom alg hom = run where
     run :: Term f -> d
     run (Term t) = run' $ hom t
@@ -632,6 +633,7 @@ appSigFunHom f g = run where
 -- requirements on the source signature @f@.
 appAlgHomM :: forall m f g a. (Traversable g, Monad m)
                => AlgM m g a -> HomM m f g -> Term f -> m a
+{-# NOINLINE [1] appAlgHomM #-}
 appAlgHomM alg hom = run
     where run :: Term f -> m a
           run (Term t) = hom t >>= mapM run >>= run'
