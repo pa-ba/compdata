@@ -132,6 +132,57 @@ instance (GetEmbD (Found p1) f1 g, GetEmbD (Found p2) f2 g)
     => GetEmbD (Found (Sum p1 p2)) (f1 :+: f2) g where
     getEmbD = SumD getEmbD getEmbD
 
+
+-- The following definitions are used to reject instances of :<: such
+-- as @F :+: F :<: F@ or @F :+: (F :+: G) :<: F :+: G@.
+
+data SimpPos = SimpHere | SimpLeft SimpPos | SimpRight SimpPos
+
+data Res = CompPos SimpPos Pos | SingPos SimpPos
+
+
+type family DestrPos (e :: Pos) :: Res where
+    DestrPos (GoLeft e) = ResLeft (DestrPos e)
+    DestrPos (GoRight e) = ResRight (DestrPos e)
+    DestrPos (Sum e1 e2) = ResSum (DestrPos e1) e2
+    DestrPos Here = SingPos SimpHere
+
+type family ResLeft (r :: Res) :: Res where
+    ResLeft (CompPos p e) = CompPos (SimpLeft p) (GoLeft e)
+    ResLeft (SingPos p) = SingPos (SimpLeft p)
+
+type family ResRight (r :: Res) :: Res where
+    ResRight (CompPos p e) = CompPos (SimpRight p) (GoRight e)
+    ResRight (SingPos p) = SingPos (SimpRight p)
+
+type family ResSum (r :: Res) (e :: Pos) :: Res where
+    ResSum (CompPos p e1) e2 = CompPos p (Sum e1 e2)
+    ResSum (SingPos p) e = CompPos p e
+
+type family Or x y where
+    Or x False = x
+    Or False y = y
+    Or x y  = True
+
+type family In (p :: SimpPos) (e :: Pos) :: Bool where
+    In SimpHere e = True
+    In p Here = True
+    In (SimpLeft p) (GoLeft e) = In p e
+    In (SimpRight p) (GoRight e) = In p e
+    In p (Sum e1 e2) = Or (In p e1)  (In p e2)
+    In p e = False
+
+type family Duplicates' (r :: Res) :: Bool where
+    Duplicates' (SingPos p) = False
+    Duplicates' (CompPos p e) = Or (In p e) (Duplicates' (DestrPos e))
+
+type family Duplicates (e :: Emb) where
+    Duplicates (Found p) = Duplicates' (DestrPos p)
+
+-- This class is used to produce more informative error messages
+class NoDup (b :: Bool) (f :: * -> *) (g :: * -> *)
+instance NoDup False f g
+
 inj_ :: EmbD e f g -> f a -> g a
 inj_ HereD x = x
 inj_ (GoLeftD e) x = Inl (inj_ e x)
@@ -140,7 +191,15 @@ inj_ (SumD e1 e2) x = case x of
                         Inl y -> inj_ e1 y
                         Inr y -> inj_ e2 y
 
-type f :<: g = GetEmbD (GetEmb f g) f g
+-- | The :<: constraint is a conjunction of two constraints. The first
+-- one is used to construct the evidence that is used to implement the
+-- injection and projection functions. The first constraint alone
+-- would allow instances such as @F :+: F :<: F@ or @F :+: (F :+: G)
+-- :<: F :+: G@ which have multiple occurrences of the same
+-- sub-signature on the left-hand side. Such instances are usually
+-- unintended and yield injection functions that are not
+-- injective. The second constraint excludes such instances.
+type f :<: g = (GetEmbD (GetEmb f g) f g, NoDup (Duplicates (GetEmb f g)) f g)
 
 inj :: forall f g a . (f :<: g) => f a -> g a
 inj = inj_ (getEmbD :: EmbD (GetEmb f g) f g)

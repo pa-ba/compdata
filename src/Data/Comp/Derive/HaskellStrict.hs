@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TypeOperators, CPP, FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell, TypeOperators, CPP, FlexibleContexts, ConstraintKinds #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.HaskellStrict
