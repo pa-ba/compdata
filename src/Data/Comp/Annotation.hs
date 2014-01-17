@@ -1,5 +1,6 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances,
-  UndecidableInstances, Rank2Types, GADTs, ScopedTypeVariables, FlexibleContexts #-}
+  UndecidableInstances, Rank2Types, GADTs, ScopedTypeVariables, FlexibleContexts,
+  ConstraintKinds #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Annotation

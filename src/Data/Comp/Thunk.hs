@@ -39,7 +39,7 @@ module Data.Comp.Thunk
 import Data.Comp.Term
 import Data.Comp.Equality
 import Data.Comp.Algebra
-import Data.Comp.Ops
+import Data.Comp.Ops ((:+:)(..), fromInr)
 import Data.Comp.Sum
 import Data.Comp.Number
 import Data.Foldable hiding (and)
@@ -60,8 +60,8 @@ type CxtT  m h f a = Cxt h  (m :+: f) a
 
 
 -- | This function turns a monadic computation into a thunk.
-thunk :: (m :<: f) => m (Cxt h f a) -> Cxt h f a
-thunk = inject
+thunk :: m (CxtT m h f a) -> CxtT m h f a
+thunk = inject_ Inl
 
 -- | This function evaluates all thunks until a non-thunk node is
 -- found.
@@ -70,7 +70,7 @@ whnf (Term (Inl m)) = m >>= whnf
 whnf (Term (Inr t)) = return t
 
 whnf' :: Monad m => TermT m f -> m (TermT m f)
-whnf' = liftM inject . whnf
+whnf' = liftM (inject_ Inr) . whnf
 
 -- | This function first evaluates the argument term into whnf via
 -- 'whnf' and then projects the top-level signature to the desired
@@ -114,7 +114,7 @@ nfPr = liftM Term . mapM nfPr <=< whnfPr
 -- given function.
 deepEval :: (Traversable f, Monad m) => 
             (Term f -> TermT m f) -> TermT m f -> TermT m f
-deepEval cont v = case deepProject v of 
+deepEval cont v = case deepProject_ fromInr v of 
                     Just v' -> cont v'
                     _ -> thunk $ liftM cont $ nf v 
 
@@ -150,7 +150,7 @@ cataT alg = cataTM (return . alg)
 -- | This combinator makes the evaluation of the given functor
 -- application strict by evaluating all thunks of immediate subterms.
 strict :: (f :<: g, Traversable f, Monad m) => f (TermT m g) -> TermT m g
-strict x = thunk $ liftM inject $ mapM whnf' x
+strict x = thunk $ liftM (inject_ (Inr . inj)) $ mapM whnf' x
 
 -- | This type represents position representations for a functor
 -- @f@. It is a function that extracts a number of components (of
@@ -163,7 +163,7 @@ type Pos f = forall a . Ord a => f a -> [a]
 -- argument of this combinator specifies which positions are supposed
 -- to be strict.
 strictAt :: (f :<: g, Traversable f, Monad m) => Pos f ->  f (TermT m g) -> TermT m g
-strictAt p s = thunk $ liftM inject $ mapM run s'
+strictAt p s = thunk $ liftM (inject_ (Inr . inj)) $ mapM run s'
     where s'  = number s
           isStrict e = Set.member e $ Set.fromList $ p s'
           run e | isStrict e = whnf' $ unNumbered e
