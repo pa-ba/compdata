@@ -24,6 +24,7 @@ import Data.Comp.Multi.Term
 import Data.Comp.Multi.Annotation
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Ops
 import Data.Comp.Multi.Derive
 
 instance KShow (K String) where
@@ -45,4 +46,8 @@ instance (KShow (Cxt h f a)) => Show (Cxt h f a i) where
 instance (ShowHF f, Show p) => ShowHF (f :&: p) where
     showHF (v :&: p) =  K $ unK (showHF v) ++ " :&: " ++ show p
 
-$(derive [liftSum] [''ShowHF])
+instance (ShowHF f, ShowHF g) =>
+             ShowHF (f :+: g) where
+      showHF  = caseH showHF showHF
+      showHF' = caseH showHF' showHF'
+

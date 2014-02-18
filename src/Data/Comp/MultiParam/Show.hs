@@ -24,7 +24,9 @@ import Data.Comp.MultiParam.Derive
 import Data.Comp.MultiParam.FreshM
 
 -- Lift ShowHD to sums
-$(derive [liftSum] [''ShowHD])
+
+instance (ShowHD f, ShowHD g) => ShowHD (f :+: g) where
+      showHD = caseHD showHD showHD
 
 {-| From an 'ShowHD' higher-order difunctor an 'ShowHD' instance of the
   corresponding term type can be derived. -}

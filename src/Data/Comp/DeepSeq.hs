@@ -24,7 +24,7 @@ import Data.Comp.Term
 import Control.DeepSeq
 import Data.Comp.Derive
 import Data.Comp.Annotation
-
+import Data.Comp.Ops
 
 instance (NFDataF f, NFData a) => NFData (Cxt h f a) where
     rnf (Hole x) = rnf x
@@ -34,5 +34,9 @@ instance (NFDataF f, NFData a) => NFDataF (f :&: a) where
     rnfF (f :&: a) = rnfF f `seq` rnf a
 
 
-$(derive [liftSum] [''NFDataF])
+
+instance (NFDataF f, NFDataF g) =>
+    NFDataF (f :+: g) where
+      rnfF = caseF rnfF rnfF
+
 $(derive [makeNFDataF] [''Maybe, ''[], ''(,)])

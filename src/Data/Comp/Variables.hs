@@ -43,6 +43,8 @@ import qualified Data.Set as Set
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Prelude hiding (or, foldl)
+import Data.Comp.Ops
+
 
 -- | This type represents substitutions of contexts, i.e. finite
 -- mappings from variables to contexts.
@@ -83,7 +85,10 @@ class HasVars f v where
     bindsVars _ = Map.empty
 
 
-$(derive [liftSum] [''HasVars])
+instance (HasVars f a, HasVars g a) =>
+             HasVars ((:+:) f g) a where
+      isVar = caseF isVar isVar
+      bindsVars = caseF bindsVars bindsVars
 
 -- | Same as 'isVar' but it returns Nothing@ instead of @Just v@ if
 -- @v@ is contained in the given set of variables.

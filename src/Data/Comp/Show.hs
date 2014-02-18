@@ -20,9 +20,9 @@ module Data.Comp.Show
 import Data.Comp.Term
 import Data.Comp.Annotation
 import Data.Comp.Algebra
-import Data.Comp.Derive (liftSum)
 import Data.Comp.Derive.Utils (derive)
 import Data.Comp.Derive.Show
+import Data.Comp.Ops
 
 instance (Functor f, ShowF f) => ShowF (Cxt h f) where
     showF (Hole s) = s
@@ -34,5 +34,8 @@ instance (Functor f, ShowF f, Show a) => Show (Cxt h f a) where
 instance (ShowF f, Show p) => ShowF (f :&: p) where
     showF (v :&: p) = showF v ++ " :&: " ++ show p
 
-$(derive [liftSum] [''ShowF])
+instance (ShowF f, ShowF g) =>
+             ShowF (f :+: g) where
+      showF = caseF showF showF
+
 $(derive [makeShowF] [''Maybe, ''[], ''(,)])
