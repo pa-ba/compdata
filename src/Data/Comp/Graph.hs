@@ -95,11 +95,11 @@ appGraphCxt (GraphCxt (Graph root eqs nx) (holes)) = Graph root' eqs' nx'
           root' = renameFun root
 
 -- | This function turns a term into a graph without (explicit)
--- sharing, i.e. a tree. 'termTree' and 'unravelGraph' are inverses:
+-- sharing, i.e. a tree. The following property holds for 'termTree'
+-- and 'unravelGraph':
 -- 
 -- @
 -- unravelGraph (termTree x) == x
--- termTree (unravelGraph x) == x
 -- @
 termTree :: Traversable f => Term f -> Graph f
 termTree t = Graph 0 imap nx
@@ -112,11 +112,11 @@ termTree t = Graph 0 imap nx
                               return n
 
 -- | This function unravels a given graph to the term it
--- represents. 'termTree' and 'unravelGraph' are inverses:
+-- represents. The following property holds for 'termTree' and
+-- 'unravelGraph':
 -- 
 -- @
 -- unravelGraph (termTree x) == x
--- termTree (unravelGraph x) == x
 -- @
 unravelGraph :: forall f. Functor f => Graph f -> Term f
 unravelGraph g = build (_root g)
