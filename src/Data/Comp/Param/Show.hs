@@ -23,8 +23,7 @@ import Data.Comp.Param.Derive
 import Data.Comp.Param.FreshM
 
 -- Lift ShowD to sums
-instance (ShowD f, ShowD g) => ShowD (f :+: g) where
-      showD = caseD showD showD
+$(derive [liftSum] [''ShowD])
 
 {-| From an 'ShowD' difunctor an 'ShowD' instance of the corresponding term type
   can be derived. -}

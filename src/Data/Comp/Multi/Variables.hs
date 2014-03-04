@@ -88,11 +88,7 @@ class HasVars (f  :: (* -> *) -> * -> *) v where
     bindsVars :: KOrd a => f a :=> Map (E a) (Set v)
     bindsVars _ = Map.empty
 
-
-instance (HasVars f a, HasVars g a) =>
-             HasVars ((:+:) f g) a where
-      isVar = caseH isVar isVar
-      bindsVars = caseH bindsVars bindsVars
+$(derive [liftSum] [''HasVars])
     
 -- | Same as 'isVar' but it returns Nothing@ instead of @Just v@ if
 -- @v@ is contained in the given set of variables.
