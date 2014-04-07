@@ -1,3 +1,4 @@
+{-# LANGUAGE TypeOperators, TemplateHaskell, TypeSynonymInstances #-}
 module Data.Comp.Render where
 
 import Data.Foldable (toList)
@@ -27,3 +28,5 @@ drawTerm = putStrLn . showTerm
 -- | Write a term to an HTML file with foldable nodes
 writeHtmlTerm :: Render f => FilePath -> Term f -> IO ()
 writeHtmlTerm file = writeHtmlTree file . fmap (\n -> NodeInfo n "") . stringTree
+
+$(derive [liftSum] [''ShowConstr])
