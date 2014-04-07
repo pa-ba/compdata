@@ -167,6 +167,7 @@ library
                         Data.Comp.TermRewriting,
                         Data.Comp.Arbitrary,
                         Data.Comp.Show,
+                        Data.Comp.Render,
                         Data.Comp.Variables,
                         Data.Comp.Decompose,
                         Data.Comp.Unification,
@@ -274,7 +275,7 @@ library
                         Data.Comp.MultiParam.Derive.Injections,
                         Data.Comp.MultiParam.Derive.Projections
 
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers, tree-view
   hs-source-dirs:	src
   ghc-options:          -W
 
