@@ -6,6 +6,7 @@ import Data.Tree (Tree (..))
 import Data.Tree.View
 import Data.Comp
 import Data.Comp.Derive
+import Data.Comp.Show
 
 -- | The 'stringTree' algebra of a functor. The default instance creates a tree
 -- with the same structure as the term.
@@ -29,4 +30,4 @@ drawTerm = putStrLn . showTerm
 writeHtmlTerm :: Render f => FilePath -> Term f -> IO ()
 writeHtmlTerm file = writeHtmlTree file . fmap (\n -> NodeInfo n "") . stringTree
 
-$(derive [liftSum] [''ShowConstr])
+$(derive [liftSum] [''Render])
