@@ -23,7 +23,7 @@ import Data.Comp.Automata
 import Data.Foldable
 import Data.Maybe
 import Data.Traversable
-import GHC.Exts
+import GHC.Exts (build)
 import Control.Monad hiding (mapM)
 import Prelude hiding (foldl,mapM)
 
