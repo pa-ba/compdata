@@ -36,3 +36,8 @@ instance (ShowF f, Show p) => ShowF (f :&: p) where
 
 $(derive [liftSum] [''ShowF])
 $(derive [makeShowF] [''Maybe, ''[], ''(,)])
+
+instance (ShowConstr f, Show p) => ShowConstr (f :&: p) where
+    showConstr (v :&: p) = showConstr v ++ " :&: " ++ show p
+
+$(derive [liftSum] [''ShowConstr])

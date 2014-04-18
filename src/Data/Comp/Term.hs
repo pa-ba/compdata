@@ -1,4 +1,4 @@
-{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, Rank2Types #-}
+{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, Rank2Types, TypeSynonymInstances, FlexibleInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Term
@@ -92,6 +92,16 @@ type PTerm f = forall h a . Cxt h f a
 instance Functor f => Functor (Cxt h f) where
     fmap f = run
         where run (Hole v) = Hole (f v)
+              run (Term t) = Term (fmap run t)
+
+instance Functor f => Applicative (Context f) where
+    pure = Hole
+    (<*>) = ap
+
+instance (Functor f) => Monad (Context f) where
+    return = Hole
+    m >>= f = run m
+        where run (Hole v) = f v
               run (Term t) = Term (fmap run t)
 
 instance (Foldable f) => Foldable (Cxt h f) where

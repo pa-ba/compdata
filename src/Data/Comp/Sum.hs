@@ -141,13 +141,6 @@ substHoles c f = injectCxt $ fmap f c
 substHoles' :: (Functor f, Functor g, f :<: g, Ord v) => Cxt h' f v -> Map v (Cxt h g a) -> Cxt h g a
 substHoles' c m = substHoles c (fromJust . (`Map.lookup`  m))
 
-instance (Functor f) => Monad (Context f) where
-    return = Hole
-    (>>=) = substHoles
-
-instance (Functor f) => Applicative (Context f) where
-    pure = Hole
-    (<*>) = ap
 
 instance (Show (f a), Show (g a)) => Show ((f :+: g) a) where
     show (Inl v) = show v
