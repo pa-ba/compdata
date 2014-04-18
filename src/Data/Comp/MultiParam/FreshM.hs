@@ -22,10 +22,11 @@ module Data.Comp.MultiParam.FreshM
     ) where
 
 import Control.Monad.Reader
+import Control.Applicative
 
 -- |Monad for generating fresh (abstract) names.
 newtype FreshM a = FreshM{unFreshM :: Reader Int a}
-    deriving Monad
+    deriving (Monad, Functor, Applicative)
 
 -- |Abstract notion of a name (the constructor is hidden).
 newtype Name i = Name Int
