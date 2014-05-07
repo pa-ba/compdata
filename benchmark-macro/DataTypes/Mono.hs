@@ -1,4 +1,5 @@
-{-# LANGUAGE DeriveFunctor, DeriveTraversable, DeriveFoldable, TemplateHaskell, FlexibleContexts #-}
+{-# LANGUAGE DeriveFunctor, DeriveTraversable, DeriveFoldable, TemplateHaskell,
+  FlexibleContexts, ConstraintKinds #-}
 
 module DataTypes.Mono where
 

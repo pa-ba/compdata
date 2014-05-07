@@ -1,5 +1,5 @@
-{-# LANGUAGE TemplateHaskell, TypeSynonymInstances,
-FlexibleInstances, MultiParamTypeClasses, TypeOperators, FlexibleContexts#-}
+{-# LANGUAGE TemplateHaskell, TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses, 
+  TypeOperators, FlexibleContexts, ConstraintKinds #-}
 
 module Data.Comp.Variables_Test where
 
