@@ -180,7 +180,7 @@ library
                         Data.Comp.Multi.Derive.Injections
                         Data.Comp.Multi.Derive.Projections
 
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive,
+  Build-Depends:	base >= 4.7, base < 5, template-haskell, containers, mtl, QuickCheck >= 2, derive,
                         deepseq, th-expand-syns, transformers, tree-view
   hs-source-dirs:	src
   ghc-options:          -W
