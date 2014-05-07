@@ -63,14 +63,14 @@ makeTraversable fname = do
                    return (conE constr, mkCPat constr varNs,
                            \f g -> filterVars args varNs (\ d x -> f d (varE x)) (g . varE),
                            any (not . null) args, map varE varNs, catMaybes $ filterVars args varNs (curry Just) (const Nothing))
-            traverseClause (con, pat,vars',hasFargs,_,_) =
+            traverseClause (con, pat,vars',hasFargs,_allVars,_fVars) =
                 do fn <- newName "f"
                    let f = varE fn
                        fp = if hasFargs then VarP fn else WildP
                        vars = vars' (\d x -> iter d [|traverse|] f `appE` x) (\x -> [|pure $x|])
                    body <- P.foldl (\ x y -> [|$x <*> $y|]) [|pure $con|] vars
                    return $ Clause [fp, pat] (NormalB body) []
-            sequenceAClause (con, pat,vars',hasFargs,_,_) =
+            sequenceAClause (con, pat,vars',_hasFargs,_,_) =
                 do let vars = vars' (\d x -> iter' d [|sequenceA|] x) (\x -> [|pure $x|])
                    body <- P.foldl (\ x y -> [|$x <*> $y|]) [|pure $con|] vars
                    return $ Clause [pat] (NormalB body) []
@@ -85,7 +85,7 @@ makeTraversable fname = do
                        conBind (d,x) y = [| $(iter d [|mapM|] f) $(varE x)  >>= $(lamE [varP x] y)|]
                    body <- P.foldr conBind [|return $conAp|] fvars
                    return $ Clause [fp, pat] (NormalB body) []
-            sequenceClause (con, pat,_,hasFargs,allVars, fvars) =
+            sequenceClause (con, pat,_vars',_hasFargs,allVars, fvars) =
                 do let conAp = P.foldl appE con allVars
                        conBind (d, x) y = [| $(iter' d [|sequence|] (varE x))  >>= $(lamE [varP x] y)|]
                    body <- P.foldr conBind [|return $conAp|] fvars

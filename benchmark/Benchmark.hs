@@ -11,6 +11,7 @@ import Data.Comp.DeepSeq ()
 import Control.DeepSeq
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
+import Test.QuickCheck.Random
 import System.Random
 
 aExpr :: SugarExpr
@@ -138,7 +139,7 @@ standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (
 
 randStdBenchmarks :: Int -> IO Benchmark
 randStdBenchmarks s = do
-  rand <- newStdGen
+  rand <- newQCGen
   let ty = unGen arbitrary rand s
   putStr "size of the type term: "
   print $ size ty

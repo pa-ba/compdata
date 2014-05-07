@@ -24,7 +24,7 @@ import Control.Monad (liftM)
 import Data.Traversable (Traversable)
 import Data.Comp.Term
 import Data.Comp.Algebra (CxtFunM, appSigFunM')
-import Data.Comp.Ops ((:+:)(..), (:<:)(..))
+import Data.Comp.Ops ((:+:)(..), (:<:), proj, inj)
 
 projn :: Int -> Q [Dec]
 projn n = do

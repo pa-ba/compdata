@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TypeOperators, FlexibleContexts, FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell, TypeOperators, FlexibleContexts, FlexibleInstances, ConstraintKinds #-}
 
 module Test.Utils where
 

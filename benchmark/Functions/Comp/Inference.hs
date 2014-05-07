@@ -6,7 +6,8 @@
   UndecidableInstances,
   TypeOperators,
   ScopedTypeVariables,
-  TypeSynonymInstances #-}
+  TypeSynonymInstances,
+  ConstraintKinds#-}
 
 module Functions.Comp.Inference where
 

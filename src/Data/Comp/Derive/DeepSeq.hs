@@ -33,18 +33,16 @@ class NFDataF f where
 makeNFDataF :: Name -> Q [Dec]
 makeNFDataF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
-  let fArg = VarT . tyVarBndrName $ last args
-      argNames = map (VarT . tyVarBndrName) (init args)
+  let argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
       preCond = map (ClassP ''NFData . (: [])) argNames
       classType = AppT (ConT ''NFDataF) complType
   constrs' <- mapM normalConExp constrs
-  rnfFDecl <- funD 'rnfF (rnfFClauses fArg constrs')
+  rnfFDecl <- funD 'rnfF (rnfFClauses constrs')
   return [InstanceD preCond classType [rnfFDecl]]
-      where rnfFClauses fArg = map (genRnfFClause fArg)
-            genRnfFClause fArg (constr, args) = do 
-              let isFargs = map (==fArg) args
-                  n = length args
+      where rnfFClauses = map genRnfFClause
+            genRnfFClause (constr, args) = do 
+              let n = length args
               varNs <- newNames n "x"
               let pat = ConP constr $ map VarP varNs
                   allVars = map varE varNs 

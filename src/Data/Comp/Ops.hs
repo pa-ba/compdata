@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, IncoherentInstances,
              FlexibleInstances, FlexibleContexts, GADTs, TypeSynonymInstances,
-             ScopedTypeVariables, FunctionalDependencies, UndecidableInstances #-}
+             ScopedTypeVariables, FunctionalDependencies, UndecidableInstances,
+             TypeFamilies, DataKinds, ConstraintKinds #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -34,6 +35,12 @@ infixr 6 :+:
 -- |Formal sum of signatures (functors).
 data (f :+: g) e = Inl (f e)
                  | Inr (g e)
+
+fromInl :: (f :+: g) e -> Maybe (f e)
+fromInl = caseF Just (const Nothing)
+
+fromInr :: (f :+: g) e -> Maybe (g e)
+fromInr = caseF (const Nothing) Just 
 
 {-| Utility function to case on a functor sum, without exposing the internal
   representation of sums. -}
@@ -71,28 +78,159 @@ instance (Traversable f, Traversable g) => Traversable (f :+: g) where
     sequence (Inl e) = Inl `liftM` sequence e
     sequence (Inr e) = Inr `liftM` sequence e
 
--- | Signature containment relation for automatic injections. The left-hand must
--- be an atomic signature, where as the right-hand side must have a list-like
--- structure. Examples include @f :<: f :+: g@ and @g :<: f :+: (g :+: h)@,
--- non-examples include @f :+: g :<: f :+: (g :+: h)@ and
--- @f :<: (f :+: g) :+: h@.
-class sub :<: sup where
-  inj :: sub a -> sup a
-  proj :: sup a -> Maybe (sub a)
+infixl 5 :<:
+infixl 5 :=:
 
-instance (:<:) f f where
-    inj = id
-    proj = Just
+data Pos = Here | GoLeft Pos | GoRight Pos | Sum Pos Pos
+data Emb = NotFound | Ambiguous | Found Pos
 
-instance (:<:) f (f :+: g) where
-    inj = Inl
-    proj (Inl x) = Just x
-    proj (Inr _) = Nothing
 
-instance (f :<: g) => (:<:) f (h :+: g) where
-    inj = Inr . inj
-    proj (Inr x) = proj x
-    proj (Inl _) = Nothing
+type family GetEmb (f :: * -> *) (g :: * -> *) :: Emb where
+    GetEmb f f = Found Here
+    GetEmb f (g1 :+: g2) = Pick f (g1 :+: g2) (GetEmb f g1) (GetEmb f g2)
+    GetEmb f g = NotFound
+
+
+type family Pick f g (e1 :: Emb) (r :: Emb) :: Emb where
+    Pick f g (Found x) (Found y) = Ambiguous
+    Pick f g Ambiguous y = Ambiguous
+    Pick f g x Ambiguous = Ambiguous
+    Pick f g (Found x) y = Found (GoLeft x)
+    Pick f g x (Found y) = Found (GoRight y)
+    Pick f g x y = Split f g
+
+type family Split (f :: * -> *) (g :: * -> *) :: Emb where
+    Split (f1 :+: f2) g = Pick2 (GetEmb f1 g) (GetEmb f2 g) 
+    Split f g = NotFound
+
+type family Pick2 (e1 :: Emb) (r :: Emb) :: Emb where
+    Pick2 (Found x) (Found y) = Found (Sum x y)
+    Pick2 Ambiguous y = Ambiguous
+    Pick2 x Ambiguous = Ambiguous
+    Pick2 NotFound y = NotFound
+    Pick2 x NotFound = NotFound
+
+data EmbD (e :: Emb) (f :: * -> *) (g :: * -> *) where
+    HereD :: EmbD (Found Here) f f
+    GoLeftD :: EmbD (Found p) f g -> EmbD (Found (GoLeft p)) f (g :+: g')
+    GoRightD :: EmbD (Found p) f g -> EmbD (Found (GoRight p)) f (g' :+: g)
+    SumD :: EmbD (Found p1) f1 g -> EmbD (Found p2) f2 g -> EmbD (Found (Sum p1 p2)) (f1 :+: f2) g
+
+class GetEmbD (e :: Emb) (f :: * -> *) (g :: * -> *) where
+    getEmbD :: EmbD e f g
+
+instance GetEmbD (Found Here) f f where
+    getEmbD = HereD
+
+instance GetEmbD (Found p) f g => GetEmbD (Found (GoLeft p)) f (g :+: g') where
+    getEmbD = GoLeftD getEmbD
+
+instance GetEmbD (Found p) f g => GetEmbD (Found (GoRight p)) f (g' :+: g) where
+    getEmbD = GoRightD getEmbD
+
+instance (GetEmbD (Found p1) f1 g, GetEmbD (Found p2) f2 g) 
+    => GetEmbD (Found (Sum p1 p2)) (f1 :+: f2) g where
+    getEmbD = SumD getEmbD getEmbD
+
+
+-- The following definitions are used to reject instances of :<: such
+-- as @F :+: F :<: F@ or @F :+: (F :+: G) :<: F :+: G@.
+
+data SimpPos = SimpHere | SimpLeft SimpPos | SimpRight SimpPos
+
+data Res = CompPos SimpPos Pos | SingPos SimpPos
+
+
+type family DestrPos (e :: Pos) :: Res where
+    DestrPos (GoLeft e) = ResLeft (DestrPos e)
+    DestrPos (GoRight e) = ResRight (DestrPos e)
+    DestrPos (Sum e1 e2) = ResSum (DestrPos e1) e2
+    DestrPos Here = SingPos SimpHere
+
+type family ResLeft (r :: Res) :: Res where
+    ResLeft (CompPos p e) = CompPos (SimpLeft p) (GoLeft e)
+    ResLeft (SingPos p) = SingPos (SimpLeft p)
+
+type family ResRight (r :: Res) :: Res where
+    ResRight (CompPos p e) = CompPos (SimpRight p) (GoRight e)
+    ResRight (SingPos p) = SingPos (SimpRight p)
+
+type family ResSum (r :: Res) (e :: Pos) :: Res where
+    ResSum (CompPos p e1) e2 = CompPos p (Sum e1 e2)
+    ResSum (SingPos p) e = CompPos p e
+
+type family Or x y where
+    Or x False = x
+    Or False y = y
+    Or x y  = True
+
+type family In (p :: SimpPos) (e :: Pos) :: Bool where
+    In SimpHere e = True
+    In p Here = True
+    In (SimpLeft p) (GoLeft e) = In p e
+    In (SimpRight p) (GoRight e) = In p e
+    In p (Sum e1 e2) = Or (In p e1)  (In p e2)
+    In p e = False
+
+type family Duplicates' (r :: Res) :: Bool where
+    Duplicates' (SingPos p) = False
+    Duplicates' (CompPos p e) = Or (In p e) (Duplicates' (DestrPos e))
+
+type family Duplicates (e :: Emb) where
+    Duplicates (Found p) = Duplicates' (DestrPos p)
+
+-- This class is used to produce more informative error messages
+class NoDup (b :: Bool) (f :: * -> *) (g :: * -> *)
+instance NoDup False f g
+
+inj_ :: EmbD e f g -> f a -> g a
+inj_ HereD x = x
+inj_ (GoLeftD e) x = Inl (inj_ e x)
+inj_ (GoRightD e) x = Inr (inj_ e x)
+inj_ (SumD e1 e2) x = case x of
+                        Inl y -> inj_ e1 y
+                        Inr y -> inj_ e2 y
+
+-- | The :<: constraint is a conjunction of two constraints. The first
+-- one is used to construct the evidence that is used to implement the
+-- injection and projection functions. The first constraint alone
+-- would allow instances such as @F :+: F :<: F@ or @F :+: (F :+: G)
+-- :<: F :+: G@ which have multiple occurrences of the same
+-- sub-signature on the left-hand side. Such instances are usually
+-- unintended and yield injection functions that are not
+-- injective. The second constraint excludes such instances.
+type f :<: g = (GetEmbD (GetEmb f g) f g, NoDup (Duplicates (GetEmb f g)) f g)
+
+inj :: forall f g a . (f :<: g) => f a -> g a
+inj = inj_ (getEmbD :: EmbD (GetEmb f g) f g)
+
+type f :=: g = (f :<: g, g :<: f) 
+
+
+proj_ :: EmbD e f g -> g a -> Maybe (f a)
+proj_ HereD x = Just x
+proj_ (GoLeftD p) x = case x of 
+                        Inl y -> proj_ p y
+                        _ -> Nothing
+proj_ (GoRightD p) x = case x of 
+                          Inr x -> proj_ p x
+                          _ -> Nothing
+proj_ (SumD p1 p2) x = case proj_ p1 x of
+                         Just y -> Just (Inl y)
+                         _ -> case proj_ p2 x of
+                                Just y -> Just (Inr y)
+                                _ -> Nothing
+
+
+proj :: forall f g a . (f :<: g) => g a -> Maybe (f a)
+proj = proj_ (getEmbD :: EmbD (GetEmb f g) f g)
+
+spl :: (f :<: f1 :+: f2) => (f1 a -> b) -> (f2 a -> b) -> f a -> b
+spl f1 f2 x = case inj x of 
+            Inl y -> f1 y
+            Inr y -> f2 y
+
+
 
 -- Products
 

@@ -1,4 +1,4 @@
-{-# LANGUAGE GADTs, ScopedTypeVariables, TypeOperators #-}
+{-# LANGUAGE GADTs, ScopedTypeVariables, TypeOperators, ConstraintKinds, FlexibleContexts #-}
 
 --------------------------------------------------------------------------------
 -- |

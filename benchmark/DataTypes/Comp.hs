@@ -7,7 +7,8 @@
   TypeOperators,
   ScopedTypeVariables,
   TypeSynonymInstances,
-  DeriveFunctor#-}
+  DeriveFunctor,
+  ConstraintKinds #-}
 
 module DataTypes.Comp 
     ( module DataTypes.Comp,

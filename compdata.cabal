@@ -1,5 +1,5 @@
 Name:			compdata
-Version:		0.7.0.1
+Version:		0.8
 Synopsis:            	Compositional Data Types
 Description:
 
@@ -69,18 +69,6 @@ Description:
      to families of mutually recursive data types and (more generally) GADTs.
      This extension resides in the module "Data.Comp.Multi".
   .
-  * /Parametric compositional data types/ (Workshop on Mathematically
-     Structured Functional Programming, 3-24, 2012,
-     <http://dx.doi.org/10.4204/EPTCS.76.3>). All of the above is also
-     lifted to parametric data types, which enables support for
-     parametric higher-order abstract syntax (PHOAS). This extension
-     resides in the module "Data.Comp.Param".
-  .
-  *  /Generalised parametric compositional data types/. All of the above is also
-     lifted to generalised parametric data types, which enables support for
-     typed parametric higher-order abstract syntax (PHOAS). This extension
-     resides in the module "Data.Comp.MultiParam".
-  .
   * Advanced recursion schemes derived from tree automata. These
     recursion schemes allow for a higher degree of modularity and make
     it possible to apply fusion. See /Modular Tree Automata/
@@ -90,8 +78,8 @@ Description:
     2013, <http://dx.doi.org/10.1145/2502488.2502489>).
   .
 
-  Examples of using (generalised) (parametric) compositional data types are
-  bundled with the package in the libray @examples@.
+  Examples of using (generalised) compositional data types are bundled
+  with the package in the folder @examples@.
 
 Category:            	Generics
 License:		BSD3
@@ -103,179 +91,97 @@ Cabal-Version:          >=1.9.2
 
 extra-source-files:
   -- test files
-  testsuite/tests/Data_Test.hs,
-  testsuite/tests/Data/Comp_Test.hs,
-  testsuite/tests/Data/Comp/Equality_Test.hs,
-  testsuite/tests/Data/Comp/Variables_Test.hs,
-  testsuite/tests/Data/Comp/Multi_Test.hs,
-  testsuite/tests/Data/Comp/Multi/Variables_Test.hs,
-  testsuite/tests/Data/Comp/Examples_Test.hs,
-  testsuite/tests/Data/Comp/Examples/Comp.hs,
-  testsuite/tests/Data/Comp/Examples/Multi.hs,
-  testsuite/tests/Data/Comp/Examples/Param.hs,
-  testsuite/tests/Data/Comp/Examples/MultiParam.hs,
+  testsuite/tests/*.hs
+  testsuite/tests/Data/*.hs
+  testsuite/tests/Data/Comp/*.hs
+  testsuite/tests/Data/Comp/Multi/*.hs
+  testsuite/tests/Data/Comp/Examples/*.hs
   testsuite/tests/Test/Utils.hs
   -- benchmark files
-  benchmark/Test.hs
-  benchmark/Benchmark.hs
-  benchmark/DataTypes.hs
-  benchmark/Functions.hs
-  benchmark/DataTypes/Comp.hs
-  benchmark/DataTypes/Transform.hs
-  benchmark/DataTypes/Standard.hs
-  benchmark/Multi/DataTypes/Comp.hs
-  benchmark/Multi/Functions/Comp/Eval.hs
-  benchmark/Multi/Functions/Comp/Desugar.hs
-  benchmark/Transformations.hs
-  benchmark/Functions/Comp.hs
-  benchmark/Functions/Comp/Eval.hs
-  benchmark/Functions/Comp/Desugar.hs
-  benchmark/Functions/Comp/FreeVars.hs
-  benchmark/Functions/Comp/Inference.hs
-  benchmark/Functions/Standard/Eval.hs
-  benchmark/Functions/Standard/Desugar.hs
-  benchmark/Functions/Standard/FreeVars.hs
-  benchmark/Functions/Standard/Inference.hs
-  benchmark/Functions/Standard.hs
+  benchmark/*.hs
+  benchmark/DataTypes/*.hs
+  benchmark/Functions/*.hs
+  benchmark/Functions/Comp/*.hs
+  benchmark/Functions/Standard/*.hs
+  benchmark/Multi/DataTypes/*.hs
+  benchmark/Multi/Functions/Comp/*.hs
   -- example files
-  examples/Examples/Common.hs
-  examples/Examples/Eval.hs
-  examples/Examples/EvalM.hs
-  examples/Examples/Desugar.hs
-  examples/Examples/Automata/Compiler.hs,
-  examples/Examples/Multi/Common.hs
-  examples/Examples/Multi/Eval.hs
-  examples/Examples/Multi/EvalI.hs
-  examples/Examples/Multi/EvalM.hs
-  examples/Examples/Multi/Desugar.hs
-  examples/Examples/Param/Lambda.hs
-  examples/Examples/Param/Names.hs
-  examples/Examples/Param/Graph.hs
-  examples/Examples/MultiParam/Lambda.hs
-  examples/Examples/MultiParam/FOL.hs
+  examples/Examples/*.hs
+  examples/Examples/Automata/*.hs
+  examples/Examples/Multi/*.hs
 
 library
-  Exposed-Modules:      Data.Comp,
-                        Data.Comp.Annotation,
-                        Data.Comp.Sum,
-                        Data.Comp.Term,
-                        Data.Comp.Algebra,
-                        Data.Comp.Equality,
-                        Data.Comp.Ordering,
-                        Data.Comp.DeepSeq,
+  Exposed-Modules:      Data.Comp
+                        Data.Comp.Annotation
+                        Data.Comp.Sum
+                        Data.Comp.Term
+                        Data.Comp.Algebra
+                        Data.Comp.Equality
+                        Data.Comp.Ordering
+                        Data.Comp.DeepSeq
                         Data.Comp.Generic
-                        Data.Comp.TermRewriting,
-                        Data.Comp.Arbitrary,
-                        Data.Comp.Show,
-                        Data.Comp.Render,
-                        Data.Comp.Variables,
-                        Data.Comp.Decompose,
-                        Data.Comp.Unification,
-                        Data.Comp.Derive,
-                        Data.Comp.Matching,
-                        Data.Comp.Desugar,
-                        Data.Comp.Automata,
-                        Data.Comp.MacroAutomata,
-                        Data.Comp.Automata.Product,
-                        Data.Comp.Number,
-                        Data.Comp.Thunk,
-                        Data.Comp.Ops,
+                        Data.Comp.TermRewriting
+                        Data.Comp.Arbitrary
+                        Data.Comp.Show
+                        Data.Comp.Render
+                        Data.Comp.Variables
+                        Data.Comp.Decompose
+                        Data.Comp.Unification
+                        Data.Comp.Derive
+                        Data.Comp.Derive.Utils
+                        Data.Comp.Matching
+                        Data.Comp.Desugar
+                        Data.Comp.Automata
+                        Data.Comp.MacroAutomata
+                        Data.Comp.Automata.Product
+                        Data.Comp.Number
+                        Data.Comp.Thunk
+                        Data.Comp.Ops
 
-                        Data.Comp.Multi,
-                        Data.Comp.Multi.Term,
-                        Data.Comp.Multi.Sum,
-                        Data.Comp.Multi.HFunctor,
-                        Data.Comp.Multi.HFoldable,
-                        Data.Comp.Multi.HTraversable,
-                        Data.Comp.Multi.Algebra,
-                        Data.Comp.Multi.Annotation,
-                        Data.Comp.Multi.Show,
-                        Data.Comp.Multi.Equality,
-                        Data.Comp.Multi.Ordering,
-                        Data.Comp.Multi.Variables,
-                        Data.Comp.Multi.Ops,
-                        Data.Comp.Multi.Number,
+                        Data.Comp.Multi
+                        Data.Comp.Multi.Term
+                        Data.Comp.Multi.Sum
+                        Data.Comp.Multi.HFunctor
+                        Data.Comp.Multi.HFoldable
+                        Data.Comp.Multi.HTraversable
+                        Data.Comp.Multi.Algebra
+                        Data.Comp.Multi.Annotation
+                        Data.Comp.Multi.Show
+                        Data.Comp.Multi.Equality
+                        Data.Comp.Multi.Ordering
+                        Data.Comp.Multi.Variables
+                        Data.Comp.Multi.Ops
+                        Data.Comp.Multi.Number
                         Data.Comp.Multi.Derive
-                        Data.Comp.Multi.Generic,
-                        Data.Comp.Multi.Desugar,
+                        Data.Comp.Multi.Generic
+                        Data.Comp.Multi.Desugar
 
-                        Data.Comp.Param,
-                        Data.Comp.Param.Term,
-                        Data.Comp.Param.FreshM,
-                        Data.Comp.Param.Sum,
-                        Data.Comp.Param.Difunctor,
-                        Data.Comp.Param.Ditraversable,
-                        Data.Comp.Param.Algebra,
-                        Data.Comp.Param.Annotation,
-                        Data.Comp.Param.Ops
-                        Data.Comp.Param.Equality
-                        Data.Comp.Param.Ordering
-                        Data.Comp.Param.Show
-                        Data.Comp.Param.Derive,
-                        Data.Comp.Param.Desugar
-                        Data.Comp.Param.Thunk
+  Other-Modules:        Data.Comp.Derive.Equality
+                        Data.Comp.Derive.Ordering
+                        Data.Comp.Derive.Arbitrary
+                        Data.Comp.Derive.Show
+                        Data.Comp.Derive.DeepSeq
+                        Data.Comp.Derive.SmartConstructors
+                        Data.Comp.Derive.SmartAConstructors
+                        Data.Comp.Derive.Foldable
+                        Data.Comp.Derive.Traversable
+                        Data.Comp.Derive.Projections
+                        Data.Comp.Derive.HaskellStrict
+                        Data.Comp.Automata.Product.Derive
 
-                        Data.Comp.MultiParam,
-                        Data.Comp.MultiParam.Term,
-                        Data.Comp.MultiParam.FreshM,
-                        Data.Comp.MultiParam.Sum,
-                        Data.Comp.MultiParam.HDifunctor,
-                        Data.Comp.MultiParam.HDitraversable,
-                        Data.Comp.MultiParam.Algebra,
-                        Data.Comp.MultiParam.Annotation,
-                        Data.Comp.MultiParam.Ops
-                        Data.Comp.MultiParam.Equality
-                        Data.Comp.MultiParam.Ordering
-                        Data.Comp.MultiParam.Show
-                        Data.Comp.MultiParam.Derive,
-                        Data.Comp.MultiParam.Desugar
-
-  Other-Modules:        Data.Comp.Derive.Utils,
-                        Data.Comp.Derive.Equality,
-                        Data.Comp.Derive.Ordering,
-                        Data.Comp.Derive.Arbitrary,
-                        Data.Comp.Derive.Show,
-                        Data.Comp.Derive.DeepSeq,
-                        Data.Comp.Derive.SmartConstructors,
-                        Data.Comp.Derive.SmartAConstructors,
-                        Data.Comp.Derive.Foldable,
-                        Data.Comp.Derive.Traversable,
-                        Data.Comp.Derive.Injections,
-                        Data.Comp.Derive.Projections,
-                        Data.Comp.Derive.HaskellStrict,
-                        Data.Comp.Automata.Product.Derive,
-
-                        Data.Comp.Multi.Derive.HFunctor,
-                        Data.Comp.Multi.Derive.HFoldable,
-                        Data.Comp.Multi.Derive.HTraversable,
-                        Data.Comp.Multi.Derive.Equality,
-                        Data.Comp.Multi.Derive.Ordering,
-                        Data.Comp.Multi.Derive.Show,
+                        Data.Comp.Multi.Derive.HFunctor
+                        Data.Comp.Multi.Derive.HFoldable
+                        Data.Comp.Multi.Derive.HTraversable
+                        Data.Comp.Multi.Derive.Equality
+                        Data.Comp.Multi.Derive.Ordering
+                        Data.Comp.Multi.Derive.Show
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Multi.Derive.SmartAConstructors
-                        Data.Comp.Multi.Derive.Injections,
-                        Data.Comp.Multi.Derive.Projections,
+                        Data.Comp.Multi.Derive.Injections
+                        Data.Comp.Multi.Derive.Projections
 
-                        Data.Comp.Param.Derive.Difunctor,
-                        Data.Comp.Param.Derive.Ditraversable,
-                        Data.Comp.Param.Derive.Equality,
-                        Data.Comp.Param.Derive.Ordering,
-                        Data.Comp.Param.Derive.Show,
-                        Data.Comp.Param.Derive.SmartConstructors,
-                        Data.Comp.Param.Derive.SmartAConstructors,
-                        Data.Comp.Param.Derive.Injections,
-                        Data.Comp.Param.Derive.Projections,
-
-                        Data.Comp.MultiParam.Derive.HDifunctor,
-                        Data.Comp.MultiParam.Derive.Equality,
-                        Data.Comp.MultiParam.Derive.Ordering,
-                        Data.Comp.MultiParam.Derive.Show,
-                        Data.Comp.MultiParam.Derive.SmartConstructors,
-                        Data.Comp.MultiParam.Derive.SmartAConstructors,
-                        Data.Comp.MultiParam.Derive.Injections,
-                        Data.Comp.MultiParam.Derive.Projections
-
-  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, th-expand-syns, transformers, tree-view
+  Build-Depends:	base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive,
+                        deepseq, th-expand-syns, transformers, tree-view
   hs-source-dirs:	src
   ghc-options:          -W
 
@@ -283,8 +189,10 @@ library
 Test-Suite test
   Type:                 exitcode-stdio-1.0
   Main-is:		Data_Test.hs
-  hs-source-dirs:	src testsuite/tests examples
-  Build-Depends:        base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2, derive, th-expand-syns, deepseq, transformers
+  hs-source-dirs:	testsuite/tests examples
+  Build-Depends:        compdata, base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, 
+                        HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2, derive,
+                        th-expand-syns, deepseq, transformers
 
 Benchmark algebra
   Type:                 exitcode-stdio-1.0
@@ -302,7 +210,8 @@ Benchmark macro
   ghc-options:          -W -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
-  Build-Depends:        base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
+  Build-Depends:        base == 4.*, template-haskell, containers, mtl, QuickCheck >= 2, derive, 
+                        deepseq, criterion, random, uniplate, th-expand-syns, transformers
 
 
 source-repository head

@@ -66,7 +66,7 @@ module Data.Comp.Automata
     , upState
     , runDUpState
     , prodDUpState
-    , (<*>)
+    , (|*|)
     -- * Deterministic Top-Down Tree Transducers
     , DownTrans
     , DownTrans'
@@ -315,9 +315,9 @@ prodDUpState :: (p :< c, q :< c)
              => DUpState f c p -> DUpState f c q -> DUpState f c (p,q)
 prodDUpState sp sq t = (sp t, sq t)
 
-(<*>) :: (p :< c, q :< c)
+(|*|) :: (p :< c, q :< c)
              => DUpState f c p -> DUpState f c q -> DUpState f c (p,q)
-(<*>) = prodDUpState
+(|*|) = prodDUpState
 
 
 

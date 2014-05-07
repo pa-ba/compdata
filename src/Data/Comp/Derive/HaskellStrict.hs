@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TypeOperators, CPP #-}
+{-# LANGUAGE TemplateHaskell, TypeOperators, CPP, FlexibleContexts, ConstraintKinds #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.HaskellStrict
@@ -24,6 +24,7 @@ import Language.Haskell.TH
 import Data.Maybe
 import Data.Comp.Thunk
 import Data.Comp.Sum
+import Data.Comp.Ops
 import Data.Traversable
 import Data.Foldable hiding (any,or)
 import Control.Monad hiding (mapM, sequence)
@@ -34,7 +35,7 @@ import Prelude hiding  (foldl, foldr,mapM, sequence)
 class HaskellStrict f where
     thunkSequence :: (Monad m) => f (TermT m g) -> m (f (TermT m g))
     thunkSequenceInject :: (Monad m, f :<: g) => f (TermT m g) -> TermT m g
-    thunkSequenceInject t = thunk $ liftM inject $ thunkSequence t
+    thunkSequenceInject t = thunk $ liftM (inject_ (Inr . inj)) $ thunkSequence t
     thunkSequenceInject' :: (Monad m, f :<: g) => f (TermT m g) -> TermT m g
     thunkSequenceInject' = thunkSequenceInject
 
