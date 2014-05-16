@@ -166,7 +166,6 @@ library
                         Data.Comp.Derive.SmartAConstructors
                         Data.Comp.Derive.Foldable
                         Data.Comp.Derive.Traversable
-                        Data.Comp.Derive.Projections
                         Data.Comp.Derive.HaskellStrict
                         Data.Comp.Automata.Product.Derive
 
@@ -178,8 +177,6 @@ library
                         Data.Comp.Multi.Derive.Show
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Multi.Derive.SmartAConstructors
-                        Data.Comp.Multi.Derive.Injections
-                        Data.Comp.Multi.Derive.Projections
 
   Build-Depends:	base >= 4.7, base < 5, template-haskell, containers, mtl, QuickCheck >= 2, derive,
                         deepseq, th-expand-syns, transformers, tree-view

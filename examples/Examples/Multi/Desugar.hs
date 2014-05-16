@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs,
-  IncoherentInstances #-}
+  ConstraintKinds #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Multi.Desugar

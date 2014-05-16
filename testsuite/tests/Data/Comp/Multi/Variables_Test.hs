@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeSynonymInstances, FlexibleInstances,
 MultiParamTypeClasses, TypeOperators, FlexibleContexts , RankNTypes,
-GADTs, ScopedTypeVariables, EmptyDataDecls#-}
+GADTs, ScopedTypeVariables, EmptyDataDecls, ConstraintKinds #-}
 
 module Data.Comp.Multi.Variables_Test where
 

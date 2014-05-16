@@ -1,4 +1,5 @@
-{-# LANGUAGE GADTs, ExistentialQuantification, TypeOperators, ScopedTypeVariables, Rank2Types #-}
+{-# LANGUAGE GADTs, ExistentialQuantification, TypeOperators, ScopedTypeVariables, 
+  Rank2Types, ConstraintKinds, FlexibleContexts #-}
 
 --------------------------------------------------------------------------------
 -- |

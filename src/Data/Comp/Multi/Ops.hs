@@ -1,8 +1,8 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, IncoherentInstances,
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses, OverlappingInstances,
              FlexibleInstances, FlexibleContexts, GADTs, TypeSynonymInstances,
-             ScopedTypeVariables, FunctionalDependencies, UndecidableInstances, KindSignatures, RankNTypes{-|
-  
--} #-}
+             ScopedTypeVariables, FunctionalDependencies, UndecidableInstances, 
+             KindSignatures, RankNTypes, TypeFamilies, DataKinds, ConstraintKinds,
+             PolyKinds #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -28,7 +28,7 @@ import Control.Monad
 import Control.Applicative
 
 
-infixr 5 :+:
+infixr 6 :+:
 
 
 -- |Data type defining coproducts.
@@ -67,24 +67,131 @@ instance (HTraversable f, HTraversable g) => HTraversable (f :+: g) where
     hmapM f (Inl e) = Inl `liftM` hmapM f e
     hmapM f (Inr e) = Inr `liftM` hmapM f e
 
--- |The subsumption relation.
-class (sub :: (* -> *) -> * -> *) :<: sup where
-    inj :: sub a :-> sup a
-    proj :: NatM Maybe (sup a) (sub a)
+-- The subsumption relation.
 
-instance (:<:) f f where
-    inj = id
-    proj = Just
+infixl 5 :<:
+infixl 5 :=:
 
-instance (:<:) f (f :+: g) where
-    inj = Inl
-    proj (Inl x) = Just x
-    proj (Inr _) = Nothing
+data Pos = Here | Le Pos | Ri Pos | Sum Pos Pos
+data Emb = Found Pos | NotFound | Ambiguous
 
-instance (f :<: g) => (:<:) f (h :+: g) where
-    inj = Inr . inj
-    proj (Inr x) = proj x
-    proj (Inl _) = Nothing
+
+type family Elem (f :: (* -> *) -> * -> *)
+                 (g :: (* -> *) -> * -> *) :: Emb where
+    Elem f f = Found Here
+    Elem f (g1 :+: g2) = Choose f (g1 :+: g2) (Elem f g1) (Elem f g2)
+    Elem f g = NotFound
+
+
+type family Choose f g (e1 :: Emb) (r :: Emb) :: Emb where
+    Choose f g (Found x) (Found y) = Ambiguous
+    Choose f g Ambiguous y = Ambiguous
+    Choose f g x Ambiguous = Ambiguous
+    Choose f g (Found x) y = Found (Le x)
+    Choose f g x (Found y) = Found (Ri y)
+    Choose (f1 :+: f2) g x y =  Sum' (Elem f1 g) (Elem f2 g) 
+    Choose f g x y = NotFound
+
+
+type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
+    Sum' (Found x) (Found y) = Found (Sum x y)
+    Sum' Ambiguous y = Ambiguous
+    Sum' x Ambiguous = Ambiguous
+    Sum' NotFound y = NotFound
+    Sum' x NotFound = NotFound
+
+data Proxy a = P
+
+class Subsume (e :: Emb) (f :: (* -> *) -> * -> *)
+                         (g :: (* -> *) -> * -> *) where
+  inj'  :: Proxy e -> f a :-> g a
+  prj'  :: Proxy e -> NatM Maybe (g a) (f a)
+
+instance Subsume (Found Here) f f where
+    inj' _ = id
+
+    prj' _ = Just
+
+instance Subsume (Found p) f g => Subsume (Found (Le p)) f (g :+: g') where
+    inj' _ = Inl . inj' (P :: Proxy (Found p))
+    
+    prj' _ (Inl x) = prj' (P :: Proxy (Found p)) x
+    prj' _ _       = Nothing
+
+instance Subsume (Found p) f g => Subsume (Found (Ri p)) f (g' :+: g) where
+    inj' _ = Inr . inj' (P :: Proxy (Found p))
+
+    prj' _ (Inr x) = prj' (P :: Proxy (Found p)) x
+    prj' _ _       = Nothing
+              
+instance (Subsume (Found p1) f1 g, Subsume (Found p2) f2 g) 
+    => Subsume (Found (Sum p1 p2)) (f1 :+: f2) g where
+    inj' _ (Inl x) = inj' (P :: Proxy (Found p1)) x
+    inj' _ (Inr x) = inj' (P :: Proxy (Found p2)) x
+
+    prj' _ x = case prj' (P :: Proxy (Found p1)) x of
+                 Just y -> Just (Inl y)
+                 _      -> case prj' (P :: Proxy (Found p2)) x of
+                             Just y -> Just (Inr y)
+                             _      -> Nothing
+
+
+type family Or (a :: Bool) (b :: Bool) :: Bool where
+    Or  False  False  = False
+    Or  a      b      = True
+
+
+type family AnyDupl f g where
+    AnyDupl f f = False -- ignore check for duplication if subsumption is reflexive
+    AnyDupl f g = Or (Dupl f '[]) (Dupl g '[])
+
+type family Dupl (f :: (* -> *) -> * -> *) (l :: [(* -> *) -> * -> *]) :: Bool where
+    Dupl (f :+: g) l = Dupl f (g ': l)
+    Dupl f l         = Or (Find f l) (Dupl' l)
+
+type family Dupl' (l :: [(* -> *) -> * -> *]) :: Bool where
+    Dupl' (f ': l) = Or (Dupl f l) (Dupl' l)
+    Dupl' '[]      = False
+
+type family Find (f :: (* -> *) -> * -> *) (l :: [(* -> *) -> * -> *]) :: Bool where
+    Find f (g ': l) = Or (Find' f g) (Find f l)
+    Find f '[]       = False
+
+type family Find' (f :: (* -> *) -> * -> *) (g :: (* -> *) -> * -> *) :: Bool where
+    Find' f (g1 :+: g2) = Or (Find' f g1) (Find' f g2)
+    Find' f f = True
+    Find' f g = False
+
+
+class NoDupl f g s
+instance NoDupl f g False
+
+-- | The :<: constraint is a conjunction of two constraints. The first
+-- one is used to construct the evidence that is used to implement the
+-- injection and projection functions. The first constraint alone
+-- would allow instances such as @F :+: F :<: F@ or @F :+: (F :+: G)
+-- :<: F :+: G@ which have multiple occurrences of the same
+-- sub-signature on the left-hand side. Such instances are usually
+-- unintended and yield injection functions that are not
+-- injective. The second constraint excludes such instances.
+type f :<: g = (Subsume (Elem f g) f g , 
+                NoDupl f g (AnyDupl f g))
+
+
+inj :: forall f g a . (f :<: g) => f a :-> g a
+inj = inj' (P :: Proxy (Elem f g))
+
+proj :: forall f g a . (f :<: g) => NatM Maybe (g a) (f a)
+proj = prj' (P :: Proxy (Elem f g))
+
+type f :=: g = (f :<: g, g :<: f) 
+
+
+
+spl :: (f :=: f1 :+: f2) => (f1 a :-> b) -> (f2 a :-> b) -> f a :-> b
+spl f1 f2 x = case inj x of 
+            Inl y -> f1 y
+            Inr y -> f2 y
 
 -- Products
 

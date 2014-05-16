@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs,
-  OverlappingInstances #-}
+  OverlappingInstances, ConstraintKinds #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Multi.EvalM

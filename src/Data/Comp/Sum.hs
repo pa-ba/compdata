@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, IncoherentInstances,
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses, OverlappingInstances,
   FlexibleInstances, FlexibleContexts, GADTs, TypeSynonymInstances,
   ScopedTypeVariables, TemplateHaskell, ConstraintKinds, Rank2Types #-}
 --------------------------------------------------------------------------------
@@ -20,6 +20,7 @@ module Data.Comp.Sum
      (:=:),
      (:+:),
      caseF,
+     Proxy (..),
 
      -- * Projections for Signatures and Terms
      proj,
@@ -51,7 +52,6 @@ import Data.Comp.Algebra
 import Data.Comp.Ops
 
 import Control.Monad hiding (mapM,sequence)
-import Control.Applicative (Applicative (..))
 import Prelude hiding (mapM,sequence)
 
 import Data.Maybe
@@ -113,7 +113,7 @@ deepInject_ :: (Functor g) => SigFun g f -> CxtFun g f
 deepInject_ f = appSigFun f
 
 
-split :: (f :<: f1 :+: f2) => (f1 (Term f) -> a) -> (f2 (Term f) -> a) -> Term f -> a
+split :: (f :=: f1 :+: f2) => (f1 (Term f) -> a) -> (f2 (Term f) -> a) -> Term f -> a
 split f1 f2 (Term t) = spl f1 f2 t
 
 injectConst :: (Functor g, g :<: f) => Const g -> Cxt h f a
