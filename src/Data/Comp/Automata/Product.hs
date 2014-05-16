@@ -1,8 +1,10 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances, IncoherentInstances, TemplateHaskell #-}
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances,
+IncoherentInstances, TemplateHaskell, ScopedTypeVariables, DataKinds, TypeFamilies,
+UndecidableInstances, GADTs, ConstraintKinds, FlexibleContexts, PolyKinds #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata.Product
--- Copyright   :  (c) 2011 Patrick Bahr
+-- Copyright   :  (c) 2014 Patrick Bahr
 -- License     :  BSD3
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  experimental
@@ -11,19 +13,43 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Automata.Product ((:<)(..)) where
-
-import Data.Comp.Automata.Product.Derive
+module Data.Comp.Automata.Product ((:<), pr) where
 
 
-instance a :< a where
-    pr = id
+
+data Pos = Here | Le Pos | Ri Pos
+
+data Res = NotFound | Ambiguous | Found Pos
+
+type family Ch (l :: Res) (r :: Res) :: Res where
+    Ch (Found x) (Found y) = Ambiguous
+    Ch Ambiguous y = Ambiguous
+    Ch x Ambiguous = Ambiguous
+    Ch (Found x) y = Found (Le x)
+    Ch x (Found y) = Found (Ri y)
+    Ch x y = NotFound
+
+type family Elem (e :: *) (p :: *) :: Res where
+    Elem e e = Found Here
+    Elem e (l,r) = Ch (Elem e l) (Elem e r)
+    Elem e p = NotFound
+
+data Proxy a = P
+
+class IsElem (res :: Res) e p where
+    pr' :: Proxy res -> p -> e
+
+instance IsElem (Found Here) e e where
+    pr' _ = id
+
+instance IsElem (Found pos) e p => IsElem (Found (Le pos)) e (p, p') where
+    pr' _ (x,_) = pr' (P :: Proxy (Found pos)) x
+
+instance IsElem (Found pos) e p => IsElem (Found (Ri pos)) e (p', p) where
+    pr' _ (_,y) = pr' (P :: Proxy (Found pos)) y
 
 
-instance (a,b) :< (a,b) where
-    pr = id
+type (e :< p) = IsElem (Elem e p) e p
 
-$(genAllInsts 7)
-
-instance (c :< b) => c :< (a,b) where
-    pr = pr . snd
+pr :: forall e p . (e :< p) => p -> e
+pr = pr' (P :: Proxy (Elem e p))

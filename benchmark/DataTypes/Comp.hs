@@ -20,9 +20,8 @@ import Data.Comp.Derive
 import Data.Comp
 import Data.Comp.Ops
 import Data.Comp.Arbitrary ()
-import Data.Comp.Show
+import Data.Comp.Show ()
 import Data.Traversable
-import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
 import Test.QuickCheck.Property
 

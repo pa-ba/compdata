@@ -1,7 +1,7 @@
 {-# LANGUAGE TemplateHaskell, FlexibleContexts, MultiParamTypeClasses,
 TypeOperators, FlexibleInstances, UndecidableInstances,
 ScopedTypeVariables, TypeSynonymInstances, GeneralizedNewtypeDeriving,
-OverlappingInstances #-}
+OverlappingInstances, ConstraintKinds #-}
 
 module Examples.Automata.Compiler where
 

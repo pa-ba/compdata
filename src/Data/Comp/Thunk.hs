@@ -18,7 +18,6 @@ module Data.Comp.Thunk
     (TermT
     ,CxtT
     ,thunk
-    ,injectT
     ,whnf
     ,whnf'
     ,whnfPr
@@ -63,10 +62,6 @@ type CxtT  m h f a = Cxt h  (m :+: f) a
 -- | This function turns a monadic computation into a thunk.
 thunk :: m (CxtT m h f a) -> CxtT m h f a
 thunk = inject_ Inl
-
--- | Variant of 'inject' for the typex 'CxtT' and 'TermT'.
-injectT :: (g :<: f) => g (CxtT m h f a) -> CxtT m h f a
-injectT = inject_ (Inr . inj)
 
 -- | This function evaluates all thunks until a non-thunk node is
 -- found.

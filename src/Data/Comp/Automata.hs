@@ -291,7 +291,8 @@ runUpHomSt alg h = runUpTransSt (upTrans alg h)
 -- deterministic bottom-up tree acceptors (GUTAs) which have access
 -- to an extended state space.
 
-type DUpState f p q = forall a . (?below :: a -> p, ?above :: p, q :< p) => f a -> q
+type DUpState f p q = (q :< p) => DUpState' f p q
+type DUpState' f p q = forall a . (?below :: a -> p, ?above :: p) => f a -> q
 
 -- | This combinator turns an arbitrary UTA into a GUTA.
 
@@ -451,7 +452,9 @@ runDownHom st h = runDownTrans (downTrans st h)
 -- deterministic top-down tree acceptors (GDTAs) which have access
 
 -- to an extended state space.
-type DDownState f p q = forall i . (Ord i, ?below :: i -> p, ?above :: p, q :< p)
+type DDownState f p q = (q :< p) => DDownState' f p q
+
+type DDownState' f p q = forall i . (Ord i, ?below :: i -> p, ?above :: p)
                                 => f i -> Map i q
 
 -- | This combinator turns an arbitrary DTA into a GDTA.
@@ -486,7 +489,7 @@ prodDDownState sp sq t = prodMap above above (sp t) (sq t)
 -- transformations. Both state transformations can depend mutually
 -- recursive on each other.
 
-runDState :: Traversable f => DUpState f (u,d) u -> DDownState f (u,d) d -> d -> Term f -> u
+runDState :: Traversable f => DUpState' f (u,d) u -> DDownState' f (u,d) d -> d -> Term f -> u
 runDState up down d (Term t) = u where
         t' = fmap bel $ number t
         bel (Numbered (i,s)) = 
@@ -500,7 +503,7 @@ runDState up down d (Term t) = u where
 -- transformation.
         
 runQHom :: (Traversable f, Functor g) =>
-           DUpState f (u,d) u -> DDownState f (u,d) d -> 
+           DUpState' f (u,d) u -> DDownState' f (u,d) d -> 
            QHom f (u,d) g ->
            d -> Term f -> (u, Term g)
 runQHom up down trans d (Term t) = (u,t'') where

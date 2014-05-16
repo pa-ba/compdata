@@ -14,11 +14,9 @@ module Functions.Comp.Eval where
 import DataTypes.Comp
 import Functions.Comp.Desugar
 import Data.Comp
-import Data.Comp.Ops
 import Data.Comp.Thunk hiding (eval, eval2)
 import Data.Comp.Derive
 import Control.Monad
-import Data.Traversable
 
 -- evaluation with thunks
 
@@ -30,8 +28,8 @@ evalT = nf . cata evalTAlg
 
 $(derive [liftSum] [''EvalT])
 
-instance (Monad m, Traversable v, Value :<: v) => EvalT Value v m where
-    evalTAlg = injectT
+instance (Monad m, Traversable v, Value :<: m :+: v) => EvalT Value v m where
+    evalTAlg = inject
 
 instance (Value :<: (m :+: v), Value :<: v, Traversable v, EqF v, Monad m) => EvalT Op v m where
     evalTAlg (Plus x y) = thunk $ do

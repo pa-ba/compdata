@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances, OverlappingInstances #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances, ConstraintKinds #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Thunk
@@ -21,8 +21,7 @@ import Data.Comp
 import Data.Comp.Thunk
 import Data.Comp.Derive
 import Data.Comp.Show()
-import Control.Monad
-import Examples.Common hiding (Value(..), Sig)
+import Examples.Common hiding (Value(..), Sig, iConst, iPair)
 
 -- Signature for values, strict pairs
 data Value a = Const Int | Pair !a !a
@@ -36,16 +35,16 @@ $(derive [makeFunctor, makeTraversable, makeFoldable,
          [''Value])
 
 -- Monadic term evaluation algebra
-class EvalT f v where
+class EvalT f m v where
   evalAlgT :: Monad m => AlgT m f v
 
 $(derive [liftSum] [''EvalT])
 
 -- Lift the monadic evaluation algebra to a monadic catamorphism
-evalT :: (Traversable v, Functor f, EvalT f v, Monad m) => Term f -> m (Term v)
+evalT :: (Traversable v, Functor f, EvalT f m v, Monad m) => Term f -> m (Term v)
 evalT = nf . cata evalAlgT
 
-instance (Value :<: v) => EvalT Value v where
+instance (Value :<: m :+: v) => EvalT Value m v where
 -- make pairs strict in both components
 --  evalAlgT x@Pair{} = strict x
 -- or explicitly:
@@ -55,7 +54,7 @@ instance (Value :<: v) => EvalT Value v where
 -- or only partially strict
   evalAlgT = haskellStrict'
 
-instance (Value :<: v) => EvalT Op v where
+instance (Value :<: m :+: v, Value :<: v) => EvalT Op m v where
   evalAlgT (Add x y) = thunk $ do
                          Const n1 <- whnfPr x
                          Const n2 <- whnfPr y
