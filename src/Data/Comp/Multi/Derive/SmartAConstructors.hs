@@ -30,13 +30,13 @@ import Control.Monad
   inserted. -}
 smartAConstructors :: Name -> Q [Dec]
 smartAConstructors fname = do
-    TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
+    TyConI (DataD _cxt _tname _targs constrs _deriving) <- abstractNewtypeQ $ reify fname
     let cons = map abstractConType constrs
-    liftM concat $ mapM (genSmartConstr (map tyVarBndrName targs) tname) cons
-        where genSmartConstr targs tname (name, args) = do
+    liftM concat $ mapM genSmartConstr cons
+        where genSmartConstr (name, args) = do
                 let bname = nameBase name
-                genSmartConstr' targs tname (mkName $ "iA" ++ bname) name args
-              genSmartConstr' targs tname sname name args = do
+                genSmartConstr' (mkName $ "iA" ++ bname) name args
+              genSmartConstr' sname name args = do
                 varNs <- newNames args "x"
                 varPr <- newName "_p"
                 let pats = map varP (varPr : varNs)

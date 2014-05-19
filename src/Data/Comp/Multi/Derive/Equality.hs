@@ -38,7 +38,6 @@ makeEqHF fname = do
   return [InstanceD preCond classType [eqFDecl]]
       where eqFClauses ftyp constrs constrs' = map (genEqClause ftyp) constrs'
                                    ++ defEqClause constrs
-            filterFarg fArg ty x = (containsType ty fArg, varE x)
             defEqClause constrs
                 | length constrs  < 2 = []
                 | otherwise = [clause [wildP,wildP] (normalB [|False|]) []]

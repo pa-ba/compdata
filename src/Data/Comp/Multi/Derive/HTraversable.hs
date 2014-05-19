@@ -32,10 +32,6 @@ import Prelude hiding  (foldl, foldr,mapM, sequence)
 iter 0 _ e = e
 iter n f e = iter (n-1) f (f `appE` e)
 
-iter' n f e = run n f e
-    where run 0 _ e = e
-          run m f e = let f' = iter (m-1) [|fmap|] f
-                        in run (m-1) f (f' `appE` e)
 
 {-| Derive an instance of 'HTraversable' for a type constructor of any
   higher-order kind taking at least two arguments. -}
