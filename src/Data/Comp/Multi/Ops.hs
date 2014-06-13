@@ -27,6 +27,7 @@ import qualified Data.Comp.Ops as O
 import Control.Monad
 import Control.Applicative
 
+import Data.Comp.SubsumeCommon
 
 infixr 6 :+:
 
@@ -72,25 +73,21 @@ instance (HTraversable f, HTraversable g) => HTraversable (f :+: g) where
 infixl 5 :<:
 infixl 5 :=:
 
-data Pos = Here | Le Pos | Ri Pos | Sum Pos Pos
-data Emb = Found Pos | NotFound | Ambiguous
-
-
 type family Elem (f :: (* -> *) -> * -> *)
                  (g :: (* -> *) -> * -> *) :: Emb where
     Elem f f = Found Here
-    Elem f (g1 :+: g2) = Choose f (g1 :+: g2) (Elem f g1) (Elem f g2)
+    Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g) 
+    Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
 
-type family Choose f g (e1 :: Emb) (r :: Emb) :: Emb where
-    Choose f g (Found x) (Found y) = Ambiguous
-    Choose f g Ambiguous y = Ambiguous
-    Choose f g x Ambiguous = Ambiguous
-    Choose f g (Found x) y = Found (Le x)
-    Choose f g x (Found y) = Found (Ri y)
-    Choose (f1 :+: f2) g x y =  Sum' (Elem f1 g) (Elem f2 g) 
-    Choose f g x y = NotFound
+type family Choose (e1 :: Emb) (r :: Emb) :: Emb where
+    Choose (Found x) (Found y) = Ambiguous
+    Choose Ambiguous y = Ambiguous
+    Choose x Ambiguous = Ambiguous
+    Choose (Found x) y = Found (Le x)
+    Choose x (Found y) = Found (Ri y)
+    Choose x y = NotFound
 
 
 type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
@@ -136,53 +133,17 @@ instance (Subsume (Found p1) f1 g, Subsume (Found p2) f2 g)
                              _      -> Nothing
 
 
-type family Or (a :: Bool) (b :: Bool) :: Bool where
-    Or  False  False  = False
-    Or  a      b      = True
 
-
-type family AnyDupl f g where
-    AnyDupl f f = False -- ignore check for duplication if subsumption is reflexive
-    AnyDupl f g = Or (Dupl f '[]) (Dupl g '[])
-
-type family Dupl (f :: (* -> *) -> * -> *) (l :: [(* -> *) -> * -> *]) :: Bool where
-    Dupl (f :+: g) l = Dupl f (g ': l)
-    Dupl f l         = Or (Find f l) (Dupl' l)
-
-type family Dupl' (l :: [(* -> *) -> * -> *]) :: Bool where
-    Dupl' (f ': l) = Or (Dupl f l) (Dupl' l)
-    Dupl' '[]      = False
-
-type family Find (f :: (* -> *) -> * -> *) (l :: [(* -> *) -> * -> *]) :: Bool where
-    Find f (g ': l) = Or (Find' f g) (Find f l)
-    Find f '[]       = False
-
-type family Find' (f :: (* -> *) -> * -> *) (g :: (* -> *) -> * -> *) :: Bool where
-    Find' f (g1 :+: g2) = Or (Find' f g1) (Find' f g2)
-    Find' f f = True
-    Find' f g = False
-
-
-class NoDupl f g s
-instance NoDupl f g False
-
--- | The :<: constraint is a conjunction of two constraints. The first
--- one is used to construct the evidence that is used to implement the
--- injection and projection functions. The first constraint alone
--- would allow instances such as @F :+: F :<: F@ or @F :+: (F :+: G)
--- :<: F :+: G@ which have multiple occurrences of the same
--- sub-signature on the left-hand side. Such instances are usually
--- unintended and yield injection functions that are not
--- injective. The second constraint excludes such instances.
-type f :<: g = (Subsume (Elem f g) f g , 
-                NoDupl f g (AnyDupl f g))
+-- | A constraint @f :<: g@ expresses that the signature @f@ is
+-- subsumed by @g@, i.e. @f@ can be used to construct elements in @g@.
+type f :<: g = (Subsume (ComprEmb (Elem f g)) f g)
 
 
 inj :: forall f g a . (f :<: g) => f a :-> g a
-inj = inj' (P :: Proxy (Elem f g))
+inj = inj' (P :: Proxy (ComprEmb (Elem f g)))
 
 proj :: forall f g a . (f :<: g) => NatM Maybe (g a) (f a)
-proj = prj' (P :: Proxy (Elem f g))
+proj = prj' (P :: Proxy (ComprEmb (Elem f g)))
 
 type f :=: g = (f :<: g, g :<: f) 
 
