@@ -88,7 +88,7 @@ Author:			Patrick Bahr, Tom Hvitved
 Maintainer:		paba@diku.dk
 Build-Type:		Simple
 Cabal-Version:          >=1.9.2
-bug-reports:            https://bitbucket.org/paba/compdata/issues
+bug-reports:            https://github.com/pa-ba/compdata/issues
 
 extra-source-files:
   -- test files
@@ -213,6 +213,6 @@ Benchmark macro
 
 
 source-repository head
-  type:     hg
-  location: https://bitbucket.org/paba/compdata
+  type:     git
+  location: https://github.com/pa-ba/compdata
 
