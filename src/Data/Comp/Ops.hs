@@ -23,6 +23,8 @@ import Data.Traversable
 
 import Control.Applicative
 import Control.Monad hiding (sequence, mapM)
+import Data.Comp.SubsumeCommon
+
 
 import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
 
@@ -81,9 +83,6 @@ instance (Traversable f, Traversable g) => Traversable (f :+: g) where
 infixl 5 :<:
 infixl 5 :=:
 
-data Pos = Here | Le Pos | Ri Pos | Sum Pos Pos
-data Emb = Found Pos | NotFound | Ambiguous
-
 type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
     Elem f f = Found Here
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g) 
@@ -106,35 +105,6 @@ type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
     Sum' x Ambiguous = Ambiguous
     Sum' NotFound y = NotFound
     Sum' x NotFound = NotFound
-
-
-type family ComprPos (p :: Pos) :: Pos where
-    ComprPos Here = Here
-    ComprPos (Le p) = Le (ComprPos p)
-    ComprPos (Ri p) = Ri (ComprPos p)
-    ComprPos (Sum l r) = CombineMaybe (Sum l r) (Combine (ComprPos l) (ComprPos r))
-
-type family CombineMaybe p p' where
-    CombineMaybe p (Just p') = p'
-    CombineMaybe p p'        = p
-
-type family Combine (l :: Pos) (r :: Pos) :: Maybe Pos where
-    Combine (Le l) (Le r) = Le' (Combine l r)
-    Combine (Ri l) (Ri r) = Ri' (Combine l r)
-    Combine (Le Here) (Ri Here) = Just Here
-    Combine l r = Nothing
-
-type family Ri' p where
-    Ri' Nothing = Nothing
-    Ri' (Just p) = Just (Ri p)
-
-type family Le' p where
-    Le' Nothing = Nothing
-    Le' (Just p) = Just (Le p)
-
-type family ComprEmb (e :: Emb) :: Emb where
-    ComprEmb (Found p) = Found (ComprPos p)
-    ComprEmb e = e
 
 data Proxy a = P
 
@@ -171,14 +141,9 @@ instance (Subsume (Found p1) f1 g, Subsume (Found p2) f2 g)
                              _      -> Nothing
 
 
--- | The :<: constraint is a conjunction of two constraints. The first
--- one is used to construct the evidence that is used to implement the
--- injection and projection functions. The first constraint alone
--- would allow instances such as @F :+: F :<: F@ or @F :+: (F :+: G)
--- :<: F :+: G@ which have multiple occurrences of the same
--- sub-signature on the left-hand side. Such instances are usually
--- unintended and yield injection functions that are not
--- injective. The second constraint excludes such instances.
+
+-- | A constraint @f :<: g@ expresses that the signature @f@ is
+-- subsumed by @g@, i.e. @f@ can be used to construct elements in @g@.
 type f :<: g = (Subsume (ComprEmb (Elem f g)) f g)
 
 inj :: forall f g a . (f :<: g) => f a -> g a

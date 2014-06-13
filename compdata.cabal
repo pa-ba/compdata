@@ -81,12 +81,12 @@ Description:
   Examples of using (generalised) compositional data types are bundled
   with the package in the folder @examples@.
 
-Category:            	Generics
-License:		BSD3
-License-file:		LICENSE
-Author:			Patrick Bahr, Tom Hvitved
-Maintainer:		paba@diku.dk
-Build-Type:		Simple
+Category:               Generics
+License:                BSD3
+License-file:           LICENSE
+Author:                 Patrick Bahr, Tom Hvitved
+Maintainer:             paba@diku.dk
+Build-Type:             Simple
 Cabal-Version:          >=1.9.2
 bug-reports:            https://github.com/pa-ba/compdata/issues
 
@@ -157,7 +157,8 @@ library
                         Data.Comp.Multi.Generic
                         Data.Comp.Multi.Desugar
 
-  Other-Modules:        Data.Comp.Derive.Equality
+  Other-Modules:        Data.Comp.SubsumeCommon
+                        Data.Comp.Derive.Equality
                         Data.Comp.Derive.Ordering
                         Data.Comp.Derive.Arbitrary
                         Data.Comp.Derive.Show
