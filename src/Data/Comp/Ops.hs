@@ -171,35 +171,6 @@ instance (Subsume (Found p1) f1 g, Subsume (Found p2) f2 g)
                              _      -> Nothing
 
 
-type family Or (a :: Bool) (b :: Bool) :: Bool where
-    Or  False  False  = False
-    Or  a      b      = True
-
-type family AnyDupl f g where
-    AnyDupl f f = False -- ignore check for duplication if subsumption is reflexive
-    AnyDupl f g = Or (Dupl f '[]) (Dupl g '[])
-
-type family Dupl (f :: * -> *) (l :: [* -> *]) :: Bool where
-    Dupl (f :+: g) l = Dupl f (g ': l)
-    Dupl f l         = Or (Find f l) (Dupl' l)
-
-type family Dupl' (l :: [* -> *]) :: Bool where
-    Dupl' (f ': l) = Or (Dupl f l) (Dupl' l)
-    Dupl' '[]      = False
-
-type family Find (f :: * -> *) (l :: [* -> *]) :: Bool where
-    Find f (g ': l) = Or (Find' f g) (Find f l)
-    Find f '[]       = False
-
-type family Find' (f :: * -> *) (g :: * -> *) :: Bool where
-    Find' f (g1 :+: g2) = Or (Find' f g1) (Find' f g2)
-    Find' f f = True
-    Find' f g = False
-
-
-class NoDupl f g s
-instance NoDupl f g False
-
 -- | The :<: constraint is a conjunction of two constraints. The first
 -- one is used to construct the evidence that is used to implement the
 -- injection and projection functions. The first constraint alone
@@ -208,8 +179,7 @@ instance NoDupl f g False
 -- sub-signature on the left-hand side. Such instances are usually
 -- unintended and yield injection functions that are not
 -- injective. The second constraint excludes such instances.
-type f :<: g = (Subsume (ComprEmb (Elem f g)) f g, 
-                NoDupl f g (AnyDupl f g))
+type f :<: g = (Subsume (ComprEmb (Elem f g)) f g)
 
 inj :: forall f g a . (f :<: g) => f a -> g a
 inj = inj' (P :: Proxy (ComprEmb (Elem f g)))
