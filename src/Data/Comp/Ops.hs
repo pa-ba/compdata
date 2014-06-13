@@ -84,21 +84,20 @@ infixl 5 :=:
 data Pos = Here | Le Pos | Ri Pos | Sum Pos Pos
 data Emb = Found Pos | NotFound | Ambiguous
 
-
 type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
     Elem f f = Found Here
-    Elem f (g1 :+: g2) = Choose f (g1 :+: g2) (Elem f g1) (Elem f g2)
+    Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g) 
+    Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
 
-type family Choose f g (e1 :: Emb) (r :: Emb) :: Emb where
-    Choose f g (Found x) (Found y) = Ambiguous
-    Choose f g Ambiguous y = Ambiguous
-    Choose f g x Ambiguous = Ambiguous
-    Choose f g (Found x) y = Found (Le x)
-    Choose f g x (Found y) = Found (Ri y)
-    Choose (f1 :+: f2) g x y =  Sum' (Elem f1 g) (Elem f2 g) 
-    Choose f g x y = NotFound
+type family Choose (e1 :: Emb) (r :: Emb) :: Emb where
+    Choose (Found x) (Found y) = Ambiguous
+    Choose Ambiguous y = Ambiguous
+    Choose x Ambiguous = Ambiguous
+    Choose (Found x) y = Found (Le x)
+    Choose x (Found y) = Found (Ri y)
+    Choose x y = NotFound
 
 
 type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
@@ -107,6 +106,35 @@ type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
     Sum' x Ambiguous = Ambiguous
     Sum' NotFound y = NotFound
     Sum' x NotFound = NotFound
+
+
+type family ComprPos (p :: Pos) :: Pos where
+    ComprPos Here = Here
+    ComprPos (Le p) = Le (ComprPos p)
+    ComprPos (Ri p) = Ri (ComprPos p)
+    ComprPos (Sum l r) = CombineMaybe (Sum l r) (Combine (ComprPos l) (ComprPos r))
+
+type family CombineMaybe p p' where
+    CombineMaybe p (Just p') = p'
+    CombineMaybe p p'        = p
+
+type family Combine (l :: Pos) (r :: Pos) :: Maybe Pos where
+    Combine (Le l) (Le r) = Le' (Combine l r)
+    Combine (Ri l) (Ri r) = Ri' (Combine l r)
+    Combine (Le Here) (Ri Here) = Just Here
+    Combine l r = Nothing
+
+type family Ri' p where
+    Ri' Nothing = Nothing
+    Ri' (Just p) = Just (Ri p)
+
+type family Le' p where
+    Le' Nothing = Nothing
+    Le' (Just p) = Just (Le p)
+
+type family ComprEmb (e :: Emb) :: Emb where
+    ComprEmb (Found p) = Found (ComprPos p)
+    ComprEmb e = e
 
 data Proxy a = P
 
@@ -180,14 +208,14 @@ instance NoDupl f g False
 -- sub-signature on the left-hand side. Such instances are usually
 -- unintended and yield injection functions that are not
 -- injective. The second constraint excludes such instances.
-type f :<: g = (Subsume (Elem f g) f g, 
+type f :<: g = (Subsume (ComprEmb (Elem f g)) f g, 
                 NoDupl f g (AnyDupl f g))
 
 inj :: forall f g a . (f :<: g) => f a -> g a
-inj = inj' (P :: Proxy (Elem f g))
+inj = inj' (P :: Proxy (ComprEmb (Elem f g)))
 
 proj :: forall f g a . (f :<: g) => g a -> Maybe (f a)
-proj = prj' (P :: Proxy (Elem f g))
+proj = prj' (P :: Proxy (ComprEmb (Elem f g)))
 
 type f :=: g = (f :<: g, g :<: f) 
 
