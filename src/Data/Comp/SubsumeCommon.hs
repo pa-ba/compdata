@@ -1,4 +1,4 @@
-{-# LANGUAGE DataKinds, TypeFamilies, UndecidableInstances #-}
+{-# LANGUAGE DataKinds, TypeFamilies, UndecidableInstances, TypeOperators #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -44,5 +44,32 @@ type family Le' (p :: Maybe Pos) :: Maybe Pos where
     Le' (Just p) = Just (Le p)
 
 type family ComprEmb (e :: Emb) :: Emb where
-    ComprEmb (Found p) = Found (ComprPos p)
+    ComprEmb (Found p) = Check (Dupl p) (ComprPos p)
     ComprEmb e = e
+
+type family Check b p where
+    Check False p = Found p
+    Check True  p = Ambiguous
+
+
+type family ToList (s :: [Pos]) :: [Pos] where
+    ToList (Sum p1 p2 ': s) = ToList (p1 ': p2 ': s)
+    ToList (p ': s) = p ': ToList s
+    ToList '[] = '[]
+
+
+type Dupl s = Dupl' (ToList '[s])
+
+type family Dupl' (s :: [Pos]) :: Bool where
+    Dupl' (p ': r) = OrDupl' (Find p r) r
+    Dupl' '[] = False
+
+type family Find (p :: Pos) (s :: [Pos]) :: Bool where
+    Find p (p ': r)  = True
+    Find p (p' ': r) = Find p r
+    Find p '[] = False
+
+
+type family OrDupl' (a :: Bool) b :: Bool where
+    OrDupl'  True  c  = True
+    OrDupl'  False c  = Dupl' c
