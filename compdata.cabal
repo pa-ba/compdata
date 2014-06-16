@@ -193,8 +193,8 @@ library
 Test-Suite test
   Type:                 exitcode-stdio-1.0
   Main-is:		Data_Test.hs
-  hs-source-dirs:	testsuite/tests examples
-  Build-Depends:        compdata, base >= 4.7, base < 5, template-haskell, containers, mtl, QuickCheck >= 2, 
+  hs-source-dirs:	testsuite/tests examples src
+  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl, QuickCheck >= 2, 
                         HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2, derive,
                         th-expand-syns, deepseq, transformers
 
