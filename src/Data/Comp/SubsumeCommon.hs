@@ -54,7 +54,16 @@ type family ComprPos (p :: Pos) :: Pos where
     ComprPos Here = Here
     ComprPos (Le p) = Le (ComprPos p)
     ComprPos (Ri p) = Ri (ComprPos p)
-    ComprPos (Sum l r) = CombineMaybe (Sum l r) (Combine (ComprPos l) (ComprPos r))
+    ComprPos (Sum l r) = CombineRec (ComprPos l) (ComprPos r)
+
+
+-- | Helper type family for 'ComprPos'. Note that we could have
+-- defined this as a type synonym. But if we do that, performance
+-- becomes abysmal. I presume that the reason for this huge impact on
+-- performance lies in the fact that right-hand side of the defining
+-- equation duplicates the two arguments @l@ and @r@.
+type family CombineRec l r where
+    CombineRec l r = CombineMaybe (Sum l r) (Combine l r)
 
 -- | Helper type family for 'ComprPos'.
 type family CombineMaybe (p :: Pos) (p' :: Maybe Pos) where
