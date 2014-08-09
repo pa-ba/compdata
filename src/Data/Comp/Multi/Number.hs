@@ -44,7 +44,7 @@ instance KOrd (Numbered a) where
 -- | This function numbers the components of the given functorial
 -- value with consecutive integers starting at 0.
 number :: HTraversable f => f a :-> f (Numbered a)
-number x = fst $ runState (hmapM run x) 0 where
+number x = evalState (hmapM run x) 0 where
   run b = do n <- get
              put (n+1)
              return $ Numbered (n,b)

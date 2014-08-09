@@ -116,7 +116,7 @@ getBoundVars t = let n :: f (Numbered a) i
                      m :: Map (E (Numbered a)) (Set v)
                      m = bindsVars n
                      trans :: Numbered a :-> (a :*: K (Set v))
-                     trans x = unNumbered x :*: (K (Map.findWithDefault Set.empty (E x) m))
+                     trans x = unNumbered x :*: K (Map.findWithDefault Set.empty (E x) m)
                  in hfmap trans n
 
 -- | This combinator combines 'getBoundVars' with the 'mfmap' function.
@@ -163,7 +163,7 @@ containsVarAlg v t = K $ hfoldlBoundVars run local t
     where local = case isVar t of
                     Just v' -> v == v'
                     Nothing -> False
-          run :: Bool -> Set v -> (K Bool i) -> Bool
+          run :: Bool -> Set v -> K Bool i -> Bool
           run acc vars (K b) = acc || (not (v `Set.member` vars) && b)
 
 {-| This function checks whether a variable is contained in a context. -}
@@ -215,7 +215,7 @@ instance (Ord v, HasVars f v, HTraversable f) => SubstVars v (Cxt h f a) (Cxt h 
               Just new -> new
               Nothing  -> Term $ hfmapBoundVars run t
                 where run :: Set v -> Cxt h f a :-> Cxt h f a
-                      run vars s = doSubst (b `Set.union` vars) s
+                      run vars = doSubst (b `Set.union` vars)
 
 instance (SubstVars v t a, HFunctor f) => SubstVars v t (f a) where
     substVars subst = hfmap (substVars subst)
@@ -226,5 +226,4 @@ applying the resulting substitution is equivalent to first applying
 
 compSubst :: (Ord v, HasVars f v, HTraversable f)
           => CxtSubst h a f v -> CxtSubst h a f v -> CxtSubst h a f v
-compSubst s1 s2 = Map.map f s2
-    where f (A t) = A (appSubst s1 t)
+compSubst s1 = Map.map (\ (A t) -> A (appSubst s1 t))

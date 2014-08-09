@@ -354,7 +354,7 @@ runDownTrans tr q t = run t q where
 
 runDownTrans' :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f (q -> a) -> Cxt h g a
 runDownTrans' tr q t = run t q where
-    run (Term t) q = appCxt $ tr q $ fmap run $ t
+    run (Term t) q = appCxt $ tr q $ fmap run t
     run (Hole a) q = Hole (a q)
 
 -- | This function composes two DTTs. (see W.C. Rounds /Mappings and

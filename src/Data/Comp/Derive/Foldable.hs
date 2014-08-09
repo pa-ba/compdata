@@ -31,10 +31,9 @@ import qualified Prelude as P (foldl, foldl1, foldr, foldr1)
 iter 0 _ e = e
 iter n f e = iter (n-1) f (f `appE` e)
 
-iter' n f e = run n f e
-    where run 0 _ e = e
-          run m f e = let f' = iter (m-1) [|fmap|] f
-                        in run (m-1) f (f' `appE` e)
+iter' 0 _ e = e
+iter' m f e = let f' = iter (m-1) [|fmap|] f
+              in iter' (m-1) f (f' `appE` e)
 
 {-| Derive an instance of 'Foldable' for a type constructor of any first-order
   kind taking at least one argument. -}

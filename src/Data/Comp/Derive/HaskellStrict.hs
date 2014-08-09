@@ -95,7 +95,7 @@ makeHaskellStrict fname = do
                        fvars = catMaybes $ filterVars args varNs (curry Just) (const Nothing)
                        allVars = map varE varNs
                        conAp = P.foldl appE (conE constr) allVars
-                       conBind (d, x) y = [| $(deepThunk d `appE` (varE x))  >>= $(lamE [varP x] y)|]
+                       conBind (d, x) y = [| $(deepThunk d `appE` varE x)  >>= $(lamE [varP x] y)|]
                    bodySC' <- P.foldr conBind [|return $conAp|] fvars
                    let sc' = Clause [pat] (NormalB bodySC') []
                    bodyMatch <- case fvars of

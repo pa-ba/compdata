@@ -188,7 +188,7 @@ instance (Ord v, HasVars f v, Traversable f)
           doSubst b (Term t) = case isVar' b t >>= subst of
             Just new -> new
             Nothing  -> Term $ fmapBoundVars run t
-              where run vars s = doSubst (b `Set.union` vars) s
+              where run vars = doSubst (b `Set.union` vars)
 
 instance (SubstVars v t a, Functor f) => SubstVars v t (f a) where
     substVars f = fmap (substVars f)

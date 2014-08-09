@@ -5,7 +5,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types            #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE TypeSynonymInstances  #-}
 --------------------------------------------------------------------------------
@@ -74,7 +73,7 @@ project = project_ proj
 
 -- |Project the outermost layer of a term to a sub signature. If the signature
 -- @g@ is compound of /n/ atomic signatures, use @project@/n/ instead.
-project_ :: (SigFunM Maybe f g) -> Cxt h f a -> Maybe (g (Cxt h f a))
+project_ :: SigFunM Maybe f g -> Cxt h f a -> Maybe (g (Cxt h f a))
 project_ _ (Hole _) = Nothing
 project_ f (Term t) = f t
 
@@ -91,7 +90,7 @@ deepProject = appSigFunM' proj
 -- @deepProject@/n/ instead.
 deepProject_ :: (Traversable g) => (SigFunM Maybe f g) -> CxtFunM Maybe f g
 {-# INLINE deepProject_ #-}
-deepProject_ f = appSigFunM' f
+deepProject_ = appSigFunM'
 
 
 -- |Inject a term where the outermost layer is a sub signature. If the signature
@@ -101,7 +100,7 @@ inject = inject_ inj
 
 -- |Inject a term where the outermost layer is a sub signature. If the signature
 -- @g@ is compound of /n/ atomic signatures, use @inject@/n/ instead.
-inject_ :: (SigFun g f) -> g (Cxt h f a) -> Cxt h f a
+inject_ :: SigFun g f -> g (Cxt h f a) -> Cxt h f a
 inject_ f = Term . f
 
 
@@ -117,7 +116,7 @@ deepInject = deepInject_ inj
 -- instead.
 deepInject_ :: (Functor g) => SigFun g f -> CxtFun g f
 {-# INLINE deepInject_ #-}
-deepInject_ f = appSigFun f
+deepInject_ = appSigFun
 
 
 split :: (f :=: f1 :+: f2) => (f1 (Term f) -> a) -> (f2 (Term f) -> a) -> Term f -> a

@@ -117,7 +117,7 @@ propAnnMacroLA :: (Functor f, Functor q, DistAnn f p f', DistAnn g p g', Functor
                 => MacroTransLA f q p g -> MacroTransLA f' q p g'
 propAnnMacroLA trans q p f' = ann an (trans q p (fmap ann' f))
     where (f,an) = projectA f'
-          ann' (s,p) = (\q' -> s (fmap (ann an) q'), p)
+          ann' (s,p) = (s . fmap (ann an), p)
 
 
 {-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
