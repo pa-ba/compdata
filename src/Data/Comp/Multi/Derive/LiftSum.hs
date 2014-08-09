@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell, TypeOperators #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators   #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Derive.LiftSum
@@ -19,10 +20,10 @@ module Data.Comp.Multi.Derive.LiftSum
      caseH
     ) where
 
-import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
+import Data.Comp.Multi.Ops ((:+:) (..))
 import Data.Comp.Multi.Sum
-import Data.Comp.Multi.Ops ((:+:)(..))
+import Language.Haskell.TH hiding (Cxt)
 
 {-| Given the name of a type class, where the first parameter is a higher-order
   functor, lift it to sums of higher-order. Example: @class HShowF f where ...@

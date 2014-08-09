@@ -20,8 +20,8 @@ module Data.Comp.Derive.Ordering
 import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Utils
 
-import Data.Maybe
 import Data.List
+import Data.Maybe
 import Language.Haskell.TH hiding (Cxt)
 
 {-| Signature ordering. An instance @OrdF f@ gives rise to an instance
@@ -29,7 +29,7 @@ import Language.Haskell.TH hiding (Cxt)
 class EqF f => OrdF f where
     compareF :: Ord a => f a -> f a -> Ordering
 
-    
+
 compList :: [Ordering] -> Ordering
 compList = fromMaybe EQ . find (/= EQ)
 
@@ -45,7 +45,7 @@ makeOrdF fname = do
   eqAlgDecl <- funD 'compareF  (compareFClauses constrs)
   return [InstanceD preCond classType [eqAlgDecl]]
       where compareFClauses [] = []
-            compareFClauses constrs = 
+            compareFClauses constrs =
                 let constrs' = map abstractConType constrs `zip` [1..]
                     constPairs = [(x,y)| x<-constrs', y <- constrs']
                 in map genClause constPairs
@@ -53,7 +53,7 @@ makeOrdF fname = do
                 | n == m = genEqClause c
                 | n < m = genLtClause c d
                 | otherwise = genGtClause c d
-            genEqClause (constr, n) = do 
+            genEqClause (constr, n) = do
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
               let pat = ConP constr $ map VarP varNs

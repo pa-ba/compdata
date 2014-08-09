@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell, TypeOperators #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators   #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Derive.Show
@@ -20,8 +21,8 @@ module Data.Comp.Multi.Derive.Show
     ) where
 
 import Data.Comp.Derive.Utils
-import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Algebra
+import Data.Comp.Multi.HFunctor
 import Language.Haskell.TH
 
 {-| Signature printing. An instance @ShowHF f@ gives rise to an instance
@@ -58,7 +59,7 @@ makeShowHF fname = do
             mkShow (isFArg, var)
                 | isFArg = [|unK $var|]
                 | otherwise = [| show $var |]
-            genShowFClause fArg (constr, args) = do 
+            genShowFClause fArg (constr, args) = do
               let n = length args
               varNs <- newNames n "x"
               let pat = ConP constr $ map VarP varNs

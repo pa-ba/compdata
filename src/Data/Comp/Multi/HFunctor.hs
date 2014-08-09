@@ -1,4 +1,10 @@
-{-# LANGUAGE Rank2Types, TypeOperators, FlexibleInstances, ScopedTypeVariables, GADTs, MultiParamTypeClasses, UndecidableInstances #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleInstances         #-}
+{-# LANGUAGE MultiParamTypeClasses     #-}
+{-# LANGUAGE Rank2Types                #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE TypeOperators             #-}
+{-# LANGUAGE UndecidableInstances      #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -81,7 +87,7 @@ class HFunctor h where
     -- functor @f g@.
     --
     -- @ffmap :: (Functor g) => (a -> b) -> f g a -> f g b@
-    -- 
+    --
     -- We omit this, as it does not work for GADTs (see Johand and
     -- Ghani 2008).
 
@@ -92,4 +98,4 @@ class HFunctor h where
 infixl 5 :.:
 
 -- | This data type denotes the composition of two functor families.
-data (f :.: g) e t = Comp f (g e) t
+data  (f :.: g) e t = Comp f (g e) t

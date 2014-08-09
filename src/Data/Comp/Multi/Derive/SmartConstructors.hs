@@ -12,17 +12,17 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Derive.SmartConstructors 
+module Data.Comp.Multi.Derive.SmartConstructors
     (
      smartConstructors
     ) where
 
-import Language.Haskell.TH hiding (Cxt)
+import Control.Arrow ((&&&))
+import Control.Monad
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Term
-import Control.Arrow ((&&&))
-import Control.Monad
+import Language.Haskell.TH hiding (Cxt)
 
 {-| Derive smart constructors for a type constructor of any higher-order kind
  taking at least two arguments. The smart constructors are similar to the

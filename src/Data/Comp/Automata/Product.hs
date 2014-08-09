@@ -1,6 +1,13 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances,
- ScopedTypeVariables, DataKinds, TypeFamilies,
-UndecidableInstances, ConstraintKinds, FlexibleContexts, PolyKinds #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE DataKinds             #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE PolyKinds             #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata.Product

@@ -1,4 +1,7 @@
-{-# LANGUAGE DataKinds, TypeFamilies, UndecidableInstances, TypeOperators #-}
+{-# LANGUAGE DataKinds            #-}
+{-# LANGUAGE TypeFamilies         #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -33,18 +36,18 @@ data Pos = Here | Le Pos | Ri Pos | Sum Pos Pos
 data Emb = Found Pos | NotFound | Ambiguous
 
 -- | This type family takes a position type and compresses it. That
--- means it replaces each nested occurrence of 
--- 
+-- means it replaces each nested occurrence of
+--
 -- @
 --   Sum (prefix (Le Here)) (prefix (Ri Here))@
 -- @
 ---
--- with 
--- 
+-- with
+--
 -- @
 --   prefix Here@
 -- @
--- 
+--
 -- where @prefix@ is some composition of @Le@ and @Ri@. The rational
 -- behind this type family is that it provides a more compact proof
 -- term of a subsumption, and thus yields more efficient
@@ -95,7 +98,7 @@ type family Le' (p :: Maybe Pos) :: Maybe Pos where
 -- contains duplicates; and (2) it compresses @p@ using 'ComprPos'. If
 -- (1) finds no duplicates, @Found (ComprPos p)@ is returned;
 -- otherwise @Ambiguous@ is returned.
--- 
+--
 -- For (1) it is assumed that @p@ does not contain 'Sum' nested
 -- underneath a 'Le' or 'Ri' (i.e. only at the root or underneath a
 -- 'Sum'). We will refer to such positions below as /atomic position/.

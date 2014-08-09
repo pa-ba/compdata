@@ -1,4 +1,5 @@
-{-# LANGUAGE Rank2Types, GADTs #-}
+{-# LANGUAGE GADTs      #-}
+{-# LANGUAGE Rank2Types #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.TermRewriting
@@ -17,16 +18,16 @@ module Data.Comp.TermRewriting where
 
 import Prelude hiding (any)
 
-import Data.Comp.Term
-import Data.Comp.Sum
 import Data.Comp.Algebra
 import Data.Comp.Equality
 import Data.Comp.Matching
+import Data.Comp.Sum
+import Data.Comp.Term
+import Data.Foldable
 import Data.Map (Map)
 import qualified Data.Map as Map
-import qualified Data.Set as Set
 import Data.Maybe
-import Data.Foldable
+import qualified Data.Set as Set
 
 import Control.Monad
 
@@ -84,7 +85,7 @@ returns the result term of the rewrite step; otherwise @Nothing@. -}
 
 appRule :: (Ord v, EqF f, Eq a, Functor f, Foldable f)
           => Rule f f v -> Step (Cxt h f a)
-appRule rule t = do 
+appRule rule t = do
   (res, subst) <- matchRule rule t
   return $ substHoles' res subst
 
@@ -134,10 +135,10 @@ parallelStep :: (Ord v, EqF f, Eq a,Foldable f, Functor  f)
 parallelStep _ Hole{} = Nothing
 parallelStep trs c@(Term t) =
     case matchRules trs c of
-      Nothing 
+      Nothing
           | anyBelow -> Just $ Term $ fmap fst below
           | otherwise -> Nothing
-        where below = fmap (bStep $ parallelStep trs) t 
+        where below = fmap (bStep $ parallelStep trs) t
               anyBelow = any snd below
       Just (rhs,subst) -> Just $ substHoles' rhs substBelow
           where rhsVars = Set.fromList $ toList rhs
@@ -145,7 +146,7 @@ parallelStep trs c@(Term t) =
                 apply v t
                     | Set.member v rhsVars = Just $ fst $ bStep (parallelStep trs) t
                     | otherwise = Nothing
-                
+
 
 {-| This function applies the given reduction step repeatedly until a
 normal form is reached. -}

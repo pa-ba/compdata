@@ -1,4 +1,8 @@
-{-# LANGUAGE TypeOperators, FlexibleContexts, Rank2Types, ScopedTypeVariables, ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE Rank2Types          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -36,20 +40,20 @@ module Data.Comp.Thunk
     ,strict
     ,strictAt) where
 
-import Data.Comp.Term
-import Data.Comp.Equality
 import Data.Comp.Algebra
-import Data.Comp.Ops ((:+:)(..), fromInr)
-import Data.Comp.Sum
+import Data.Comp.Equality
 import Data.Comp.Number
+import Data.Comp.Ops ((:+:) (..), fromInr)
+import Data.Comp.Sum
+import Data.Comp.Term
 import Data.Foldable hiding (and)
 
 import qualified Data.Set as Set
 
+import Control.Monad hiding (mapM, sequence)
 import Data.Traversable
-import Control.Monad hiding (sequence,mapM)
 
-import Prelude hiding (foldr, foldl,foldr1, foldl1,sequence,mapM)
+import Prelude hiding (foldl, foldl1, foldr, foldr1, mapM, sequence)
 
 
 -- | This type represents terms with thunks.
@@ -98,7 +102,7 @@ infixl 1 #>
 -- (using 'whnf') according to the given function.
 eval2 :: Monad m => (f (TermT m f) -> f (TermT m f) -> TermT m f)
                  -> TermT m f -> TermT m f -> TermT m f
-eval2 cont x y = (\ x' -> cont x' `eval` y) `eval` x 
+eval2 cont x y = (\ x' -> cont x' `eval` y) `eval` x
 
 -- | This function evaluates all thunks.
 nf :: (Monad m, Traversable f) => TermT m f -> m (Term f)
@@ -112,11 +116,11 @@ nfPr = liftM Term . mapM nfPr <=< whnfPr
 
 -- | This function inspects a term (using 'nf') according to the
 -- given function.
-deepEval :: (Traversable f, Monad m) => 
+deepEval :: (Traversable f, Monad m) =>
             (Term f -> TermT m f) -> TermT m f -> TermT m f
-deepEval cont v = case deepProject_ fromInr v of 
+deepEval cont v = case deepProject_ fromInr v of
                     Just v' -> cont v'
-                    _ -> thunk $ liftM cont $ nf v 
+                    _ -> thunk $ liftM cont $ nf v
 
 infixl 1 #>>
 

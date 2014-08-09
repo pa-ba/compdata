@@ -18,14 +18,14 @@ module Data.Comp.Derive.Foldable
      makeFoldable
     ) where
 
-import Data.Comp.Derive.Utils
-import Language.Haskell.TH
-import Data.Foldable
 import Control.Monad
-import Data.Monoid
+import Data.Comp.Derive.Utils
+import Data.Foldable
 import Data.Maybe
-import qualified Prelude as P (foldl,foldr,foldl1,foldr1)
-import Prelude hiding  (foldl,foldr,foldl1,foldr1)
+import Data.Monoid
+import Language.Haskell.TH
+import Prelude hiding (foldl, foldl1, foldr, foldr1)
+import qualified Prelude as P (foldl, foldl1, foldr, foldr1)
 
 
 iter 0 _ e = e
@@ -78,7 +78,7 @@ makeFoldable fname = do
                        fp = if null vars then WildP else VarP fn
                    body <- case vars of
                              [] -> [|mempty|]
-                             (_:_) -> P.foldl1 (\ x y -> [|$x `mappend` $y|]) $ 
+                             (_:_) -> P.foldl1 (\ x y -> [|$x `mappend` $y|]) $
                                       map (\ (d,z) -> iter' (max (d-1) 0) [|fold|] (f' d `appE` z)) vars
                    return $ Clause [fp, pat] (NormalB body) []
             foldlClause (pat,vars) =
@@ -114,11 +114,11 @@ makeFoldable fname = do
                    let f = varE fn
                        fp = case vars of
                               (d,_):r
-                                  | d > 0 || not (null r) -> VarP fn                              
-                              _ -> WildP 
+                                  | d > 0 || not (null r) -> VarP fn
+                              _ -> WildP
                        mkComp (d,x) = iter' d [|foldl1 $f|] x
-                   body <- case vars of 
-                             [] -> [|undefined|] 
+                   body <- case vars of
+                             [] -> [|undefined|]
                              _ -> P.foldl1 (\ x y -> [|$f $x $y|]) $ map mkComp vars
                    return $ Clause [fp, pat] (NormalB body) []
             foldr1Clause (pat,vars) =
@@ -126,10 +126,10 @@ makeFoldable fname = do
                    let f = varE fn
                        fp = case vars of
                               (d,_):r
-                                  | d > 0 || not (null r) -> VarP fn                              
-                              _ -> WildP 
+                                  | d > 0 || not (null r) -> VarP fn
+                              _ -> WildP
                        mkComp (d,x) = iter' d [|foldr1 $f|] x
-                   body <- case vars of 
-                             [] -> [|undefined|] 
+                   body <- case vars of
+                             [] -> [|undefined|]
                              _ -> P.foldr1 (\ x y -> [|$f $x $y|]) $ map mkComp vars
                    return $ Clause [fp, pat] (NormalB body) []

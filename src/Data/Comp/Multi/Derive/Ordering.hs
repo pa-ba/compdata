@@ -1,5 +1,6 @@
-{-# LANGUAGE TemplateHaskell, FlexibleInstances,
-  ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell     #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Derive.Ordering
@@ -18,10 +19,10 @@ module Data.Comp.Multi.Derive.Ordering
      makeOrdHF
     ) where
 
-import Data.Comp.Multi.Ordering
 import Data.Comp.Derive.Utils
-import Data.Maybe
+import Data.Comp.Multi.Ordering
 import Data.List
+import Data.Maybe
 import Language.Haskell.TH hiding (Cxt)
 
 compList :: [Ordering] -> Ordering
@@ -43,7 +44,7 @@ makeOrdHF fname = do
   return [InstanceD [] classType [compareHFDecl]]
       where compareHFClauses :: Name -> [(Name,[Type])] -> [ClauseQ]
             compareHFClauses _ [] = []
-            compareHFClauses coArg constrs = 
+            compareHFClauses coArg constrs =
                 let constrs' = constrs `zip` [1..]
                     constPairs = [(x,y)| x<-constrs', y <- constrs']
                 in map (genClause coArg) constPairs
@@ -52,7 +53,7 @@ makeOrdHF fname = do
                 | n < m = genLtClause c d
                 | otherwise = genGtClause c d
             genEqClause :: Name -> (Name,[Type]) -> ClauseQ
-            genEqClause coArg (constr, args) = do 
+            genEqClause coArg (constr, args) = do
               varXs <- newNames (length args) "x"
               varYs <- newNames (length args) "y"
               let patX = ConP constr $ map VarP varXs

@@ -18,10 +18,10 @@ module Data.Comp
      module X
     ) where
 
-import Data.Comp.Term as X
 import Data.Comp.Algebra as X
-import Data.Comp.Sum as X
 import Data.Comp.Annotation as X
 import Data.Comp.Equality as X
-import Data.Comp.Ordering as X
 import Data.Comp.Generic as X
+import Data.Comp.Ordering as X
+import Data.Comp.Sum as X
+import Data.Comp.Term as X

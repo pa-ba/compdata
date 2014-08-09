@@ -1,4 +1,9 @@
-{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, Rank2Types, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE EmptyDataDecls       #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE KindSignatures       #-}
+{-# LANGUAGE Rank2Types           #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Term
@@ -30,11 +35,11 @@ module Data.Comp.Term
 import Control.Applicative hiding (Const)
 import Control.Monad hiding (mapM, sequence)
 
-import Data.Traversable
 import Data.Foldable
+import Data.Traversable
 import Unsafe.Coerce
 
-import Prelude hiding (mapM, sequence, foldl, foldl1, foldr, foldr1)
+import Prelude hiding (foldl, foldl1, foldr, foldr1, mapM, sequence)
 
 
 {-|  -}
@@ -124,11 +129,11 @@ instance (Traversable f) => Traversable (Cxt h f) where
     traverse f = run
         where run (Hole a) = Hole <$> f a
               run (Term t) = Term <$> traverse run t
-                          
+
     sequenceA (Hole a) = Hole <$> a
     sequenceA (Term t) = Term <$> traverse sequenceA t
 
-    mapM f = run 
+    mapM f = run
         where run (Hole a) = liftM Hole $ f a
               run (Term t) = liftM Term $ mapM run t
 

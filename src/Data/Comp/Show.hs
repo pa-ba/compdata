@@ -1,4 +1,7 @@
-{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell, TypeSynonymInstances #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Show
@@ -17,12 +20,12 @@ module Data.Comp.Show
     ( ShowF(..)
     ) where
 
-import Data.Comp.Term
-import Data.Comp.Annotation
 import Data.Comp.Algebra
+import Data.Comp.Annotation
 import Data.Comp.Derive (liftSum)
-import Data.Comp.Derive.Utils (derive)
 import Data.Comp.Derive.Show
+import Data.Comp.Derive.Utils (derive)
+import Data.Comp.Term
 
 instance (Functor f, ShowF f) => ShowF (Cxt h f) where
     showF (Hole s) = s

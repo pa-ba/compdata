@@ -1,5 +1,9 @@
-{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances,
-  UndecidableInstances, OverlappingInstances, TypeOperators, ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverlappingInstances  #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Desugar

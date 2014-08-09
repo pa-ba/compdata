@@ -48,24 +48,24 @@ module Data.Comp.Derive
      liftSum
     ) where
 
-import Control.DeepSeq (NFData(..))
-import Data.Comp.Derive.Utils (derive, liftSumGen)
-import Data.Comp.Derive.HaskellStrict
-import Data.Comp.Derive.Foldable
-import Data.Comp.Derive.Traversable
-import Data.Comp.Derive.DeepSeq
-import Data.Comp.Derive.Show
-import Data.Comp.Derive.Ordering
-import Data.Comp.Derive.Equality
+import Control.DeepSeq (NFData (..))
 import Data.Comp.Derive.Arbitrary
-import Data.Comp.Derive.SmartConstructors
+import Data.Comp.Derive.DeepSeq
+import Data.Comp.Derive.Equality
+import Data.Comp.Derive.Foldable
+import Data.Comp.Derive.HaskellStrict
+import Data.Comp.Derive.Ordering
+import Data.Comp.Derive.Show
 import Data.Comp.Derive.SmartAConstructors
+import Data.Comp.Derive.SmartConstructors
+import Data.Comp.Derive.Traversable
+import Data.Comp.Derive.Utils (derive, liftSumGen)
 import Data.Comp.Ops ((:+:), caseF)
 
 import Language.Haskell.TH
 
-import qualified Data.DeriveTH as D
 import qualified Data.Derive.All as A
+import qualified Data.DeriveTH as D
 
 {-| Derive an instance of 'Functor' for a type constructor of any first-order
   kind taking at least one argument. -}

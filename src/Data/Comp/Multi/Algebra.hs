@@ -1,5 +1,9 @@
-{-# LANGUAGE GADTs, Rank2Types, TypeOperators, ScopedTypeVariables, 
-  FlexibleContexts, KindSignatures #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE Rank2Types          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Algebra
@@ -22,7 +26,7 @@ module Data.Comp.Multi.Algebra (
       cata,
       cata',
       appCxt,
-      
+
       -- * Monadic Algebras & Catamorphisms
       AlgM,
       freeM,
@@ -86,11 +90,11 @@ module Data.Comp.Multi.Algebra (
     ) where
 
 
-import Data.Comp.Multi.Term
+import Control.Monad
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HTraversable
+import Data.Comp.Multi.Term
 import Data.Comp.Ops
-import Control.Monad
 
 -- | This type represents multisorted @f@-algebras with a family @e@
 -- of carriers.
@@ -107,7 +111,7 @@ free f g = run
 
 -- | Construct a catamorphism from the given algebra.
 cata :: forall f a. HFunctor f => Alg f a -> Term f :-> a
-cata f = run 
+cata f = run
     where run :: Term f :-> a
           run (Term t) = f (hfmap run t)
 
@@ -342,7 +346,7 @@ type CoalgM m f a = NatM m a (f a)
 
 anaM :: forall a m f. (HTraversable f, Monad m)
           => CoalgM m f a -> NatM m a (Term f)
-anaM f = run 
+anaM f = run
     where run :: NatM m a (Term f)
           run t = liftM Term $ f t >>= hmapM run
 
@@ -367,7 +371,7 @@ type RAlgM m f a = NatM m (f (Term f :*: a)) a
 
 -- | This function constructs a monadic paramorphism from the given
 -- monadic r-algebra
-paraM :: forall f m a. (HTraversable f, Monad m) => 
+paraM :: forall f m a. (HTraversable f, Monad m) =>
          RAlgM m f a -> NatM m(Term f)  a
 paraM f = liftM fsnd . cataM run
     where run :: AlgM m f (Term f :*: a)
@@ -386,7 +390,7 @@ type RCoalg f a = a :-> f (Term f :+: a)
 -- | This function constructs an apomorphism from the given
 -- r-coalgebra.
 apo :: forall f a . (HFunctor f) => RCoalg f a -> a :-> Term f
-apo f = run 
+apo f = run
     where run :: a :-> Term f
           run = Term . hfmap run' . f
           run' :: Term f :+: a :-> Term f
@@ -402,7 +406,7 @@ type RCoalgM m f a = NatM m a (f (Term f :+: a))
 -- monadic r-coalgebra.
 apoM :: forall f m a . (HTraversable f, Monad m) =>
         RCoalgM m f a -> NatM m a (Term f)
-apoM f = run 
+apoM f = run
     where run :: NatM m a (Term f)
           run a = do
             t <- f a

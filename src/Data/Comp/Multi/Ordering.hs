@@ -1,5 +1,8 @@
-{-# LANGUAGE TypeOperators, TypeSynonymInstances, FlexibleInstances,
-  UndecidableInstances, GADTs #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE UndecidableInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Ordering
@@ -19,11 +22,10 @@ module Data.Comp.Multi.Ordering
      OrdHF(..)
     ) where
 
-import Data.Comp.Multi.Term
-import Data.Comp.Multi.Sum
-import Data.Comp.Multi.Ops
-import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Equality
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Ops
+import Data.Comp.Multi.Term
 
 class KEq f => KOrd f where
     kcompare :: f i -> f j -> Ordering

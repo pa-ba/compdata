@@ -1,4 +1,8 @@
-{-# LANGUAGE TypeOperators, TypeSynonymInstances, GADTs, TemplateHaskell, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Arbitrary
@@ -17,13 +21,12 @@ module Data.Comp.Arbitrary
     ( ArbitraryF(..)
     )where
 
-import Test.QuickCheck
-import Data.Comp.Term
-import Data.Comp.Sum
-import Data.Comp.Ops
-import Data.Comp.Derive.Utils
-import Data.Comp.Derive
 import Control.Applicative
+import Data.Comp.Derive
+import Data.Comp.Derive.Utils
+import Data.Comp.Ops
+import Data.Comp.Term
+import Test.QuickCheck
 
 {-| This lifts instances of 'ArbitraryF' to instances of 'Arbitrary'
 for the corresponding term type. -}
@@ -39,7 +42,7 @@ instance (ArbitraryF f, Arbitrary p) => ArbitraryF (f :&: p) where
     shrinkF (v :&: p) = tail [v' :&: p'| v' <- v: shrinkF v, p' <- p : shrink p ]
 
 {-|
-  This lifts instances of 'ArbitraryF' to instances of 'ArbitraryF' for 
+  This lifts instances of 'ArbitraryF' to instances of 'ArbitraryF' for
   the corresponding context functor.
 -}
 instance (ArbitraryF f) => ArbitraryF (Context f) where

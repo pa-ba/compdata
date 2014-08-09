@@ -18,15 +18,15 @@ module Data.Comp.Derive.Traversable
      makeTraversable
     ) where
 
-import Data.Comp.Derive.Utils
-import Language.Haskell.TH
-import Data.Maybe
-import Data.Traversable
-import Data.Foldable hiding (any,or)
 import Control.Applicative
 import Control.Monad hiding (mapM, sequence)
+import Data.Comp.Derive.Utils
+import Data.Foldable hiding (any, or)
+import Data.Maybe
+import Data.Traversable
+import Language.Haskell.TH
+import Prelude hiding (foldl, foldr, mapM, sequence)
 import qualified Prelude as P (foldl, foldr, mapM)
-import Prelude hiding  (foldl, foldr,mapM, sequence)
 
 iter 0 _ e = e
 iter n f e = iter (n-1) f (f `appE` e)

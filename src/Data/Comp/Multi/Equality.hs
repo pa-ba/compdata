@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeOperators, GADTs, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE TypeOperators     #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Equality
@@ -20,11 +22,10 @@ module Data.Comp.Multi.Equality
      heqMod
     ) where
 
-import Data.Comp.Multi.Term
-import Data.Comp.Multi.Sum
-import Data.Comp.Multi.Ops
-import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HFoldable
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Ops
+import Data.Comp.Multi.Term
 
 class KEq f where
     keq :: f i -> f j -> Bool

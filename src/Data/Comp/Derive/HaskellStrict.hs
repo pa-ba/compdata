@@ -1,4 +1,8 @@
-{-# LANGUAGE TemplateHaskell, TypeOperators, CPP, FlexibleContexts, ConstraintKinds #-}
+{-# LANGUAGE CPP              #-}
+{-# LANGUAGE ConstraintKinds  #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TemplateHaskell  #-}
+{-# LANGUAGE TypeOperators    #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.HaskellStrict
@@ -19,16 +23,16 @@ module Data.Comp.Derive.HaskellStrict
      , haskellStrict'
     ) where
 
-import Data.Comp.Derive.Utils
-import Language.Haskell.TH
-import Data.Maybe
-import Data.Comp.Thunk
-import Data.Comp.Sum
-import Data.Traversable
-import Data.Foldable hiding (any,or)
 import Control.Monad hiding (mapM, sequence)
-import qualified Prelude as P (foldl, foldr, mapM, all)
-import Prelude hiding  (foldl, foldr,mapM, sequence)
+import Data.Comp.Derive.Utils
+import Data.Comp.Sum
+import Data.Comp.Thunk
+import Data.Foldable hiding (any, or)
+import Data.Maybe
+import Data.Traversable
+import Language.Haskell.TH
+import Prelude hiding (foldl, foldr, mapM, sequence)
+import qualified Prelude as P (all, foldl, foldr, mapM)
 
 
 class HaskellStrict f where
@@ -70,7 +74,7 @@ makeHaskellStrict fname = do
      xn <- newName "x"
      doThunk <- [|thunk|]
      let sequenceDecl = FunD 'thunkSequence sc'
-         injectDecl = FunD 'thunkSequenceInject [Clause [VarP xn] (NormalB (doThunk `AppE` CaseE (VarE xn) matchPat)) []] 
+         injectDecl = FunD 'thunkSequenceInject [Clause [VarP xn] (NormalB (doThunk `AppE` CaseE (VarE xn) matchPat)) []]
          injectDecl' = FunD 'thunkSequenceInject' ic'
      return [InstanceD [] classType [sequenceDecl, injectDecl, injectDecl']]
       where isFarg fArg (constr, args) = (constr, map (containsStr fArg) args)

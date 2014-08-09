@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell, FlexibleInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell   #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Derive.Equality
@@ -41,7 +42,7 @@ makeEqHF fname = do
             defEqClause constrs
                 | length constrs  < 2 = []
                 | otherwise = [clause [wildP,wildP] (normalB [|False|]) []]
-            genEqClause ftyp (constr, argts) = do 
+            genEqClause ftyp (constr, argts) = do
               let n = length argts
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
@@ -54,7 +55,7 @@ makeEqHF fname = do
                                    then [| $x' `keq` $y'|]
                                    else [| $x' == $y'|]
                   eqs = listE $ zipWith3 mkEq argts vars vars'
-              body <- if n == 0 
+              body <- if n == 0
                       then [|True|]
                       else [|and $eqs|]
               return $ Clause [pat, pat'] (NormalB body) []

@@ -1,4 +1,6 @@
-{-# LANGUAGE TypeOperators, GADTs, TemplateHaskell #-}
+{-# LANGUAGE GADTs           #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators   #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Ordering
@@ -17,12 +19,11 @@ module Data.Comp.Ordering
      OrdF(..)
     ) where
 
-import Data.Comp.Term
-import Data.Comp.Sum
-import Data.Comp.Ops
-import Data.Comp.Equality ()
 import Data.Comp.Derive
 import Data.Comp.Derive.Utils
+import Data.Comp.Equality ()
+import Data.Comp.Ops
+import Data.Comp.Term
 
 {-|
   From an 'OrdF' functor an 'Ord' instance of the corresponding
@@ -38,7 +39,7 @@ instance OrdF f => OrdF (Cxt h f) where
     compareF Hole{} Term{} = GT
 
 -- instance (OrdF f, Ord p) => OrdF (f :*: p) where
---     compareF (v1 :*: p1) (v2 :*: p2) = 
+--     compareF (v1 :*: p1) (v2 :*: p2) =
 --         case compareF v1 v2 of
 --           EQ ->  compare p1 p2
 --           res -> res

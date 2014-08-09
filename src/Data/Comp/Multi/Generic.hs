@@ -1,5 +1,10 @@
-{-# LANGUAGE GADTs, ExistentialQuantification, TypeOperators, ScopedTypeVariables, 
-  Rank2Types, ConstraintKinds, FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds           #-}
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE GADTs                     #-}
+{-# LANGUAGE Rank2Types                #-}
+{-# LANGUAGE ScopedTypeVariables       #-}
+{-# LANGUAGE TypeOperators             #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -18,13 +23,13 @@
 
 module Data.Comp.Multi.Generic where
 
-import Data.Comp.Multi.Term
-import Data.Comp.Multi.Sum
-import Data.Comp.Multi.HFunctor
-import Data.Comp.Multi.HFoldable
-import Data.Comp.Multi.HTraversable
-import GHC.Exts
 import Control.Monad
+import Data.Comp.Multi.HFoldable
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HTraversable
+import Data.Comp.Multi.Sum
+import Data.Comp.Multi.Term
+import GHC.Exts
 import Prelude
 
 import Data.Maybe
@@ -58,12 +63,12 @@ transform f = run
 -- | Monadic version of 'transform'.
 transformM :: forall f m . (HTraversable f, Monad m) =>
              NatM m (Term f) (Term f) -> NatM m (Term f) (Term f)
-transformM  f = run 
+transformM  f = run
     where run :: NatM m (Term f) (Term f)
           run t = f =<< liftM Term (hmapM run $ unTerm t)
 
 query :: HFoldable f => (Term f :=>  r) -> (r -> r -> r) -> Term f :=> r
--- query q c = run 
+-- query q c = run
 --     where run i@(Term t) = foldl (\s x -> s `c` run x) (q i) t
 query q c i@(Term t) = hfoldl (\s x -> s `c` query q c x) (q i) t
 

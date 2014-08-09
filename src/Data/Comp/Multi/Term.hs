@@ -1,5 +1,9 @@
-{-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes,
-  TypeOperators, ScopedTypeVariables #-}
+{-# LANGUAGE EmptyDataDecls      #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE KindSignatures      #-}
+{-# LANGUAGE RankNTypes          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Term
@@ -15,7 +19,7 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Term 
+module Data.Comp.Multi.Term
     (Cxt (..),
      Hole,
      NoHole,
@@ -28,13 +32,13 @@ module Data.Comp.Multi.Term
      simpCxt
      ) where
 
-import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HFoldable
+import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HTraversable
 import Data.Monoid
 
-import Control.Monad
 import Control.Applicative hiding (Const)
+import Control.Monad
 
 import Unsafe.Coerce
 

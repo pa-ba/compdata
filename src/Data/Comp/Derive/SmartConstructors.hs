@@ -12,16 +12,16 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Derive.SmartConstructors 
+module Data.Comp.Derive.SmartConstructors
     (
      smartConstructors
     ) where
 
-import Language.Haskell.TH hiding (Cxt)
+import Control.Monad
 import Data.Comp.Derive.Utils
 import Data.Comp.Sum
 import Data.Comp.Term
-import Control.Monad
+import Language.Haskell.TH hiding (Cxt)
 
 {-| Derive smart constructors for a type constructor of any first-order kind
  taking at least one argument. The smart constructors are similar to the

@@ -1,6 +1,13 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses,
-  FlexibleInstances, FlexibleContexts, GADTs, TypeSynonymInstances,
-  ScopedTypeVariables, TemplateHaskell, ConstraintKinds, Rank2Types #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Rank2Types            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE TypeSynonymInstances  #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Sum
@@ -47,17 +54,17 @@ module Data.Comp.Sum
      substHoles'
     ) where
 
-import Data.Comp.Term
 import Data.Comp.Algebra
 import Data.Comp.Ops
+import Data.Comp.Term
 
-import Control.Monad hiding (mapM,sequence)
-import Prelude hiding (mapM,sequence)
+import Control.Monad hiding (mapM, sequence)
+import Prelude hiding (mapM, sequence)
 
-import Data.Maybe
-import Data.Traversable
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Data.Maybe
+import Data.Traversable
 
 
 -- |Project the outermost layer of a term to a sub signature. If the signature
@@ -156,5 +163,5 @@ instance (Ord (f a), Ord (g a)) => Ord ((f :+: g) a) where
 
 instance (Eq (f a), Eq (g a)) => Eq ((f :+: g) a) where
     (Inl x) == (Inl y) = x == y
-    (Inr x) == (Inr y) = x == y                   
+    (Inr x) == (Inr y) = x == y
     _ == _ = False

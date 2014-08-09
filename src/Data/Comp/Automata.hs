@@ -1,4 +1,8 @@
-{-# LANGUAGE Rank2Types, FlexibleContexts, ImplicitParams, GADTs, TypeOperators #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs            #-}
+{-# LANGUAGE ImplicitParams   #-}
+{-# LANGUAGE Rank2Types       #-}
+{-# LANGUAGE TypeOperators    #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -14,7 +18,7 @@
 -- a state that is maintained separately by a bottom-up or top-down
 -- state transformation. Additionally, this module also provides
 -- combinators to run state transformations themselves.
--- 
+--
 -- Like regular term homomorphisms also stateful homomorphisms (as
 -- well as transducers) can be lifted to annotated signatures
 -- (cf. "Data.Comp.Annotation").
@@ -98,10 +102,10 @@ module Data.Comp.Automata
     , module Data.Comp.Automata.Product
     ) where
 
-import Data.Comp.Number
-import Data.Comp.Automata.Product
-import Data.Comp.Term
 import Data.Comp.Algebra
+import Data.Comp.Automata.Product
+import Data.Comp.Number
+import Data.Comp.Term
 import Data.Map (Map)
 import qualified Data.Map as Map
 
@@ -150,14 +154,14 @@ explicit x ab be = x where ?above = ab; ?below = be
 -- | This type represents stateful term homomorphisms. Stateful term
 -- homomorphisms have access to a state that is provided (separately)
 -- by a bottom-up or top-down state transformation function (or both).
-                           
+
 type QHom f q g = forall a . (?below :: a -> q, ?above :: q) => f a -> Context g a
 
 
 -- | This function turns a stateful homomorphism with a fully
 -- polymorphic state type into a (stateless) homomorphism.
 pureHom :: (forall q . QHom f q g) -> Hom f g
-pureHom phom t = let ?above = undefined 
+pureHom phom t = let ?above = undefined
                      ?below = const undefined
                  in phom t
 
@@ -183,7 +187,7 @@ mkUpTrans tr t = tr $ fmap (\(q,a) -> (q, Hole a)) t
 -- algebra.
 
 upAlg :: (Functor g)  => UpTrans f q g -> Alg f (q, Term g)
-upAlg trans = fmap appCxt . trans 
+upAlg trans = fmap appCxt . trans
 
 -- | This function runs the given UTT on the given term.
 
@@ -205,7 +209,7 @@ runUpTrans' trans = run where
     run (Term t) = fmap appCxt $ trans $ fmap run t
 
 -- | This function composes two UTTs. (see TATA, Theorem 6.4.5)
-    
+
 compUpTrans :: (Functor f, Functor g, Functor h)
                => UpTrans g p h -> UpTrans f q g -> UpTrans f (q,p) h
 compUpTrans t2 t1 x = ((q1,q2), c2) where
@@ -214,7 +218,7 @@ compUpTrans t2 t1 x = ((q1,q2), c2) where
 
 
 -- | This function composes a UTT with an algebra.
-    
+
 compAlgUpTrans :: (Functor g)
                => Alg g a -> UpTrans f q g -> Alg f (q,a)
 compAlgUpTrans alg trans = fmap (cata' alg) . trans
@@ -227,7 +231,7 @@ compSigUpTrans sig trans x = (q, appSigFun sig x') where
     (q, x') = trans x
 
 -- | This combinator composes a signature function followed by a UTT.
-    
+
 compUpTransSig :: UpTrans g q h -> SigFun f g -> UpTrans f q h
 compUpTransSig trans sig = trans . sig
 
@@ -238,7 +242,7 @@ compHomUpTrans hom trans x = (q, appHom hom x') where
     (q, x') = trans x
 
 -- | This combinator composes a homomorphism followed by a UTT.
-    
+
 compUpTransHom :: (Functor g, Functor h) => UpTrans g q h -> Hom f g -> UpTrans f q h
 compUpTransHom trans hom x  = runUpTrans' trans . hom $ x
 
@@ -268,7 +272,7 @@ prodUpState sp sq t = (p,q) where
 
 -- | This function constructs a UTT from a given stateful term
 -- homomorphism with the state propagated by the given UTA.
-    
+
 upTrans :: (Functor f, Functor g) => UpState f q -> QHom f q g -> UpTrans f q g
 upTrans st f t = (q, c)
     where q = st $ fmap fst t
@@ -276,7 +280,7 @@ upTrans st f t = (q, c)
 
 -- | This function applies a given stateful term homomorphism with
 -- a state space propagated by the given UTA to a term.
-          
+
 runUpHom :: (Functor f, Functor g) => UpState f q -> QHom f q g -> Term f -> Term g
 runUpHom st hom = snd . runUpHomSt st hom
 
@@ -306,7 +310,7 @@ upState :: DUpState f q q -> UpState f q
 upState f s = res where res = explicit f res id s
 
 -- | This combinator runs a GUTA on a term.
-                        
+
 runDUpState :: Functor f => DUpState f q q -> Term f -> q
 runDUpState = runUpState . upState
 
@@ -347,7 +351,7 @@ runDownTrans tr q t = run t q where
     run (Hole a) _ = Hole a
 
 -- | This function runs the given DTT on the given tree.
-    
+
 runDownTrans' :: (Functor f, Functor g) => DownTrans f q g -> q -> Cxt h f (q -> a) -> Cxt h g a
 runDownTrans' tr q t = run t q where
     run (Term t) q = appCxt $ tr q $ fmap run $ t
@@ -355,7 +359,7 @@ runDownTrans' tr q t = run t q where
 
 -- | This function composes two DTTs. (see W.C. Rounds /Mappings and
 -- grammars on trees/, Theorem 2.)
-    
+
 compDownTrans :: (Functor f, Functor g, Functor h)
               => DownTrans g p h -> DownTrans f q g -> DownTrans f (q,p) h
 compDownTrans t2 t1 (q,p) t = runDownTrans' t2  p $ t1 q (fmap curry t)
@@ -426,17 +430,17 @@ prodMap p q mp mq = Map.map final $ Map.unionWith combine ps qs
 -- | Apply the given state mapping to the given functorial value by
 -- adding the state to the corresponding index if it is in the map and
 -- otherwise adding the provided default state.
-          
+
 appMap :: Traversable f => (forall i . Ord i => f i -> Map i q)
                        -> q -> f (q -> b) -> f (q,b)
 appMap qmap q s = fmap qfun s'
     where s' = number s
           qfun k@(Numbered (_,a)) = let q' = Map.findWithDefault q k (qmap s')
-                                    in (q', a q') 
+                                    in (q', a q')
 
 -- | This function constructs a DTT from a given stateful term--
 -- homomorphism with the state propagated by the given DTA.
-          
+
 downTrans :: (Traversable f, Functor g) => DownState f q -> QHom f q g -> DownTrans f q g
 downTrans st f q s = fmap snd $ explicit f q fst (appMap (curry st q) q s)
 
@@ -473,7 +477,7 @@ downState f (q,s) = res
 
 -- | This combinator constructs the product of two dependant top-down
 -- state transformations.
-          
+
 prodDDownState :: (p :< c, q :< c)
                => DDownState f c p -> DDownState f c q -> DDownState f c (p,q)
 prodDDownState sp sq t = prodMap above above (sp t) (sq t)
@@ -492,7 +496,7 @@ prodDDownState sp sq t = prodMap above above (sp t) (sq t)
 runDState :: Traversable f => DUpState' f (u,d) u -> DDownState' f (u,d) d -> d -> Term f -> u
 runDState up down d (Term t) = u where
         t' = fmap bel $ number t
-        bel (Numbered (i,s)) = 
+        bel (Numbered (i,s)) =
             let d' = Map.findWithDefault d (Numbered (i,undefined)) m
             in Numbered (i, (runDState up down d' s, d'))
         m = explicit down (u,d) unNumbered t'
@@ -501,14 +505,14 @@ runDState up down d (Term t) = u where
 -- | This combinator runs a stateful term homomorphisms with a state
 -- space produced both on a bottom-up and a top-down state
 -- transformation.
-        
+
 runQHom :: (Traversable f, Functor g) =>
-           DUpState' f (u,d) u -> DDownState' f (u,d) d -> 
+           DUpState' f (u,d) u -> DDownState' f (u,d) d ->
            QHom f (u,d) g ->
            d -> Term f -> (u, Term g)
 runQHom up down trans d (Term t) = (u,t'') where
         t' = fmap bel $ number t
-        bel (Numbered (i,s)) = 
+        bel (Numbered (i,s)) =
             let d' = Map.findWithDefault d (Numbered (i,undefined)) m
                 (u', s') = runQHom up down trans d' s
             in Numbered (i, ((u', d'),s'))

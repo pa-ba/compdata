@@ -1,5 +1,8 @@
-{-# LANGUAGE GADTs, FlexibleContexts, FlexibleInstances, TypeOperators,
-  TemplateHaskell #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs             #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE TypeOperators     #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.DeepSeq
@@ -20,10 +23,10 @@ module Data.Comp.DeepSeq
     )
     where
 
-import Data.Comp.Term
 import Control.DeepSeq
-import Data.Comp.Derive
 import Data.Comp.Annotation
+import Data.Comp.Derive
+import Data.Comp.Term
 
 
 instance (NFDataF f, NFData a) => NFData (Cxt h f a) where

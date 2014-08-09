@@ -42,13 +42,13 @@ module Data.Comp.Multi.Derive
 
 import Data.Comp.Derive.Utils (derive, liftSumGen)
 import Data.Comp.Multi.Derive.Equality
+import Data.Comp.Multi.Derive.HFoldable
+import Data.Comp.Multi.Derive.HFunctor
+import Data.Comp.Multi.Derive.HTraversable
 import Data.Comp.Multi.Derive.Ordering
 import Data.Comp.Multi.Derive.Show
-import Data.Comp.Multi.Derive.HFunctor
-import Data.Comp.Multi.Derive.HFoldable
-import Data.Comp.Multi.Derive.HTraversable
-import Data.Comp.Multi.Derive.SmartConstructors
 import Data.Comp.Multi.Derive.SmartAConstructors
+import Data.Comp.Multi.Derive.SmartConstructors
 import Data.Comp.Multi.Ops ((:+:), caseH)
 
 import Language.Haskell.TH

@@ -1,4 +1,7 @@
-{-# LANGUAGE GADTs, Rank2Types, ScopedTypeVariables, TypeOperators #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE Rank2Types          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.MacroAutomata
@@ -7,7 +10,7 @@
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
--- 
+--
 -- This module defines macro tree transducers (MTTs). It provides
 -- functions to run MTTs and to compose them with top down tree
 -- transducers. It also defines MTTs with regular look-ahead which
@@ -41,11 +44,11 @@ module Data.Comp.MacroAutomata
     )
     where
 
-import Data.Comp.Term
 import Data.Comp.Algebra
 import Data.Comp.Automata
-import Data.Comp.Ops
 import Data.Comp.Multi.HFunctor (I (..))
+import Data.Comp.Ops
+import Data.Comp.Term
 
 -- | This type represents total deterministic macro tree transducers
 -- (MTTs).
@@ -68,19 +71,19 @@ mkMacroTrans tr q t = tr (fmap Hole q) (fmap (Hole .) t)
 -- | This function defines the semantics of MTTs. It applies a given
 -- MTT to an input with and an initial state.
 
-runMacroTrans :: (Functor g, Functor f, Functor q) => 
+runMacroTrans :: (Functor g, Functor f, Functor q) =>
                  MacroTrans f q g -> q (Cxt h g a) -> Cxt h f a -> Cxt h g a
 runMacroTrans tr q t = run t q where
     run (Term t) q = appCxt (tr q (fmap run' t))
     run (Hole a) _ = Hole a
     run' t q = run t (fmap appCxt q)
-    
+
 
 -- This function is a variant of 'runMacroTrans' that is used to
 -- define composition. Restricted to 'Term's, both functions coincide.
 
-runMacroTrans' :: forall g f q h a. 
-                  (Functor g, Functor f, Functor q) => MacroTrans f q g -> q (Cxt h g a) 
+runMacroTrans' :: forall g f q h a.
+                  (Functor g, Functor f, Functor q) => MacroTrans f q g -> q (Cxt h g a)
                -> Cxt h f (q (Cxt h g a) -> a) -> Cxt h g a
 runMacroTrans' tr q t = run t q where
     run :: Cxt h f (q (Cxt h g a) -> a) -> q (Cxt h g a) -> Cxt h g a
@@ -160,7 +163,7 @@ type MacroTransLA  f q p g = forall a. q a -> p -> f (q (Context g a) -> a, p) -
 -- | This type is a more convenient variant of 'MacroTransLA' with
 -- which one can avoid using 'Hole' explicitly when injecting
 -- placeholders in the result.
-type MacroTransLA' f q p g = forall a. q (Context g a) -> p -> 
+type MacroTransLA' f q p g = forall a. q (Context g a) -> p ->
                              f (q (Context g a) -> Context g a, p) -> Context g a
 
 
@@ -175,7 +178,7 @@ mkMacroTransLA tr q p t = tr (fmap Hole q) p (fmap (\ (f, p) -> (Hole . f,p)) t)
 -- look-ahead. It applies a given MTT with regular look-ahead
 -- (including an accompanying bottom-up state transition function) to
 -- an input with and an initial state.
-runMacroTransLA :: forall g f q p. (Functor g, Functor f, Functor q) => 
+runMacroTransLA :: forall g f q p. (Functor g, Functor f, Functor q) =>
                    UpState f p -> MacroTransLA f q p g -> q (Term g) -> Term f -> Term g
 runMacroTransLA st tr q t = fst (run t) q where
     run :: Term f -> (q (Term g) -> Term g, p)

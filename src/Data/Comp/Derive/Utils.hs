@@ -15,10 +15,10 @@
 module Data.Comp.Derive.Utils where
 
 
-import Language.Haskell.TH
-import Language.Haskell.TH.Syntax
 import Control.Monad
+import Language.Haskell.TH
 import Language.Haskell.TH.ExpandSyns
+import Language.Haskell.TH.Syntax
 
 -- reportError is introduced only from version 7.6 of GHC
 #if __GLASGOW_HASKELL__ < 706
@@ -52,11 +52,11 @@ normalCon (ForallC _ _ constr) = normalCon constr
 
 
 normalCon' :: Con -> (Name,[Type])
-normalCon' = fmap (map snd) . normalCon 
+normalCon' = fmap (map snd) . normalCon
 
 -- | Same as normalCon' but expands type synonyms.
 normalConExp :: Con -> Q (Name,[Type])
-normalConExp c = do 
+normalConExp c = do
   let (n,ts) = normalCon' c
   ts' <- mapM expandSyns ts
   return (n, ts')
@@ -64,7 +64,7 @@ normalConExp c = do
 
 -- | Same as normalConExp' but retains strictness annotations.
 normalConStrExp :: Con -> Q (Name,[StrictType])
-normalConStrExp c = do 
+normalConStrExp c = do
   let (n,ts) = normalCon c
   ts' <- mapM (\ (st,ty) -> do ty' <- expandSyns ty; return (st,ty')) ts
   return (n, ts')
@@ -146,7 +146,7 @@ liftSumGen caseName sumName fname = do
   ClassI (ClassD _ name targs_ _ decs) _ <- reify fname
   let targs = map tyVarBndrName targs_
   splitM <- findSig targs decs
-  case splitM of 
+  case splitM of
     Nothing -> do reportError $ "Class " ++ show name ++ " cannot be lifted to sums!"
                   return []
     Just (ts1_, ts2_) -> do
@@ -167,8 +167,8 @@ liftSumGen caseName sumName fname = do
               clause f = do x <- newName "x"
                             let b = NormalB (VarE caseName `AppE` VarE f `AppE` VarE f `AppE` VarE x)
                             return $ Clause [VarP x] b []
-                          
-                          
+
+
 findSig :: [Name] -> [Dec] -> Q (Maybe ([Name],[Name]))
 findSig targs decs = case map run decs of
                        []  -> return Nothing
@@ -177,7 +177,7 @@ findSig targs decs = case map run decs of
                                     Nothing -> return Nothing
                                     Just n -> return $ splitNames n targs
   where run :: Dec -> Q (Maybe Name)
-        run (SigD _ ty) = do 
+        run (SigD _ ty) = do
           ty' <- expandSyns ty
           return $ getSig False ty'
         run _ = return Nothing
@@ -186,7 +186,7 @@ findSig targs decs = case map run decs of
         getSig True (AppT ty _) = getSig True ty
         getSig True (VarT n) = Just n
         getSig _ _ = Nothing
-        splitNames y (x:xs) 
+        splitNames y (x:xs)
           | y == x = Just ([],xs)
           | otherwise = do (xs1,xs2) <- splitNames y xs
                            return (x:xs1,xs2)

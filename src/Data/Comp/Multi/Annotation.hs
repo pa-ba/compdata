@@ -1,5 +1,12 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, ConstraintKinds, FlexibleContexts,
-  FlexibleInstances, UndecidableInstances, Rank2Types, GADTs, ScopedTypeVariables #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Rank2Types            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Annotation
@@ -27,12 +34,11 @@ module Data.Comp.Multi.Annotation
      project'
     ) where
 
-import Data.Comp.Multi.Term
-import Data.Comp.Multi.Sum
-import Data.Comp.Multi.Ops
-import qualified Data.Comp.Ops as O
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Ops
+import Data.Comp.Multi.Term
+import qualified Data.Comp.Ops as O
 
 -- | This function transforms a function with a domain constructed
 -- from a functor to a function with a domain constructed with the
@@ -54,7 +60,7 @@ liftA' :: (DistAnn s' p s, HFunctor s')
        => (s' a :-> Cxt h s' a) -> s a :-> Cxt h s a
 liftA' f v = let (v' O.:&: p) = projectA v
              in ann p (f v')
-    
+
 {-| This function strips the annotations from a term over a
 functor with annotations. -}
 
@@ -62,7 +68,7 @@ stripA :: (RemA g f, HFunctor g) => CxtFun g f
 stripA = appSigFun remA
 
 
-propAnn :: (DistAnn f p f', DistAnn g p g', HFunctor g) 
+propAnn :: (DistAnn f p f', DistAnn g p g', HFunctor g)
                => Hom f g -> Hom f' g'
 propAnn alg f' = ann p (alg f)
     where (f O.:&: p) = projectA f'

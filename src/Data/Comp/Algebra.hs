@@ -1,5 +1,10 @@
-{-# LANGUAGE GADTs, Rank2Types, ScopedTypeVariables, TypeOperators,
-  FlexibleContexts, CPP #-}
+{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Rank2Types            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeOperators         #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Algebra
@@ -21,7 +26,7 @@ module Data.Comp.Algebra (
       cata,
       cata',
       appCxt,
-      
+
       -- * Monadic Algebras & Catamorphisms
       AlgM,
       algM,
@@ -104,12 +109,12 @@ module Data.Comp.Algebra (
       futuM
     ) where
 
-import Data.Comp.Term
+import Control.Monad hiding (mapM, sequence)
 import Data.Comp.Ops
+import Data.Comp.Term
 import Data.Traversable
-import Control.Monad hiding (sequence, mapM)
 
-import Prelude hiding (sequence, mapM)
+import Prelude hiding (mapM, sequence)
 
 
 
@@ -127,13 +132,13 @@ free f g = run
           run (Term t) = f (fmap run t)
 
 {-| Construct a catamorphism from the given algebra. -}
-cata :: forall f a . (Functor f) => Alg f a -> Term f -> a 
+cata :: forall f a . (Functor f) => Alg f a -> Term f -> a
 {-# NOINLINE [1] cata #-}
 -- cata f = free f undefined
 -- the above definition is safe since terms do not contain holes
 --
 -- a direct implementation:
-cata f = run 
+cata f = run
     where run :: Term f -> a
           run  = f . fmap run . unTerm
 
@@ -157,7 +162,7 @@ appCxt (Term t) = Term (fmap appCxt t)
 {-| This type represents a monadic algebra. It is similar to 'Alg' but
 the return type is monadic.  -}
 
-type AlgM m f a = f a -> m a 
+type AlgM m f a = f a -> m a
 
 {-| Convert a monadic algebra into an ordinary algebra with a monadic
   carrier. -}
@@ -175,7 +180,7 @@ freeM algm var = run
           run (Term t) = algm =<< mapM run t
 
 {-| Construct a monadic catamorphism from the given monadic algebra. -}
-cataM :: forall f m a. (Traversable f, Monad m) => AlgM m f a -> Term f -> m a 
+cataM :: forall f m a. (Traversable f, Monad m) => AlgM m f a -> Term f -> m a
 {-# NOINLINE [1] cataM #-}
 -- cataM = cata . algM
 cataM algm = run
@@ -351,7 +356,7 @@ appHomM' f = run
 initial term algebra to the given term algebra. -}
 homMD :: forall f g m . (Traversable f, Functor g, Monad m)
           => HomMD m f g -> CxtFunM m f g
-homMD f = run 
+homMD f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole x) = return (Hole x)
           run (Term t) = liftM appCxt (f (fmap run t))
@@ -379,7 +384,7 @@ appSigFunM' f = run
 {-| This function applies a signature function to the given context. -}
 appSigFunMD :: forall f g m . (Traversable f, Functor g, Monad m)
               => SigFunMD m f g -> CxtFunM m f g
-appSigFunMD f = run 
+appSigFunMD f = run
     where run :: Cxt h f a -> m (Cxt h g a)
           run (Hole x) = return (Hole x)
           run (Term t) = liftM Term (f (fmap run t))
@@ -466,7 +471,7 @@ type CoalgM m f a = a -> m (f a)
 {-| Construct a monadic anamorphism from the given monadic coalgebra. -}
 anaM :: forall a m f. (Traversable f, Monad m)
           => CoalgM m f a -> a -> m (Term f)
-anaM f = run 
+anaM f = run
     where run :: a -> m (Term f)
           run t = liftM Term $ f t >>= mapM run
 
@@ -488,7 +493,7 @@ para f = snd . cata run
 type RAlgM m f a = f (Term f, a) -> m a
 
 {-| Construct a monadic paramorphism from the given monadic r-algebra. -}
-paraM :: (Traversable f, Monad m) => 
+paraM :: (Traversable f, Monad m) =>
          RAlgM m f a -> Term f -> m a
 paraM f = liftM snd . cataM run
     where run t = do
@@ -504,7 +509,7 @@ type RCoalg f a = a -> f (Either (Term f) a)
 
 {-| Construct an apomorphism from the given r-coalgebra. -}
 apo :: (Functor f) => RCoalg f a -> a -> Term f
-apo f = run 
+apo f = run
     where run = Term . fmap run' . f
           run' (Left t) = t
           run' (Right a) = run a
@@ -521,7 +526,7 @@ type RCoalgM m f a = a -> m (f (Either (Term f) a))
 {-| Construct a monadic apomorphism from the given monadic r-coalgebra. -}
 apoM :: (Traversable f, Monad m) =>
         RCoalgM m f a -> a -> m (Term f)
-apoM f = run 
+apoM f = run
     where run a = do
             t <- f a
             t' <- mapM run' t
@@ -714,7 +719,7 @@ appSigFunHomM f g = run where
 
   "appHom/appHom'" forall (a :: Hom g h) (h :: Hom f g) x.
     appHom a (appHom' h x) = appHom' (compHom a h) x;
-    
+
   "appSigFun/appSigFun" forall (f :: SigFun g h) (g :: SigFun f g) x.
     appSigFun f (appSigFun g x) = appSigFun (compSigFun f g) x;
 
@@ -738,7 +743,7 @@ appSigFunHomM f g = run where
 
   "appHom'/appSigFun" forall (f :: Hom g h) (g :: SigFun f g) x.
     appHom' f (appSigFun g x) = appHom (compHomSigFun f g) x;
-    
+
   "appSigFun/appHom" forall (f :: SigFun g h) (g :: Hom f g) x.
     appSigFun f (appHom g x) = appSigFunHom f g x;
 
@@ -750,7 +755,7 @@ appSigFunHomM f g = run where
 
   "appSigFun'/appHom" forall (f :: SigFun g h) (g :: Hom f g) x.
     appSigFun' f (appHom g x) = appHom (compSigFunHom f g) x;
-    
+
   "appSigFunHom/appSigFun" forall (f :: SigFun f3 f4) (g :: Hom f2 f3)
                                       (h :: SigFun f1 f2) x.
     appSigFunHom f g (appSigFun h x)
@@ -792,7 +797,7 @@ appSigFunHomM f g = run where
     appSigFunHom f1 f2 (appSigFunHom f3 f4 x)
       = appSigFunHom f1 (compHom (compHomSigFun f2 f3) f4) x; #-}
 
-{-# RULES 
+{-# RULES
   "cataM/appHomM" forall (a :: AlgM Maybe g d) (h :: HomM Maybe f g) x.
      appHomM h x >>= cataM a =  appAlgHomM a h x;
 

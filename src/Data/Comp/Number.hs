@@ -6,13 +6,13 @@
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
--- 
+--
 -- This module provides functionality to number the components of a
 -- functorial value with consecutive integers.
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Number 
+module Data.Comp.Number
     ( Numbered (..)
     , unNumbered
     , number

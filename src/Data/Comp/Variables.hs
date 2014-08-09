@@ -1,5 +1,9 @@
-{-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances,
-  OverlappingInstances, TypeOperators, TemplateHaskell #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverlappingInstances  #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeOperators         #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -32,17 +36,17 @@ module Data.Comp.Variables
      getBoundVars
     ) where
 
-import Data.Comp.Term
-import Data.Comp.Number
 import Data.Comp.Algebra
 import Data.Comp.Derive
+import Data.Comp.Number
+import Data.Comp.Term
 import Data.Foldable hiding (elem, notElem)
+import Data.Map (Map)
+import qualified Data.Map as Map
 import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as Set
-import Data.Map (Map)
-import qualified Data.Map as Map
-import Prelude hiding (or, foldl)
+import Prelude hiding (foldl, or)
 
 -- | This type represents substitutions of contexts, i.e. finite
 -- mappings from variables to contexts.
@@ -60,7 +64,7 @@ class HasVars f v where
     -- default implementation returns @Nothing@.
     isVar :: f a -> Maybe v
     isVar _ = Nothing
-    
+
     -- | Indicates the set of variables bound by the @f@ constructor
     -- for each argument of the constructor. For example for a
     -- non-recursive let binding:
@@ -87,13 +91,13 @@ $(derive [liftSum] [''HasVars])
 
 -- | Same as 'isVar' but it returns Nothing@ instead of @Just v@ if
 -- @v@ is contained in the given set of variables.
-    
+
 isVar' :: (HasVars f v, Ord v) => Set v -> f a -> Maybe v
 isVar' b t = do v <- isVar t
                 if v `Set.member` b
                    then Nothing
                    else return v
-   
+
 -- | This combinator pairs every argument of a given constructor with
 -- the set of (newly) bound variables according to the corresponding
 -- 'HasVars' type class instance.
@@ -102,19 +106,19 @@ getBoundVars t = let n = number t
                      m = bindsVars n
                      trans x = (Map.findWithDefault Set.empty x m, unNumbered x)
                  in fmap trans n
-                    
+
 -- | This combinator combines 'getBoundVars' with the generic 'fmap' function.
 fmapBoundVars :: (HasVars f v, Traversable f) => (Set v -> a -> b) -> f a -> f b
 fmapBoundVars f t = let n = number t
                         m = bindsVars n
                         trans x = f (Map.findWithDefault Set.empty x m) (unNumbered x)
-                    in fmap trans n                    
-                    
--- | This combinator combines 'getBoundVars' with the generic 'foldl' function.   
+                    in fmap trans n
+
+-- | This combinator combines 'getBoundVars' with the generic 'foldl' function.
 foldlBoundVars :: (HasVars f v, Traversable f) => (b -> Set v -> a -> b) -> b -> f a -> b
 foldlBoundVars f e t = let n = number t
                            m = bindsVars n
-                           trans x y = f x (Map.findWithDefault Set.empty y m) (unNumbered y) 
+                           trans x y = f x (Map.findWithDefault Set.empty y m) (unNumbered y)
                        in foldl trans e n
 
 -- | Convert variables to holes, except those that are bound.
@@ -124,7 +128,7 @@ varsToHoles t = cata alg t Set.empty
           alg t vars = case isVar t of
             Just v | not (v `Set.member` vars) -> Hole v
             _  -> Term $ fmapBoundVars run t
-              where 
+              where
                 run newVars f = f $ newVars `Set.union` vars
 
 -- |Algebra for checking whether a variable is contained in a term, except those
@@ -181,13 +185,13 @@ instance (Ord v, HasVars f v, Traversable f)
         -- subst f = free (substAlg f) Hole
   substVars subst = doSubst Set.empty
     where doSubst _ (Hole a) = Hole a
-          doSubst b (Term t) = case isVar' b t >>= subst of 
+          doSubst b (Term t) = case isVar' b t >>= subst of
             Just new -> new
             Nothing  -> Term $ fmapBoundVars run t
               where run vars s = doSubst (b `Set.union` vars) s
 
 instance (SubstVars v t a, Functor f) => SubstVars v t (f a) where
-    substVars f = fmap (substVars f) 
+    substVars f = fmap (substVars f)
 
 {-| This function composes two substitutions @s1@ and @s2@. That is,
 applying the resulting substitution is equivalent to first applying

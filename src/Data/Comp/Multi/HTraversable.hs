@@ -1,4 +1,10 @@
-{-# LANGUAGE Rank2Types, TypeOperators, FlexibleInstances, ScopedTypeVariables, GADTs, MultiParamTypeClasses, UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Rank2Types            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -18,9 +24,9 @@ module Data.Comp.Multi.HTraversable
      HTraversable (..)
     ) where
 
-import Data.Comp.Multi.HFunctor
-import Data.Comp.Multi.HFoldable
 import Control.Applicative
+import Data.Comp.Multi.HFoldable
+import Data.Comp.Multi.HFunctor
 
 class HFoldable t => HTraversable t where
 

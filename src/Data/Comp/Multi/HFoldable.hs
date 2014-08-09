@@ -1,4 +1,10 @@
-{-# LANGUAGE RankNTypes, TypeOperators, FlexibleInstances, ScopedTypeVariables, GADTs, MultiParamTypeClasses, UndecidableInstances #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -21,9 +27,9 @@ module Data.Comp.Multi.HFoldable
      htoList
      ) where
 
-import Data.Monoid
-import Data.Maybe
 import Data.Comp.Multi.HFunctor
+import Data.Maybe
+import Data.Monoid
 
 -- | Higher-order functors that can be folded.
 --
@@ -58,7 +64,7 @@ class HFunctor h => HFoldable h where
 
 htoList :: (HFoldable f) => f a :=> [E a]
 htoList = hfoldr (\ n l ->  E n : l) []
-    
+
 kfoldr :: (HFoldable f) => (a -> b -> b) -> b -> f (K a) :=> b
 kfoldr f = hfoldr (\ (K x) y -> f x y)
 

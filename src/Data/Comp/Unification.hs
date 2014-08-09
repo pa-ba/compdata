@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 -------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Unification
@@ -15,9 +16,9 @@
 
 module Data.Comp.Unification where
 
+import Data.Comp.Decompose
 import Data.Comp.Term
 import Data.Comp.Variables
-import Data.Comp.Decompose
 
 import Control.Monad.Error
 import Control.Monad.State
@@ -87,12 +88,12 @@ runUnifyM m eqs = liftM (usSubst . snd) $
 withNextEq :: Monad m
            => (Equation f -> UnifyM f v m ()) -> UnifyM f v m ()
 withNextEq m = do eqs <- gets usEqs
-                  case eqs of 
+                  case eqs of
                     [] -> return ()
                     x : xs -> modify (\s -> s {usEqs = xs})
                            >> m x
 
-putEqs :: Monad m 
+putEqs :: Monad m
        => Equations f -> UnifyM f v m ()
 putEqs eqs = modify addEqs
     where addEqs s = s {usEqs = eqs ++ usEqs s}
@@ -108,7 +109,7 @@ runUnify :: (MonadError (UnifError f v) m, Decompose f v, Ord v, Eq (Const f), T
          => UnifyM f v m ()
 runUnify = withNextEq (\ e -> unifyStep e >> runUnify)
 
-unifyStep :: (MonadError (UnifError f v) m, Decompose f v, Ord v, Eq (Const f), Traversable f) 
+unifyStep :: (MonadError (UnifError f v) m, Decompose f v, Ord v, Eq (Const f), Traversable f)
           => Equation f -> UnifyM f v m ()
 unifyStep (s,t) = case decompose s of
                     Var v1 -> case decompose t of

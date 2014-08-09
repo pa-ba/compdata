@@ -1,4 +1,5 @@
-{-# LANGUAGE GADTs, TemplateHaskell #-}
+{-# LANGUAGE GADTs           #-}
+{-# LANGUAGE TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Arbitrary
@@ -20,10 +21,10 @@ module Data.Comp.Derive.Arbitrary
      makeArbitrary
     )where
 
-import Test.QuickCheck
 import Data.Comp.Derive.Utils hiding (derive)
-import Language.Haskell.TH
 import qualified Data.DeriveTH as D
+import Language.Haskell.TH
+import Test.QuickCheck
 
 {-| Derive an instance of 'Arbitrary' for a type constructor. -}
 makeArbitrary :: Name -> Q [Dec]
@@ -64,7 +65,7 @@ generateArbitraryFDecl = generateGenDecl 'arbitraryF'
 {-|
   This function generates a declaration of a generator having the given name using
   the given constructors, i.e., something like this:
-  
+
   @
   \<name\> :: Gen \<type\>
   \<name\> = ...
@@ -96,10 +97,10 @@ generateGenDecl genName constrs
                    let build = doE $
                                binds ++
                                [noBindS [|return $apps|]]
-                   if n == 0 
+                   if n == 0
                       then [|return $apps|]
                       else  [| sized $ \ size ->
-                                 $(letE [valD 
+                                 $(letE [valD
                                          newSizeP
                                          (normalB [|((size - 1) `div` $constrsE ) `max` 0|])
                                          [] ]

@@ -1,5 +1,9 @@
-{-# LANGUAGE TypeOperators, GADTs, ScopedTypeVariables,
-  Rank2Types, FlexibleContexts, ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE Rank2Types          #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Sum
@@ -41,11 +45,11 @@ module Data.Comp.Multi.Sum
 --     substHoles'
     ) where
 
+import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HTraversable
 import Data.Comp.Multi.Ops
 import Data.Comp.Multi.Term
-import Data.Comp.Multi.Algebra
 
 
 -- |Project the outermost layer of a term to a sub signature. If the signature

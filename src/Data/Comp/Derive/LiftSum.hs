@@ -1,4 +1,5 @@
-{-# LANGUAGE TemplateHaskell, TypeOperators #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators   #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.LiftSum
@@ -18,10 +19,10 @@ module Data.Comp.Derive.LiftSum
      caseF
     ) where
 
-import Language.Haskell.TH hiding (Cxt)
 import Data.Comp.Derive.Utils
+import Data.Comp.Ops ((:+:) (..))
 import Data.Comp.Sum
-import Data.Comp.Ops ((:+:)(..))
+import Language.Haskell.TH hiding (Cxt)
 
 
 {-| Given the name of a type class, where the first parameter is a functor,
@@ -29,7 +30,7 @@ import Data.Comp.Ops ((:+:)(..))
   as @instance (ShowF f, ShowF g) => ShowF (f :+: g) where ... @. -}
 liftSum :: Name -> Q [Dec]
 liftSum = liftSumGen 'caseF ''(:+:)
-                         
+
 
 
 {-| Utility function to case on a functor sum, without exposing the internal

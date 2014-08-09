@@ -8,22 +8,22 @@
 -- Maintainer  :  Patrick Bahr <paba@diku.dk>
 -- Stability   :  experimental
 -- Portability :  non-portable (GHC Extensions)
--- 
+--
 -- This module provides functionality to number the components of a
 -- functorial value with consecutive integers.
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Number 
+module Data.Comp.Multi.Number
     ( Numbered (..)
     , unNumbered
     , number
     , HTraversable ()) where
 
-import Data.Comp.Multi.HTraversable
-import Data.Comp.Multi.HFunctor
-import Data.Comp.Multi.Ordering
 import Data.Comp.Multi.Equality
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.HTraversable
+import Data.Comp.Multi.Ordering
 
 
 import Control.Monad.State

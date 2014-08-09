@@ -18,13 +18,13 @@ module Data.Comp.Multi.Derive.HFunctor
      makeHFunctor
     ) where
 
+import Control.Monad
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.HFunctor
-import Language.Haskell.TH
-import qualified Prelude as P (mapM)
-import Prelude hiding (mapM)
 import Data.Maybe
-import Control.Monad
+import Language.Haskell.TH
+import Prelude hiding (mapM)
+import qualified Prelude as P (mapM)
 
 iter 0 _ e = e
 iter n f e = iter (n-1) f (f `appE` e)

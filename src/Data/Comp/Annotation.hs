@@ -1,6 +1,12 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances,
-  UndecidableInstances, Rank2Types, GADTs, ScopedTypeVariables, FlexibleContexts,
-  ConstraintKinds #-}
+{-# LANGUAGE ConstraintKinds       #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE Rank2Types            #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE UndecidableInstances  #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Annotation
@@ -35,15 +41,13 @@ module Data.Comp.Annotation
      project'
     ) where
 
-import Data.Comp.Term
-import Data.Comp.Sum
-import Data.Comp.Ops
+import Control.Monad
 import Data.Comp.Algebra
 import Data.Comp.Automata
 import Data.Comp.MacroAutomata
-import Control.Monad
-import Data.Traversable
 import Data.Comp.Number
+import Data.Comp.Ops
+import Data.Comp.Term
 
 
 {-| Transform a function with a domain constructed from a functor to a function
@@ -59,14 +63,14 @@ liftA' :: (DistAnn s' p s, Functor s')
        => (s' a -> Cxt h s' a) -> s a -> Cxt h s a
 liftA' f v = let (v',p) = projectA v
              in ann p (f v')
-    
+
 {-| Strip the annotations from a term over a functor with annotations. -}
 stripA :: (RemA g f, Functor g) => CxtFun g f
 stripA = appSigFun remA
 
 {-| Lift a term homomorphism over signatures @f@ and @g@ to a term homomorphism
  over the same signatures, but extended with annotations. -}
-propAnn :: (DistAnn f p f', DistAnn g p g', Functor g) 
+propAnn :: (DistAnn f p f', DistAnn g p g', Functor g)
         => Hom f g -> Hom f' g'
 propAnn hom f' = ann p (hom f)
     where (f,p) = projectA f'
@@ -75,7 +79,7 @@ propAnn hom f' = ann p (hom f)
 -- | Lift a stateful term homomorphism over signatures @f@ and @g@ to
 -- a stateful term homomorphism over the same signatures, but extended with
 -- annotations.
-propAnnQ :: (DistAnn f p f', DistAnn g p g', Functor g) 
+propAnnQ :: (DistAnn f p f', DistAnn g p g', Functor g)
         => QHom f q g -> QHom f' q g'
 propAnnQ hom f' = ann p (hom f)
     where (f,p) = projectA f'
@@ -83,7 +87,7 @@ propAnnQ hom f' = ann p (hom f)
 -- | Lift a bottom-up tree transducer over signatures @f@ and @g@ to a
 -- bottom-up tree transducer over the same signatures, but extended
 -- with annotations.
-propAnnUp :: (DistAnn f p f', DistAnn g p g', Functor g) 
+propAnnUp :: (DistAnn f p f', DistAnn g p g', Functor g)
         => UpTrans f q g -> UpTrans f' q g'
 propAnnUp trans f' = (q, ann p t)
     where (f,p) = projectA f'
@@ -92,7 +96,7 @@ propAnnUp trans f' = (q, ann p t)
 -- | Lift a top-down tree transducer over signatures @f@ and @g@ to a
 -- top-down tree transducer over the same signatures, but extended
 -- with annotations.
-propAnnDown :: (DistAnn f p f', DistAnn g p g', Functor g) 
+propAnnDown :: (DistAnn f p f', DistAnn g p g', Functor g)
         => DownTrans f q g -> DownTrans f' q g'
 propAnnDown trans q f' = ann p (trans q f)
     where (f,p) = projectA f'
@@ -100,7 +104,7 @@ propAnnDown trans q f' = ann p (trans q f)
 -- | Lift a macro tree transducer over signatures @f@ and @g@ to a
 -- macro tree transducer over the same signatures, but extended
 -- with annotations.
-propAnnMacro :: (Functor f, Functor q, DistAnn f p f', DistAnn g p g', Functor g) 
+propAnnMacro :: (Functor f, Functor q, DistAnn f p f', DistAnn g p g', Functor g)
         => MacroTrans f q g -> MacroTrans f' q g'
 propAnnMacro trans q f' = ann p (trans q (fmap ann' f))
     where (f,p) = projectA f'
@@ -109,7 +113,7 @@ propAnnMacro trans q f' = ann p (trans q (fmap ann' f))
 -- | Lift a macro tree transducer with regular look-ahead over
 -- signatures @f@ and @g@ to a macro tree transducer with regular
 -- look-ahead over the same signatures, but extended with annotations.
-propAnnMacroLA :: (Functor f, Functor q, DistAnn f p f', DistAnn g p g', Functor g) 
+propAnnMacroLA :: (Functor f, Functor q, DistAnn f p f', DistAnn g p g', Functor g)
                 => MacroTransLA f q p g -> MacroTransLA f' q p g'
 propAnnMacroLA trans q p f' = ann an (trans q p (fmap ann' f))
     where (f,an) = projectA f'
@@ -118,7 +122,7 @@ propAnnMacroLA trans q p f' = ann an (trans q p (fmap ann' f))
 
 {-| Lift a monadic term homomorphism over signatures @f@ and @g@ to a monadic
   term homomorphism over the same signatures, but extended with annotations. -}
-propAnnM :: (DistAnn f p f', DistAnn g p g', Functor g, Monad m) 
+propAnnM :: (DistAnn f p f', DistAnn g p g', Functor g, Monad m)
          => HomM m f g -> HomM m f' g'
 propAnnM hom f' = liftM (ann p) (hom f)
     where (f,p) = projectA f'

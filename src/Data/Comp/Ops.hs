@@ -1,7 +1,16 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses,
-             FlexibleInstances, FlexibleContexts, GADTs, TypeSynonymInstances,
-             ScopedTypeVariables, FunctionalDependencies, UndecidableInstances,
-             TypeFamilies, DataKinds, ConstraintKinds, PolyKinds #-}
+{-# LANGUAGE ConstraintKinds        #-}
+{-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE FlexibleContexts       #-}
+{-# LANGUAGE FlexibleInstances      #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs                  #-}
+{-# LANGUAGE MultiParamTypeClasses  #-}
+{-# LANGUAGE PolyKinds              #-}
+{-# LANGUAGE ScopedTypeVariables    #-}
+{-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE TypeOperators          #-}
+{-# LANGUAGE TypeSynonymInstances   #-}
+{-# LANGUAGE UndecidableInstances   #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -22,11 +31,11 @@ import Data.Foldable
 import Data.Traversable
 
 import Control.Applicative
-import Control.Monad hiding (sequence, mapM)
+import Control.Monad hiding (mapM, sequence)
 import Data.Comp.SubsumeCommon
 
 
-import Prelude hiding (foldl, mapM, sequence, foldl1, foldr1, foldr)
+import Prelude hiding (foldl, foldl1, foldr, foldr1, mapM, sequence)
 
 
 -- Sums
@@ -42,7 +51,7 @@ fromInl :: (f :+: g) e -> Maybe (f e)
 fromInl = caseF Just (const Nothing)
 
 fromInr :: (f :+: g) e -> Maybe (g e)
-fromInr = caseF (const Nothing) Just 
+fromInr = caseF (const Nothing) Just
 
 {-| Utility function to case on a functor sum, without exposing the internal
   representation of sums. -}
@@ -85,7 +94,7 @@ infixl 5 :=:
 
 type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
     Elem f f = Found Here
-    Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g) 
+    Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
@@ -119,7 +128,7 @@ instance Subsume (Found Here) f f where
 
 instance Subsume (Found p) f g => Subsume (Found (Le p)) f (g :+: g') where
     inj' _ = Inl . inj' (P :: Proxy (Found p))
-    
+
     prj' _ (Inl x) = prj' (P :: Proxy (Found p)) x
     prj' _ _       = Nothing
 
@@ -128,8 +137,8 @@ instance Subsume (Found p) f g => Subsume (Found (Ri p)) f (g' :+: g) where
 
     prj' _ (Inr x) = prj' (P :: Proxy (Found p)) x
     prj' _ _       = Nothing
-              
-instance (Subsume (Found p1) f1 g, Subsume (Found p2) f2 g) 
+
+instance (Subsume (Found p1) f1 g, Subsume (Found p2) f2 g)
     => Subsume (Found (Sum p1 p2)) (f1 :+: f2) g where
     inj' _ (Inl x) = inj' (P :: Proxy (Found p1)) x
     inj' _ (Inr x) = inj' (P :: Proxy (Found p2)) x
@@ -152,12 +161,12 @@ inj = inj' (P :: Proxy (ComprEmb (Elem f g)))
 proj :: forall f g a . (f :<: g) => g a -> Maybe (f a)
 proj = prj' (P :: Proxy (ComprEmb (Elem f g)))
 
-type f :=: g = (f :<: g, g :<: f) 
+type f :=: g = (f :<: g, g :<: f)
 
 
 
 spl :: (f :=: f1 :+: f2) => (f1 a -> b) -> (f2 a -> b) -> f a -> b
-spl f1 f2 x = case inj x of 
+spl f1 f2 x = case inj x of
             Inl y -> f1 y
             Inr y -> f2 y
 

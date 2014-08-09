@@ -43,7 +43,7 @@ makeEqF fname = do
             defEqClause constrs
                 | length constrs  < 2 = []
                 | otherwise = [clause [wildP,wildP] (normalB [|False|]) []]
-            genEqClause (constr, n) = do 
+            genEqClause (constr, n) = do
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
               let pat = ConP constr $ map VarP varNs
@@ -53,7 +53,7 @@ makeEqF fname = do
                   mkEq x y = let (x',y') = (return x,return y)
                              in [| $x' == $y'|]
                   eqs = listE $ zipWith mkEq vars vars'
-              body <- if n == 0 
+              body <- if n == 0
                       then [|True|]
                       else [|and $eqs|]
               return $ Clause [pat, pat'] (NormalB body) []

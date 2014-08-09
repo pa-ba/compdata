@@ -1,4 +1,8 @@
-{-# LANGUAGE GADTs, ScopedTypeVariables, TypeOperators, ConstraintKinds, FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds     #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE GADTs               #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeOperators       #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -16,16 +20,16 @@
 
 module Data.Comp.Generic where
 
-import Data.Comp.Term
-import Data.Comp.Sum
+import Control.Monad hiding (mapM)
 import Data.Comp.Algebra
 import Data.Comp.Automata
+import Data.Comp.Sum
+import Data.Comp.Term
 import Data.Foldable
 import Data.Maybe
 import Data.Traversable
 import GHC.Exts (build)
-import Control.Monad hiding (mapM)
-import Prelude hiding (foldl,mapM)
+import Prelude hiding (foldl, mapM)
 
 
 -- | This function returns the subterm of a given term at the position
@@ -87,11 +91,11 @@ transform' f = transform f' where
 -- | Monadic version of 'transform'.
 transformM :: (Traversable f, Monad m) =>
              (Term f -> m (Term f)) -> Term f -> m (Term f)
-transformM  f = run 
+transformM  f = run
     where run t = f =<< liftM Term (mapM run $ unTerm t)
 
 query :: Foldable f => (Term f -> r) -> (r -> r -> r) -> Term f -> r
-query q c = run 
+query q c = run
     where run i@(Term t) = foldl (\s x -> s `c` run x) (q i) t
 -- query q c i@(Term t) = foldl (\s x -> s `c` query q c x) (q i) t
 

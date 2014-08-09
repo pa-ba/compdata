@@ -1,4 +1,6 @@
-{-# LANGUAGE GADTs, FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Matching
@@ -19,15 +21,15 @@ module Data.Comp.Matching
      module Data.Comp.Variables
     ) where
 
-import Data.Comp.Term
 import Data.Comp.Equality
+import Data.Comp.Term
 import Data.Comp.Variables
-import qualified Data.Map as Map
-import Data.Map (Map)
-import Data.Traversable
 import Data.Foldable
+import Data.Map (Map)
+import qualified Data.Map as Map
+import Data.Traversable
 
-import Prelude hiding (mapM_, mapM, all)
+import Prelude hiding (all, mapM, mapM_)
 
 {-| This is an auxiliary function for implementing 'matchCxt'. It behaves
 similarly as 'match' but is oblivious to non-linearity. Therefore, the
@@ -58,7 +60,7 @@ equal holes have to be instantiated by equal terms! -}
 
 matchCxt :: (Ord v,EqF f, Eq (Cxt h f a), Functor f, Foldable f)
          => Context f v -> Cxt h f a -> Maybe (CxtSubst h a f v)
-matchCxt c1 c2 = do 
+matchCxt c1 c2 = do
   res <- matchCxt' c1 c2
   let insts = Map.elems res
   mapM_ checkEq insts

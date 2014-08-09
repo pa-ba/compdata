@@ -18,16 +18,16 @@ module Data.Comp.Multi.Derive.HFoldable
      makeHFoldable
     )where
 
-import Data.Comp.Derive.Utils
-import Data.Comp.Multi.HFunctor
-import Data.Comp.Multi.HFoldable
-import Data.Foldable
-import Language.Haskell.TH
-import Data.Monoid
-import Data.Maybe
-import qualified Prelude as P (foldl,foldr,foldl1)
-import Prelude hiding  (foldl,foldr,foldl1)
 import Control.Monad
+import Data.Comp.Derive.Utils
+import Data.Comp.Multi.HFoldable
+import Data.Comp.Multi.HFunctor
+import Data.Foldable
+import Data.Maybe
+import Data.Monoid
+import Language.Haskell.TH
+import Prelude hiding (foldl, foldl1, foldr)
+import qualified Prelude as P (foldl, foldl1, foldr)
 
 
 iter 0 _ e = e
@@ -86,7 +86,7 @@ makeHFoldable fname = do
                        fp = if null vars then WildP else VarP fn
                    body <- case vars of
                              [] -> [|mempty|]
-                             (_:_) -> P.foldl1 (\ x y -> [|$x `mappend` $y|]) $ 
+                             (_:_) -> P.foldl1 (\ x y -> [|$x `mappend` $y|]) $
                                       map (\ (d,z) -> iter' (max (d-1) 0) [|fold|] (f' d `appE` z)) vars
                    return $ Clause [fp, pat] (NormalB body) []
             foldlClause (pat,vars) =

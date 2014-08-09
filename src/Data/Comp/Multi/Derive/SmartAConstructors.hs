@@ -12,17 +12,17 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Derive.SmartAConstructors 
+module Data.Comp.Multi.Derive.SmartAConstructors
     (
      smartAConstructors
     ) where
 
-import Language.Haskell.TH hiding (Cxt)
+import Control.Monad
 import Data.Comp.Derive.Utils
+import Data.Comp.Multi.Annotation
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Term
-import Data.Comp.Multi.Annotation
-import Control.Monad
+import Language.Haskell.TH hiding (Cxt)
 
 {-| Derive smart constructors with products for a type constructor of any
   parametric kind taking at least two arguments. The smart constructors are

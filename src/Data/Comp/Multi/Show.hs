@@ -1,6 +1,9 @@
-{-# LANGUAGE TypeOperators, GADTs, FlexibleContexts,
-  UndecidableInstances, FlexibleInstances,
-  TemplateHaskell #-}
+{-# LANGUAGE FlexibleContexts     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE TypeOperators        #-}
+{-# LANGUAGE UndecidableInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Show
@@ -20,11 +23,11 @@ module Data.Comp.Multi.Show
     ( ShowHF(..)
     ) where
 
-import Data.Comp.Multi.Term
-import Data.Comp.Multi.Annotation
 import Data.Comp.Multi.Algebra
-import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Annotation
 import Data.Comp.Multi.Derive
+import Data.Comp.Multi.HFunctor
+import Data.Comp.Multi.Term
 
 instance KShow (K String) where
     kshow = id

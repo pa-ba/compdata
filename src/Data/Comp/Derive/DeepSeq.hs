@@ -41,10 +41,10 @@ makeNFDataF fname = do
   rnfFDecl <- funD 'rnfF (rnfFClauses constrs')
   return [InstanceD preCond classType [rnfFDecl]]
       where rnfFClauses = map genRnfFClause
-            genRnfFClause (constr, args) = do 
+            genRnfFClause (constr, args) = do
               let n = length args
               varNs <- newNames n "x"
               let pat = ConP constr $ map VarP varNs
-                  allVars = map varE varNs 
+                  allVars = map varE varNs
               body <- foldr (\ x y -> [|rnf $x `seq` $y|]) [| () |] allVars
               return $ Clause [pat] (NormalB body) []
