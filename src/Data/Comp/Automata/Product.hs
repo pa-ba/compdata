@@ -1,6 +1,6 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances,
-TemplateHaskell, ScopedTypeVariables, DataKinds, TypeFamilies,
-UndecidableInstances, GADTs, ConstraintKinds, FlexibleContexts, PolyKinds #-}
+ ScopedTypeVariables, DataKinds, TypeFamilies,
+UndecidableInstances, ConstraintKinds, FlexibleContexts, PolyKinds #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata.Product

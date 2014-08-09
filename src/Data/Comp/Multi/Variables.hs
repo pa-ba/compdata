@@ -1,5 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses, GADTs, FlexibleInstances,
-  OverlappingInstances, TypeOperators, KindSignatures, FlexibleContexts, ScopedTypeVariables, RankNTypes, TemplateHaskell #-}
+  OverlappingInstances, TypeOperators, KindSignatures, FlexibleContexts, 
+  ScopedTypeVariables, RankNTypes, TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Variables

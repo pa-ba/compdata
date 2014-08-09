@@ -1,5 +1,5 @@
-{-# LANGUAGE TemplateHaskell, MultiParamTypeClasses, FlexibleInstances,
-  UndecidableInstances, TypeOperators, OverlappingInstances, ConstraintKinds #-}
+{-# LANGUAGE MultiParamTypeClasses, FlexibleInstances,
+  UndecidableInstances, TypeOperators, OverlappingInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Desugar

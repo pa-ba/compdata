@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, GADTs, FlexibleContexts,
-  ScopedTypeVariables, UndecidableInstances, FlexibleInstances,
+  UndecidableInstances, FlexibleInstances,
   TemplateHaskell #-}
 --------------------------------------------------------------------------------
 -- |
