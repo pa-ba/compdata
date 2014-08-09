@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, OverlappingInstances,
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses, 
              FlexibleInstances, FlexibleContexts, GADTs, TypeSynonymInstances,
              ScopedTypeVariables, FunctionalDependencies, UndecidableInstances, 
              KindSignatures, RankNTypes, TypeFamilies, DataKinds, ConstraintKinds,

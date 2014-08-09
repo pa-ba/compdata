@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances, IncoherentInstances #-}
+{-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Automata.Product.Derive

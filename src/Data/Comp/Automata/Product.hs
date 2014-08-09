@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, MultiParamTypeClasses, FlexibleInstances,
-IncoherentInstances, TemplateHaskell, ScopedTypeVariables, DataKinds, TypeFamilies,
+TemplateHaskell, ScopedTypeVariables, DataKinds, TypeFamilies,
 UndecidableInstances, GADTs, ConstraintKinds, FlexibleContexts, PolyKinds #-}
 --------------------------------------------------------------------------------
 -- |

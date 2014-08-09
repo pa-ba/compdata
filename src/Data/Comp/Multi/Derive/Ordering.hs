@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, FlexibleInstances, IncoherentInstances,
+{-# LANGUAGE TemplateHaskell, FlexibleInstances,
   ScopedTypeVariables #-}
 --------------------------------------------------------------------------------
 -- |

@@ -1,5 +1,5 @@
 {-# LANGUAGE EmptyDataDecls, GADTs, KindSignatures, RankNTypes,
-  TypeOperators, ScopedTypeVariables, IncoherentInstances #-}
+  TypeOperators, ScopedTypeVariables #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Term

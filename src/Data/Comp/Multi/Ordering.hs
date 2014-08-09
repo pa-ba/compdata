@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeOperators, TypeSynonymInstances, FlexibleInstances,
-  UndecidableInstances, IncoherentInstances, GADTs #-}
+  UndecidableInstances, GADTs #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Ordering
