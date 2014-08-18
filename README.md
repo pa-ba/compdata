@@ -62,18 +62,15 @@ features:
    *generalised algebraic data types (GADTs)*. All of the above is also lifted
    to families of mutually recursive data types and (more generally) GADTs.
    This extension resides in the module *Data.Comp.Multi*.
-* Advanced recursion schemes derived from tree automata. These
-  recursion schemes allow for a higher degree of modularity and make
-  it possible to apply fusion. See
-  [*Modular Tree Automata*](http://dx.doi.org/10.1007/978-3-642-31113-0_14)
-  (Mathematics of Program Construction, 263-299, 2012) and
-  [*Programming Macro Tree Transducers*](http://dx.doi.org/10.1145/2502488.2502489) (Workshop on Generic
-  Programming, 61-72, 2013).
 
 Examples of using (generalised) compositional data types are bundled
 with the package in the folder `examples`.
 
-Previous versions of this library contained a parametric variant of
-compositional data types. This former part of the library has been
-moved to a separate package:
-[`compdata-param`](https://hackage.haskell.org/package/compdata-param)
+There are some supplementary packages, some of which were included
+in previous versions of this package:
+* [`compdata-param`](https://hackage.haskell.org/package/compdata-param): a parametric
+  variant of compositional data types to deal with variable binders
+  in a systematic way. 
+* [`compdata-automata`](https://hackage.haskell.org/package/compdata-automata):
+  advanced recursion schemes derived from tree automata that allow for
+  a higher degree of modularity and make it possible to apply fusion.
