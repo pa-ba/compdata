@@ -1,5 +1,5 @@
 Name:			compdata
-Version:		0.8.1.3
+Version:		0.9
 Synopsis:            	Compositional Data Types
 Description:
 
@@ -69,14 +69,6 @@ Description:
      to families of mutually recursive data types and (more generally) GADTs.
      This extension resides in the module "Data.Comp.Multi".
   .
-  * Advanced recursion schemes derived from tree automata. These
-    recursion schemes allow for a higher degree of modularity and make
-    it possible to apply fusion. See /Modular Tree Automata/
-    (Mathematics of Program Construction, 263-299, 2012,
-    <http://dx.doi.org/10.1007/978-3-642-31113-0_14>) and 
-    /Programming Macro Tree Transducers/ (Workshop on Generic Programming, 61-72,
-    2013, <http://dx.doi.org/10.1145/2502488.2502489>).
-  .
 
   Examples of using (generalised) compositional data types are bundled
   with the package in the folder @examples@.
@@ -113,7 +105,6 @@ extra-source-files:
   benchmark/Multi/Functions/Comp/*.hs
   -- example files
   examples/Examples/*.hs
-  examples/Examples/Automata/*.hs
   examples/Examples/Multi/*.hs
 
 library
@@ -137,9 +128,6 @@ library
                         Data.Comp.Derive.Utils
                         Data.Comp.Matching
                         Data.Comp.Desugar
-                        Data.Comp.Automata
-                        Data.Comp.MacroAutomata
-                        Data.Comp.Automata.Product
                         Data.Comp.Number
                         Data.Comp.Thunk
                         Data.Comp.Ops
@@ -173,7 +161,6 @@ library
                         Data.Comp.Derive.Foldable
                         Data.Comp.Derive.Traversable
                         Data.Comp.Derive.HaskellStrict
-                        Data.Comp.Automata.Product.Derive
 
                         Data.Comp.Multi.Derive.HFunctor
                         Data.Comp.Multi.Derive.HFoldable
@@ -206,16 +193,6 @@ Benchmark algebra
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
   Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl, QuickCheck >= 2, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
-
-Benchmark macro
-  Type:                 exitcode-stdio-1.0
-  Main-is:		Benchmark.hs
-  hs-source-dirs:	src benchmark-macro
-  ghc-options:          -W -O2
-  -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
-  cpp-options:          -DNO_RULES
-  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl, QuickCheck >= 2, derive, 
-                        deepseq, criterion, random, uniplate, th-expand-syns, transformers
 
 
 source-repository head
