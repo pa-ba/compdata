@@ -3,7 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeOperators #-}
-
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Mapping
@@ -70,7 +70,12 @@ class Mapping m (k :: * -> *) | m -> k where
     -- with a default value.
     prodMap :: v1 -> v2 -> m v1 -> m v2 -> m (v1, v2)
 
-newtype NumMap (k :: * -> *) v = NumMap (IntMap v)
+    -- | Returns the value at the given key or returns the given
+    -- default when the key is not an element of the map.
+    findWithDefault :: a -> k i -> m a -> a
+
+
+newtype NumMap (k :: * -> *) v = NumMap (IntMap v) deriving Functor
 
 lookupNumMap :: a -> Int -> NumMap t a -> a
 lookupNumMap d k (NumMap m) = IntMap.findWithDefault d k m
@@ -79,6 +84,8 @@ instance Mapping (NumMap k) (Numbered k) where
     NumMap m1 & NumMap m2 = NumMap (IntMap.union m1 m2)
     Numbered k _ |-> v = NumMap $ IntMap.singleton k v
     empty = NumMap IntMap.empty
+
+    findWithDefault d (Numbered i _) m = lookupNumMap d i m
 
     prodMap p q (NumMap mp) (NumMap mq) = NumMap $ IntMap.mergeWithKey merge 
                                           (IntMap.map (,q)) (IntMap.map (p,)) mp mq
