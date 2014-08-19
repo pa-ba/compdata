@@ -36,16 +36,19 @@ module Data.Comp.Multi.Variables
      variables',
      appSubst,
      compSubst,
-     getBoundVars
+     getBoundVars,
+    (&),
+    (|->),
+    empty
     ) where
 
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.Derive
 import Data.Comp.Multi.HFoldable
 import Data.Comp.Multi.HFunctor
-import Data.Comp.Multi.Number
+import Data.Comp.Multi.Mapping
 import Data.Comp.Multi.Ops
-import Data.Comp.Multi.Ordering
+
 import Data.Comp.Multi.Term
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -81,20 +84,20 @@ class HasVars (f  :: (* -> *) -> * -> *) v where
     -- @
     -- data Let i e = Let Var (e i) (e i)
     -- instance HasVars Let Var where
-    --   bindsVars (Let v x y) = Map.fromList [(y, (Set.singleton v))]
+    --   bindsVars (Let v x y) = y |-> Set.singleton v
     -- @
     -- If, instead, the let binding is recursive, the methods has to
     -- be implemented like this:
     -- @
-    --   bindsVars (Let v x y) = Map.fromList [(x, (Set.singleton v)),
-    --                                         (y, (Set.singleton v))]
+    --   bindsVars (Let v x y) = x |-> Set.singleton v &
+    --                           y |-> Set.singleton v
     -- @
     -- This indicates that the scope of the bound variable also
     -- extends to the right-hand side of the variable binding.
     --
     -- The default implementation returns the empty map.
-    bindsVars :: KOrd a => f a :=> Map (E a) (Set v)
-    bindsVars _ = Map.empty
+    bindsVars :: Mapping m a => f a :=> m (Set v)
+    bindsVars _ = empty
 
 $(derive [liftSum] [''HasVars])
 
@@ -113,10 +116,9 @@ isVar' b t = do v <- isVar t
 getBoundVars :: forall f a v i . (HasVars f v, HTraversable f) => f a i -> f (a :*: K (Set v)) i
 getBoundVars t = let n :: f (Numbered a) i
                      n = number t
-                     m :: Map (E (Numbered a)) (Set v)
                      m = bindsVars n
                      trans :: Numbered a :-> (a :*: K (Set v))
-                     trans x = unNumbered x :*: K (Map.findWithDefault Set.empty (E x) m)
+                     trans (Numbered i x) = x :*: K (lookupNumMap Set.empty i m)
                  in hfmap trans n
 
 -- | This combinator combines 'getBoundVars' with the 'mfmap' function.
@@ -124,10 +126,9 @@ hfmapBoundVars :: forall f a b v i . (HasVars f v, HTraversable f)
                   => (Set v -> a :-> b) -> f a i -> f b i
 hfmapBoundVars f t = let n :: f (Numbered a) i
                          n = number t
-                         m :: Map (E (Numbered a)) (Set v)
                          m = bindsVars n
                          trans :: Numbered a :-> b
-                         trans x = f (Map.findWithDefault Set.empty (E x) m) (unNumbered x)
+                         trans (Numbered i x) = f (lookupNumMap Set.empty i m) x
                      in hfmap trans n
 
 -- | This combinator combines 'getBoundVars' with the generic 'hfoldl' function.
@@ -135,10 +136,9 @@ hfoldlBoundVars :: forall f a b v i . (HasVars f v, HTraversable f)
                   => (b -> Set v ->  a :=> b) -> b -> f a i -> b
 hfoldlBoundVars f e t = let n :: f (Numbered a) i
                             n = number t
-                            m :: Map (E (Numbered a)) (Set v)
                             m = bindsVars n
                             trans :: b -> Numbered a :=> b
-                            trans x y = f x (Map.findWithDefault Set.empty (E y) m) (unNumbered y)
+                            trans x (Numbered i y) = f x (lookupNumMap Set.empty i m) y
                        in hfoldl trans e n
 
 

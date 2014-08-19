@@ -33,12 +33,15 @@ module Data.Comp.Variables
      substVars,
      appSubst,
      compSubst,
-     getBoundVars
+     getBoundVars,
+    (&),
+    (|->),
+    empty
     ) where
 
 import Data.Comp.Algebra
 import Data.Comp.Derive
-import Data.Comp.Number
+import Data.Comp.Mapping
 import Data.Comp.Term
 import Data.Foldable hiding (elem, notElem)
 import Data.Map (Map)
@@ -71,20 +74,20 @@ class HasVars f v where
     -- @
     -- data Let e = Let Var e e
     -- instance HasVars Let Var where
-    --   bindsVars (Let v x y) = Map.fromList [(y, (Set.singleton v))]
+    --   bindsVars (Let v x y) = y |-> Set.singleton v
     -- @
     -- If, instead, the let binding is recursive, the methods has to
     -- be implemented like this:
     -- @
-    --   bindsVars (Let v x y) = Map.fromList [(x, (Set.singleton v)),
-    --                                         (y, (Set.singleton v))]
+    --   bindsVars (Let v x y) = x |-> Set.singleton v &
+    --                           y |-> Set.singleton v
     -- @
     -- This indicates that the scope of the bound variable also
     -- extends to the right-hand side of the variable binding.
     --
     -- The default implementation returns the empty map.
-    bindsVars :: Ord a => f a -> Map a (Set v)
-    bindsVars _ = Map.empty
+    bindsVars :: Mapping m a => f a -> m (Set v)
+    bindsVars _ = empty
 
 
 $(derive [liftSum] [''HasVars])
@@ -104,21 +107,21 @@ isVar' b t = do v <- isVar t
 getBoundVars :: (HasVars f v, Traversable f) => f a -> f (Set v, a)
 getBoundVars t = let n = number t
                      m = bindsVars n
-                     trans x = (Map.findWithDefault Set.empty x m, unNumbered x)
+                     trans (Numbered i x) = (lookupNumMap Set.empty i m, x)
                  in fmap trans n
 
 -- | This combinator combines 'getBoundVars' with the generic 'fmap' function.
 fmapBoundVars :: (HasVars f v, Traversable f) => (Set v -> a -> b) -> f a -> f b
 fmapBoundVars f t = let n = number t
                         m = bindsVars n
-                        trans x = f (Map.findWithDefault Set.empty x m) (unNumbered x)
+                        trans (Numbered i x) = f (lookupNumMap Set.empty i m) x
                     in fmap trans n
 
 -- | This combinator combines 'getBoundVars' with the generic 'foldl' function.
 foldlBoundVars :: (HasVars f v, Traversable f) => (b -> Set v -> a -> b) -> b -> f a -> b
 foldlBoundVars f e t = let n = number t
                            m = bindsVars n
-                           trans x y = f x (Map.findWithDefault Set.empty y m) (unNumbered y)
+                           trans x (Numbered i y) = f x (lookupNumMap Set.empty i m) y
                        in foldl trans e n
 
 -- | Convert variables to holes, except those that are bound.

@@ -42,13 +42,13 @@ module Data.Comp.Thunk
 
 import Data.Comp.Algebra
 import Data.Comp.Equality
-import Data.Comp.Number
+import Data.Comp.Mapping
 import Data.Comp.Ops ((:+:) (..), fromInr)
 import Data.Comp.Sum
 import Data.Comp.Term
 import Data.Foldable hiding (and)
 
-import qualified Data.Set as Set
+import qualified Data.IntSet as IntSet
 
 import Control.Monad hiding (mapM, sequence)
 import Data.Traversable
@@ -160,7 +160,7 @@ strict x = thunk $ liftM (inject_ (Inr . inj)) $ mapM whnf' x
 -- @f@. It is a function that extracts a number of components (of
 -- polymorphic type @a@) from a functorial value and puts it into a
 -- list.
-type Pos f = forall a . Ord a => f a -> [a]
+type Pos f = forall a . f a -> [a]
 
 -- | This combinator is a variant of 'strict' that only makes a subset
 -- of the arguments of a functor application strict. The first
@@ -169,7 +169,7 @@ type Pos f = forall a . Ord a => f a -> [a]
 strictAt :: (f :<: g, Traversable f, Monad m) => Pos f ->  f (TermT m g) -> TermT m g
 strictAt p s = thunk $ liftM (inject_ (Inr . inj)) $ mapM run s'
     where s'  = number s
-          isStrict e = Set.member e $ Set.fromList $ p s'
+          isStrict (Numbered i _) = IntSet.member i $ IntSet.fromList $ map (\(Numbered i _) -> i) $ p s'
           run e | isStrict e = whnf' $ unNumbered e
                 | otherwise  = return $ unNumbered e
 

@@ -64,16 +64,16 @@ instance HasVars Val Var where
     isVar (Var v) = Just v
     isVar _       = Nothing
     
-    bindsVars (Abs v a) = Map.singleton (E a) (Set.singleton v)
-    bindsVars _         = Map.empty
+    bindsVars (Abs v a) = a |-> Set.singleton v
+    bindsVars _         = empty
 
 instance HasVars Op a where
 
 instance HasVars Let Var where
-    bindsVars (Let v _ a) = Map.singleton (E a) (Set.singleton v)
+    bindsVars (Let v _ a) = a |-> Set.singleton v
 
 instance HasVars LetRec Var where
-    bindsVars (LetRec v a b) = Map.fromList [(E a,vs),(E b,vs)]
+    bindsVars (LetRec v a b) = a |-> vs & b |-> vs
         where vs = Set.singleton v
 
 -- let x = x + 1 in (\y. y + x) z

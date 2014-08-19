@@ -138,7 +138,7 @@ library
                         Data.Comp.Derive.Utils
                         Data.Comp.Matching
                         Data.Comp.Desugar
-                        Data.Comp.Number
+                        Data.Comp.Mapping
                         Data.Comp.Thunk
                         Data.Comp.Ops
 
@@ -155,7 +155,7 @@ library
                         Data.Comp.Multi.Ordering
                         Data.Comp.Multi.Variables
                         Data.Comp.Multi.Ops
-                        Data.Comp.Multi.Number
+                        Data.Comp.Multi.Mapping
                         Data.Comp.Multi.Derive
                         Data.Comp.Multi.Generic
                         Data.Comp.Multi.Desugar
