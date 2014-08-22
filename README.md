@@ -74,3 +74,5 @@ in previous versions of this package:
 * [`compdata-automata`](https://hackage.haskell.org/package/compdata-automata):
   advanced recursion schemes derived from tree automata that allow for
   a higher degree of modularity and make it possible to apply fusion.
+* [`compdata-dags`](https://hackage.haskell.org/package/compdata-dags): recursion
+  schemes on directed acyclic graphs.
