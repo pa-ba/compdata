@@ -36,7 +36,10 @@ class HFoldable t => HTraversable t where
     -- Alternative type in terms of natural transformations using
     -- functor composition @:.:@:
     --
-    -- @hmapM :: Monad m => (a :-> m :.: b) -> t a :-> m :.: (t b)@
+    -- @
+    -- hmapM :: Monad m => (a :-> m :.: b) -> t a :-> m :.: (t b)
+    -- @
+    -- 
     hmapM :: (Monad m) => NatM m a b -> NatM m (t a) (t b)
 
     htraverse :: (Applicative f) => NatM f a b -> NatM f (t a) (t b)

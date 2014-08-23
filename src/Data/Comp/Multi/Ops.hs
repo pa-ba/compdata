@@ -184,7 +184,9 @@ infixr 7 :&:
 -- | This data type adds a constant product to a
 -- signature. Alternatively, this could have also been defined as
 --
--- @data (f :&: a) (g ::  * -> *) e = f g e :&: a e@
+-- @
+-- data (f :&: a) (g ::  * -> *) e = f g e :&: a e
+-- @
 --
 -- This is too general, however, for example for 'productHHom'.
 

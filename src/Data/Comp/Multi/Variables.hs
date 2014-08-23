@@ -81,17 +81,21 @@ class HasVars (f  :: (* -> *) -> * -> *) v where
     -- | Indicates the set of variables bound by the @f@ constructor
     -- for each argument of the constructor. For example for a
     -- non-recursive let binding:
+    -- 
     -- @
     -- data Let i e = Let Var (e i) (e i)
     -- instance HasVars Let Var where
     --   bindsVars (Let v x y) = y |-> Set.singleton v
     -- @
+    -- 
     -- If, instead, the let binding is recursive, the methods has to
     -- be implemented like this:
+    -- 
     -- @
     --   bindsVars (Let v x y) = x |-> Set.singleton v &
     --                           y |-> Set.singleton v
     -- @
+    -- 
     -- This indicates that the scope of the bound variable also
     -- extends to the right-hand side of the variable binding.
     --
