@@ -22,6 +22,7 @@ module Data.Comp.Mapping
     , number
     , Traversable ()
     , Mapping (..)
+    , prodMap
     , lookupNumMap) where
 
 import Data.IntMap (IntMap)
@@ -64,13 +65,16 @@ class Functor m => Mapping m k | m -> k where
 
     -- | This function constructs the pointwise product of two maps each
     -- with a default value.
-    prodMap :: v1 -> v2 -> m v1 -> m v2 -> m (v1, v2)
+    prodMapWith :: (v1 -> v2 -> v) -> v1 -> v2 -> m v1 -> m v2 -> m v
 
     -- | Returns the value at the given key or returns the given
     -- default when the key is not an element of the map.
     findWithDefault :: a -> k -> m a -> a
 
-
+-- | This function constructs the pointwise product of two maps each
+-- with a default value.
+prodMap :: Mapping m k => v1 -> v2 -> m v1 -> m v2 -> m (v1, v2)
+prodMap = prodMapWith (,)
 
 newtype NumMap k v = NumMap (IntMap v) deriving Functor
 
@@ -84,6 +88,6 @@ instance Mapping (NumMap k) (Numbered k) where
 
     findWithDefault d (Numbered i _) m = lookupNumMap d i m
 
-    prodMap p q (NumMap mp) (NumMap mq) = NumMap $ IntMap.mergeWithKey merge 
-                                          (IntMap.map (,q)) (IntMap.map (p,)) mp mq
-      where merge _ p q = Just (p,q)
+    prodMapWith f p q (NumMap mp) (NumMap mq) = NumMap $ IntMap.mergeWithKey merge 
+                                          (IntMap.map (`f` q)) (IntMap.map (p `f`)) mp mq
+      where merge _ p q = Just (p `f` q)
