@@ -167,6 +167,9 @@ ffst (x :*: _) = x
 fsnd :: (f :*: g) a -> g a
 fsnd (_ :*: x) = x
 
+instance (Functor f, Functor g) => Functor (f :*: g) where
+    fmap h (f :*: g) = (fmap h f :*: fmap h g)
+
 -- Constant Products
 
 infixr 7 :&:
