@@ -9,6 +9,23 @@
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
+
+
+--------------------------------------------------------------------------------
+-- |
+-- Module      :  Data.Comp.Projection
+-- Copyright   :  (c) 2014 Patrick Bahr
+-- License     :  BSD3
+-- Maintainer  :  Patrick Bahr <paba@di.ku.dk>
+-- Stability   :  experimental
+-- Portability :  non-portable (GHC Extensions)
+--
+-- This module provides a generic projection function 'pr' for
+-- arbitrary nested binary products.
+--
+--------------------------------------------------------------------------------
+
+
 module Data.Comp.Projection (pr, (:<)) where
 
 import Data.Comp.SubsumeCommon
@@ -41,7 +58,17 @@ instance (Proj (Found p1) f1 g, Proj (Found p2) f2 g)
 
 
 infixl 5 :<
+
+-- | The constraint @e :< p@ expresses that @e@ is a component of the
+-- type @p@. That is, @p@ is formed by binary products using the type
+-- @e@. The occurrence of @e@ must be unique. For example we have @Int
+-- :< (Bool,(Int,Bool))@ but not @Bool :< (Bool,(Int,Bool))@.
+
 type f :< g = (Proj (ComprEmb (Elem f g)) f g)
+
+
+-- | This function projects the component of type @e@ out or the
+-- compound value of type @p@.
 
 pr :: forall p q . (p :< q) => q -> p
 pr = pr' (P :: Proxy (ComprEmb (Elem p q)))
