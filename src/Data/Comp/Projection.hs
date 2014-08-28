@@ -38,8 +38,8 @@ type family Elem (f :: *)
     Elem f g = NotFound
 
 class Proj (e :: Emb) (p :: *)
-                         (q :: *) where
-  pr'  :: Proxy e -> q -> p
+                      (q :: *) where
+    pr'  :: Proxy e -> q -> p
 
 instance Proj (Found Here) f f where
     pr' _ = id
