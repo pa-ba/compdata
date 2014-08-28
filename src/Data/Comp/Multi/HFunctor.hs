@@ -1,3 +1,6 @@
+{-# LANGUAGE DeriveTraversable         #-}
+{-# LANGUAGE DeriveFoldable            #-}
+{-# LANGUAGE DeriveFunctor             #-}
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE FlexibleInstances         #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
@@ -34,17 +37,15 @@ module Data.Comp.Multi.HFunctor
      (:.:)(..)
      ) where
 
--- | The identity Functor.
-newtype I a = I {unI :: a}
+import Data.Traversable
+import Data.Foldable
 
-instance Functor I where
-    fmap f (I x) = I (f x)
+-- | The identity Functor.
+newtype I a = I {unI :: a} deriving (Functor, Foldable, Traversable)
+
 
 -- | The parametrised constant functor.
-newtype K a i = K {unK :: a}
-
-instance Functor (K a) where
-    fmap _ (K x) = K x
+newtype K a i = K {unK :: a} deriving (Functor, Foldable, Traversable)
 
 data E f = forall i. E {unE :: f i}
 

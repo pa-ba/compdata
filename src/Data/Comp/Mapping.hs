@@ -23,7 +23,9 @@ module Data.Comp.Mapping
     , Traversable ()
     , Mapping (..)
     , prodMap
-    , lookupNumMap) where
+    , lookupNumMap
+    , lookupNumMap'
+    , NumMap) where
 
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
@@ -80,6 +82,9 @@ newtype NumMap k v = NumMap (IntMap v) deriving Functor
 
 lookupNumMap :: a -> Int -> NumMap t a -> a
 lookupNumMap d k (NumMap m) = IntMap.findWithDefault d k m
+
+lookupNumMap' :: Int -> NumMap t a -> Maybe a
+lookupNumMap' k (NumMap m) = IntMap.lookup k m
 
 instance Mapping (NumMap k) (Numbered k) where
     NumMap m1 & NumMap m2 = NumMap (IntMap.union m1 m2)

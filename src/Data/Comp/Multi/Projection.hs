@@ -26,7 +26,7 @@
 --------------------------------------------------------------------------------
 
 
-module Data.Comp.Multi.Projection (pr, (:<), (:*:)(..)) where
+module Data.Comp.Multi.Projection (pr, (:<), (:*:)(..), ffst, fsnd) where
 
 import Data.Comp.SubsumeCommon
 import Data.Comp.Multi.Ops hiding (Elem)
