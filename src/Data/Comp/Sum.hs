@@ -26,7 +26,6 @@ module Data.Comp.Sum
      (:=:),
      (:+:),
      caseF,
-     Proxy (..),
 
      -- * Projections for Signatures and Terms
      proj,

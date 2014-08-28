@@ -2,6 +2,7 @@
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE PolyKinds            #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -21,6 +22,9 @@ module Data.Comp.SubsumeCommon
     ( ComprEmb
     , Pos (..)
     , Emb (..)
+    , Choose
+    , Sum'
+    , Proxy (..)
     ) where
 
 -- | This type is used in its promoted form only. It represents
@@ -34,6 +38,26 @@ data Pos = Here | Le Pos | Ri Pos | Sum Pos Pos
 -- found. 'Ambiguous' indicates that there are duplicates on the left-
 -- or the right-hand side.
 data Emb = Found Pos | NotFound | Ambiguous
+
+data Proxy a = P
+
+
+type family Choose (e1 :: Emb) (r :: Emb) :: Emb where
+    Choose (Found x) (Found y) = Ambiguous
+    Choose Ambiguous y = Ambiguous
+    Choose x Ambiguous = Ambiguous
+    Choose (Found x) y = Found (Le x)
+    Choose x (Found y) = Found (Ri y)
+    Choose x y = NotFound
+
+
+type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
+    Sum' (Found x) (Found y) = Found (Sum x y)
+    Sum' Ambiguous y = Ambiguous
+    Sum' x Ambiguous = Ambiguous
+    Sum' NotFound y = NotFound
+    Sum' x NotFound = NotFound
+
 
 -- | This type family takes a position type and compresses it. That
 -- means it replaces each nested occurrence of

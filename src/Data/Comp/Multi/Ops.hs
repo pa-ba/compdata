@@ -28,7 +28,12 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Ops where
+module Data.Comp.Multi.Ops 
+    ( module Data.Comp.Multi.Ops
+    , (O.:*:)(..)
+    , O.ffst
+    , O.fsnd
+    ) where
 
 import Control.Applicative
 import Control.Monad
@@ -90,25 +95,6 @@ type family Elem (f :: (* -> *) -> * -> *)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
-
-type family Choose (e1 :: Emb) (r :: Emb) :: Emb where
-    Choose (Found x) (Found y) = Ambiguous
-    Choose Ambiguous y = Ambiguous
-    Choose x Ambiguous = Ambiguous
-    Choose (Found x) y = Found (Le x)
-    Choose x (Found y) = Found (Ri y)
-    Choose x y = NotFound
-
-
-type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
-    Sum' (Found x) (Found y) = Found (Sum x y)
-    Sum' Ambiguous y = Ambiguous
-    Sum' x Ambiguous = Ambiguous
-    Sum' NotFound y = NotFound
-    Sum' x NotFound = NotFound
-
-data Proxy a = P
-
 class Subsume (e :: Emb) (f :: (* -> *) -> * -> *)
                          (g :: (* -> *) -> * -> *) where
   inj'  :: Proxy e -> f a :-> g a
@@ -163,19 +149,6 @@ spl :: (f :=: f1 :+: f2) => (f1 a :-> b) -> (f2 a :-> b) -> f a :-> b
 spl f1 f2 x = case inj x of
             Inl y -> f1 y
             Inr y -> f2 y
-
--- Products
-
-infixr 8 :*:
-
-data (f :*: g) a = f a :*: g a
-
-
-fst :: (f :*: g) a -> f a
-fst (x :*: _) = x
-
-snd :: (f :*: g) a -> g a
-snd (_ :*: x) = x
 
 -- Constant Products
 

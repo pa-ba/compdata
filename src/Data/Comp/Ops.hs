@@ -98,25 +98,6 @@ type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
-
-type family Choose (e1 :: Emb) (r :: Emb) :: Emb where
-    Choose (Found x) (Found y) = Ambiguous
-    Choose Ambiguous y = Ambiguous
-    Choose x Ambiguous = Ambiguous
-    Choose (Found x) y = Found (Le x)
-    Choose x (Found y) = Found (Ri y)
-    Choose x y = NotFound
-
-
-type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
-    Sum' (Found x) (Found y) = Found (Sum x y)
-    Sum' Ambiguous y = Ambiguous
-    Sum' x Ambiguous = Ambiguous
-    Sum' NotFound y = NotFound
-    Sum' x NotFound = NotFound
-
-data Proxy a = P
-
 class Subsume (e :: Emb) (f :: * -> *) (g :: * -> *) where
   inj'  :: Proxy e -> f a -> g a
   prj'  :: Proxy e -> g a -> Maybe (f a)
