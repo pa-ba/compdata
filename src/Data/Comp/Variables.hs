@@ -43,6 +43,7 @@ import Data.Comp.Algebra
 import Data.Comp.Derive
 import Data.Comp.Mapping
 import Data.Comp.Term
+import Data.Comp.Ops
 import Data.Foldable hiding (elem, notElem)
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -95,6 +96,10 @@ class HasVars f v where
 
 
 $(derive [liftSum] [''HasVars])
+
+instance HasVars f v => HasVars (f :&: a) v where
+  isVar (f :&: _)     = isVar f
+  bindsVars (f :&: _) = bindsVars f
 
 -- | Same as 'isVar' but it returns Nothing@ instead of @Just v@ if
 -- @v@ is contained in the given set of variables.
