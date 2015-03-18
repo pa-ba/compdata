@@ -32,7 +32,7 @@ makeEqHF fname = do
       argNames = map (VarT . tyVarBndrName) (init args')
       ftyp = VarT . tyVarBndrName $ last args'
       complType = foldl AppT (ConT name) argNames
-      preCond = map (ClassP ''Eq . (: [])) argNames
+      preCond = map (AppT (ConT ''Eq)) argNames
       classType = AppT (ConT ''EqHF) complType
   constrs' <- mapM normalConExp constrs
   eqFDecl <- funD 'eqHF  (eqFClauses ftyp constrs constrs')

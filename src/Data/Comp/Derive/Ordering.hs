@@ -40,7 +40,7 @@ makeOrdF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
-      preCond = map (ClassP ''Ord . (: [])) argNames
+      preCond = map (AppT (ConT ''Ord)) argNames
       classType = AppT (ConT ''OrdF) complType
   eqAlgDecl <- funD 'compareF  (compareFClauses constrs)
   return [InstanceD preCond classType [eqAlgDecl]]

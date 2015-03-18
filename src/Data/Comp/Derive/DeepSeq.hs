@@ -35,7 +35,7 @@ makeNFDataF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
-      preCond = map (ClassP ''NFData . (: [])) argNames
+      preCond = map (AppT (ConT ''NFData)) argNames
       classType = AppT (ConT ''NFDataF) complType
   constrs' <- mapM normalConExp constrs
   rnfFDecl <- funD 'rnfF (rnfFClauses constrs')

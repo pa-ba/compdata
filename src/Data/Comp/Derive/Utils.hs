@@ -154,8 +154,8 @@ liftSumGen caseName sumName fname = do
       let g = VarT $ mkName "g"
       let ts1 = map VarT ts1_
       let ts2 = map VarT ts2_
-      let cxt = [ClassP name (ts1 ++ f : ts2),
-                 ClassP name (ts1 ++ g : ts2)]
+      let cxt = [foldl AppT (ConT name) (ts1 ++ f : ts2),
+                 foldl AppT (ConT name) (ts1 ++ g : ts2)]
       let tp = ((ConT sumName `AppT` f) `AppT` g)
       let complType = foldl AppT (foldl AppT (ConT name) ts1 `AppT` tp) ts2
       decs' <- sequence $ concatMap decl decs
