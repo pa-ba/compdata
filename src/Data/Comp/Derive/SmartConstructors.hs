@@ -52,7 +52,7 @@ smartConstructors fname = do
                     h = varT hvar
                     a = varT avar
                     ftype = foldl appT (conT tname) (map varT targs')
-                    constr = foldl appT (conT ''(:<:)) [ftype, f]
+                    constr = classP ''(:<:) [ftype, f]
                     typ = foldl appT (conT ''Cxt) [h, f, a]
                     typeSig = forallT (map PlainTV vars) (sequence [constr]) typ
                 sigD sname typeSig
