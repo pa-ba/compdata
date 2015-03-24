@@ -27,7 +27,7 @@ reportError = report True
 #endif
 
 {-|
-  This is the @Q@-lifted version of 'abstractNewtypeQ.
+  This is the @Q@-lifted version of 'abstractNewtype.
 -}
 abstractNewtypeQ :: Q Info -> Q Info
 abstractNewtypeQ = liftM abstractNewtype
@@ -125,6 +125,33 @@ tupleTypes n m = map tupleTypeName [n..m]
 derive :: [Name -> Q [Dec]] -> [Name] -> Q [Dec]
 derive ders names = liftM concat $ sequence [der name | der <- ders, name <- names]
 
+{-| Apply a class name to type arguments to construct a type class
+    constraint.
+-}
+
+#if __GLASGOW_HASKELL__ < 710
+mkClassP :: Name -> [Type] -> Pred
+mkClassP = ClassP
+#else
+mkClassP :: Name -> [Type] -> Type
+mkClassP name = foldl AppT (ConT name)
+#endif
+
+{-| This function checks whether the given type constraint is an
+equality constraint. If so, the types of the equality constraint are
+returned. -}
+
+#if __GLASGOW_HASKELL__ < 710
+isEqualP :: Pred -> Maybe (Type, Type)
+isEqualP (EqualP x y) = Just (x, y)
+isEqualP _ = Nothing
+#else
+isEqualP :: Type -> Maybe (Type, Type)
+isEqualP (AppT (AppT EqualityT x) y) = Just (x, y)
+isEqualP _ = Nothing
+#endif
+
+
 -- | This function lifts type class instances over sums
 -- ofsignatures. To this end it assumes that it contains only methods
 -- with types of the form @f t1 .. tn -> t@ where @f@ is the signature
@@ -154,8 +181,8 @@ liftSumGen caseName sumName fname = do
       let g = VarT $ mkName "g"
       let ts1 = map VarT ts1_
       let ts2 = map VarT ts2_
-      let cxt = [ClassP name (ts1 ++ f : ts2),
-                 ClassP name (ts1 ++ g : ts2)]
+      let cxt = [mkClassP name (ts1 ++ f : ts2),
+                 mkClassP name (ts1 ++ g : ts2)]
       let tp = ((ConT sumName `AppT` f) `AppT` g)
       let complType = foldl AppT (foldl AppT (ConT name) ts1 `AppT` tp) ts2
       decs' <- sequence $ concatMap decl decs

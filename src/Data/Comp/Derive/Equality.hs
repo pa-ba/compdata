@@ -34,7 +34,7 @@ makeEqF fname = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
-      preCond = map (ClassP ''Eq . (: [])) argNames
+      preCond = map (mkClassP ''Eq . (: [])) argNames
       classType = AppT (ConT ''EqF) complType
   eqFDecl <- funD 'eqF  (eqFClauses constrs)
   return [InstanceD preCond classType [eqFDecl]]

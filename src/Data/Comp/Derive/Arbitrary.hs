@@ -49,7 +49,7 @@ makeArbitraryF dt = do
   TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify dt
   let argNames = map (VarT . tyVarBndrName) (tail args)
       complType = foldl AppT (ConT name) argNames
-      preCond = map (ClassP ''Arbitrary . (: [])) argNames
+      preCond = map (mkClassP ''Arbitrary . (: [])) argNames
       classType = AppT (ConT ''ArbitraryF) complType
   arbitraryDecl <- generateArbitraryFDecl constrs
   shrinkDecl <- generateShrinkFDecl constrs

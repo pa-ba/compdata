@@ -49,7 +49,7 @@ makeShowHF fname = do
       fArg = VarT . tyVarBndrName $ last args'
       argNames = map (VarT . tyVarBndrName) (init args')
       complType = foldl AppT (ConT name) argNames
-      preCond = map (ClassP ''Show . (: [])) argNames
+      preCond = map (mkClassP ''Show . (: [])) argNames
       classType = AppT (ConT ''ShowHF) complType
   constrs' <- mapM normalConExp constrs
   showFDecl <- funD 'showHF (showFClauses fArg constrs')
