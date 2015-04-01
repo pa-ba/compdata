@@ -20,7 +20,7 @@ import Data.Comp.Decompose
 import Data.Comp.Term
 import Data.Comp.Variables
 
-import Control.Monad.Error
+import Control.Monad.Except
 import Control.Monad.State
 
 import Data.Traversable
@@ -42,10 +42,6 @@ unification.  -}
 data UnifError f v = FailedOccursCheck v (Term f)
                    | HeadSymbolMismatch (Term f) (Term f)
                    | UnifError String
-
-instance Error (UnifError f v) where
-    strMsg = UnifError
-
 
 -- | This is used in order to signal a failed occurs check during
 -- unification.
