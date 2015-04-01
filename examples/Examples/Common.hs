@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators #-}
+{-# LANGUAGE FlexibleContexts #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Common
