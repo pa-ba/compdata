@@ -39,6 +39,7 @@ module Data.Comp.Multi.HFunctor
 
 import Data.Traversable
 import Data.Foldable
+import Data.Functor.Compose
 
 -- | The identity Functor.
 newtype I a = I {unI :: a} deriving (Functor, Foldable, Traversable)
@@ -95,6 +96,8 @@ class HFunctor h where
     -- | A higher-order functor @f@ also maps a natural transformation
     -- @g :-> h@ to a natural transformation @f g :-> f h@
     hfmap :: (f :-> g) -> h f :-> h g
+
+instance (Functor f) => HFunctor (Compose f) where hfmap f (Compose xs) = Compose (f <$> xs)
 
 infixl 5 :.:
 
