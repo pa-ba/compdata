@@ -1,3 +1,4 @@
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE DeriveTraversable         #-}
 {-# LANGUAGE DeriveFoldable            #-}
 {-# LANGUAGE DeriveFunctor             #-}
@@ -102,4 +103,4 @@ instance (Functor f) => HFunctor (Compose f) where hfmap f (Compose xs) = Compos
 infixl 5 :.:
 
 -- | This data type denotes the composition of two functor families.
-data  (f :.: g) e t = Comp f (g e) t
+data (:.:) f (g :: (* -> *) -> (* -> *)) (e :: * -> *) t = Comp (f (g e) t)
