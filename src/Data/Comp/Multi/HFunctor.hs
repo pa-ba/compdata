@@ -97,7 +97,7 @@ class HFunctor h where
     -- @g :-> h@ to a natural transformation @f g :-> f h@
     hfmap :: (f :-> g) -> h f :-> h g
 
-instance (Functor f) => HFunctor (Compose f) where hfmap f (Compose xs) = Compose (f <$> xs)
+instance (Functor f) => HFunctor (Compose f) where hfmap f (Compose xs) = Compose (fmap f xs)
 
 infixl 5 :.:
 
