@@ -9,6 +9,7 @@
 {-# LANGUAGE ScopedTypeVariables       #-}
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
+{-# LANGUAGE IncoherentInstances       #-}
 
 --------------------------------------------------------------------------------
 -- |
