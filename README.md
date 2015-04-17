@@ -1,5 +1,4 @@
-Compositional Data Types
-========================
+# Compositional Data Types [![Build Status](https://travis-ci.org/pa-ba/compdata.svg?branch=master)](https://travis-ci.org/pa-ba/compdata)
 
 This library implements the ideas of
 [*Data types a la carte*](http://dx.doi.org/10.1017/S0956796808006758)
