@@ -199,7 +199,7 @@ Test-Suite test
   Main-is:		Data_Test.hs
   hs-source-dirs:	testsuite/tests examples src
   Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2, 
-                        HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2, derive,
+                        HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2 >= 0.3, derive,
                         th-expand-syns, deepseq, transformers
 
 Benchmark algebra
