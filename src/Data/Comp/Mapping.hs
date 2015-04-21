@@ -3,6 +3,8 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE DeriveFoldable #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Mapping
@@ -31,6 +33,7 @@ module Data.Comp.Mapping
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
 import Data.Traversable
+import Data.Foldable
 
 import Control.Monad.State hiding (mapM)
 import Prelude hiding (mapM)
@@ -79,7 +82,7 @@ class Functor m => Mapping m k | m -> k where
 prodMap :: Mapping m k => v1 -> v2 -> m v1 -> m v2 -> m (v1, v2)
 prodMap = prodMapWith (,)
 
-newtype NumMap k v = NumMap (IntMap v) deriving Functor
+newtype NumMap k v = NumMap (IntMap v) deriving (Functor,Foldable,Traversable)
 
 lookupNumMap :: a -> Int -> NumMap t a -> a
 lookupNumMap d k (NumMap m) = IntMap.findWithDefault d k m
