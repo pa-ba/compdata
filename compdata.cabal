@@ -187,7 +187,7 @@ library
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Multi.Derive.SmartAConstructors
 
-  Build-Depends:	base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.8, derive,
+  Build-Depends:	base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.9, derive,
                         deepseq, th-expand-syns, transformers, tree-view
   Extensions:           FlexibleContexts
   hs-source-dirs:	src
@@ -198,7 +198,7 @@ Test-Suite test
   Type:                 exitcode-stdio-1.0
   Main-is:		Data_Test.hs
   hs-source-dirs:	testsuite/tests examples src
-  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.8, 
+  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.9, 
                         HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2 >= 0.3, derive,
                         th-expand-syns, deepseq, transformers
 
@@ -209,7 +209,7 @@ Benchmark algebra
   ghc-options:          -W -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
-  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.8, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
+  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.9, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
 
 
 source-repository head
