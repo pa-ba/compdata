@@ -454,12 +454,12 @@ ana f = run
 
 -- | Shortcut fusion variant of 'ana'.
 ana' :: forall a f . Functor f => Coalg f a -> a -> Term f
-ana' f t = build $ run t
+ana' f t = build (run t)
     where run :: forall b . a -> Alg f b -> b
           run t con = run' t where
               run' :: a ->  b
               run' t = con $ fmap run' (f t)
-
+{-# INLINE [2] ana' #-}
 build :: (forall a. Alg f a -> a) -> Term f
 {-# INLINE [1] build #-}
 build g = g Term
