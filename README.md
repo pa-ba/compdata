@@ -1,11 +1,10 @@
 # Compositional Data Types [![Build Status](https://travis-ci.org/pa-ba/compdata.svg?branch=master)](https://travis-ci.org/pa-ba/compdata)
 
 This library implements the ideas of
-[*Data types a la carte*](http://dx.doi.org/10.1017/S0956796808006758)
-(Journal of Functional Programming, 18(4):423-436, 2008) as outlined
-in the paper
-[*Compositional data types*](http://dx.doi.org/10.1145/2036918.2036930)
-(Workshop on Generic Programming, 83-94, 2011). The purpose of this
+[*Data types a la carte*](https://www.staff.science.uu.nl/%7Eswier004/Publications/DataTypesALaCarte.pdf)
+(Wouter Swiestra, Journal of Functional Programming, 18(4):423-436, 2008) as outlined in the paper
+[*Compositional data types*](http://www.diku.dk/~paba/pubs/entries/bahr11wgp.html)
+(Patrick Bahr and Tom Hvitved, Workshop on Generic Programming, 83-94, 2011). The purpose of this
 library is to allow the programmer to construct data types -- as well
 as the functions defined on them -- in a modular fashion. The
 underlying idea is to separate the signature of a data type from the
