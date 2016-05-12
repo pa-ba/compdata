@@ -33,7 +33,7 @@ iter n f e = iter (n-1) f (f `appE` e)
   kind taking at least two arguments. -}
 makeHFunctor :: Name -> Q [Dec]
 makeHFunctor fname = do
-  TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
+  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       fArg = VarT . tyVarBndrName $ last args'
       argNames = map (VarT . tyVarBndrName) (init args')
@@ -41,7 +41,7 @@ makeHFunctor fname = do
       classType = AppT (ConT ''HFunctor) complType
   constrs' <- P.mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   hfmapDecl <- funD 'hfmap (map hfmapClause constrs')
-  return [InstanceD [] classType [hfmapDecl]]
+  return [InstanceD Nothing [] classType [hfmapDecl]]
       where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x

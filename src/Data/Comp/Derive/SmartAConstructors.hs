@@ -30,7 +30,7 @@ import Language.Haskell.TH hiding (Cxt)
   inserted. -}
 smartAConstructors :: Name -> Q [Dec]
 smartAConstructors fname = do
-    TyConI (DataD _cxt _tname _targs constrs _deriving) <- abstractNewtypeQ $ reify fname
+    TyConI (DataD _cxt _tname _targs mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
     let cons = map abstractConType constrs
     liftM concat $ mapM genSmartConstr cons
         where genSmartConstr   (name, args) = do

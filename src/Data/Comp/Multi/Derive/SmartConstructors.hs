@@ -29,7 +29,7 @@ import Language.Haskell.TH hiding (Cxt)
  ordinary constructors, but an 'inject' is automatically inserted. -}
 smartConstructors :: Name -> Q [Dec]
 smartConstructors fname = do
-    TyConI (DataD _cxt tname targs constrs _deriving) <- abstractNewtypeQ $ reify fname
+    TyConI (DataD _cxt tname targs mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
     let iVar = tyVarBndrName $ last targs
     let cons = map (abstractConType &&& iTp iVar) constrs
     liftM concat $ mapM (genSmartConstr (map tyVarBndrName targs) tname) cons

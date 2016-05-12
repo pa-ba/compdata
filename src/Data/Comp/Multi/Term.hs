@@ -83,9 +83,9 @@ instance (HFunctor f) => HFunctor (Cxt h f) where
 
 instance (HFoldable f) => HFoldable (Cxt h f) where
     hfoldr = hfoldr' where
-        hfoldr'  :: forall a b. (a :=> b -> b) -> b -> Cxt h f a :=> b
+        hfoldr'  :: forall a b. (a :=> (b -> b)) -> b -> Cxt h f a :=> b
         hfoldr' op c a = run a c where
-              run :: (Cxt h f) a :=> b ->  b
+              run :: (Cxt h f) a :=> (b ->  b)
               run (Hole a) e = a `op` e
               run (Term t) e = hfoldr run e t
 

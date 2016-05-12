@@ -27,7 +27,7 @@ import Language.Haskell.TH hiding (Cxt, match)
   kind taking at least two arguments. -}
 makeEqHF :: Name -> Q [Dec]
 makeEqHF fname = do
-  TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
+  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       argNames = map (VarT . tyVarBndrName) (init args')
       ftyp = VarT . tyVarBndrName $ last args'
@@ -36,7 +36,7 @@ makeEqHF fname = do
       classType = AppT (ConT ''EqHF) complType
   constrs' <- mapM normalConExp constrs
   eqFDecl <- funD 'eqHF  (eqFClauses ftyp constrs constrs')
-  return [InstanceD preCond classType [eqFDecl]]
+  return [InstanceD Nothing preCond classType [eqFDecl]]
       where eqFClauses ftyp constrs constrs' = map (genEqClause ftyp) constrs'
                                    ++ defEqClause constrs
             defEqClause constrs

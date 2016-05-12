@@ -46,14 +46,14 @@ class ArbitraryF f where
   instances of 'Arbitrary'. -}
 makeArbitraryF :: Name -> Q [Dec]
 makeArbitraryF dt = do
-  TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify dt
+  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify dt
   let argNames = map (VarT . tyVarBndrName) (tail args)
       complType = foldl AppT (ConT name) argNames
       preCond = map (mkClassP ''Arbitrary . (: [])) argNames
       classType = AppT (ConT ''ArbitraryF) complType
   arbitraryDecl <- generateArbitraryFDecl constrs
   shrinkDecl <- generateShrinkFDecl constrs
-  return [InstanceD preCond classType [arbitraryDecl, shrinkDecl]]
+  return [InstanceD Nothing preCond classType [arbitraryDecl, shrinkDecl]]
 
 {-|
   This function generates a declaration of the method 'arbitrary' for the given

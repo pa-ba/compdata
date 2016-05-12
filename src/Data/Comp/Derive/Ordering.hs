@@ -37,13 +37,13 @@ compList = fromMaybe EQ . find (/= EQ)
   taking at least one argument. -}
 makeOrdF :: Name -> Q [Dec]
 makeOrdF fname = do
-  TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
+  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
   let argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
       preCond = map (mkClassP ''Ord . (: [])) argNames
       classType = AppT (ConT ''OrdF) complType
   eqAlgDecl <- funD 'compareF  (compareFClauses constrs)
-  return [InstanceD preCond classType [eqAlgDecl]]
+  return [InstanceD Nothing preCond classType [eqAlgDecl]]
       where compareFClauses [] = []
             compareFClauses constrs =
                 let constrs' = map abstractConType constrs `zip` [1..]

@@ -37,8 +37,8 @@ abstractNewtypeQ = liftM abstractNewtype
   @data@ declarations.
 -}
 abstractNewtype :: Info -> Info
-abstractNewtype (TyConI (NewtypeD cxt name args constr derive))
-    = TyConI (DataD cxt name args [constr] derive)
+abstractNewtype (TyConI (NewtypeD cxt name args mkind constr derive))
+    = TyConI (DataD cxt name args mkind [constr] derive)
 abstractNewtype owise = owise
 
 {-|
@@ -49,6 +49,7 @@ normalCon (NormalC constr args) = (constr, args)
 normalCon (RecC constr args) = (constr, map (\(_,s,t) -> (s,t)) args)
 normalCon (InfixC a constr b) = (constr, [a,b])
 normalCon (ForallC _ _ constr) = normalCon constr
+normalCon (GadtC (constr:_) args typ) = (constr,args) -- Only first Name
 
 
 normalCon' :: Con -> (Name,[Type])
@@ -78,6 +79,7 @@ abstractConType (NormalC constr args) = (constr, length args)
 abstractConType (RecC constr args) = (constr, length args)
 abstractConType (InfixC _ constr _) = (constr, 2)
 abstractConType (ForallC _ _ constr) = abstractConType constr
+abstractConType (GadtC (constr:_) args typ) = (constr,length args) -- Only first Name
 
 {-|
   This function returns the name of a bound type variable
@@ -186,7 +188,7 @@ liftSumGen caseName sumName fname = do
       let tp = ((ConT sumName `AppT` f) `AppT` g)
       let complType = foldl AppT (foldl AppT (ConT name) ts1 `AppT` tp) ts2
       decs' <- sequence $ concatMap decl decs
-      return [InstanceD cxt complType decs']
+      return [InstanceD Nothing cxt complType decs']
         where decl :: Dec -> [DecQ]
               decl (SigD f _) = [funD f [clause f]]
               decl _ = []

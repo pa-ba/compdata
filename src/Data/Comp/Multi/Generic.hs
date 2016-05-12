@@ -38,14 +38,14 @@ import Data.Maybe
 -- term. This function is similar to Uniplate's @universe@ function.
 subterms :: forall f  . HFoldable f => Term f  :=> [E (Term f)]
 subterms t = build (f t)
-    where f :: Term f :=> (E (Term f) -> b -> b) -> b -> b
+    where f :: forall i b. Term f i -> (E (Term f) -> b -> b) -> b -> b
           f t cons nil = E t `cons` hfoldl (\u s -> f s cons u) nil (unTerm t)
 
 -- | This function returns a list of all subterms of the given term
 -- that are constructed from a particular functor.
 subterms' :: forall f g . (HFoldable f, g :<: f) => Term f :=> [E (g (Term f))]
 subterms' (Term t) = build (f t)
-    where f :: f (Term f) :=> (E (g (Term f)) -> b -> b) -> b -> b
+    where f :: forall i b. f (Term f) i -> (E (g (Term f)) -> b -> b) -> b -> b
           f t cons nil = let rest = hfoldl (\u (Term s) -> f s cons u) nil t
                          in case proj t of
                               Just t' -> E t' `cons` rest

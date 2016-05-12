@@ -36,7 +36,7 @@ showCon con args = "(" ++ con ++ " " ++ unwords args ++ ")"
   taking at least one argument. -}
 makeShowF :: Name -> Q [Dec]
 makeShowF fname = do
-  TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
+  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
@@ -44,7 +44,7 @@ makeShowF fname = do
       classType = AppT (ConT ''ShowF) complType
   constrs' <- mapM normalConExp constrs
   showFDecl <- funD 'showF (showFClauses fArg constrs')
-  return [InstanceD preCond classType [showFDecl]]
+  return [InstanceD Nothing preCond classType [showFDecl]]
       where showFClauses fArg = map (genShowFClause fArg)
             filterFarg fArg ty x = (fArg == ty, varE x)
             mkShow :: (Bool, ExpQ) -> ExpQ
@@ -72,7 +72,7 @@ showCon' con args = unwords $ con : filter (not.null) args
   taking at least one argument. -}
 makeShowConstr :: Name -> Q [Dec]
 makeShowConstr fname = do
-  TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
+  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
@@ -80,7 +80,7 @@ makeShowConstr fname = do
       classType = AppT (ConT ''ShowConstr) complType
   constrs' <- mapM normalConExp constrs
   showConstrDecl <- funD 'showConstr (showConstrClauses fArg constrs')
-  return [InstanceD preCond classType [showConstrDecl]]
+  return [InstanceD Nothing preCond classType [showConstrDecl]]
       where showConstrClauses fArg = map (genShowConstrClause fArg)
             filterFarg fArg ty x = (fArg == ty, varE x)
             mkShow :: (Bool, ExpQ) -> ExpQ

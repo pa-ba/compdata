@@ -41,7 +41,7 @@ class HFunctor h => HFoldable h where
     hfoldMap :: Monoid m => (a :=> m) -> h a :=> m
     hfoldMap f = hfoldr (mappend . f) mempty
 
-    hfoldr :: (a :=> b -> b) -> b -> h a :=> b
+    hfoldr :: (a :=> (b->b) ) -> b -> h a :=> b
     hfoldr f z t = appEndo (hfoldMap (Endo . f) t) z
 
     hfoldl :: (b -> a :=> b) -> b -> h a :=> b
@@ -51,7 +51,7 @@ class HFunctor h => HFoldable h where
     hfoldr1 :: forall a. (a -> a -> a) -> h (K a) :=> a
     hfoldr1 f xs = fromMaybe (error "hfoldr1: empty structure")
                    (hfoldr mf Nothing xs)
-          where mf :: K a :=> Maybe a -> Maybe a
+          where mf :: K a :=> (Maybe a -> Maybe a)
                 mf (K x) Nothing = Just x
                 mf (K x) (Just y) = Just (f x y)
 

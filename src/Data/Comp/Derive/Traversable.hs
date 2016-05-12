@@ -39,7 +39,7 @@ iter' m f e = let f' = iter (m-1) [|fmap|] f
   first-order kind taking at least one argument. -}
 makeTraversable :: Name -> Q [Dec]
 makeTraversable fname = do
-  TyConI (DataD _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
+  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
@@ -49,7 +49,7 @@ makeTraversable fname = do
   sequenceADecl <- funD 'sequenceA (map sequenceAClause constrs')
   mapMDecl <- funD 'mapM (map mapMClause constrs')
   sequenceDecl <- funD 'sequence (map sequenceClause constrs')
-  return [InstanceD [] classType [traverseDecl, sequenceADecl, mapMDecl,sequenceDecl]]
+  return [InstanceD Nothing [] classType [traverseDecl, sequenceADecl, mapMDecl,sequenceDecl]]
       where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
