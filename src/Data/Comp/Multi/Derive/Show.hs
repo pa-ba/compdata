@@ -44,7 +44,7 @@ showConstr con args = "(" ++ con ++ " " ++ unwords args ++ ")"
   kind taking at least two arguments. -}
 makeShowHF :: Name -> Q [Dec]
 makeShowHF fname = do
-  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
+  Just (DataInfo _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       fArg = VarT . tyVarBndrName $ last args'
       argNames = map (VarT . tyVarBndrName) (init args')
@@ -53,7 +53,7 @@ makeShowHF fname = do
       classType = AppT (ConT ''ShowHF) complType
   constrs' <- mapM normalConExp constrs
   showFDecl <- funD 'showHF (showFClauses fArg constrs')
-  return [InstanceD Nothing preCond classType [showFDecl]]
+  return [mkInstanceD preCond classType [showFDecl]]
       where showFClauses fArg = map (genShowFClause fArg)
             filterFarg fArg ty x = (containsType ty fArg, varE x)
             mkShow (isFArg, var)

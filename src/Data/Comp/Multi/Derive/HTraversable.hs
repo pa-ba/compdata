@@ -37,7 +37,7 @@ iter n f e = iter (n-1) f (f `appE` e)
   higher-order kind taking at least two arguments. -}
 makeHTraversable :: Name -> Q [Dec]
 makeHTraversable fname = do
-  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
+  Just (DataInfo _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       fArg = VarT . tyVarBndrName $ last args'
       argNames = map (VarT . tyVarBndrName) (init args')
@@ -46,7 +46,7 @@ makeHTraversable fname = do
   constrs' <- P.mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   traverseDecl <- funD 'htraverse (map traverseClause constrs')
   mapMDecl <- funD 'hmapM (map mapMClause constrs')
-  return [InstanceD Nothing [] classType [traverseDecl, mapMDecl]]
+  return [mkInstanceD [] classType [traverseDecl, mapMDecl]]
       where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getBinaryFArg fArg gadtTy)) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x

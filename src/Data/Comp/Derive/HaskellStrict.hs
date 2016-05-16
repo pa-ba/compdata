@@ -57,7 +57,7 @@ deepThunk d = iter d [|thunkSequence|]
   first-order kind taking at least one argument. -}
 makeHaskellStrict :: Name -> Q [Dec]
 makeHaskellStrict fname = do
-  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
+  Just (DataInfo _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
@@ -68,7 +68,7 @@ makeHaskellStrict fname = do
      sequenceDecl <- valD (varP 'thunkSequence) (normalB [|return|]) []
      injectDecl <- valD (varP 'thunkSequenceInject) (normalB [|inject|]) []
      injectDecl' <- valD (varP 'thunkSequenceInject') (normalB [|inject|]) []
-     return [InstanceD Nothing [] classType [sequenceDecl, injectDecl, injectDecl']]
+     return [mkInstanceD [] classType [sequenceDecl, injectDecl, injectDecl']]
    else do
      (sc',matchPat,ic') <- liftM unzip3 $ P.mapM mkClauses constrs_
      xn <- newName "x"
@@ -76,14 +76,18 @@ makeHaskellStrict fname = do
      let sequenceDecl = FunD 'thunkSequence sc'
          injectDecl = FunD 'thunkSequenceInject [Clause [VarP xn] (NormalB (doThunk `AppE` CaseE (VarE xn) matchPat)) []]
          injectDecl' = FunD 'thunkSequenceInject' ic'
-     return [InstanceD Nothing [] classType [sequenceDecl, injectDecl, injectDecl']]
+     return [mkInstanceD [] classType [sequenceDecl, injectDecl, injectDecl']]
       where isFarg fArg (constr, args, gadtTy) = (constr, map (containsStr (getUnaryFArg fArg gadtTy)) args)
-            containsStr _ (Bang NoSourceUnpackedness NoSourceStrictness,_) = []
+            
+#if __GLASGOW_HASKELL__ < 800
+            containsStr fArg (IsStrict,ty) = ty `containsType'` fArg
+            containsStr fArg (Unpacked,ty) = ty `containsType'` fArg
+#else
             containsStr fArg (Bang _ SourceStrict,ty) = ty `containsType'` fArg
-#if __GLASGOW_HASKELL__ > 702
             containsStr fArg (Bang SourceUnpack _,ty) = ty `containsType'` fArg
-            containsStr fArg (_,ty) = []
 #endif
+            containsStr _ _ = []
+
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"

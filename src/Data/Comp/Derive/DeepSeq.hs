@@ -32,14 +32,14 @@ class NFDataF f where
   kind taking at least one argument. -}
 makeNFDataF :: Name -> Q [Dec]
 makeNFDataF fname = do
-  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
+  Just (DataInfo _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
       preCond = map (mkClassP ''NFData . (: [])) argNames
       classType = AppT (ConT ''NFDataF) complType
   constrs' <- mapM normalConExp constrs
   rnfFDecl <- funD 'rnfF (rnfFClauses constrs')
-  return [InstanceD Nothing preCond classType [rnfFDecl]]
+  return [mkInstanceD preCond classType [rnfFDecl]]
       where rnfFClauses = map genRnfFClause
             genRnfFClause (constr, args,_) = do
               let n = length args

@@ -31,13 +31,13 @@ class EqF f where
   taking at least one argument. -}
 makeEqF :: Name -> Q [Dec]
 makeEqF fname = do
-  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
+  Just (DataInfo _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
       preCond = map (mkClassP ''Eq . (: [])) argNames
       classType = AppT (ConT ''EqF) complType
   eqFDecl <- funD 'eqF  (eqFClauses constrs)
-  return [InstanceD Nothing preCond classType [eqFDecl]]
+  return [mkInstanceD preCond classType [eqFDecl]]
       where eqFClauses constrs = map (genEqClause.abstractConType) constrs
                                    ++ defEqClause constrs
             defEqClause constrs

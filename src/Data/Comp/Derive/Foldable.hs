@@ -39,7 +39,7 @@ iter' m f e = let f' = iter (m-1) [|fmap|] f
   kind taking at least one argument. -}
 makeFoldable :: Name -> Q [Dec]
 makeFoldable fname = do
-  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
+  Just (DataInfo _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let fArg = VarT . tyVarBndrName $ last args
       argNames = map (VarT . tyVarBndrName) (init args)
       complType = foldl AppT (ConT name) argNames
@@ -51,7 +51,7 @@ makeFoldable fname = do
   foldrDecl <- funD 'foldr (map foldrClause constrs')
   foldl1Decl <- funD 'foldl1 (map foldl1Clause constrs')
   foldr1Decl <- funD 'foldr1 (map foldr1Clause constrs')
-  return [InstanceD Nothing [] classType [foldDecl,foldMapDecl,foldlDecl,foldrDecl,foldl1Decl,foldr1Decl]]
+  return [mkInstanceD [] classType [foldDecl,foldMapDecl,foldlDecl,foldrDecl,foldl1Decl,foldr1Decl]]
       where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getUnaryFArg fArg gadtTy)) args)
             filterVar [] _ = Nothing
             filterVar [d] x =Just (d, varE x)

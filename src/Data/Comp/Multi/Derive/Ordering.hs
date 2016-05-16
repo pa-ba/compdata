@@ -32,7 +32,7 @@ compList = fromMaybe EQ . find (/= EQ)
   kind taking at least three arguments. -}
 makeOrdHF :: Name -> Q [Dec]
 makeOrdHF fname = do
-  TyConI (DataD _ name args mkind constrs _) <- abstractNewtypeQ $ reify fname
+  Just (DataInfo _ name args constrs _) <- abstractNewtypeQ $ reify fname
   let args' = init args
   -- covariant argument
   let coArg :: Type = VarT $ tyVarBndrName $ last args'
@@ -41,7 +41,7 @@ makeOrdHF fname = do
   let classType = AppT (ConT ''OrdHF) complType
   constrs' :: [(Name,[Type],Maybe Type)] <- mapM normalConExp constrs
   compareHFDecl <- funD 'compareHF (compareHFClauses coArg constrs')
-  return [InstanceD Nothing [] classType [compareHFDecl]]
+  return [mkInstanceD [] classType [compareHFDecl]]
       where compareHFClauses :: Type -> [(Name,[Type],Maybe Type)] -> [ClauseQ]
             compareHFClauses _ [] = []
             compareHFClauses coArg constrs =

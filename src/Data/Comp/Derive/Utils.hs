@@ -26,22 +26,32 @@ reportError :: String -> Q ()
 reportError = report True
 #endif
 
+data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [Name]
+
+
 {-|
   This is the @Q@-lifted version of 'abstractNewtype.
 -}
-abstractNewtypeQ :: Q Info -> Q Info
+abstractNewtypeQ :: Q Info -> Q (Maybe DataInfo)
 abstractNewtypeQ = liftM abstractNewtype
 
 {-|
   This function abstracts away @newtype@ declaration, it turns them into
   @data@ declarations.
 -}
-abstractNewtype :: Info -> Info
-abstractNewtype (TyConI (NewtypeD cxt name args mkind constr derive))
-    = TyConI (DataD cxt name args mkind [constr] derive)
-abstractNewtype owise = owise
-
-
+abstractNewtype :: Info -> Maybe DataInfo
+#if __GLASGOW_HASKELL__ < 800
+abstractNewtype (TyConI (NewtypeD cxt name args constr derive))
+    = Just (DataInfo cxt name args [constr] derive)
+abstractNewtype (TyConI (DataD cxt name args constrs derive))
+    = Just (DataInfo cxt name args constrs derive)
+#else
+abstractNewtype (TyConI (NewtypeD cxt name args _ constr derive))
+    = Just (DataInfo cxt name args [constr] derive)
+abstractNewtype (TyConI (DataD cxt name args _ constrs derive))
+    = Just (DataInfo cxt name args constrs derive)
+#endif
+abstractNewtype _ = Nothing
 
 {-| This function provides the name and the arity of the given data
 constructor, and if it is a GADT also its type.
@@ -51,8 +61,9 @@ normalCon (NormalC constr args) = (constr, args, Nothing)
 normalCon (RecC constr args) = (constr, map (\(_,s,t) -> (s,t)) args, Nothing)
 normalCon (InfixC a constr b) = (constr, [a,b], Nothing)
 normalCon (ForallC _ _ constr) = normalCon constr
+#if __GLASGOW_HASKELL__ >= 800
 normalCon (GadtC (constr:constrs) args typ) = (constr,args,Just typ)
-
+#endif
 
 normalCon' :: Con -> (Name,[Type], Maybe Type)
 normalCon' con = (n, map snd ts, t)
@@ -108,7 +119,9 @@ abstractConType (NormalC constr args) = (constr, length args)
 abstractConType (RecC constr args) = (constr, length args)
 abstractConType (InfixC _ constr _) = (constr, 2)
 abstractConType (ForallC _ _ constr) = abstractConType constr
+#if __GLASGOW_HASKELL__ >= 800
 abstractConType (GadtC (constr:_) args typ) = (constr,length args) -- Only first Name
+#endif
 
 {-|
   This function returns the name of a bound type variable
@@ -182,6 +195,14 @@ isEqualP (AppT (AppT EqualityT x) y) = Just (x, y)
 isEqualP _ = Nothing
 #endif
 
+mkInstanceD :: Cxt -> Type -> [Dec] -> Dec
+#if __GLASGOW_HASKELL__ < 800
+mkInstanceD cxt ty decs = InstanceD cxt ty decs
+#else
+mkInstanceD cxt ty decs = InstanceD Nothing cxt ty decs
+#endif
+
+
 
 -- | This function lifts type class instances over sums
 -- ofsignatures. To this end it assumes that it contains only methods
@@ -217,7 +238,7 @@ liftSumGen caseName sumName fname = do
       let tp = ((ConT sumName `AppT` f) `AppT` g)
       let complType = foldl AppT (foldl AppT (ConT name) ts1 `AppT` tp) ts2
       decs' <- sequence $ concatMap decl decs
-      return [InstanceD Nothing cxt complType decs']
+      return [mkInstanceD cxt complType decs']
         where decl :: Dec -> [DecQ]
               decl (SigD f _) = [funD f [clause f]]
               decl _ = []

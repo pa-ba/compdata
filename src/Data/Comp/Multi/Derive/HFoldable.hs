@@ -46,7 +46,7 @@ iterSp n f g e = run n e
   kind taking at least two arguments. -}
 makeHFoldable :: Name -> Q [Dec]
 makeHFoldable fname = do
-  TyConI (DataD _cxt name args mkind constrs _deriving) <- abstractNewtypeQ $ reify fname
+  Just (DataInfo _cxt name args constrs _deriving) <- abstractNewtypeQ $ reify fname
   let args' = init args
       fArg = VarT . tyVarBndrName $ last args'
       argNames = map (VarT . tyVarBndrName) (init args')
@@ -57,7 +57,7 @@ makeHFoldable fname = do
   foldMapDecl <- funD 'hfoldMap (map foldMapClause constrs')
   foldlDecl <- funD 'hfoldl (map foldlClause constrs')
   foldrDecl <- funD 'hfoldr (map foldrClause constrs')
-  return [InstanceD Nothing [] classType [foldDecl,foldMapDecl,foldlDecl,foldrDecl]]
+  return [mkInstanceD [] classType [foldDecl,foldMapDecl,foldlDecl,foldrDecl]]
       where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getBinaryFArg fArg gadtTy)) args)
             filterVar [] _ = Nothing
             filterVar [d] x =Just (d, varE x)
