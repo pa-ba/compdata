@@ -26,8 +26,11 @@ reportError :: String -> Q ()
 reportError = report True
 #endif
 
+#if __GLASGOW_HASKELL__ < 800
 data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [Name]
-
+#else
+data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] Cxt
+#endif
 
 {-|
   This is the @Q@-lifted version of 'abstractNewtype.
