@@ -42,7 +42,7 @@ makeEqHF fname = do
             defEqClause constrs
                 | length constrs  < 2 = []
                 | otherwise = [clause [wildP,wildP] (normalB [|False|]) []]
-            genEqClause ftyp (constr, argts) = do
+            genEqClause ftyp (constr, argts, gadtTy) = do
               let n = length argts
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
@@ -51,7 +51,7 @@ makeEqHF fname = do
                   vars = map VarE varNs
                   vars' = map VarE varNs'
                   mkEq ty x y = let (x',y') = (return x,return y)
-                                in if containsType ty ftyp
+                                in if containsType ty (getBinaryFArg ftyp gadtTy)
                                    then [| $x' `keq` $y'|]
                                    else [| $x' == $y'|]
                   eqs = listE $ zipWith3 mkEq argts vars vars'

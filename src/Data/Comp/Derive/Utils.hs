@@ -41,34 +41,63 @@ abstractNewtype (TyConI (NewtypeD cxt name args mkind constr derive))
     = TyConI (DataD cxt name args mkind [constr] derive)
 abstractNewtype owise = owise
 
-{-|
-  This function provides the name and the arity of the given data constructor.
+
+
+{-| This function provides the name and the arity of the given data
+constructor, and if it is a GADT also its type.
 -}
-normalCon :: Con -> (Name,[StrictType])
-normalCon (NormalC constr args) = (constr, args)
-normalCon (RecC constr args) = (constr, map (\(_,s,t) -> (s,t)) args)
-normalCon (InfixC a constr b) = (constr, [a,b])
+normalCon :: Con -> (Name,[StrictType], Maybe Type)
+normalCon (NormalC constr args) = (constr, args, Nothing)
+normalCon (RecC constr args) = (constr, map (\(_,s,t) -> (s,t)) args, Nothing)
+normalCon (InfixC a constr b) = (constr, [a,b], Nothing)
 normalCon (ForallC _ _ constr) = normalCon constr
-normalCon (GadtC (constr:_) args typ) = (constr,args) -- Only first Name
+normalCon (GadtC (constr:constrs) args typ) = (constr,args,Just typ)
 
 
-normalCon' :: Con -> (Name,[Type])
-normalCon' = fmap (map snd) . normalCon
+normalCon' :: Con -> (Name,[Type], Maybe Type)
+normalCon' con = (n, map snd ts, t)
+  where (n, ts, t) = normalCon con
+      
+
+-- -- | Same as normalCon' but expands type synonyms.
+-- normalConExp :: Con -> Q (Name,[Type])
+-- normalConExp c = do
+--   let (n,ts,t) = normalCon' c
+--   ts' <- mapM expandSyns ts
+--   return (n, ts')
 
 -- | Same as normalCon' but expands type synonyms.
-normalConExp :: Con -> Q (Name,[Type])
+normalConExp :: Con -> Q (Name,[Type], Maybe Type)
 normalConExp c = do
-  let (n,ts) = normalCon' c
+  let (n,ts,t) = normalCon' c
   ts' <- mapM expandSyns ts
-  return (n, ts')
+  return (n, ts',t)
 
 
 -- | Same as normalConExp' but retains strictness annotations.
-normalConStrExp :: Con -> Q (Name,[StrictType])
+normalConStrExp :: Con -> Q (Name,[StrictType], Maybe Type)
 normalConStrExp c = do
-  let (n,ts) = normalCon c
+  let (n,ts,t) = normalCon c
   ts' <- mapM (\ (st,ty) -> do ty' <- expandSyns ty; return (st,ty')) ts
-  return (n, ts')
+  return (n, ts',t)
+
+-- | Auxiliary function to extract the first argument of a binary type
+-- application (the second argument of this function). If the second
+-- argument is @Nothing@ or not of the right shape, the first argument
+-- is returned as a default.
+
+getBinaryFArg :: Type -> Maybe Type -> Type
+getBinaryFArg _ (Just (AppT (AppT _ t)  _)) = t
+getBinaryFArg def _ = def
+
+-- | Auxiliary function to extract the first argument of a type
+-- application (the second argument of this function). If the second
+-- argument is @Nothing@ or not of the right shape, the first argument
+-- is returned as a default.
+getUnaryFArg :: Type -> Maybe Type -> Type
+getUnaryFArg _ (Just (AppT _ t)) = t
+getUnaryFArg def _ = def
+
 
 
 {-|

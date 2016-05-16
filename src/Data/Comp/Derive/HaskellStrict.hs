@@ -77,7 +77,7 @@ makeHaskellStrict fname = do
          injectDecl = FunD 'thunkSequenceInject [Clause [VarP xn] (NormalB (doThunk `AppE` CaseE (VarE xn) matchPat)) []]
          injectDecl' = FunD 'thunkSequenceInject' ic'
      return [InstanceD Nothing [] classType [sequenceDecl, injectDecl, injectDecl']]
-      where isFarg fArg (constr, args) = (constr, map (containsStr fArg) args)
+      where isFarg fArg (constr, args, gadtTy) = (constr, map (containsStr (getUnaryFArg fArg gadtTy)) args)
             containsStr _ (Bang NoSourceUnpackedness NoSourceStrictness,_) = []
             containsStr fArg (Bang _ SourceStrict,ty) = ty `containsType'` fArg
 #if __GLASGOW_HASKELL__ > 702

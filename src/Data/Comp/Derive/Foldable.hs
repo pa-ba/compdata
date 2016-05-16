@@ -52,7 +52,7 @@ makeFoldable fname = do
   foldl1Decl <- funD 'foldl1 (map foldl1Clause constrs')
   foldr1Decl <- funD 'foldr1 (map foldr1Clause constrs')
   return [InstanceD Nothing [] classType [foldDecl,foldMapDecl,foldlDecl,foldrDecl,foldl1Decl,foldr1Decl]]
-      where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
+      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getUnaryFArg fArg gadtTy)) args)
             filterVar [] _ = Nothing
             filterVar [d] x =Just (d, varE x)
             filterVar _ _ =  error "functor variable occurring twice in argument type"

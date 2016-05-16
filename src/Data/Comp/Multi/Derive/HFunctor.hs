@@ -42,7 +42,7 @@ makeHFunctor fname = do
   constrs' <- P.mapM (mkPatAndVars . isFarg fArg <=< normalConExp) constrs
   hfmapDecl <- funD 'hfmap (map hfmapClause constrs')
   return [InstanceD Nothing [] classType [hfmapDecl]]
-      where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
+      where isFarg fArg (constr, args, ty) = (constr, map (`containsType'` getBinaryFArg fArg ty) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"

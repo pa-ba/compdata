@@ -41,7 +41,7 @@ makeNFDataF fname = do
   rnfFDecl <- funD 'rnfF (rnfFClauses constrs')
   return [InstanceD Nothing preCond classType [rnfFDecl]]
       where rnfFClauses = map genRnfFClause
-            genRnfFClause (constr, args) = do
+            genRnfFClause (constr, args,_) = do
               let n = length args
               varNs <- newNames n "x"
               let pat = ConP constr $ map VarP varNs

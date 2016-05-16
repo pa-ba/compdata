@@ -58,7 +58,7 @@ makeHFoldable fname = do
   foldlDecl <- funD 'hfoldl (map foldlClause constrs')
   foldrDecl <- funD 'hfoldr (map foldrClause constrs')
   return [InstanceD Nothing [] classType [foldDecl,foldMapDecl,foldlDecl,foldrDecl]]
-      where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
+      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getBinaryFArg fArg gadtTy)) args)
             filterVar [] _ = Nothing
             filterVar [d] x =Just (d, varE x)
             filterVar _ _ =  error "functor variable occurring twice in argument type"

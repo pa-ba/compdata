@@ -47,7 +47,7 @@ makeHTraversable fname = do
   traverseDecl <- funD 'htraverse (map traverseClause constrs')
   mapMDecl <- funD 'hmapM (map mapMClause constrs')
   return [InstanceD Nothing [] classType [traverseDecl, mapMDecl]]
-      where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
+      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getBinaryFArg fArg gadtTy)) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"

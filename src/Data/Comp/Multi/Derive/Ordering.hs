@@ -35,14 +35,14 @@ makeOrdHF fname = do
   TyConI (DataD _ name args mkind constrs _) <- abstractNewtypeQ $ reify fname
   let args' = init args
   -- covariant argument
-  let coArg :: Name = tyVarBndrName $ last args'
+  let coArg :: Type = VarT $ tyVarBndrName $ last args'
   let argNames = map (VarT . tyVarBndrName) (init args')
   let complType = foldl AppT (ConT name) argNames
   let classType = AppT (ConT ''OrdHF) complType
-  constrs' :: [(Name,[Type])] <- mapM normalConExp constrs
+  constrs' :: [(Name,[Type],Maybe Type)] <- mapM normalConExp constrs
   compareHFDecl <- funD 'compareHF (compareHFClauses coArg constrs')
   return [InstanceD Nothing [] classType [compareHFDecl]]
-      where compareHFClauses :: Name -> [(Name,[Type])] -> [ClauseQ]
+      where compareHFClauses :: Type -> [(Name,[Type],Maybe Type)] -> [ClauseQ]
             compareHFClauses _ [] = []
             compareHFClauses coArg constrs =
                 let constrs' = constrs `zip` [1..]
@@ -52,24 +52,24 @@ makeOrdHF fname = do
                 | n == m = genEqClause coArg c
                 | n < m = genLtClause c d
                 | otherwise = genGtClause c d
-            genEqClause :: Name -> (Name,[Type]) -> ClauseQ
-            genEqClause coArg (constr, args) = do
+            genEqClause :: Type -> (Name,[Type],Maybe Type) -> ClauseQ
+            genEqClause coArg (constr, args,gadtTy) = do
               varXs <- newNames (length args) "x"
               varYs <- newNames (length args) "y"
               let patX = ConP constr $ map VarP varXs
               let patY = ConP constr $ map VarP varYs
-              body <- eqDBody coArg (zip3 varXs varYs args)
+              body <- eqDBody (getBinaryFArg coArg gadtTy) (zip3 varXs varYs args)
               return $ Clause [patX, patY] (NormalB body) []
-            eqDBody :: Name -> [(Name, Name, Type)] -> ExpQ
+            eqDBody :: Type -> [(Name, Name, Type)] -> ExpQ
             eqDBody coArg x =
                 [|compList $(listE $ map (eqDB coArg) x)|]
-            eqDB :: Name -> (Name, Name, Type) -> ExpQ
+            eqDB :: Type -> (Name, Name, Type) -> ExpQ
             eqDB coArg (x, y, tp)
-                | not (containsType tp (VarT coArg)) =
+                | not (containsType tp coArg) =
                     [| compare $(varE x) $(varE y) |]
                 | otherwise =
                     [| kcompare $(varE x) $(varE y) |]
-            genLtClause (c, _) (d, _) =
+            genLtClause (c, _, _) (d, _, _) =
                 clause [recP c [], recP d []] (normalB [| LT |]) []
-            genGtClause (c, _) (d, _) =
+            genGtClause (c, _, _) (d, _, _) =
                 clause [recP c [], recP d []] (normalB [| GT |]) []

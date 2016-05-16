@@ -50,7 +50,7 @@ makeTraversable fname = do
   mapMDecl <- funD 'mapM (map mapMClause constrs')
   sequenceDecl <- funD 'sequence (map sequenceClause constrs')
   return [InstanceD Nothing [] classType [traverseDecl, sequenceADecl, mapMDecl,sequenceDecl]]
-      where isFarg fArg (constr, args) = (constr, map (`containsType'` fArg) args)
+      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getUnaryFArg fArg gadtTy)) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"

@@ -51,11 +51,11 @@ makeShowF fname = do
             mkShow (isFArg, var)
                 | isFArg = var
                 | otherwise = [| show $var |]
-            genShowFClause fArg (constr, args) = do
+            genShowFClause fArg (constr, args, gadtTy) = do
               let n = length args
               varNs <- newNames n "x"
               let pat = ConP constr $ map VarP varNs
-                  allVars = zipWith (filterFarg fArg) args varNs
+                  allVars = zipWith (filterFarg (getUnaryFArg fArg gadtTy)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr
               body <- [|showCon conName $shows|]
@@ -87,11 +87,11 @@ makeShowConstr fname = do
             mkShow (isFArg, var)
                 | isFArg = [| "" |]
                 | otherwise = [| show $var |]
-            genShowConstrClause fArg (constr, args) = do
+            genShowConstrClause fArg (constr, args, gadtTy) = do
               let n = length args
               varNs <- newNames n "x"
               let pat = ConP constr $ map VarP varNs
-                  allVars = zipWith (filterFarg fArg) args varNs
+                  allVars = zipWith (filterFarg (getUnaryFArg fArg gadtTy)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr
               body <- [|showCon' conName $shows|]
