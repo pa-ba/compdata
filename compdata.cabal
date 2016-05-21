@@ -165,6 +165,7 @@ library
                         Data.Comp.Multi.Generic
                         Data.Comp.Multi.Desugar
                         Data.Comp.Multi.Projection
+                        Data.Comp.Multi.Render
 
   Other-Modules:        Data.Comp.SubsumeCommon
                         Data.Comp.Derive.Equality
@@ -200,7 +201,7 @@ Test-Suite test
   hs-source-dirs:	testsuite/tests examples src
   Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.9, 
                         HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2 >= 0.3, derive,
-                        th-expand-syns, deepseq, transformers
+                        th-expand-syns, deepseq, transformers, tree-view
 
 Benchmark algebra
   Type:                 exitcode-stdio-1.0

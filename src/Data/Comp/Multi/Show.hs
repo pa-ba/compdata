@@ -26,6 +26,7 @@ module Data.Comp.Multi.Show
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.Annotation
 import Data.Comp.Multi.Derive
+import Data.Comp.Derive.Utils (derive)
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Term
 
@@ -49,3 +50,8 @@ instance (ShowHF f, Show p) => ShowHF (f :&: p) where
     showHF (v :&: p) =  K $ unK (showHF v) ++ " :&: " ++ show p
 
 $(derive [liftSum] [''ShowHF])
+
+instance (ShowConstr f, Show p) => ShowConstr (f :&: p) where
+    showConstr (v :&: p) = showConstr v ++ " :&: " ++ show p
+    
+$(derive [liftSum] [''ShowConstr])
