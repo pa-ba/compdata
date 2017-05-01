@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses, 
   TypeOperators, FlexibleContexts, ConstraintKinds #-}
+{-# LANGUAGE DeriveFunctor #-}
 
 module Data.Comp.Variables_Test where
 
@@ -29,13 +30,17 @@ data Var = X | Y | Z deriving (Eq,Ord,Show)
 data Val e = Abs Var e
            | Var Var
            | Int Int
+  deriving Functor
 
 data Op e = App e e
           | Plus e e
+  deriving Functor
 
 data Let e = Let Var e e
+  deriving Functor
 
 data LetRec e = LetRec Var e e
+  deriving Functor
 
 type Sig = Op :+: Val
 
@@ -43,7 +48,7 @@ type SigLet = Let :+: Sig
 
 type SigRec = LetRec :+: Sig
 
-$(derive [makeFunctor, makeTraversable, makeFoldable,
+$(derive [makeTraversable, makeFoldable,
           makeEqF, makeShowF, smartConstructors]
          [''Op, ''Val, ''Let, ''LetRec])
 
