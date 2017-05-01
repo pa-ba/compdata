@@ -25,9 +25,6 @@ module Data.Comp.Derive
      module Data.Comp.Derive.Equality,
      -- ** OrdF
      module Data.Comp.Derive.Ordering,
-     -- ** Functor
-     Functor,
-     makeFunctor,
      -- ** Foldable
      module Data.Comp.Derive.Foldable,
      -- ** Traversable
@@ -66,11 +63,6 @@ import Language.Haskell.TH
 
 import qualified Data.Derive.All as A
 import qualified Data.DeriveTH as D
-
-{-| Derive an instance of 'Functor' for a type constructor of any first-order
-  kind taking at least one argument. -}
-makeFunctor :: Name -> Q [Dec]
-makeFunctor = D.derive A.makeFunctor
 
 {-| Derive an instance of 'NFData' for a type constructor. -}
 makeNFData :: Name -> Q [Dec]

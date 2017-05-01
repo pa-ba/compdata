@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, FlexibleContexts, FlexibleInstances, ConstraintKinds #-}
+{-# LANGUAGE DeriveFunctor #-}
 
 module Test.Utils where
 
@@ -12,11 +13,13 @@ data Tree l e = Leaf l
               | UnNode l e
               | BinNode e l e
               | TerNode l e e e
+              deriving Functor
 
 data Pair a e = Pair a e
+  deriving Functor
 
 $(derive
-  [makeFunctor, makeFoldable, makeShowF, makeEqF, makeArbitraryF]
+  [makeFoldable, makeShowF, makeEqF, makeArbitraryF]
   [''Tree, ''Pair])
 
 $(derive

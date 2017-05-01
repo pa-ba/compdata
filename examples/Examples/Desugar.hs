@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances,
   OverlappingInstances, ConstraintKinds #-}
+{-# LANGUAGE DeriveFunctor #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Desugar
@@ -31,6 +32,7 @@ import Examples.Eval
 
 -- Signature for syntactic sugar
 data Sugar a = Neg a | Swap a
+  deriving Functor
 
 -- Source position information (line number, column number)
 data Pos = Pos Int Int
@@ -47,7 +49,7 @@ type SigP = Op :&: Pos :+: Value :&: Pos
 type SigP' = Sugar :&: Pos :+: Op :&: Pos :+: Value :&: Pos
 
 -- Derive boilerplate code using Template Haskell
-$(derive [makeFunctor, makeTraversable, makeFoldable,
+$(derive [makeTraversable, makeFoldable,
           makeEqF, makeShowF, makeOrdF, smartConstructors, smartAConstructors]
          [''Sugar])
 
