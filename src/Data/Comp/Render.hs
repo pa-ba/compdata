@@ -29,6 +29,8 @@ drawTerm = putStrLn . showTerm
 
 -- | Write a term to an HTML file with foldable nodes
 writeHtmlTerm :: Render f => FilePath -> Term f -> IO ()
-writeHtmlTerm file t = writeHtmlTree Nothing file (fmap (\n -> NodeInfo InitiallyExpanded n "")  (stringTree t))
+writeHtmlTerm file
+    = writeHtmlTree Nothing file
+    . fmap (\n -> NodeInfo InitiallyExpanded n "") . stringTree
 
 $(derive [liftSum] [''Render])
