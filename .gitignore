@@ -10,3 +10,4 @@ dummy.cabal
 *.mix
 hpcreport
 *.DS_Store
+.stack-work
