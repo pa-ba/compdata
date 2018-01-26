@@ -48,11 +48,20 @@ abstractNewtype (TyConI (NewtypeD cxt name args constr derive))
     = Just (DataInfo cxt name args [constr] derive)
 abstractNewtype (TyConI (DataD cxt name args constrs derive))
     = Just (DataInfo cxt name args constrs derive)
-#else
+#elif __GLASGOW_HASKELL__ < 802
 abstractNewtype (TyConI (NewtypeD cxt name args _ constr derive))
     = Just (DataInfo cxt name args [constr] derive)
 abstractNewtype (TyConI (DataD cxt name args _ constrs derive))
     = Just (DataInfo cxt name args constrs derive)
+#else
+abstractNewtype tc = case tc of
+    (TyConI (NewtypeD cxt name args _ constr deriveClauses))
+        -> Just (DataInfo cxt name args [constr] (extractCxts deriveClauses))
+    (TyConI (DataD cxt name args _ constrs deriveClauses))
+        -> Just (DataInfo cxt name args constrs (extractCxts deriveClauses))
+    where
+        extractCxts = concatMap extractCxt
+        extractCxt (DerivClause _ cxt) = cxt
 #endif
 abstractNewtype _ = Nothing
 
@@ -71,7 +80,7 @@ normalCon (GadtC (constr:constrs) args typ) = (constr,args,Just typ)
 normalCon' :: Con -> (Name,[Type], Maybe Type)
 normalCon' con = (n, map snd ts, t)
   where (n, ts, t) = normalCon con
-      
+
 
 -- -- | Same as normalCon' but expands type synonyms.
 -- normalConExp :: Con -> Q (Name,[Type])
