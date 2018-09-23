@@ -17,18 +17,12 @@ module Data.Comp.Derive.Arbitrary
     (
      ArbitraryF(..),
      makeArbitraryF,
-     Arbitrary(..),
-     makeArbitrary
+     Arbitrary(..)
     )where
 
 import Data.Comp.Derive.Utils hiding (derive)
-import qualified Data.DeriveTH as D
 import Language.Haskell.TH
 import Test.QuickCheck
-
-{-| Derive an instance of 'Arbitrary' for a type constructor. -}
-makeArbitrary :: Name -> Q [Dec]
-makeArbitrary = D.derive D.makeArbitrary
 
 {-| Signature arbitration. An instance @ArbitraryF f@ gives rise to an instance
   @Arbitrary (Term f)@. -}

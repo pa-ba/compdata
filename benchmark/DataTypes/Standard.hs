@@ -1,12 +1,13 @@
-{-# LANGUAGE TypeSynonymInstances, TemplateHaskell, DeriveDataTypeable #-}
+{-# LANGUAGE TypeSynonymInstances, TemplateHaskell, DeriveDataTypeable,
+DeriveGeneric, DeriveAnyClass #-}
 module DataTypes.Standard 
     ( module DataTypes.Standard,
       module DataTypes 
     ) where
 
+import GHC.Generics (Generic)
+
 import DataTypes
-import Data.Derive.NFData
-import Data.DeriveTH
 import Data.Data
 import Control.DeepSeq
 
@@ -15,15 +16,15 @@ import Control.DeepSeq
 data VType = VTInt
            | VTBool
            | VTPair VType VType
-             deriving (Eq,Typeable,Data)
+             deriving (Eq,Typeable,Data, Generic, NFData)
 
 data SExpr = SInt Int
            | SBool Bool
            | SPair SExpr SExpr
-             deriving (Eq,Typeable,Data)
+             deriving (Eq,Typeable,Data, Generic, NFData)
 
 data SProj = SProjLeft | SProjRight
-             deriving (Eq,Typeable,Data)
+             deriving (Eq,Typeable,Data, Generic, NFData)
 
 data OExpr = OInt Int
            | OBool Bool
@@ -36,7 +37,7 @@ data OExpr = OInt Int
            | OAnd OExpr OExpr
            | ONot OExpr
            | OProj SProj OExpr
-             deriving (Eq,Typeable,Data)
+             deriving (Eq,Typeable,Data, Generic, NFData)
 
 data PExpr = PInt Int
            | PBool Bool
@@ -54,13 +55,13 @@ data PExpr = PInt Int
            | PGt PExpr PExpr
            | POr PExpr PExpr
            | PImpl PExpr PExpr
-             deriving (Eq,Typeable,Data)
+             deriving (Eq,Typeable,Data, Generic, NFData)
 
 data VHType = VHTInt
             | VHTBool
             | VHTPair VType VType
             | VHTFun VType VType
-              deriving (Eq,Typeable,Data)
+              deriving (Eq,Typeable,Data, Generic, NFData)
 
 showBinOp :: String -> String -> String -> String
 showBinOp op x y = "("++ x ++ op ++ y ++ ")"
@@ -88,5 +89,3 @@ instance Show VType where
     show VTInt = "Int"
     show VTBool = "Bool"
     show (VTPair x y) = "(" ++ show x ++ "," ++ show y ++ ")"
-
-$(derives [makeNFData] [''SProj,''SExpr,''OExpr,''PExpr,''VType])

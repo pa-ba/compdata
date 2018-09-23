@@ -1,7 +1,6 @@
 {-# LANGUAGE ConstraintKinds       #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverlappingInstances  #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
 --------------------------------------------------------------------------------
@@ -30,7 +29,7 @@ class (Functor f, Functor g) => Desugar f g where
 
 -- We make the lifting to sums explicit in order to make the Desugar
 -- class work with the default instance declaration further below.
-instance (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
+instance {-# OVERLAPPABLE #-} (Desugar f h, Desugar g h) => Desugar (f :+: g) h where
     desugHom = caseF desugHom desugHom
 
 -- |Desugar a term.
@@ -44,5 +43,5 @@ desugarA :: (Functor f', Functor g', DistAnn f p f', DistAnn g p g',
 desugarA = appHom (propAnn desugHom)
 
 -- |Default desugaring instance.
-instance (Functor f, Functor g, f :<: g) => Desugar f g where
+instance {-# OVERLAPPABLE #-} (Functor f, Functor g, f :<: g) => Desugar f g where
     desugHom = simpCxt . inj

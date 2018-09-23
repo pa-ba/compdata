@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances,
-  OverlappingInstances, ConstraintKinds #-}
+  ConstraintKinds #-}
 {-# LANGUAGE DeriveFunctor #-}
 --------------------------------------------------------------------------------
 -- |

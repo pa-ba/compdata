@@ -1,7 +1,7 @@
 module Functions.Standard.FreeVars where
 
 import DataTypes.Standard
-import Data.Generics.PlateDirect
+import Data.Generics.Uniplate.Direct
 
 instance Uniplate PExpr where
     uniplate (PInt x) = plate PInt |- x

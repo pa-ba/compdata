@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs,
-  OverlappingInstances, ConstraintKinds #-}
+  ConstraintKinds #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Multi.Eval
@@ -34,10 +34,10 @@ $(derive [liftSum] [''Eval])
 eval :: (HFunctor f, Eval f v) => Term f :-> Term v
 eval = cata evalAlg
 
-instance (f :<: v) => Eval f v where
+instance  {-# OVERLAPPABLE #-} (f :<: v) => Eval f v where
   evalAlg = inject -- default instance
 
-instance (Value :<: v) => Eval Op v where
+instance {-# OVERLAPPABLE #-} (Value :<: v) => Eval Op v where
   evalAlg (Add x y)  = iConst $ projC x + projC y
   evalAlg (Mult x y) = iConst $ projC x * projC y
   evalAlg (Fst x)    = fst $ projP x

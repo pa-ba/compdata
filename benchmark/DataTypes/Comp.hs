@@ -8,7 +8,8 @@
   ScopedTypeVariables,
   TypeSynonymInstances,
   DeriveFunctor,
-  ConstraintKinds #-}
+  ConstraintKinds,
+  DeriveGeneric, DeriveAnyClass #-}
 
 module DataTypes.Comp 
     ( module DataTypes.Comp,
@@ -28,6 +29,8 @@ import Test.QuickCheck.Property
 import Control.Monad hiding (sequence_,mapM)
 import Prelude hiding (sequence_,mapM)
 
+import GHC.Generics (Generic)
+
 -- base values
 
 type ValueSig = Value
@@ -38,6 +41,8 @@ type SugarSig = Value :+: Op :+: Sugar
 type SugarExpr = Term SugarSig
 type BaseTypeSig = ValueT
 type BaseType = Term BaseTypeSig
+
+
 
 data ValueT e = TInt
               | TBool
@@ -50,7 +55,7 @@ data Value e = VInt Int
                deriving (Eq, Functor)
 
 data Proj = ProjLeft | ProjRight
-            deriving (Eq)
+            deriving (Eq, Generic, NFData)
 
 data Op e = Plus e e
           | Mult e e
@@ -69,7 +74,9 @@ data Sugar e = Neg e
              | Impl e e
                deriving (Eq, Functor)
 
-$(derive [makeNFData, makeArbitrary] [''Proj])
+
+instance Arbitrary Proj where
+  arbitrary = elements [ProjLeft,ProjRight]
 
 $(derive
   [makeFoldable, makeTraversable,

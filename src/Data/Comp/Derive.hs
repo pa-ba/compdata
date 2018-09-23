@@ -34,7 +34,6 @@ module Data.Comp.Derive
      -- ** Arbitrary
      module Data.Comp.Derive.Arbitrary,
      NFData(..),
-     makeNFData,
      -- ** DeepSeq
      module Data.Comp.Derive.DeepSeq,
      -- ** Smart Constructors
@@ -61,12 +60,8 @@ import Data.Comp.Ops ((:+:), caseF)
 
 import Language.Haskell.TH
 
-import qualified Data.Derive.All as A
-import qualified Data.DeriveTH as D
 
-{-| Derive an instance of 'NFData' for a type constructor. -}
-makeNFData :: Name -> Q [Dec]
-makeNFData = D.derive A.makeNFData
+
 
 {-| Given the name of a type class, where the first parameter is a functor,
   lift it to sums of functors. Example: @class ShowF f where ...@ is lifted

@@ -17,7 +17,6 @@ module Data.Comp.Derive.Utils where
 
 import Control.Monad
 import Language.Haskell.TH
-import Language.Haskell.TH.ExpandSyns
 import Language.Haskell.TH.Syntax
 
 -- reportError is introduced only from version 7.6 of GHC
@@ -29,7 +28,11 @@ reportError = report True
 #if __GLASGOW_HASKELL__ < 800
 data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [Name]
 #else
+#if __GLASGOW_HASKELL__ < 802
 data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] Cxt
+#else
+data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [DerivClause] 
+#endif
 #endif
 
 {-|
@@ -65,8 +68,9 @@ normalCon (RecC constr args) = (constr, map (\(_,s,t) -> (s,t)) args, Nothing)
 normalCon (InfixC a constr b) = (constr, [a,b], Nothing)
 normalCon (ForallC _ _ constr) = normalCon constr
 #if __GLASGOW_HASKELL__ >= 800
-normalCon (GadtC (constr:constrs) args typ) = (constr,args,Just typ)
+normalCon (GadtC (constr:_) args typ) = (constr,args,Just typ)
 #endif
+normalCon _ = error "missing case for 'normalCon'"
 
 normalCon' :: Con -> (Name,[Type], Maybe Type)
 normalCon' con = (n, map snd ts, t)
@@ -84,15 +88,14 @@ normalCon' con = (n, map snd ts, t)
 normalConExp :: Con -> Q (Name,[Type], Maybe Type)
 normalConExp c = do
   let (n,ts,t) = normalCon' c
-  ts' <- mapM expandSyns ts
-  return (n, ts',t)
+  return (n, ts,t)
 
 
 -- | Same as normalConExp' but retains strictness annotations.
 normalConStrExp :: Con -> Q (Name,[StrictType], Maybe Type)
 normalConStrExp c = do
   let (n,ts,t) = normalCon c
-  ts' <- mapM (\ (st,ty) -> do ty' <- expandSyns ty; return (st,ty')) ts
+  ts' <- mapM (\ (st,ty) -> do return (st,ty)) ts
   return (n, ts',t)
 
 -- | Auxiliary function to extract the first argument of a binary type
@@ -123,8 +126,9 @@ abstractConType (RecC constr args) = (constr, length args)
 abstractConType (InfixC _ constr _) = (constr, 2)
 abstractConType (ForallC _ _ constr) = abstractConType constr
 #if __GLASGOW_HASKELL__ >= 800
-abstractConType (GadtC (constr:_) args typ) = (constr,length args) -- Only first Name
+abstractConType (GadtC (constr:_) args _typ) = (constr,length args) -- Only first Name
 #endif
+abstractConType _ = error "missing case for 'abstractConType'"
 
 {-|
   This function returns the name of a bound type variable
@@ -259,11 +263,22 @@ findSig targs decs = case map run decs of
                                     Nothing -> return Nothing
                                     Just n -> return $ splitNames n targs
   where run :: Dec -> Q (Maybe Name)
-        run (SigD _ ty) = do
-          ty' <- expandSyns ty
-          return $ getSig False ty'
+        run (SigD _ ty) = return $ getSig False ty
         run _ = return Nothing
         getSig t (ForallT _ _ ty) = getSig t ty
+
+        -- explicitly expand AlgM and Alg, ideally this should be done
+        -- systematically via th-expand-syns (which doesn't compile
+        -- with GHC 8.6 currently)
+        getSig False (AppT (AppT (AppT (ConT alg) _) t2) _)
+          | showName alg `elem` ["Data.Comp.Multi.Algebra.AlgM",
+                                 "Data.Comp.Algebra.AlgM",
+                                 "Data.Comp.Thunk.AlgT"] = getSig True t2
+        getSig False (AppT (AppT (ConT alg) t1) _)
+          | showName alg `elem` ["Data.Comp.Multi.Algebra.Alg",
+                                 "Data.Comp.Algebra.Alg",
+                                 "Data.Comp.Algebra.Hom",
+                                 "Data.Comp.Algebra.SigFun"]= getSig True t1
         getSig False (AppT (AppT ArrowT ty) _) = getSig True ty
         getSig True (AppT ty _) = getSig True ty
         getSig True (VarT n) = Just n

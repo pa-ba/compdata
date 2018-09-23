@@ -16,7 +16,11 @@ import Functions.Comp.Desugar
 import Data.Comp
 import Data.Comp.Thunk hiding (eval, eval2)
 import Data.Comp.Derive
-import Control.Monad
+
+import Control.Monad.Fail
+import Prelude hiding (fail)
+import Control.Monad hiding (fail)
+
 
 -- evaluation with thunks
 
@@ -31,7 +35,7 @@ $(derive [liftSum] [''EvalT])
 instance (Monad m, Traversable v, Value :<: m :+: v) => EvalT Value v m where
     evalTAlg = inject
 
-instance (Value :<: (m :+: v), Value :<: v, Traversable v, EqF v, Monad m) => EvalT Op v m where
+instance (Value :<: (m :+: v), Value :<: v, Traversable v, EqF v, MonadFail m) => EvalT Op v m where
     evalTAlg (Plus x y) = thunk $ do
                            VInt i <- whnfPr x
                            VInt j <- whnfPr y
@@ -64,7 +68,7 @@ instance (Value :<: (m :+: v), Value :<: v, Traversable v, EqF v, Monad m) => Ev
                               ProjLeft -> x
                               ProjRight -> y
 
-instance (Value :<: (m :+: v), Value :<: v, Traversable v, Monad m) => EvalT Sugar v m where
+instance (Value :<: (m :+: v), Value :<: v, Traversable v, MonadFail m) => EvalT Sugar v m where
     evalTAlg (Neg x) = thunk $ do
                          VInt i <- whnfPr x
                          return $ iVInt (-i)
@@ -101,22 +105,22 @@ $(derive [liftSum] [''Eval])
 instance (Value :<: v, Monad m) => Eval Value v m where
     evalAlg = return . inject
 
-coerceInt :: (Value :<: v, Monad m) => Term v -> m Int
+coerceInt :: (Value :<: v, MonadFail m) => Term v -> m Int
 coerceInt t = case project t of
                 Just (VInt i) -> return i
                 _ -> fail ""
 
-coerceBool :: (Value :<: v, Monad m) => Term v -> m Bool
+coerceBool :: (Value :<: v, MonadFail m) => Term v -> m Bool
 coerceBool t = case project t of
                 Just (VBool b) -> return b
                 _ -> fail ""
 
-coercePair :: (Value :<: v, Monad m) => Term v -> m (Term v, Term v)
+coercePair :: (Value :<: v, MonadFail m) => Term v -> m (Term v, Term v)
 coercePair t = case project t of
                 Just (VPair x y) -> return (x,y)
                 _ -> fail ""
 
-instance (Value :<: v, EqF v, Monad m) => Eval Op v m where
+instance (Value :<: v, EqF v, MonadFail m) => Eval Op v m where
     evalAlg (Plus x y) = liftM2 (\ i j -> iVInt (i + j)) (coerceInt x) (coerceInt y)
     evalAlg (Mult x y) = liftM2 (\ i j -> iVInt (i * j)) (coerceInt x) (coerceInt y)
     evalAlg (If b x y) = liftM select (coerceBool b)
@@ -130,7 +134,7 @@ instance (Value :<: v, EqF v, Monad m) => Eval Op v m where
                                ProjLeft -> x
                                ProjRight -> y
 
-instance (Value :<: v, Monad m) => Eval Sugar v m where
+instance (Value :<: v, MonadFail m) => Eval Sugar v m where
     evalAlg (Neg x) = liftM (iVInt . negate) (coerceInt x)
     evalAlg (Minus x y) = liftM2 (\ i j -> iVInt (i - j)) (coerceInt x) (coerceInt y)
     evalAlg (Gt x y) = liftM2 (\ i j -> iVBool (i > j)) (coerceInt x) (coerceInt y)
@@ -140,18 +144,18 @@ instance (Value :<: v, Monad m) => Eval Sugar v m where
 
 -- direct evaluation
 
-class Monad m => EvalDir e m where
+class MonadFail m => EvalDir e m where
     evalDir :: (Traversable f, EvalDir f m) => e (Term f) -> m ValueExpr
 
 evalDirect :: (Traversable e, EvalDir e m) => Term e -> m ValueExpr
-evalDirect = evalDir . unTerm
+evalDirect (Term x) = evalDir x
 
 evalDirectE :: SugarExpr -> Err ValueExpr
 evalDirectE = evalDirect
 
 $(derive [liftSum] [''EvalDir])
 
-instance (Monad m) => EvalDir Value m where
+instance (MonadFail m) => EvalDir Value m where
     evalDir (VInt i) = return $ iVInt i
     evalDir (VBool i) = return $ iVBool i
     evalDir (VPair x y) = liftM2 iVPair (evalDirect x) (evalDirect y)
@@ -178,7 +182,7 @@ evalPair t = do
     Just (VPair x y) -> return (x,y)
     _ -> fail ""
 
-instance (Monad m) => EvalDir Op m where
+instance (MonadFail m) => EvalDir Op m where
     evalDir (Plus x y) = liftM2 (\ i j -> iVInt (i + j)) (evalInt x) (evalInt y)
     evalDir (Mult x y) = liftM2 (\ i j -> iVInt (i * j)) (evalInt x) (evalInt y)
     evalDir (If b x y) = do 
@@ -193,7 +197,7 @@ instance (Monad m) => EvalDir Op m where
                                ProjLeft -> x
                                ProjRight -> y
 
-instance (Monad m) => EvalDir Sugar m where
+instance (MonadFail m) => EvalDir Sugar m where
     evalDir (Neg x) = liftM (iVInt . negate) (evalInt x)
     evalDir (Minus x y) = liftM2 (\ i j -> iVInt (i - j)) (evalInt x) (evalInt y)
     evalDir (Gt x y) = liftM2 (\ i j -> iVBool (i > j)) (evalInt x) (evalInt y)
@@ -258,7 +262,7 @@ class EvalDir2 e where
     evalDir2 :: (EvalDir2 f) => e (Term f) -> ValueExpr
 
 evalDirect2 :: (EvalDir2 e) => Term e -> ValueExpr
-evalDirect2 = evalDir2 . unTerm
+evalDirect2 (Term x) = evalDir2 x
 
 evalDirectE2 :: SugarExpr -> ValueExpr
 evalDirectE2 = evalDirect2

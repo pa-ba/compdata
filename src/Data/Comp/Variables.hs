@@ -1,7 +1,6 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE GADTs                 #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverlappingInstances  #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TypeOperators         #-}
 
@@ -191,7 +190,7 @@ appSubst :: (Ord v, SubstVars v t a) => Map v t -> a -> a
 appSubst subst = substVars f
     where f v = Map.lookup v subst
 
-instance (Ord v, HasVars f v, Traversable f)
+instance  {-# OVERLAPPABLE #-} (Ord v, HasVars f v, Traversable f)
     => SubstVars v (Cxt h f a) (Cxt h f a) where
         -- have to use explicit GADT pattern matching!!
         -- subst f = free (substAlg f) Hole
@@ -202,7 +201,7 @@ instance (Ord v, HasVars f v, Traversable f)
             Nothing  -> Term $ fmapBoundVars run t
               where run vars = doSubst (b `Set.union` vars)
 
-instance (SubstVars v t a, Functor f) => SubstVars v t (f a) where
+instance  {-# OVERLAPPABLE #-} (SubstVars v t a, Functor f) => SubstVars v t (f a) where
     substVars f = fmap (substVars f)
 
 {-| This function composes two substitutions @s1@ and @s2@. That is,

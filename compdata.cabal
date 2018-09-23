@@ -187,29 +187,36 @@ library
                         Data.Comp.Multi.Derive.SmartConstructors
                         Data.Comp.Multi.Derive.SmartAConstructors
 
-  Build-Depends:	base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.9, derive,
-                        deepseq, th-expand-syns, transformers, tree-view >= 0.5
+
+
+
+  Build-Depends:	base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1,
+                        QuickCheck >= 2, deepseq, transformers,
+                        tree-view >= 0.5
   Extensions:           FlexibleContexts
   hs-source-dirs:	src
-  ghc-options:          -W
+  ghc-options:          -W -Wno-missing-home-modules
 
 
 Test-Suite test
   Type:                 exitcode-stdio-1.0
   Main-is:		Data_Test.hs
   hs-source-dirs:	testsuite/tests examples src
-  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.9, 
-                        HUnit, test-framework, test-framework-hunit, test-framework-quickcheck2 >= 0.3, derive,
-                        th-expand-syns, deepseq, transformers
+  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1,
+                        QuickCheck >= 2, HUnit, test-framework, test-framework-hunit,
+                        test-framework-quickcheck2 >= 0.3, deepseq, transformers
 
+  ghc-options:          -W -Wno-missing-home-modules -Wno-incomplete-patterns
+                        
 Benchmark algebra
   Type:                 exitcode-stdio-1.0
   Main-is:		Benchmark.hs
   hs-source-dirs:	src benchmark
-  ghc-options:          -W -O2
+  ghc-options:          -W -Wno-missing-home-modules -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
-  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1, QuickCheck >= 2 && < 2.9, derive, deepseq, criterion, random, uniplate, th-expand-syns, transformers
+  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1,
+                        QuickCheck >= 2, deepseq, criterion, random, uniplate, transformers
 
 
 source-repository head

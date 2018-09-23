@@ -35,7 +35,7 @@ module Data.Comp.Multi.Ops
     , O.fsnd
     ) where
 
-import Control.Applicative
+
 import Control.Monad
 import Data.Comp.Multi.HFoldable
 import Data.Comp.Multi.HFunctor

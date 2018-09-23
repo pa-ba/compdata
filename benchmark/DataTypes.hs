@@ -1,14 +1,11 @@
-{-# LANGUAGE TypeSynonymInstances, CPP #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 
 module DataTypes where
 
+import Control.Monad.Fail
+
+
 type Err = Either String
 
-#if __GLASGOW_HASKELL__ < 700
-instance Monad Err where
-    return = Right
-    e >>= f = case e of 
-                Left m -> Left m
-                Right x -> f x
+instance MonadFail Err where
     fail  = Left
-#endif

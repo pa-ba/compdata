@@ -11,10 +11,6 @@ import Data.Comp
 import Test.Framework
 import Test.Framework.Providers.HUnit
 import Test.HUnit
-import Test.Utils hiding (iPair)
-
-
-
 
 
 --------------------------------------------------------------------------------

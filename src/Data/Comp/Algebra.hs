@@ -399,11 +399,6 @@ compHomM' :: (Traversable h, Monad m)
                 => HomM m g h -> HomM m f g -> HomM m f h
 compHomM' f g = appHomM' f <=< g
 
-{-| Compose two monadic term homomorphisms. -}
-compHomM_ :: (Functor h, Functor g, Monad m)
-                => Hom g h -> HomM m f g -> HomM m f h
-compHomM_ f g = liftM (appHom f) . g
-
 {-| Compose a monadic algebra with a monadic term homomorphism to get a new
   monadic algebra. -}
 compAlgM :: (Traversable g, Monad m) => AlgM m g a -> HomM m f g -> AlgM m f a
@@ -923,10 +918,7 @@ appSigFunHomM f g = run where
 
   "appSigFunM'/appSigFun'" forall (a :: SigFunM m g h) (h :: SigFun f g) x.
      appSigFunM' a (appSigFun' h x) = appSigFunM' (compSigFunM a (sigFunM h)) x;
-
-
-  "appHom/appHomM" forall (a :: Hom g h) (h :: HomM m f g) x.
-     appHomM h x >>= (return . appHom a) = appHomM (compHomM_ a h) x; #-}
+#-}
 
 {-# RULES
   "cata/build"  forall alg (g :: forall a . Alg f a -> a) .

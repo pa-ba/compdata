@@ -6,8 +6,6 @@ module Test.Utils where
 import Data.Comp
 import Data.Comp.Derive
 
-import Data.Foldable
-
 
 data Tree l e = Leaf l
               | UnNode l e

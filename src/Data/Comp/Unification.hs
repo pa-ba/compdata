@@ -23,8 +23,6 @@ import Data.Comp.Variables
 import Control.Monad.Except
 import Control.Monad.State
 
-import Data.Traversable
-
 import qualified Data.Map as Map
 
 {-| This type represents equations between terms over a specific

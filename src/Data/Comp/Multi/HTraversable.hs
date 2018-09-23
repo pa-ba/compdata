@@ -24,7 +24,7 @@ module Data.Comp.Multi.HTraversable
      HTraversable (..)
     ) where
 
-import Control.Applicative
+
 import Data.Comp.Multi.HFoldable
 import Data.Comp.Multi.HFunctor
 

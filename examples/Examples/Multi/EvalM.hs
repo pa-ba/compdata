@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
   FlexibleInstances, FlexibleContexts, UndecidableInstances, GADTs,
-  OverlappingInstances, ConstraintKinds #-}
+  ConstraintKinds #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Multi.EvalM
@@ -34,10 +34,10 @@ $(derive [liftSum] [''EvalM])
 evalM :: (HTraversable f, EvalM f v) => Term f i -> Maybe (Term v i)
 evalM = cataM evalAlgM
 
-instance (f :<: v) => EvalM f v where
+instance {-# OVERLAPPABLE #-} (f :<: v) => EvalM f v where
   evalAlgM = return . inject -- default instance
 
-instance (Value :<: v) => EvalM Op v where
+instance {-# OVERLAPPABLE #-} (Value :<: v) => EvalM Op v where
   evalAlgM (Add x y)  = do n1 <- projC x
                            n2 <- projC y
                            return $ iConst $ n1 + n2

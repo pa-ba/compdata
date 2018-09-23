@@ -62,7 +62,6 @@ import Prelude hiding (mapM, sequence)
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Maybe
-import Data.Traversable
 
 
 -- |Project the outermost layer of a term to a sub signature. If the signature

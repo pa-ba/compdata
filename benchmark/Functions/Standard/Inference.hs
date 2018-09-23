@@ -1,17 +1,20 @@
 module Functions.Standard.Inference where
 
+
+import Control.Monad.Fail
 import DataTypes.Standard
-import Control.Monad
+import Prelude hiding (fail)
+import Control.Monad hiding (fail)
 import Functions.Standard.Desugar
 
-checkOp :: (Monad m) => [VType] -> VType -> [OExpr] -> m VType
+checkOp :: (MonadFail m) => [VType] -> VType -> [OExpr] -> m VType
 checkOp tys rety args = do 
   argsty <- mapM inferType args
   if tys == argsty
      then return rety
      else fail ""
 
-inferType :: (Monad m) => OExpr -> m VType
+inferType :: (MonadFail m) => OExpr -> m VType
 inferType (OInt _) = return VTInt
 inferType (OBool _) = return VTBool
 inferType (OPair x y) = liftM2 VTPair (inferType x) (inferType y)

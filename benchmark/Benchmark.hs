@@ -12,7 +12,7 @@ import Control.DeepSeq
 import Test.QuickCheck.Arbitrary
 import Test.QuickCheck.Gen
 import Test.QuickCheck.Random
-import System.Random
+
 
 aExpr :: SugarExpr
 aExpr = iIf ((iVInt 1 `iGt` (iVInt 2 `iMinus` iVInt 1))
@@ -42,8 +42,8 @@ shortcutFusion = bgroup "shortcut-fusion" [
     where depth = 15
 
 standardBenchmarks :: (PExpr, SugarExpr, String) -> Benchmark
-standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench (sExpr, aExpr,n)
-    where getBench (sExpr, aExpr,n) = bgroup n paperBenchmarks
+standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench n
+    where getBench n = bgroup n paperBenchmarks
           -- these are the benchmarks for evaluation
           evalBenchmarks = [
                  bench "evalDesug" (nf A.desugEval2 aExpr),

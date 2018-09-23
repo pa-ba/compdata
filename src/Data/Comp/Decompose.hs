@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE ConstraintKinds  #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -18,7 +19,8 @@
 module Data.Comp.Decompose (
   Decomp (..),
   DecompTerm,
-  Decompose (..),
+  Decompose,
+  decomp,
   structure,
   arguments,
   decompose
@@ -49,20 +51,17 @@ type DecompTerm f v = Decomp f v (Term f)
 
 {-| This class specifies the decomposability of a functorial value. -}
 
-class (HasVars f v, Functor f, Foldable f) => Decompose f v where
-    {-| This function decomposes a functorial value. -}
+type Decompose f v = (HasVars f v, Functor f, Foldable f)
 
-    decomp :: f a -> Decomp f v a
-    decomp t = case isVar t of
-                 Just v -> Var v
-                 Nothing -> Fun sym args
-                     where sym = fmap (const ()) t
-                           args = arguments t
-
-instance (HasVars f v, Functor f, Foldable f) => Decompose f v where
+decomp :: Decompose f v => f a -> Decomp f v a
+decomp t = case isVar t of
+             Just v -> Var v
+             Nothing -> Fun sym args
+               where sym = fmap (const ()) t
+                     args = arguments t
 
 
 {-| This function decomposes a term. -}
 
-decompose :: (Decompose f v) => Term f -> DecompTerm f v
+decompose :: Decompose f v => Term f -> DecompTerm f v
 decompose (Term t) = decomp t

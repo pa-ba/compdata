@@ -35,9 +35,9 @@ module Data.Comp.Multi.Term
 import Data.Comp.Multi.HFoldable
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HTraversable
-import Data.Monoid
 
-import Control.Applicative hiding (Const)
+
+
 import Control.Monad
 
 import Unsafe.Coerce

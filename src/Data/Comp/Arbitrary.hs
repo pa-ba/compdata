@@ -21,7 +21,6 @@ module Data.Comp.Arbitrary
     ( ArbitraryF(..)
     )where
 
-import Control.Applicative
 import Data.Comp.Derive
 import Data.Comp.Derive.Utils
 import Data.Comp.Ops
