@@ -207,7 +207,82 @@ Test-Suite test
                         test-framework-quickcheck2 >= 0.3, deepseq, transformers, th-expand-syns
 
   ghc-options:          -W -Wno-incomplete-patterns
-                        
+  Other-Modules:
+        Data.Comp
+        Data.Comp.Algebra
+        Data.Comp.Annotation
+        Data.Comp.Arbitrary
+        Data.Comp.Derive
+        Data.Comp.Derive.Arbitrary
+        Data.Comp.Derive.DeepSeq
+        Data.Comp.Derive.Equality
+        Data.Comp.Derive.Foldable
+        Data.Comp.Derive.HaskellStrict
+        Data.Comp.Derive.Ordering
+        Data.Comp.Derive.Show
+        Data.Comp.Derive.SmartAConstructors
+        Data.Comp.Derive.SmartConstructors
+        Data.Comp.Derive.Traversable
+        Data.Comp.Derive.Utils
+        Data.Comp.Desugar
+        Data.Comp.Equality
+        Data.Comp.Equality_Test
+        Data.Comp.Examples.Comp
+        Data.Comp.Examples.Multi
+        Data.Comp.Examples_Test
+        Data.Comp.Generic
+        Data.Comp.Mapping
+        Data.Comp.Multi
+        Data.Comp.Multi.Algebra
+        Data.Comp.Multi.Annotation
+        Data.Comp.Multi.Derive
+        Data.Comp.Multi.Derive.Equality
+        Data.Comp.Multi.Derive.HFoldable
+        Data.Comp.Multi.Derive.HFunctor
+        Data.Comp.Multi.Derive.HTraversable
+        Data.Comp.Multi.Derive.Ordering
+        Data.Comp.Multi.Derive.Show
+        Data.Comp.Multi.Derive.SmartAConstructors
+        Data.Comp.Multi.Derive.SmartConstructors
+        Data.Comp.Multi.Desugar
+        Data.Comp.Multi.Equality
+        Data.Comp.Multi.Generic
+        Data.Comp.Multi.HFoldable
+        Data.Comp.Multi.HFunctor
+        Data.Comp.Multi.HTraversable
+        Data.Comp.Multi.Mapping
+        Data.Comp.Multi.Ops
+        Data.Comp.Multi.Ordering
+        Data.Comp.Multi.Show
+        Data.Comp.Multi.Sum
+        Data.Comp.Multi.Term
+        Data.Comp.Multi.Variables
+        Data.Comp.Multi.Variables_Test
+        Data.Comp.Multi_Test
+        Data.Comp.Ops
+        Data.Comp.Ordering
+        Data.Comp.Show
+        Data.Comp.SubsumeCommon
+        Data.Comp.Subsume_Test
+        Data.Comp.Sum
+        Data.Comp.Term
+        Data.Comp.Thunk
+        Data.Comp.Variables
+        Data.Comp.Variables_Test
+        Data.Comp_Test
+        Examples.Common
+        Examples.Desugar
+        Examples.Eval
+        Examples.EvalM
+        Examples.Thunk
+        Examples.Multi.Common
+        Examples.Multi.Desugar
+        Examples.Multi.Eval
+        Examples.Multi.EvalI
+        Examples.Multi.EvalM
+        Test.Utils
+
+                          
 Benchmark algebra
   Type:                 exitcode-stdio-1.0
   Main-is:		Benchmark.hs
@@ -218,7 +293,49 @@ Benchmark algebra
   Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1,
                         QuickCheck >= 2, deepseq, criterion, random, uniplate, transformers,
                         th-expand-syns
-
+  Other-Modules:
+        Data.Comp
+        Data.Comp.Algebra
+        Data.Comp.Annotation
+        Data.Comp.Arbitrary
+        Data.Comp.DeepSeq
+        Data.Comp.Derive
+        Data.Comp.Derive.Arbitrary
+        Data.Comp.Derive.DeepSeq
+        Data.Comp.Derive.Equality
+        Data.Comp.Derive.Foldable
+        Data.Comp.Derive.HaskellStrict
+        Data.Comp.Derive.Ordering
+        Data.Comp.Derive.Show
+        Data.Comp.Derive.SmartAConstructors
+        Data.Comp.Derive.SmartConstructors
+        Data.Comp.Derive.Traversable
+        Data.Comp.Derive.Utils
+        Data.Comp.Equality
+        Data.Comp.Generic
+        Data.Comp.Mapping
+        Data.Comp.Ops
+        Data.Comp.Ordering
+        Data.Comp.Show
+        Data.Comp.SubsumeCommon
+        Data.Comp.Sum
+        Data.Comp.Term
+        Data.Comp.Thunk
+        Data.Comp.Variables
+        DataTypes
+        DataTypes.Comp
+        DataTypes.Standard
+        DataTypes.Transform
+        Functions.Comp
+        Functions.Comp.Desugar
+        Functions.Comp.Eval
+        Functions.Comp.FreeVars
+        Functions.Comp.Inference
+        Functions.Standard
+        Functions.Standard.Desugar
+        Functions.Standard.Eval
+        Functions.Standard.FreeVars
+        Functions.Standard.Inference
 
 source-repository head
   type:     git

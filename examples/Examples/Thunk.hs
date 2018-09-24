@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses,
+{-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses, DeriveFunctor,
   FlexibleInstances, FlexibleContexts, UndecidableInstances, ConstraintKinds #-}
 --------------------------------------------------------------------------------
 -- |
@@ -22,26 +22,27 @@ import Data.Comp.Thunk
 import Data.Comp.Derive
 import Data.Comp.Show()
 import Examples.Common hiding (Value(..), Sig, iConst, iPair)
+import Control.Monad.Fail
 
 -- Signature for values, strict pairs
-data Value a = Const Int | Pair !a !a
+data Value a = Const Int | Pair !a !a deriving Functor
 
 -- Signature for the simple expression language
 type Sig = Op :+: Value
 
 -- Derive boilerplate code using Template Haskell
-$(derive [makeFunctor, makeTraversable, makeFoldable,
+$(derive [makeTraversable, makeFoldable,
           makeEqF, makeShowF, smartConstructors, makeHaskellStrict]
          [''Value])
 
 -- Monadic term evaluation algebra
 class EvalT f m v where
-  evalAlgT :: Monad m => AlgT m f v
+  evalAlgT :: MonadFail m => AlgT m f v
 
 $(derive [liftSum] [''EvalT])
 
 -- Lift the monadic evaluation algebra to a monadic catamorphism
-evalT :: (Traversable v, Functor f, EvalT f m v, Monad m) => Term f -> m (Term v)
+evalT :: (Traversable v, Functor f, EvalT f m v, MonadFail m) => Term f -> m (Term v)
 evalT = nf . cata evalAlgT
 
 instance (Value :<: m :+: v) => EvalT Value m v where
@@ -71,12 +72,8 @@ instance (Value :<: m :+: v, Value :<: v) => EvalT Op m v where
                           return y
 
 
-{-instance Monad (Either String) where
-    Left msg >>= _ = Left msg
-    Right x >>= f = f x
-                      
-    return = Right
-    fail = Left-}
+instance MonadFail (Either String) where
+    fail = Left
 
 evalTEx :: Either String (Term Value)
 evalTEx = evalT (iSnd (iFst (iConst 5) `iPair` iConst 4) :: Term Sig)
