@@ -1,5 +1,5 @@
 Name:			compdata
-Version:		0.11
+Version:		0.12
 Synopsis:            	Compositional Data Types
 Description:
 
@@ -96,7 +96,7 @@ Category:               Generics
 License:                BSD3
 License-file:           LICENSE
 Author:                 Patrick Bahr, Tom Hvitved
-Maintainer:             paba@diku.dk
+Maintainer:             paba@itu.dk
 Build-Type:             Simple
 Cabal-Version:          >=1.9.2
 bug-reports:            https://github.com/pa-ba/compdata/issues

@@ -77,3 +77,4 @@ in previous versions of this package:
   a higher degree of modularity and make it possible to apply fusion.
 * [`compdata-dags`](https://hackage.haskell.org/package/compdata-dags): recursion
   schemes on directed acyclic graphs.
+

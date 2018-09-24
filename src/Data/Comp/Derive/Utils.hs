@@ -272,13 +272,21 @@ findSig targs decs = case map run decs of
         -- with GHC 8.6 currently)
         getSig False (AppT (AppT (AppT (ConT alg) _) t2) _)
           | showName alg `elem` ["Data.Comp.Multi.Algebra.AlgM",
+                                 "Data.Comp.Param.Multi.Algebra.AlgM",
                                  "Data.Comp.Algebra.AlgM",
+                                 "Data.Comp.Param.Algebra.AlgM",
                                  "Data.Comp.Thunk.AlgT"] = getSig True t2
         getSig False (AppT (AppT (ConT alg) t1) _)
           | showName alg `elem` ["Data.Comp.Multi.Algebra.Alg",
+                                 "Data.Comp.Param.Multi.Algebra.Alg",
                                  "Data.Comp.Algebra.Alg",
+                                 "Data.Comp.Param.Algebra.Alg",
                                  "Data.Comp.Algebra.Hom",
-                                 "Data.Comp.Algebra.SigFun"]= getSig True t1
+                                 "Data.Comp.Param.Algebra.Hom",
+                                 "Data.Comp.Multi.Algebra.Hom",
+                                 "Data.Comp.Param.Multi.Algebra.Hom",
+                                 "Data.Comp.Algebra.SigFun",
+                                 "Data.Comp.Param.Algebra.SigFun"]= getSig True t1
         getSig False (AppT (AppT ArrowT ty) _) = getSig True ty
         getSig True (AppT ty _) = getSig True ty
         getSig True (VarT n) = Just n
