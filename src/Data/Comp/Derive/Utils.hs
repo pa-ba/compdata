@@ -18,6 +18,7 @@ module Data.Comp.Derive.Utils where
 import Control.Monad
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
+import Language.Haskell.TH.ExpandSyns
 
 -- reportError is introduced only from version 7.6 of GHC
 #if __GLASGOW_HASKELL__ < 706
@@ -95,7 +96,7 @@ normalConExp c = do
 normalConStrExp :: Con -> Q (Name,[StrictType], Maybe Type)
 normalConStrExp c = do
   let (n,ts,t) = normalCon c
-  ts' <- mapM (\ (st,ty) -> do return (st,ty)) ts
+  ts' <- mapM (\ (st,ty) -> do ty' <- expandSyns ty; return (st,ty')) ts
   return (n, ts',t)
 
 -- | Auxiliary function to extract the first argument of a binary type
@@ -263,30 +264,11 @@ findSig targs decs = case map run decs of
                                     Nothing -> return Nothing
                                     Just n -> return $ splitNames n targs
   where run :: Dec -> Q (Maybe Name)
-        run (SigD _ ty) = return $ getSig False ty
+        run (SigD _ ty) = do
+          ty' <- expandSyns ty
+          return $ getSig False ty'
         run _ = return Nothing
         getSig t (ForallT _ _ ty) = getSig t ty
-
-        -- explicitly expand AlgM and Alg, ideally this should be done
-        -- systematically via th-expand-syns (which doesn't compile
-        -- with GHC 8.6 currently)
-        getSig False (AppT (AppT (AppT (ConT alg) _) t2) _)
-          | showName alg `elem` ["Data.Comp.Multi.Algebra.AlgM",
-                                 "Data.Comp.Param.Multi.Algebra.AlgM",
-                                 "Data.Comp.Algebra.AlgM",
-                                 "Data.Comp.Param.Algebra.AlgM",
-                                 "Data.Comp.Thunk.AlgT"] = getSig True t2
-        getSig False (AppT (AppT (ConT alg) t1) _)
-          | showName alg `elem` ["Data.Comp.Multi.Algebra.Alg",
-                                 "Data.Comp.Param.Multi.Algebra.Alg",
-                                 "Data.Comp.Algebra.Alg",
-                                 "Data.Comp.Param.Algebra.Alg",
-                                 "Data.Comp.Algebra.Hom",
-                                 "Data.Comp.Param.Algebra.Hom",
-                                 "Data.Comp.Multi.Algebra.Hom",
-                                 "Data.Comp.Param.Multi.Algebra.Hom",
-                                 "Data.Comp.Algebra.SigFun",
-                                 "Data.Comp.Param.Algebra.SigFun"]= getSig True t1
         getSig False (AppT (AppT ArrowT ty) _) = getSig True ty
         getSig True (AppT ty _) = getSig True ty
         getSig True (VarT n) = Just n
