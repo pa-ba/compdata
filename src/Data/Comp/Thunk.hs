@@ -51,6 +51,7 @@ import Data.Foldable hiding (and)
 import qualified Data.IntSet as IntSet
 
 import Control.Monad hiding (mapM, sequence)
+import Control.Monad.Fail (MonadFail)
 import Data.Traversable
 
 import Prelude hiding (foldl, foldl1, foldr, foldr1, mapM, sequence)
