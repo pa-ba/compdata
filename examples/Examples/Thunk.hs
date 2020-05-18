@@ -22,7 +22,6 @@ import Data.Comp.Thunk
 import Data.Comp.Derive
 import Data.Comp.Show()
 import Examples.Common hiding (Value(..), Sig, iConst, iPair)
-import Control.Monad.Fail
 
 -- Signature for values, strict pairs
 data Value a = Const Int | Pair !a !a deriving Functor

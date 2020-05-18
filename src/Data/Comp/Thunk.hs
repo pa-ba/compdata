@@ -80,7 +80,7 @@ whnf' = liftM (inject_ Inr) . whnf
 -- 'whnf' and then projects the top-level signature to the desired
 -- subsignature. Failure to do the projection is signalled as a
 -- failure in the monad.
-whnfPr :: (Monad m, g :<: f) => TermT m f -> m (g (TermT m f))
+whnfPr :: (Monad m, MonadFail m, g :<: f) => TermT m f -> m (g (TermT m f))
 whnfPr t = do res <- whnf t
               case proj res of
                 Just res' -> return res'
@@ -111,7 +111,7 @@ nf = liftM Term . mapM nf <=< whnf
 -- | This function evaluates all thunks while simultaneously
 -- projecting the term to a smaller signature. Failure to do the
 -- projection is signalled as a failure in the monad as in 'whnfPr'.
-nfPr :: (Monad m, Traversable g, g :<: f) => TermT m f -> m (Term g)
+nfPr :: (Monad m, MonadFail m, Traversable g, g :<: f) => TermT m f -> m (Term g)
 nfPr = liftM Term . mapM nfPr <=< whnfPr
 
 -- | This function inspects a term (using 'nf') according to the
