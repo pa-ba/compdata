@@ -190,7 +190,7 @@ library
 
 
 
-  Build-Depends:	base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1,
+  Build-Depends:	base >= 4.9, base < 5, template-haskell, containers, mtl >= 2.2.1,
                         QuickCheck >= 2, deepseq, transformers, th-expand-syns,
                         tree-view >= 0.5
   Extensions:           FlexibleContexts
@@ -202,7 +202,7 @@ Test-Suite test
   Type:                 exitcode-stdio-1.0
   Main-is:		Data_Test.hs
   hs-source-dirs:	testsuite/tests examples src
-  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1,
+  Build-Depends:        base >= 4.9, base < 5, template-haskell, containers, mtl >= 2.2.1,
                         QuickCheck >= 2, HUnit, test-framework, test-framework-hunit,
                         test-framework-quickcheck2 >= 0.3, deepseq, transformers, th-expand-syns
 
@@ -290,7 +290,7 @@ Benchmark algebra
   ghc-options:          -W -O2
   -- Disable short-cut fusion rules in order to compare optimised and unoptimised code.
   cpp-options:          -DNO_RULES
-  Build-Depends:        base >= 4.7, base < 5, template-haskell, containers, mtl >= 2.2.1,
+  Build-Depends:        base >= 4.9, base < 5, template-haskell, containers, mtl >= 2.2.1,
                         QuickCheck >= 2, deepseq, criterion, random, uniplate, transformers,
                         th-expand-syns
   Other-Modules:
