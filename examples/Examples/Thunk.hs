@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell, TypeOperators, MultiParamTypeClasses, DeriveFunctor,
-  FlexibleInstances, FlexibleContexts, UndecidableInstances, ConstraintKinds #-}
+  FlexibleInstances, FlexibleContexts, UndecidableInstances, ConstraintKinds,
+  CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Examples.Thunk
@@ -22,7 +23,11 @@ import Data.Comp.Thunk
 import Data.Comp.Derive
 import Data.Comp.Show()
 import Examples.Common hiding (Value(..), Sig, iConst, iPair)
+
+-- Control.Monad.Fail import is redundant since GHC 8.8.1
+#if !MIN_VERSION_base(4,13,0)
 import Control.Monad.Fail
+#endif
 
 -- Signature for values, strict pairs
 data Value a = Const Int | Pair !a !a deriving Functor
