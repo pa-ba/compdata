@@ -1,22 +1,29 @@
+{-# LANGUAGE CPP                 #-}
+
 module Functions.Standard.Eval where
 
 import DataTypes.Standard
 import Functions.Standard.Desugar
 import Control.Monad
 
-coerceInt :: (Monad m) => SExpr -> m Int
+-- Control.Monad.Fail import is redundant since GHC 8.8.1
+#if !MIN_VERSION_base(4,13,0)
+import Control.Monad.Fail (MonadFail)
+#endif
+
+coerceInt :: (MonadFail m) => SExpr -> m Int
 coerceInt (SInt i) = return i
 coerceInt _ = fail ""
 
-coerceBool :: (Monad m) => SExpr -> m Bool
+coerceBool :: (MonadFail m) => SExpr -> m Bool
 coerceBool (SBool b) = return b
 coerceBool _ = fail ""
 
-coercePair :: (Monad m) => SExpr -> m (SExpr,SExpr)
+coercePair :: (MonadFail m) => SExpr -> m (SExpr,SExpr)
 coercePair (SPair x y) = return (x,y)
 coercePair _ = fail ""
 
-eval :: (Monad m) => OExpr -> m SExpr
+eval :: (MonadFail m) => OExpr -> m SExpr
 eval (OInt i) = return $ SInt i
 eval (OBool b) = return $ SBool b
 eval (OPair x y) = liftM2 SPair (eval x) (eval y)

@@ -7,7 +7,8 @@
   TypeOperators,
   ScopedTypeVariables,
   TypeSynonymInstances,
-  ConstraintKinds#-}
+  ConstraintKinds,
+  CPP #-}
 
 module Functions.Comp.Inference where
 
@@ -15,6 +16,11 @@ import Functions.Comp.Desugar
 import DataTypes.Comp
 import Data.Comp
 import Data.Comp.Derive
+
+-- Control.Monad.Fail import is redundant since GHC 8.8.1
+#if !MIN_VERSION_base(4,13,0)
+import Control.Monad.Fail (MonadFail)
+#endif
 
 -- type inference
 
@@ -29,19 +35,19 @@ inferBaseType = inferType
 
 $(derive [liftSum] [''InferType])
 
-instance (ValueT :<: t, Monad m) => InferType Value t m where
+instance (ValueT :<: t, MonadFail m) => InferType Value t m where
     inferTypeAlg (VInt _) = return $ inject TInt
     inferTypeAlg (VBool _) = return $ inject TBool
     inferTypeAlg (VPair x y) = return $ inject $ TPair x y
 
-checkOp :: (g :<: f, Eq (g (Term f)), Monad m) =>
+checkOp :: (g :<: f, Eq (g (Term f)), MonadFail m) =>
            [g (Term f)] -> g (Term f) -> [Term f] -> m (Term f)
 checkOp exs et tys = if and (zipWith (\ f t -> maybe False (==f) (project t)) exs tys) 
                      then return (inject et)
                      else fail""
 
 
-instance (ValueT :<: t, EqF t, Monad m) => InferType Op t m where
+instance (ValueT :<: t, EqF t, MonadFail m) => InferType Op t m where
     inferTypeAlg (Plus x y) = checkOp [TInt,TInt] TInt [x ,y]
     inferTypeAlg (Mult x y) = checkOp [TInt,TInt] TInt [x ,y]
     inferTypeAlg (Lt x y) = checkOp [TInt,TInt] TBool [x ,y]
@@ -58,7 +64,7 @@ instance (ValueT :<: t, EqF t, Monad m) => InferType Op t m where
                                       ProjRight -> return x2
                                 _ -> fail ""
 
-instance (ValueT :<: t, EqF t, Monad m) => InferType Sugar t m where
+instance (ValueT :<: t, EqF t, MonadFail m) => InferType Sugar t m where
     inferTypeAlg (Minus x y) = checkOp [TInt,TInt] TInt [x ,y]
     inferTypeAlg (Neg x) = checkOp [TInt] TInt [x]
     inferTypeAlg (Gt x y) = checkOp [TInt,TInt] TBool [x ,y]

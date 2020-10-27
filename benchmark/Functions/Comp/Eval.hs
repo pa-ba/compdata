@@ -7,7 +7,8 @@
   TypeOperators,
   ScopedTypeVariables,
   TypeSynonymInstances,
-  ConstraintKinds #-}
+  ConstraintKinds,
+  CPP #-}
 
 module Functions.Comp.Eval where
 
@@ -17,10 +18,12 @@ import Data.Comp
 import Data.Comp.Thunk hiding (eval, eval2)
 import Data.Comp.Derive
 
-import Control.Monad.Fail
-import Prelude hiding (fail)
-import Control.Monad hiding (fail)
+-- Control.Monad.Fail import is redundant since GHC 8.8.1
+#if !MIN_VERSION_base(4,13,0)
+import Control.Monad.Fail (MonadFail)
+#endif
 
+import Control.Monad
 
 -- evaluation with thunks
 
