@@ -24,6 +24,7 @@ import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.HFunctor
 import Language.Haskell.TH
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 {-| Signature printing. An instance @ShowHF f@ gives rise to an instance
   @KShow (HTerm f)@. -}
@@ -62,7 +63,7 @@ makeShowHF fname = do
             genShowFClause fArg (constr, args, ty) = do
               let n = length args
               varNs <- newNames n "x"
-              let pat = ConP constr $ map VarP varNs
+              let pat = THCompat.conp constr $ map VarP varNs
                   allVars = zipWith (filterFarg (getBinaryFArg fArg ty)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr

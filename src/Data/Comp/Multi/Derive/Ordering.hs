@@ -24,6 +24,7 @@ import Data.Comp.Multi.Ordering
 import Data.List
 import Data.Maybe
 import Language.Haskell.TH hiding (Cxt)
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 compList :: [Ordering] -> Ordering
 compList = fromMaybe EQ . find (/= EQ)
@@ -56,8 +57,8 @@ makeOrdHF fname = do
             genEqClause coArg (constr, args,gadtTy) = do
               varXs <- newNames (length args) "x"
               varYs <- newNames (length args) "y"
-              let patX = ConP constr $ map VarP varXs
-              let patY = ConP constr $ map VarP varYs
+              let patX = THCompat.conp constr $ map VarP varXs
+              let patY = THCompat.conp constr $ map VarP varYs
               body <- eqDBody (getBinaryFArg coArg gadtTy) (zip3 varXs varYs args)
               return $ Clause [patX, patY] (NormalB body) []
             eqDBody :: Type -> [(Name, Name, Type)] -> ExpQ

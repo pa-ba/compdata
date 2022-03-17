@@ -33,6 +33,7 @@ import Data.Traversable
 import Language.Haskell.TH
 import Prelude hiding (foldl, foldr, mapM, sequence)
 import qualified Prelude as P (all, foldl, foldr, mapM)
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 
 class HaskellStrict f where
@@ -92,7 +93,7 @@ makeHaskellStrict fname = do
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
-            mkCPat constr varNs = ConP constr $ map mkPat varNs
+            mkCPat constr varNs = THCompat.conp constr $ map mkPat varNs
             mkPat = VarP
             mkClauses (constr, args) =
                 do varNs <- newNames (length args) "x"

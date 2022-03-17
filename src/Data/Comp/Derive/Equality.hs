@@ -19,6 +19,7 @@ module Data.Comp.Derive.Equality
 
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH hiding (Cxt, match)
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 
 {-| Signature equality. An instance @EqF f@ gives rise to an instance
@@ -46,8 +47,8 @@ makeEqF fname = do
             genEqClause (constr, n) = do
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
-              let pat = ConP constr $ map VarP varNs
-                  pat' = ConP constr $ map VarP varNs'
+              let pat = THCompat.conp constr $ map VarP varNs
+                  pat' = THCompat.conp constr $ map VarP varNs'
                   vars = map VarE varNs
                   vars' = map VarE varNs'
                   mkEq x y = let (x',y') = (return x,return y)
