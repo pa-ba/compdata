@@ -23,6 +23,7 @@ import Data.Comp.Derive.Utils
 import Data.List
 import Data.Maybe
 import Language.Haskell.TH hiding (Cxt)
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 {-| Signature ordering. An instance @OrdF f@ gives rise to an instance
   @Ord (Term f)@. -}
@@ -56,8 +57,8 @@ makeOrdF fname = do
             genEqClause (constr, n) = do
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
-              let pat = ConP constr $ map VarP varNs
-                  pat' = ConP constr $ map VarP varNs'
+              let pat = THCompat.conp constr $ map VarP varNs
+                  pat' = THCompat.conp constr $ map VarP varNs'
                   vars = map VarE varNs
                   vars' = map VarE varNs'
                   mkEq x y = let (x',y') = (return x,return y)

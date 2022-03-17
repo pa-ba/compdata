@@ -28,6 +28,7 @@ import Data.Monoid
 import Language.Haskell.TH
 import Prelude hiding (foldl, foldl1, foldr)
 import qualified Prelude as P (foldl, foldl1, foldr)
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 
 iter 0 _ e = e
@@ -63,7 +64,7 @@ makeHFoldable fname = do
             filterVar [d] x =Just (d, varE x)
             filterVar _ _ =  error "functor variable occurring twice in argument type"
             filterVars args varNs = catMaybes $ zipWith filterVar args varNs
-            mkCPat constr args varNs = ConP constr $ zipWith mkPat args varNs
+            mkCPat constr args varNs = THCompat.conp constr $ zipWith mkPat args varNs
             mkPat [] _ = WildP
             mkPat _ x = VarP x
             mkPatAndVars (constr, args) =

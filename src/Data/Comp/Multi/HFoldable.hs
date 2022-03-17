@@ -45,8 +45,8 @@ class HFunctor h => HFoldable h where
     hfoldr f z t = appEndo (hfoldMap (Endo . f) t) z
 
     hfoldl :: (b -> a :=> b) -> b -> h a :=> b
-    hfoldl f z t = appEndo (getDual (hfoldMap (Dual . Endo . flip f) t)) z
-
+    -- hfoldl f z t = appEndo (getDual (hfoldMap (Dual . Endo . flip f) t)) z
+    hfoldl f z t = appEndo (getDual (hfoldMap (Dual . Endo . (\x y -> f y x)) t)) z
 
     hfoldr1 :: forall a. (a -> a -> a) -> h (K a) :=> a
     hfoldr1 f xs = fromMaybe (error "hfoldr1: empty structure")

@@ -23,6 +23,7 @@ module Data.Comp.Derive.Arbitrary
 import Data.Comp.Derive.Utils hiding (derive)
 import Language.Haskell.TH
 import Test.QuickCheck
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 {-| Signature arbitration. An instance @ArbitraryF f@ gives rise to an instance
   @Arbitrary (Term f)@. -}
@@ -114,5 +115,5 @@ generateShrinkFDecl constrs
                  binds <- mapM (\(var,resVar) -> bindS (varP resVar) [| $(varE var) : shrink $(varE var) |]) $ zip varNs resVarNs
                  let ret = NoBindS $ AppE (VarE 'return) (foldl1 AppE ( ConE constr: map VarE resVarNs ))
                      stmtSeq = binds ++ [ret]
-                     pat = ConP constr $ map VarP varNs
-                 return $ Clause [pat] (NormalB $ AppE (VarE 'tail) (DoE stmtSeq)) []
+                     pat = THCompat.conp constr $ map VarP varNs
+                 return $ Clause [pat] (NormalB $ AppE (VarE 'tail) (THCompat.doE stmtSeq)) []

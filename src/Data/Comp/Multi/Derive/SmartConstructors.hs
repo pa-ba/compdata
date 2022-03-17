@@ -23,6 +23,7 @@ import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Sum
 import Data.Comp.Multi.Term
 import Language.Haskell.TH hiding (Cxt)
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 {-| Derive smart constructors for a type constructor of any higher-order kind
  taking at least two arguments. The smart constructors are similar to the
@@ -64,6 +65,6 @@ smartConstructors fname = do
                     ftype = foldl appT (conT tname) (map varT targs')
                     constr = (conT ''(:<:) `appT` ftype) `appT` f
                     typ = foldl appT (conT ''Cxt) [h, f, a, maybe i return miTp]
-                    typeSig = forallT (map PlainTV vars) (sequence [constr]) typ
+                    typeSig = forallT (map THCompat.specifiedPlainTV vars) (sequence [constr]) typ
                 sigD sname typeSig
               genSig _ _ _ _ _ = []

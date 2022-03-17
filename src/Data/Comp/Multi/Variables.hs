@@ -66,7 +66,7 @@ type SubstFun v a = NatM Maybe (K v) a
 
 
 substFun :: Ord v => GSubst v a -> SubstFun v a
-substFun s (K v) = fmap unA $ Map.lookup v s
+substFun s (K v) = fmap (\x -> unA x) $ Map.lookup v s
 
 {-| This multiparameter class defines functors with variables. An instance
   @HasVar f v@ denotes that values over @f@ might contain and bind variables of
@@ -166,7 +166,7 @@ containsVarAlg v t = K $ hfoldlBoundVars run local t
     where local = case isVar t of
                     Just v' -> v == v'
                     Nothing -> False
-          run :: Bool -> Set v -> K Bool i -> Bool
+          run :: Bool -> Set v -> K Bool :=> Bool
           run acc vars (K b) = acc || (not (v `Set.member` vars) && b)
 
 {-| This function checks whether a variable is contained in a context. -}
@@ -187,6 +187,7 @@ variablesAlg t = K $ hfoldlBoundVars run local t
     where local = case isVar t of
                     Just v -> Set.singleton v
                     Nothing -> Set.empty
+          run :: Ord v => Set v -> Set v -> K (Set v) :=> Set v
           run acc bvars (K vars) = acc `Set.union` (vars `Set.difference` bvars)
 
 {-| This function computes the set of variables occurring in a context. -}

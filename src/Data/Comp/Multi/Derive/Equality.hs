@@ -22,6 +22,7 @@ module Data.Comp.Multi.Derive.Equality
 import Data.Comp.Derive.Utils
 import Data.Comp.Multi.Equality
 import Language.Haskell.TH hiding (Cxt, match)
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 {-| Derive an instance of 'EqHF' for a type constructor of any higher-order
   kind taking at least two arguments. -}
@@ -46,8 +47,8 @@ makeEqHF fname = do
               let n = length argts
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
-              let pat = ConP constr $ map VarP varNs
-                  pat' = ConP constr $ map VarP varNs'
+              let pat = THCompat.conp constr $ map VarP varNs
+                  pat' = THCompat.conp constr $ map VarP varNs'
                   vars = map VarE varNs
                   vars' = map VarE varNs'
                   mkEq ty x y = let (x',y') = (return x,return y)

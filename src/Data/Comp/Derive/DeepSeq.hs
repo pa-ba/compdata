@@ -22,6 +22,7 @@ module Data.Comp.Derive.DeepSeq
 import Control.DeepSeq
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 {-| Signature normal form. An instance @NFDataF f@ gives rise to an instance
   @NFData (Term f)@. -}
@@ -44,7 +45,7 @@ makeNFDataF fname = do
             genRnfFClause (constr, args,_) = do
               let n = length args
               varNs <- newNames n "x"
-              let pat = ConP constr $ map VarP varNs
+              let pat = THCompat.conp constr $ map VarP varNs
                   allVars = map varE varNs
               body <- foldr (\ x y -> [|rnf $x `seq` $y|]) [| () |] allVars
               return $ Clause [pat] (NormalB body) []

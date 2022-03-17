@@ -19,6 +19,7 @@ import Control.Monad
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.ExpandSyns
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 -- reportError is introduced only from version 7.6 of GHC
 #if __GLASGOW_HASKELL__ < 706
@@ -27,12 +28,12 @@ reportError = report True
 #endif
 
 #if __GLASGOW_HASKELL__ < 800
-data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [Name]
+data DataInfo = DataInfo Cxt Name [THCompat.UnitTyVarBndr] [Con] [Name]
 #else
 #if __GLASGOW_HASKELL__ < 802
-data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] Cxt
+data DataInfo = DataInfo Cxt Name [THCompat.UnitTyVarBndr] [Con] Cxt
 #else
-data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [DerivClause] 
+data DataInfo = DataInfo Cxt Name [THCompat.UnitTyVarBndr] [Con] [DerivClause] 
 #endif
 #endif
 
@@ -134,8 +135,13 @@ abstractConType _ = error "missing case for 'abstractConType'"
 {-|
   This function returns the name of a bound type variable
 -}
+#if __GLASGOW_HASKELL__ < 900
 tyVarBndrName (PlainTV n) = n
 tyVarBndrName (KindedTV n _) = n
+#else
+tyVarBndrName (PlainTV n _) = n
+tyVarBndrName (KindedTV n _ _) = n
+#endif
 
 containsType :: Type -> Type -> Bool
 containsType s t

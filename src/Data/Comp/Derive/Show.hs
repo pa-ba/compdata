@@ -22,6 +22,7 @@ module Data.Comp.Derive.Show
 
 import Data.Comp.Derive.Utils
 import Language.Haskell.TH
+import qualified TemplateHaskell.Compat.V0208 as THCompat
 
 {-| Signature printing. An instance @ShowF f@ gives rise to an instance
   @Show (Term f)@. -}
@@ -54,7 +55,7 @@ makeShowF fname = do
             genShowFClause fArg (constr, args, gadtTy) = do
               let n = length args
               varNs <- newNames n "x"
-              let pat = ConP constr $ map VarP varNs
+              let pat = THCompat.conp constr $ map VarP varNs
                   allVars = zipWith (filterFarg (getUnaryFArg fArg gadtTy)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr
@@ -90,7 +91,7 @@ makeShowConstr fname = do
             genShowConstrClause fArg (constr, args, gadtTy) = do
               let n = length args
               varNs <- newNames n "x"
-              let pat = ConP constr $ map VarP varNs
+              let pat = THCompat.conp constr $ map VarP varNs
                   allVars = zipWith (filterFarg (getUnaryFArg fArg gadtTy)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr
