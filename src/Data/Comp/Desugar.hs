@@ -3,6 +3,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeOperators         #-}
 {-# LANGUAGE UndecidableInstances  #-}
+{-# LANGUAGE FlexibleContexts      #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Desugar
