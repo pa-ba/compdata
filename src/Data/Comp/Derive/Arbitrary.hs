@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs           #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Arbitrary
@@ -115,4 +116,8 @@ generateShrinkFDecl constrs
                  let ret = NoBindS $ AppE (VarE 'return) (foldl1 AppE ( ConE constr: map VarE resVarNs ))
                      stmtSeq = binds ++ [ret]
                      pat = ConP constr $ map VarP varNs
+#if __GLASGOW_HASKELL__ < 900
+                 return $ Clause [pat] (NormalB $ AppE (VarE 'tail) (DoE stmtSeq)) []
+#else
                  return $ Clause [pat] (NormalB $ AppE (VarE 'tail) (DoE Nothing stmtSeq)) []
+#endif
