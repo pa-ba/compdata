@@ -115,4 +115,4 @@ generateShrinkFDecl constrs
                  let ret = NoBindS $ AppE (VarE 'return) (foldl1 AppE ( ConE constr: map VarE resVarNs ))
                      stmtSeq = binds ++ [ret]
                      pat = ConP constr $ map VarP varNs
-                 return $ Clause [pat] (NormalB $ AppE (VarE 'tail) (DoE stmtSeq)) []
+                 return $ Clause [pat] (NormalB $ AppE (VarE 'tail) (DoE Nothing stmtSeq)) []

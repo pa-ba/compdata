@@ -54,6 +54,6 @@ smartConstructors fname = do
                     ftype = foldl appT (conT tname) (map varT targs')
                     constr = (conT ''(:<:) `appT` ftype) `appT` f
                     typ = foldl appT (conT ''Cxt) [h, f, a]
-                    typeSig = forallT (map PlainTV vars) (sequence [constr]) typ
+                    typeSig = forallT (map (flip PlainTV InferredSpec) vars) (sequence [constr]) typ
                 sigD sname typeSig
               genSig _ _ _ _ = []
