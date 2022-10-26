@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs           #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP             #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Arbitrary
