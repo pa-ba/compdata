@@ -49,6 +49,7 @@ makeHFunctor fname = do
             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
             mkCPat constr varNs = ConP constr $ map mkPat varNs
             mkPat = VarP
+            mkPatAndVars :: (Name, [[t]]) -> Q (Q Exp, Pat, (t -> Q Exp -> c) -> (Q Exp -> c) -> [c], Bool, [Q Exp], [(t, Name)])
             mkPatAndVars (constr, args) =
                 do varNs <- newNames (length args) "x"
                    return (conE constr, mkCPat constr varNs,
