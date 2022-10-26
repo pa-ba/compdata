@@ -45,7 +45,7 @@ class HFunctor h => HFoldable h where
     hfoldr f z t = appEndo (hfoldMap (Endo . f) t) z
 
     hfoldl :: (b -> a :=> b) -> b -> h a :=> b
-    hfoldl f z t = appEndo (getDual (hfoldMap (Dual . Endo . (\x y -> f y x)) t)) z -- I have no idea why `flip f` doesn't work here.
+    hfoldl f z t = appEndo (getDual (hfoldMap (Dual . Endo . (\x y -> f y x)) t)) z
 
 
     hfoldr1 :: forall a. (a -> a -> a) -> h (K a) :=> a
