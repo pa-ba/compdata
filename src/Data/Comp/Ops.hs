@@ -164,6 +164,8 @@ type family RemoveEmb (f :: * -> *) (e :: Emb) :: * -> * where
     RemoveEmb (f :+: g) (Found (Ri Here)) = f
     RemoveEmb (f :+: g) (Found (Le a)) = (RemoveEmb f (Found a)) :+: g
     RemoveEmb (f :+: g) (Found (Ri a)) = f :+: (RemoveEmb g (Found a))
+    RemoveEmb (f :+: g) (Found (Sum Here b)) = RemoveEmb g (Found b)
+    RemoveEmb (f :+: g) (Found (Sum a Here)) = RemoveEmb f (Found a)
     RemoveEmb (f :+: g) (Found (Sum a b)) = (RemoveEmb f (Found a)) :+: (RemoveEmb g (Found b))
     RemoveEmb f (Found Here) = Zero
     RemoveEmb f NotFound = f
