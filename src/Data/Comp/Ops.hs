@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE DeriveFunctor          #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -46,6 +47,9 @@ infixr 6 :+:
 -- |Formal sum of signatures (functors).
 data (f :+: g) e = Inl (f e)
                  | Inr (g e)
+
+-- |Identity for sums.
+data Zero a deriving Functor
 
 fromInl :: (f :+: g) e -> Maybe (f e)
 fromInl = caseF Just (const Nothing)
@@ -102,6 +106,10 @@ class Subsume (e :: Emb) (f :: * -> *) (g :: * -> *) where
   inj'  :: Proxy e -> f a -> g a
   prj'  :: Proxy e -> g a -> Maybe (f a)
 
+instance Subsume NotFound Zero f where
+    inj' = let x=x in x
+    prj' = let x=x in x
+
 instance Subsume (Found Here) f f where
     inj' _ = id
 
@@ -151,6 +159,16 @@ spl f1 f2 x = case inj x of
             Inl y -> f1 y
             Inr y -> f2 y
 
+type family RemoveEmb (f :: * -> *) (e :: Emb) :: * -> * where
+    RemoveEmb (f :+: g) (Found (Le Here)) = g
+    RemoveEmb (f :+: g) (Found (Ri Here)) = f
+    RemoveEmb (f :+: g) (Found (Le a)) = (RemoveEmb f (Found a)) :+: g
+    RemoveEmb (f :+: g) (Found (Ri a)) = f :+: (RemoveEmb g (Found a))
+    RemoveEmb f (Found Here) = Zero
+    RemoveEmb f NotFound = f
+
+extractSummand :: forall a f g. (g :<: f :+: (RemoveEmb g (ComprEmb (Elem f g)))) => Proxy f -> g a -> (f :+: (RemoveEmb g (ComprEmb (Elem f g)))) a
+extractSummand _ = inj
 
 
 -- Products
