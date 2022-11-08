@@ -165,7 +165,7 @@ type family RemoveEmb (f :: * -> *) (e :: Emb) :: * -> * where
     RemoveEmb (f :+: g) (Found (Le a)) = (RemoveEmb f (Found a)) :+: g
     RemoveEmb (f :+: g) (Found (Ri a)) = f :+: (RemoveEmb g (Found a))
     RemoveEmb (f :+: g) (Found (Sum a b)) = (RemoveEmb f (Found a)) :+: (RemoveEmb g (Found b))
-    --RemoveEmb f (Found Here) = Zero
+    RemoveEmb f (Found Here) = Zero
     RemoveEmb f NotFound = f
 
 extractSummand :: forall a f g. (g :<: f :+: (RemoveEmb g (ComprEmb (Elem f g)))) => Proxy f -> g a -> (f :+: (RemoveEmb g (ComprEmb (Elem f g)))) a
