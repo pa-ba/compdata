@@ -13,6 +13,7 @@
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE TypeSynonymInstances   #-}
 {-# LANGUAGE UndecidableInstances   #-}
+{-# LANGUAGE EmptyDataDecls         #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -28,11 +29,12 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Ops 
+module Data.Comp.Multi.Ops
     ( module Data.Comp.Multi.Ops
     , (O.:*:)(..)
     , O.ffst
     , O.fsnd
+    , Proxy(..)
     ) where
 
 
@@ -149,6 +151,43 @@ spl :: (f :=: f1 :+: f2) => (f1 a :-> b) -> (f2 a :-> b) -> f a :-> b
 spl f1 f2 x = case inj x of
             Inl y -> f1 y
             Inr y -> f2 y
+
+-- |Identity for sums.
+data HZero a i
+
+type family RemoveEmb (f :: (* -> *) -> * -> *) (e :: Emb) :: (* -> *) -> * -> * where
+    RemoveEmb (f :+: g) (Found (Le a)) = (RemoveEmb f (Found a)) :+: g
+    RemoveEmb (f :+: g) (Found (Ri a)) = f :+: (RemoveEmb g (Found a))
+    RemoveEmb f (Found (Sum a b)) = RemoveEmb (RemoveEmb f (Found a)) (Found b)
+    RemoveEmb f (Found Here) = HZero
+    RemoveEmb f (Found Nowhere) = f
+    RemoveEmb f NotFound = f
+
+-- |Removes all Zero summands from a functor
+type family RemoveZeroeSummands (f :: (* -> *) -> * -> *) :: (* -> *) -> * -> * where
+    RemoveZeroeSummands f = RemoveZeroeSummands' (HasZeroSummand f) f
+
+type family RemoveZeroeSummands' (p :: Bool) (f :: (* -> *) -> * -> *) where
+    RemoveZeroeSummands' True (HZero :+: f) = RemoveZeroeSummands f
+    RemoveZeroeSummands' True (f :+: HZero) = RemoveZeroeSummands f
+    RemoveZeroeSummands' True (f :+: g) = RemoveZeroeSummands ((RemoveZeroeSummands f) :+: RemoveZeroeSummands g)
+    RemoveZeroeSummands' False f = f
+
+type family HasZeroSummand (f :: (* -> *) -> * -> *) :: Bool where
+    HasZeroSummand (HZero :+: f) = True
+    HasZeroSummand (f :+: HZero) = True
+    HasZeroSummand (f :+: g) = Or (HasZeroSummand f) (HasZeroSummand g)
+    HasZeroSummand f = False
+
+type family Or (p :: Bool) (q :: Bool) :: Bool where
+    Or True f = True
+    Or False f = f
+
+extractSummand :: forall f g a. (g :<: f :+: (RemoveEmb g (ComprEmb (Elem f g)))) => Proxy f -> g a :-> (f :+: (RemoveEmb g (ComprEmb (Elem f g)))) a
+extractSummand _ = inj
+
+removeZeroeSummands :: forall f a. (f :<: RemoveZeroeSummands f) => f a :-> (RemoveZeroeSummands f) a
+removeZeroeSummands = inj
 
 -- Constant Products
 

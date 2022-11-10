@@ -68,6 +68,16 @@ instance Ord a => Ord (K a i) where
     max (K x) (K y) = K $ max x y
     compare (K x) (K y) = compare x y
 
+instance Num a => Num (K a i) where
+  (+)  (K a) (K b)  = K $ (+)  a b
+  (*)  (K a) (K b)  = K $ (*)  a b
+  abs    (K a)      = K $ abs    a
+  signum (K a)      = K $ signum a
+  negate (K a)      = K $ negate a
+  fromInteger a = K $ fromInteger a
+
+instance Semigroup a => Semigroup (K a i) where
+  (<>)  (K a) (K b)  = K $ (<>)  a b
 
 infixr 0 :-> -- same precedence as function space operator ->
 infixr 0 :=> -- same precedence as function space operator ->
