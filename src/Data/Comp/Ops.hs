@@ -189,7 +189,7 @@ type family Or (p :: Bool) (q :: Bool) :: Bool where
     Or True f = True
     Or False f = f
 
-extractSummand :: forall f g. (g :<: f :+: (RemoveEmb g (ComprEmb (Elem f g)))) => Proxy f -> (forall a. g a -> (f :+: (RemoveEmb g (ComprEmb (Elem f g)))) a)
+extractSummand :: forall f g. (g :<: f :+: (RemoveEmb g (ComprEmb (Elem f g)))) => Proxy f -> forall a. g a -> (f :+: (RemoveEmb g (ComprEmb (Elem f g)))) a
 extractSummand _ = inj
 
 removeZeroeSummands :: forall f. (f :<: RemoveZeroeSummands f) => forall a. f a -> (RemoveZeroeSummands f) a
