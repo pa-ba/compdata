@@ -30,7 +30,7 @@ module Data.Comp.SubsumeCommon
 -- | This type is used in its promoted form only. It represents
 -- pointers from the left-hand side of a subsumption to the right-hand
 -- side.
-data Pos = Here | Le Pos | Ri Pos | Sum Pos Pos
+data Pos = Nowhere | Here | Le Pos | Ri Pos | Sum Pos Pos
 
 -- | This type is used in its promoted form only. It represents
 -- possible results for checking for subsumptions. 'Found' indicates a
@@ -78,6 +78,7 @@ type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
 -- implementations of 'inj' and 'prj'.
 
 type family ComprPos (p :: Pos) :: Pos where
+    ComprPos Nowhere = Nowhere
     ComprPos Here = Here
     ComprPos (Le p) = Le (ComprPos p)
     ComprPos (Ri p) = Ri (ComprPos p)
@@ -151,6 +152,7 @@ type Dupl s = Dupl' (ToList '[s])
 -- | This type family checks whether the list of positions given as an
 -- argument contains any duplicates.
 type family Dupl' (s :: [Pos]) :: Bool where
+    Dupl' (Nowhere ': r) = False
     Dupl' (p ': r) = OrDupl' (Find p r) r
     Dupl' '[] = False
 
