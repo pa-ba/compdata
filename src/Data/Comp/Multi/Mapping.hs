@@ -5,6 +5,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RankNTypes #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Mapping
@@ -73,7 +74,7 @@ class Mapping m (k :: * -> *) | m -> k where
 
     -- | Returns the value at the given key or returns the given
     -- default when the key is not an element of the map.
-    findWithDefault :: a -> k i -> m a -> a
+    findWithDefault :: forall a i . a -> k i -> m a -> a
 
 
 newtype NumMap (k :: * -> *) v = NumMap (IntMap v) deriving Functor
@@ -88,6 +89,6 @@ instance Mapping (NumMap k) (Numbered k) where
 
     findWithDefault d (Numbered i _) m = lookupNumMap d i m
 
-    prodMap p q (NumMap mp) (NumMap mq) = NumMap $ IntMap.mergeWithKey merge 
+    prodMap p q (NumMap mp) (NumMap mq) = NumMap $ IntMap.mergeWithKey merge
                                           (IntMap.map (,q)) (IntMap.map (p,)) mp mq
       where merge _ p q = Just (p,q)
