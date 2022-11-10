@@ -32,7 +32,11 @@ data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [Name]
 #if __GLASGOW_HASKELL__ < 802
 data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] Cxt
 #else
+#if __GLASGOW_HASKELL__ < 900
 data DataInfo = DataInfo Cxt Name [TyVarBndr] [Con] [DerivClause] 
+#else
+data DataInfo = DataInfo Cxt Name [TyVarBndr ()] [Con] [DerivClause] 
+#endif
 #endif
 #endif
 
@@ -134,8 +138,13 @@ abstractConType _ = error "missing case for 'abstractConType'"
 {-|
   This function returns the name of a bound type variable
 -}
+#if __GLASGOW_HASKELL__ < 900
 tyVarBndrName (PlainTV n) = n
 tyVarBndrName (KindedTV n _) = n
+#else
+tyVarBndrName (PlainTV n _) = n
+tyVarBndrName (KindedTV n _ _) = n
+#endif
 
 containsType :: Type -> Type -> Bool
 containsType s t

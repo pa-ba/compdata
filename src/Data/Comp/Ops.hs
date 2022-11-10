@@ -1,11 +1,13 @@
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE DeriveFunctor          #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE PolyKinds              #-}
+{-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
@@ -46,6 +48,9 @@ infixr 6 :+:
 -- |Formal sum of signatures (functors).
 data (f :+: g) e = Inl (f e)
                  | Inr (g e)
+
+-- |Identity for sums.
+data Zero a deriving Functor
 
 fromInl :: (f :+: g) e -> Maybe (f e)
 fromInl = caseF Just (const Nothing)
@@ -93,6 +98,7 @@ infixl 5 :<:
 infixl 5 :=:
 
 type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
+    Elem Zero f = Found Nowhere
     Elem f f = Found Here
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
@@ -101,6 +107,10 @@ type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
 class Subsume (e :: Emb) (f :: * -> *) (g :: * -> *) where
   inj'  :: Proxy e -> f a -> g a
   prj'  :: Proxy e -> g a -> Maybe (f a)
+
+instance Subsume (Found Nowhere) Zero f where
+    inj' = let x=x in x
+    prj' = let x=x in x
 
 instance Subsume (Found Here) f f where
     inj' _ = id
@@ -151,7 +161,39 @@ spl f1 f2 x = case inj x of
             Inl y -> f1 y
             Inr y -> f2 y
 
+type family RemoveEmb (f :: * -> *) (e :: Emb) :: * -> * where
+    RemoveEmb (f :+: g) (Found (Le a)) = (RemoveEmb f (Found a)) :+: g
+    RemoveEmb (f :+: g) (Found (Ri a)) = f :+: (RemoveEmb g (Found a))
+    RemoveEmb f (Found (Sum a b)) = RemoveEmb (RemoveEmb f (Found a)) (Found b)
+    RemoveEmb f (Found Here) = Zero
+    RemoveEmb f (Found Nowhere) = f
+    RemoveEmb f NotFound = f
 
+-- |Removes all Zero summands from a functor
+type family RemoveZeroeSummands (f :: * -> *) :: * -> * where
+    RemoveZeroeSummands f = RemoveZeroeSummands' (HasZeroSummand f) f
+
+type family RemoveZeroeSummands' (p :: Bool) (f :: * -> *) where
+    RemoveZeroeSummands' True (Zero :+: f) = RemoveZeroeSummands f
+    RemoveZeroeSummands' True (f :+: Zero) = RemoveZeroeSummands f
+    RemoveZeroeSummands' True (f :+: g) = RemoveZeroeSummands ((RemoveZeroeSummands f) :+: RemoveZeroeSummands g)
+    RemoveZeroeSummands' False f = f
+
+type family HasZeroSummand (f :: * -> *) :: Bool where
+    HasZeroSummand (Zero :+: f) = True
+    HasZeroSummand (f :+: Zero) = True
+    HasZeroSummand (f :+: g) = Or (HasZeroSummand f) (HasZeroSummand g)
+    HasZeroSummand f = False
+
+type family Or (p :: Bool) (q :: Bool) :: Bool where
+    Or True f = True
+    Or False f = f
+
+extractSummand :: forall f g. (g :<: f :+: (RemoveEmb g (ComprEmb (Elem f g)))) => Proxy f -> (forall a. g a -> (f :+: (RemoveEmb g (ComprEmb (Elem f g)))) a)
+extractSummand _ = inj
+
+removeZeroeSummands :: forall f. (f :<: RemoveZeroeSummands f) => forall a. f a -> (RemoveZeroeSummands f) a
+removeZeroeSummands = inj
 
 -- Products
 
