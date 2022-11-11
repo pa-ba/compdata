@@ -108,14 +108,13 @@ class Subsume (e :: Emb) (f :: * -> *) (g :: * -> *) where
   inj'  :: Proxy e -> f a -> g a
   prj'  :: Proxy e -> g a -> Maybe (f a)
 
-instance Subsume (Found Nowhere) Zero g where
-    inj' = let x=x in x
-    prj' = let x=x in x
-
 instance Subsume (Found Here) f f where
     inj' _ = id
-
     prj' _ = Just
+
+instance Subsume (Found Nowhere) f g where
+    inj' = let x=x in x
+    prj' = let x=x in x
 
 instance Subsume (Found p) f g => Subsume (Found (Le p)) f (g :+: g') where
     inj' _ = Inl . inj' (P :: Proxy (Found p))
@@ -169,15 +168,15 @@ type family RemoveEmb (f :: * -> *) (e :: Emb) :: * -> * where
     RemoveEmb f (Found Nowhere) = f
     RemoveEmb f NotFound = f
 
--- |Removes all Zero summands from a functor
-type family RemoveZeroeSummands (f :: * -> *) :: * -> * where
-    RemoveZeroeSummands f = RemoveZeroeSummands' (HasZeroSummand f) f
+-- |Removes all Zero summands from a functor.
+type family RemoveZeroSummands (f :: * -> *) :: * -> * where
+    RemoveZeroSummands f = RemoveZeroSummands' (HasZeroSummand f) f
 
-type family RemoveZeroeSummands' (p :: Bool) (f :: * -> *) where
-    RemoveZeroeSummands' True (Zero :+: f) = RemoveZeroeSummands f
-    RemoveZeroeSummands' True (f :+: Zero) = RemoveZeroeSummands f
-    RemoveZeroeSummands' True (f :+: g) = RemoveZeroeSummands ((RemoveZeroeSummands f) :+: RemoveZeroeSummands g)
-    RemoveZeroeSummands' False f = f
+type family RemoveZeroSummands' (p :: Bool) (f :: * -> *) where
+    RemoveZeroSummands' True (Zero :+: f) = RemoveZeroSummands f
+    RemoveZeroSummands' True (f :+: Zero) = RemoveZeroSummands f
+    RemoveZeroSummands' True (f :+: g) = RemoveZeroSummands ((RemoveZeroSummands f) :+: RemoveZeroSummands g)
+    RemoveZeroSummands' False f = f
 
 type family HasZeroSummand (f :: * -> *) :: Bool where
     HasZeroSummand (Zero :+: f) = True
@@ -192,8 +191,8 @@ type family Or (p :: Bool) (q :: Bool) :: Bool where
 extractSummand :: forall f g. (g :<: f :+: (RemoveEmb g (ComprEmb (Elem f g)))) => Proxy f -> forall a. g a -> (f :+: (RemoveEmb g (ComprEmb (Elem f g)))) a
 extractSummand _ = inj
 
-removeZeroeSummands :: forall f. (f :<: RemoveZeroeSummands f) => forall a. f a -> (RemoveZeroeSummands f) a
-removeZeroeSummands = inj
+removeZeroSummands :: forall f. (f :<: RemoveZeroSummands f) => forall a. f a -> (RemoveZeroSummands f) a
+removeZeroSummands = inj
 
 -- Products
 
