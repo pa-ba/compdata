@@ -30,7 +30,7 @@ features:
 * Compositional data types in the style of Wouter Swierstra's
    Functional Pearl *Data types a la carte*. The implementation of
    signature subsumption is based on the paper
-   [*Composing and Decomposing Data Types*](http://www.pa-ba.net/pubs/entries/bahr14wgp.html)
+   [*Composing and Decomposing Data Types*](https://bahr.io/pubs/files/bahr14wgp-paper.pdf)
    (Workshop on Generic Programming, 2014, to appear), which makes
    signature composition more flexible.
 * Modular definition of functions on compositional data types through
