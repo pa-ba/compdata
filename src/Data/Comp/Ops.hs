@@ -5,7 +5,6 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
-{-# LANGUAGE IncoherentInstances    #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE PolyKinds              #-}
 {-# LANGUAGE RankNTypes             #-}
@@ -99,8 +98,8 @@ infixl 5 :<:
 infixl 5 :=:
 
 type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
-    Elem Zero f = Found Nowhere
     Elem f f = Found Here
+    Elem Zero f = Found Nowhere
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
@@ -113,7 +112,7 @@ instance Subsume (Found Nowhere) Zero g where
     inj' = let x=x in x
     prj' = let x=x in x
 
-instance {-# OVERLAPPING #-} Subsume e f f where
+instance Subsume (Found Here) f f where
     inj' _ = id
 
     prj' _ = Just
