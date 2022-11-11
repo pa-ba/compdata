@@ -152,7 +152,7 @@ type Dupl s = Dupl' (ToList '[s])
 -- | This type family checks whether the list of positions given as an
 -- argument contains any duplicates.
 type family Dupl' (s :: [Pos]) :: Bool where
-    Dupl' (Nowhere ': r) = False
+    Dupl' (Nowhere ': r) = Dupl' r
     Dupl' (p ': r) = OrDupl' (Find p r) r
     Dupl' '[] = False
 
