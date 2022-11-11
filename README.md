@@ -5,7 +5,7 @@ This library implements the ideas of
 (Wouter Swiestra,
 [Journal of Functional Programming, 18(4):423-436, 2008](http://dx.doi.org/10.1017/S0956796808006758))
 as outlined in the paper
-[*Compositional data types*](http://www.diku.dk/~paba/pubs/entries/bahr11wgp.html)
+[*Compositional data types*](https://bahr.io/pubs/talks/bahr11wgp.html)
 (Patrick Bahr and Tom Hvitved,
 [Workshop on Generic Programming, 83-94, 2011](http://dx.doi.org/10.1145/2036918.2036930)). The
 purpose of this library is to allow the programmer to construct data
@@ -30,7 +30,7 @@ features:
 * Compositional data types in the style of Wouter Swierstra's
    Functional Pearl *Data types a la carte*. The implementation of
    signature subsumption is based on the paper
-   [*Composing and Decomposing Data Types*](https://bahr.io/pubs/files/bahr14wgp-paper.pdf)
+   [*Composing and Decomposing Data Types*](https://bahr.io/pubs/talks/bahr14wgp.html)
    (Workshop on Generic Programming, 2014, to appear), which makes
    signature composition more flexible.
 * Modular definition of functions on compositional data types through
