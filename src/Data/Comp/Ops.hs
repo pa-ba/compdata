@@ -110,6 +110,7 @@ class Subsume (e :: Emb) (f :: * -> *) (g :: * -> *) where
 
 instance Subsume (Found Here) f f where
     inj' _ = id
+
     prj' _ = Just
 
 instance Subsume (Found Nowhere) f g where
@@ -168,6 +169,8 @@ type family RemoveEmb (f :: * -> *) (e :: Emb) :: * -> * where
     RemoveEmb f (Found Nowhere) = f
     RemoveEmb f NotFound = f
 
+type g :-: f = RemoveEmb g (ComprEmb (Elem f g))
+
 -- |Removes all Zero summands from a functor.
 type family RemoveZeroSummands (f :: * -> *) :: * -> * where
     RemoveZeroSummands f = RemoveZeroSummands' (HasZeroSummand f) f
@@ -188,7 +191,7 @@ type family Or (p :: Bool) (q :: Bool) :: Bool where
     Or True f = True
     Or False f = f
 
-extractSummand :: forall f g. (g :<: f :+: (RemoveEmb g (ComprEmb (Elem f g)))) => Proxy f -> forall a. g a -> (f :+: (RemoveEmb g (ComprEmb (Elem f g)))) a
+extractSummand :: forall f g. (g :<: f :+: (g :-: f)) => Proxy f -> forall a. g a -> (f :+: (g :-: f)) a
 extractSummand _ = inj
 
 removeZeroSummands :: forall f. (f :<: RemoveZeroSummands f) => forall a. f a -> (RemoveZeroSummands f) a
