@@ -66,7 +66,7 @@ type SubstFun v a = NatM Maybe (K v) a
 
 
 substFun :: Ord v => GSubst v a -> SubstFun v a
-substFun s (K v) = fmap unA $ Map.lookup v s
+substFun s (K v) = fmap (\(A x) -> x) $ Map.lookup v s
 
 {-| This multiparameter class defines functors with variables. An instance
   @HasVar f v@ denotes that values over @f@ might contain and bind variables of
