@@ -1,5 +1,6 @@
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
+{-# LANGUAGE EmptyDataDecls         #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -13,7 +14,6 @@
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE TypeSynonymInstances   #-}
 {-# LANGUAGE UndecidableInstances   #-}
-{-# LANGUAGE EmptyDataDecls         #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -92,6 +92,7 @@ infixl 5 :=:
 
 type family Elem (f :: (* -> *) -> * -> *)
                  (g :: (* -> *) -> * -> *) :: Emb where
+    Elem HZero g = Found Nowhere
     Elem f f = Found Here
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
@@ -102,10 +103,14 @@ class Subsume (e :: Emb) (f :: (* -> *) -> * -> *)
   inj'  :: Proxy e -> f a :-> g a
   prj'  :: Proxy e -> NatM Maybe (g a) (f a)
 
-instance Subsume (Found Here) f f where
+instance {-# INCOHERENT #-} Subsume e f f where
     inj' _ = id
 
     prj' _ = Just
+
+instance Subsume (Found Nowhere) HZero g where
+    inj' _ _ = let x=x in x
+    prj' _ _ = Nothing
 
 instance Subsume (Found p) f g => Subsume (Found (Le p)) f (g :+: g') where
     inj' _ = Inl . inj' (P :: Proxy (Found p))
@@ -154,6 +159,8 @@ spl f1 f2 x = case inj x of
 
 -- |Identity for sums.
 data HZero a i
+instance HFunctor HZero where
+    hfmap _ _ = let x=x in x
 
 type family RemoveEmb (f :: (* -> *) -> * -> *) (e :: Emb) :: (* -> *) -> * -> * where
     RemoveEmb (f :+: g) (Found (Le a)) = (RemoveEmb f (Found a)) :+: g
@@ -162,6 +169,8 @@ type family RemoveEmb (f :: (* -> *) -> * -> *) (e :: Emb) :: (* -> *) -> * -> *
     RemoveEmb f (Found Here) = HZero
     RemoveEmb f (Found Nowhere) = f
     RemoveEmb f NotFound = f
+
+type g :-: f = RemoveEmb g (ComprEmb (Elem f g))
 
 -- |Removes all Zero summands from a functor
 type family RemoveZeroeSummands (f :: (* -> *) -> * -> *) :: (* -> *) -> * -> * where
