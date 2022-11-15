@@ -166,7 +166,7 @@ containsVarAlg v t = K $ hfoldlBoundVars run local t
     where local = case isVar t of
                     Just v' -> v == v'
                     Nothing -> False
-          run :: Bool -> Set v -> K Bool i -> Bool
+          run :: Bool -> Set v -> K Bool :=> Bool
           run acc vars (K b) = acc || (not (v `Set.member` vars) && b)
 
 {-| This function checks whether a variable is contained in a context. -}
@@ -187,6 +187,7 @@ variablesAlg t = K $ hfoldlBoundVars run local t
     where local = case isVar t of
                     Just v -> Set.singleton v
                     Nothing -> Set.empty
+          run :: Ord v => Set v -> Set v -> K (Set v) :=> Set v
           run acc bvars (K vars) = acc `Set.union` (vars `Set.difference` bvars)
 
 {-| This function computes the set of variables occurring in a context. -}
