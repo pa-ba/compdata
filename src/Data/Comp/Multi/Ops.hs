@@ -59,7 +59,7 @@ instance HFunctor HZero where
     hfmap _ _ = let x=x in x
 
 -- |Allow ambiguous subsumption.
-data AllowAmbiguous f g a = AllowAmbiguous {fromAllowAmbiguous :: f g a}
+newtype AllowAmbiguous f g a = AllowAmbiguous {fromAllowAmbiguous :: f g a}
 instance HFunctor f => HFunctor (AllowAmbiguous f) where
     hfmap h = AllowAmbiguous . hfmap h . fromAllowAmbiguous
 
