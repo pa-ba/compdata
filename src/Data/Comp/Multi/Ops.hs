@@ -188,10 +188,6 @@ type family HasZeroSummand (f :: (* -> *) -> * -> *) :: Bool where
     HasZeroSummand (f :+: g) = Or (HasZeroSummand f) (HasZeroSummand g)
     HasZeroSummand f = False
 
-type family Or (p :: Bool) (q :: Bool) :: Bool where
-    Or True f = True
-    Or False f = f
-
 extractSummand :: forall f g. (g :<: f :+: (RemoveEmb g (ComprEmb (Elem f g)))) => Proxy f -> forall a. g a :-> (f :+: (RemoveEmb g (ComprEmb (Elem f g)))) a
 extractSummand _ = inj
 

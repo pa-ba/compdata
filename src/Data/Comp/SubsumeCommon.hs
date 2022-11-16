@@ -25,6 +25,7 @@ module Data.Comp.SubsumeCommon
     , Choose
     , Sum'
     , Proxy (..)
+    , Or
     ) where
 
 -- | This type is used in its promoted form only. It represents
@@ -168,3 +169,8 @@ type family Find (p :: Pos) (s :: [Pos]) :: Bool where
 type family OrDupl' (a :: Bool) (b :: [Pos]) :: Bool where
     OrDupl'  True  c  = True
     OrDupl'  False c  = Dupl' c
+
+type family Or (p :: Bool) (q :: Bool) :: Bool where
+    Or True f = True
+    Or False f = f
+
