@@ -23,6 +23,7 @@ module Data.Comp.SubsumeCommon
     , Pos (..)
     , Emb (..)
     , Choose
+    , UnsafeChoose
     , Sum'
     , Proxy (..)
     , Or
@@ -51,6 +52,12 @@ type family Choose (e1 :: Emb) (r :: Emb) :: Emb where
     Choose x (Found y) = Found (Ri y)
     Choose x y = NotFound
 
+type family UnsafeChoose (e1 :: Emb) (r :: Emb) :: Emb where
+    UnsafeChoose (Found x) y = Found (Le x)
+    UnsafeChoose x (Found y) = Found (Ri y)
+    UnsafeChoose Ambiguous y = y
+    UnsafeChoose x Ambiguous = x
+    UnsafeChoose x y = NotFound
 
 type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
     Sum' (Found x) (Found y) = Found (Sum x y)

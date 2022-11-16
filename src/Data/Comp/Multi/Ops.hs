@@ -53,6 +53,16 @@ infixr 6 :+:
 data (f :+: g) (h :: * -> *) e = Inl (f h e)
                                | Inr (g h e)
 
+-- |Identity for sums.
+data HZero a i
+instance HFunctor HZero where
+    hfmap _ _ = let x=x in x
+
+-- |Allow ambiguous subsumption.
+data Unsafe f g a = Unsafe {fromUnsafe :: f g a}
+instance HFunctor f => HFunctor (Unsafe f) where
+    hfmap h = Unsafe . hfmap h . fromUnsafe
+
 {-| Utility function to case on a higher-order functor sum, without exposing the
   internal representation of sums. -}
 caseH :: (f a b -> c) -> (g a b -> c) -> (f :+: g) a b -> c
@@ -92,9 +102,11 @@ infixl 5 :=:
 
 type family Elem (f :: (* -> *) -> * -> *)
                  (g :: (* -> *) -> * -> *) :: Emb where
-    Elem HZero g = Found Nowhere
+    Elem (Unsafe f) (Unsafe f) = Found Here
+    Elem HZero f = Found Nowhere
     Elem f f = Found Here
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
+    Elem (Unsafe f) (g1 :+: g2) = UnsafeChoose (Elem (Unsafe f) g1) (Elem (Unsafe f) g2)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
@@ -156,11 +168,6 @@ spl :: (f :=: f1 :+: f2) => (f1 a :-> b) -> (f2 a :-> b) -> f a :-> b
 spl f1 f2 x = case inj x of
             Inl y -> f1 y
             Inr y -> f2 y
-
--- |Identity for sums.
-data HZero a i
-instance HFunctor HZero where
-    hfmap _ _ = let x=x in x
 
 type family RemoveEmb (f :: (* -> *) -> * -> *) (e :: Emb) :: (* -> *) -> * -> * where
     RemoveEmb (f :+: g) (Found (Le a)) = (RemoveEmb f (Found a)) :+: g

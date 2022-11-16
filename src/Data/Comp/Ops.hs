@@ -10,6 +10,7 @@
 {-# LANGUAGE PolyKinds              #-}
 {-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
+{-# LANGUAGE StandaloneDeriving     #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE TypeSynonymInstances   #-}
@@ -52,6 +53,10 @@ data (f :+: g) e = Inl (f e)
 
 -- |Identity for sums.
 data Zero a deriving Functor
+
+-- |Allow ambiguous subsumption.
+data Unsafe f a = Unsafe {fromUnsafe :: f a}
+deriving instance Functor f => Functor (Unsafe f)
 
 fromInl :: (f :+: g) e -> Maybe (f e)
 fromInl = caseF Just (const Nothing)
@@ -99,9 +104,11 @@ infixl 5 :<:
 infixl 5 :=:
 
 type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
+    Elem (Unsafe f) (Unsafe f) = Found Here
     Elem Zero f = Found Nowhere
     Elem f f = Found Here
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
+    Elem (Unsafe f) (g1 :+: g2) = UnsafeChoose (Elem (Unsafe f) g1) (Elem (Unsafe f) g2)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
@@ -114,6 +121,10 @@ instance {-# INCOHERENT #-} Subsume e f f where
 
     prj' _ = Just
 
+instance Subsume (Found Here) f f where
+    inj' _ = id
+
+    prj' _ = Just
 instance Subsume (Found Nowhere) Zero g where
     inj' _ = let x=x in x
     prj' _ _ = Nothing
