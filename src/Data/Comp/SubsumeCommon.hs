@@ -53,8 +53,8 @@ type family Choose (e1 :: Emb) (r :: Emb) :: Emb where
     Choose x y = NotFound
 
 type family UnsafeChoose (e1 :: Emb) (r :: Emb) :: Emb where
-    UnsafeChoose (Found x) y = Found (Le x)
     UnsafeChoose x (Found y) = Found (Ri y)
+    UnsafeChoose (Found x) y = Found (Le x)
     UnsafeChoose Ambiguous y = y
     UnsafeChoose x Ambiguous = x
     UnsafeChoose x y = NotFound

@@ -54,9 +54,9 @@ data (f :+: g) e = Inl (f e)
 -- |Identity for sums.
 data Zero a deriving Functor
 
--- |Allow ambiguous subsumption.
-data Unsafe f a = Unsafe {fromUnsafe :: f a}
-deriving instance Functor f => Functor (Unsafe f)
+-- |Allow ambiguous subsumption.  AllowAmbiguous f is subsumed by any sum that contains AllowAmbiguous f as a summand, as song as no type variables appear to the left of AllowAmbiguous f.
+data AllowAmbiguous f a = AllowAmbiguous {fromAllowAmbiguous :: f a}
+deriving instance Functor f => Functor (AllowAmbiguous f)
 
 fromInl :: (f :+: g) e -> Maybe (f e)
 fromInl = caseF Just (const Nothing)
@@ -104,11 +104,11 @@ infixl 5 :<:
 infixl 5 :=:
 
 type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
-    Elem (Unsafe f) (Unsafe f) = Found Here
+    Elem (AllowAmbiguous f) (AllowAmbiguous f) = Found Here
     Elem Zero f = Found Nowhere
     Elem f f = Found Here
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
-    Elem (Unsafe f) (g1 :+: g2) = UnsafeChoose (Elem (Unsafe f) g1) (Elem (Unsafe f) g2)
+    Elem (AllowAmbiguous f) (g1 :+: g2) = UnsafeChoose (Elem (AllowAmbiguous f) g1) (Elem (AllowAmbiguous f) g2)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
@@ -125,6 +125,7 @@ instance Subsume (Found Here) f f where
     inj' _ = id
 
     prj' _ = Just
+
 instance Subsume (Found Nowhere) Zero g where
     inj' _ = let x=x in x
     prj' _ _ = Nothing

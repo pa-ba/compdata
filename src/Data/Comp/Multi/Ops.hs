@@ -59,9 +59,9 @@ instance HFunctor HZero where
     hfmap _ _ = let x=x in x
 
 -- |Allow ambiguous subsumption.
-data Unsafe f g a = Unsafe {fromUnsafe :: f g a}
-instance HFunctor f => HFunctor (Unsafe f) where
-    hfmap h = Unsafe . hfmap h . fromUnsafe
+data AllowAmbiguous f g a = AllowAmbiguous {fromAllowAmbiguous :: f g a}
+instance HFunctor f => HFunctor (AllowAmbiguous f) where
+    hfmap h = AllowAmbiguous . hfmap h . fromAllowAmbiguous
 
 {-| Utility function to case on a higher-order functor sum, without exposing the
   internal representation of sums. -}
@@ -102,11 +102,11 @@ infixl 5 :=:
 
 type family Elem (f :: (* -> *) -> * -> *)
                  (g :: (* -> *) -> * -> *) :: Emb where
-    Elem (Unsafe f) (Unsafe f) = Found Here
+    Elem (AllowAmbiguous f) (AllowAmbiguous f) = Found Here
     Elem HZero f = Found Nowhere
     Elem f f = Found Here
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
-    Elem (Unsafe f) (g1 :+: g2) = UnsafeChoose (Elem (Unsafe f) g1) (Elem (Unsafe f) g2)
+    Elem (AllowAmbiguous f) (g1 :+: g2) = UnsafeChoose (Elem (AllowAmbiguous f) g1) (Elem (AllowAmbiguous f) g2)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
