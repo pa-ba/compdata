@@ -54,7 +54,7 @@ data (f :+: g) e = Inl (f e)
 -- |Identity for sums.
 data Zero a deriving Functor
 
--- |Allow ambiguous subsumption.  AllowAmbiguous f is subsumed by any sum that contains AllowAmbiguous f as a summand, as song as no type variables appear to the left of AllowAmbiguous f.
+-- |Allow ambiguous subsumption.  AllowAmbiguous f is subsumed by any sum that contains AllowAmbiguous f as a summand, as song as no type variables appear to the right of AllowAmbiguous f.
 data AllowAmbiguous f a = AllowAmbiguous {fromAllowAmbiguous :: f a}
 deriving instance Functor f => Functor (AllowAmbiguous f)
 
