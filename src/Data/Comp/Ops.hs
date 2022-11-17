@@ -1,3 +1,4 @@
+{-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE DeriveFunctor          #-}
@@ -54,7 +55,7 @@ data (f :+: g) e = Inl (f e)
 -- |Identity for sums.
 data Zero a deriving Functor
 
--- |Allow ambiguous subsumption.  AllowAmbiguous f is subsumed by any sum that contains AllowAmbiguous f as a summand, as song as no type variables appear to the right of AllowAmbiguous f.
+-- |Allow ambiguous subsumption.  AllowAmbiguous f is subsumed by any sum that contains AllowAmbiguous f as a summand, as long as all type variables appear on the same side of AllowAmbiguous f.
 newtype AllowAmbiguous f a = AllowAmbiguous {fromAllowAmbiguous :: f a}
 deriving instance Functor f => Functor (AllowAmbiguous f)
 
@@ -129,6 +130,13 @@ instance Subsume (Found Here) f f where
 instance Subsume (Found Nowhere) Zero g where
     inj' _ = let x=x in x
     prj' _ _ = Nothing
+
+instance {-# INCOHERENT #-} forall (e :: Emb) (e' :: Emb) f g g'. Subsume e (AllowAmbiguous f) g => Subsume e' (AllowAmbiguous f) (g :+: g') where
+    inj' _ = Inl . inj' (P :: Proxy e)
+
+    prj' _ (Inl x) = prj' (P :: Proxy e) x
+    prj' _ _       = Nothing
+
 
 instance Subsume (Found p) f g => Subsume (Found (Le p)) f (g :+: g') where
     inj' _ = Inl . inj' (P :: Proxy (Found p))
