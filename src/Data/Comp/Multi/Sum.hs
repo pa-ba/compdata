@@ -58,7 +58,7 @@ project (Hole _) = Nothing
 project (Term t) = proj t
 
 
--- | Tries to coerce a term/context to a term/context over a sub-signature.
+-- | Tries to coerce a term\/context to a term\/context over a sub-signature.
 deepProject :: (HTraversable g, g :<: f)  => CxtFunM Maybe f g
 {-# INLINE deepProject #-}
 deepProject = appSigFunM' proj
