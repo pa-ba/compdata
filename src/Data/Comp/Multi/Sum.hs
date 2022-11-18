@@ -52,30 +52,24 @@ import Data.Comp.Multi.Ops
 import Data.Comp.Multi.Term
 
 
--- |Project the outermost layer of a term to a sub signature. If the signature
--- @g@ is compound of /n/ atomic signatures, use @project@/n/ instead.
+-- |Project the outermost layer of a term to a sub signature.
 project :: (g :<: f) => NatM Maybe (Cxt h f a) (g (Cxt h f a))
 project (Hole _) = Nothing
 project (Term t) = proj t
 
 
--- | Tries to coerce a term/context to a term/context over a sub-signature. If
--- the signature @g@ is compound of /n/ atomic signatures, use
--- @deepProject@/n/ instead.
+-- | Tries to coerce a term/context to a term/context over a sub-signature.
 deepProject :: (HTraversable g, g :<: f)  => CxtFunM Maybe f g
 {-# INLINE deepProject #-}
 deepProject = appSigFunM' proj
 
 
--- |Inject a term where the outermost layer is a sub signature. If the signature
--- @g@ is compound of /n/ atomic signatures, use @inject@/n/ instead.
+-- |Inject a term where the outermost layer is a sub signature.
 inject :: (g :<: f) => g (Cxt h f a) :-> Cxt h f a
 inject = Term . inj
 
 
--- |Inject a term over a sub signature to a term over larger signature. If the
--- signature @g@ is compound of /n/ atomic signatures, use @deepInject@/n/
--- instead.
+-- |Inject a term over a sub signature to a term over larger signature.
 deepInject :: (HFunctor g, g :<: f) => CxtFun g f
 {-# INLINE deepInject #-}
 deepInject = appSigFun inj
