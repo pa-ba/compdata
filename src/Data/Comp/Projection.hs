@@ -2,7 +2,6 @@
 {-# LANGUAGE DataKinds             #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ScopedTypeVariables   #-}
 {-# LANGUAGE TypeFamilies          #-}
@@ -26,7 +25,7 @@
 --------------------------------------------------------------------------------
 
 
-module Data.Comp.Projection (pr, (:<)) where
+module Data.Comp.Projection (pr, (:<), (:>)) where
 
 import Data.Comp.SubsumeCommon
 
@@ -58,6 +57,7 @@ instance (Proj (Found p1) f1 g, Proj (Found p2) f2 g)
 
 
 infixl 5 :<
+infixl 5 :>
 
 -- | The constraint @e :< p@ expresses that @e@ is a component of the
 -- type @p@. That is, @p@ is formed by binary products using the type
@@ -65,6 +65,7 @@ infixl 5 :<
 -- :< (Bool,(Int,Bool))@ but not @Bool :< (Bool,(Int,Bool))@.
 
 type f :< g = (Proj (ComprEmb (Elem f g)) f g)
+type f :> g = g :< f
 
 
 -- | This function projects the component of type @e@ out or the
