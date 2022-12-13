@@ -70,7 +70,7 @@ sense, 'eqMod' returns a 'Just' value containing a list of pairs
 consisting of corresponding components of the two functorial
 values. -}
 
-heqMod :: (EqHF f, HFunctor f, HFoldable f) => f a i -> f b i -> Maybe [(E a, E b)]
+heqMod :: (EqHF f, HFunctor f, HFoldable f) => f a i -> f b j -> Maybe [(E a, E b)]
 heqMod s t
     | unit s `eqHF` unit' t = Just args
     | otherwise = Nothing
