@@ -183,8 +183,8 @@ spl f1 f2 x = case inj x of
             Inr y -> f2 y
 
 type family RemoveEmb (f :: * -> *) (e :: Emb) :: * -> * where
-    RemoveEmb (f :+: g) (Found (Le a)) = (RemoveEmb f (Found a)) :+: g
-    RemoveEmb (f :+: g) (Found (Ri a)) = f :+: (RemoveEmb g (Found a))
+    RemoveEmb (f :+: g) (Found (Le a)) = RemoveEmb f (Found a) :+: g
+    RemoveEmb (f :+: g) (Found (Ri a)) = f :+: RemoveEmb g (Found a)
     RemoveEmb f (Found (Sum a b)) = RemoveEmb (RemoveEmb f (Found a)) (Found b)
     RemoveEmb f (Found Here) = Zero
     RemoveEmb f (Found Nowhere) = f
@@ -199,7 +199,7 @@ type family RemoveZeroSummands (f :: * -> *) :: * -> * where
 type family RemoveZeroSummands' (p :: Bool) (f :: * -> *) where
     RemoveZeroSummands' True (Zero :+: f) = RemoveZeroSummands f
     RemoveZeroSummands' True (f :+: Zero) = RemoveZeroSummands f
-    RemoveZeroSummands' True (f :+: g) = RemoveZeroSummands ((RemoveZeroSummands f) :+: RemoveZeroSummands g)
+    RemoveZeroSummands' True (f :+: g) = RemoveZeroSummands (RemoveZeroSummands f :+: RemoveZeroSummands g)
     RemoveZeroSummands' False f = f
 
 type family HasZeroSummand (f :: * -> *) :: Bool where
@@ -229,7 +229,7 @@ fsnd :: (f :*: g) a -> g a
 fsnd (_ :*: x) = x
 
 instance (Functor f, Functor g) => Functor (f :*: g) where
-    fmap h (f :*: g) = (fmap h f :*: fmap h g)
+    fmap h (f :*: g) = fmap h f :*: fmap h g
 
 
 instance (Foldable f, Foldable g) => Foldable (f :*: g) where
