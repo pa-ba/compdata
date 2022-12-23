@@ -203,7 +203,7 @@ removeZeroeSummands = inj
 
 -- Constant Products
 
-infixr 7 :&:
+infixl 7 :&:
 
 -- | This data type adds a constant product to a
 -- signature. Alternatively, this could have also been defined as

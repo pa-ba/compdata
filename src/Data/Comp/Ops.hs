@@ -245,7 +245,7 @@ instance (Traversable f, Traversable g) => Traversable (f :*: g) where
 
 -- Constant Products
 
-infixr 7 :&:
+infixl 7 :&:
 
 {-| This data type adds a constant product (annotation) to a signature. -}
 data (f :&: a) e = f e :&: a
