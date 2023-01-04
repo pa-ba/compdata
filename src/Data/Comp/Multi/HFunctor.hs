@@ -10,6 +10,8 @@
 {-# LANGUAGE TypeOperators             #-}
 {-# LANGUAGE UndecidableInstances      #-}
 {-# LANGUAGE IncoherentInstances       #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use newtype instead of data" #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -53,7 +55,10 @@ data E f = forall i. E {unE :: f i}
 runE :: (f :=> b) -> E f -> b
 runE f (E x) = f x
 
-data A f = A {unA :: forall i. f i}
+instance Show a => Show (K a b) where show = show . unK
+instance Show a => Show (E (K a)) where show (E x) = show x
+
+newtype A f = A {unA :: forall i. f i}
 
 instance Eq a => Eq (K a i) where
     K x == K y = x == y
