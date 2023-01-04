@@ -165,6 +165,7 @@ library
                         Data.Comp.Multi.Generic
                         Data.Comp.Multi.Desugar
                         Data.Comp.Multi.Projection
+                        Data.Comp.Multi.Multi.Projection
 
   Other-Modules:        Data.Comp.SubsumeCommon
                         Data.Comp.Derive.Equality
@@ -192,7 +193,7 @@ library
 
   Build-Depends:	base >= 4.9, base < 5, template-haskell, containers, mtl >= 2.2.1,
                         QuickCheck >= 2, deepseq, transformers, th-expand-syns,
-                        tree-view >= 0.5
+                        tree-view >= 0.5, dependent-sum
   Extensions:           FlexibleContexts
   hs-source-dirs:	src
   ghc-options:          -W

@@ -55,7 +55,7 @@ instance Proj (Found p) f g => Proj (Found (Ri p)) f (g' :*: g) where
 
 instance (Proj (Found p1) f1 g, Proj (Found p2) f2 g)
     => Proj (Found (Sum p1 p2)) (f1 :*: f2) g where
-    pr' _ x = (pr' (P :: Proxy (Found p1)) x :*: pr' (P :: Proxy (Found p2)) x)
+    pr' _ x = pr' (P :: Proxy (Found p1)) x :*: pr' (P :: Proxy (Found p2)) x
 
 
 infixl 5 :<

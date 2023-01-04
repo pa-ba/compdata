@@ -29,6 +29,7 @@ module Data.Comp.Term
      unTerm,
      simpCxt,
      toCxt,
+     toTerm,
      constTerm
      ) where
 
@@ -88,6 +89,12 @@ toCxt = unsafeCoerce
 
 {-| A term is a context with no holes.  -}
 type Term f = Cxt NoHole f ()
+
+{-| Cast a context with no holes over a signature to a term over the same signature. -}
+toTerm :: Functor f => Cxt NoHole f a -> Term f
+{-# INLINE toTerm #-}
+toTerm = unsafeCoerce
+-- equivalent to @Term . (fmap toTerm) . unTerm@
 
 -- | Polymorphic definition of a term. This formulation is more
 -- natural than 'Term', it leads to impredicative types in some cases,

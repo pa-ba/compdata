@@ -29,6 +29,7 @@ module Data.Comp.Multi.Term
      constTerm,
      unTerm,
      toCxt,
+     toTerm,
      simpCxt
      ) where
 
@@ -123,4 +124,10 @@ simpCxt = Term . hfmap Hole
 toCxt :: (HFunctor f) => Term f :-> Context f a
 {-# INLINE toCxt #-}
 toCxt = unsafeCoerce
--- equivalentto @Term . (hfmap toCxt) . unTerm@
+-- equivalent to @Term . (hfmap toCxt) . unTerm@
+
+{-| Cast a context with no holes over a signature to a term over the same signature. -}
+toTerm :: (HFunctor f) => Cxt NoHole f a :-> Term f
+{-# INLINE toTerm #-}
+toTerm = unsafeCoerce
+-- equivalent to @Term . (hfmap toTerm) . unTerm@

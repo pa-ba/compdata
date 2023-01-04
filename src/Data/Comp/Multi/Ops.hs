@@ -1,3 +1,4 @@
+{-# LANGUAGE ApplicativeDo          #-}
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
 {-# LANGUAGE EmptyDataDecls         #-}
@@ -12,7 +13,6 @@
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
-{-# LANGUAGE TypeSynonymInstances   #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 --------------------------------------------------------------------------------
@@ -170,8 +170,8 @@ spl f1 f2 x = case inj x of
             Inr y -> f2 y
 
 type family RemoveEmb (f :: (* -> *) -> * -> *) (e :: Emb) :: (* -> *) -> * -> * where
-    RemoveEmb (f :+: g) (Found (Le a)) = (RemoveEmb f (Found a)) :+: g
-    RemoveEmb (f :+: g) (Found (Ri a)) = f :+: (RemoveEmb g (Found a))
+    RemoveEmb (f :+: g) (Found (Le a)) = RemoveEmb f (Found a) :+: g
+    RemoveEmb (f :+: g) (Found (Ri a)) = f :+: RemoveEmb g (Found a)
     RemoveEmb f (Found (Sum a b)) = RemoveEmb (RemoveEmb f (Found a)) (Found b)
     RemoveEmb f (Found Here) = HZero
     RemoveEmb f (Found Nowhere) = f
@@ -186,7 +186,7 @@ type family RemoveZeroeSummands (f :: (* -> *) -> * -> *) :: (* -> *) -> * -> * 
 type family RemoveZeroeSummands' (p :: Bool) (f :: (* -> *) -> * -> *) where
     RemoveZeroeSummands' True (HZero :+: f) = RemoveZeroeSummands f
     RemoveZeroeSummands' True (f :+: HZero) = RemoveZeroeSummands f
-    RemoveZeroeSummands' True (f :+: g) = RemoveZeroeSummands ((RemoveZeroeSummands f) :+: RemoveZeroeSummands g)
+    RemoveZeroeSummands' True (f :+: g) = RemoveZeroeSummands (RemoveZeroeSummands f :+: RemoveZeroeSummands g)
     RemoveZeroeSummands' False f = f
 
 type family HasZeroSummand (f :: (* -> *) -> * -> *) :: Bool where
@@ -195,11 +195,44 @@ type family HasZeroSummand (f :: (* -> *) -> * -> *) :: Bool where
     HasZeroSummand (f :+: g) = Or (HasZeroSummand f) (HasZeroSummand g)
     HasZeroSummand f = False
 
-extractSummand :: forall f g. (g :<: f :+: (RemoveEmb g (ComprEmb (Elem f g)))) => Proxy f -> forall a. g a :-> (f :+: (RemoveEmb g (ComprEmb (Elem f g)))) a
+extractSummand :: forall f g. (g :<: f :+: RemoveEmb g (ComprEmb (Elem f g))) => Proxy f -> forall a. g a :-> (f :+: RemoveEmb g (ComprEmb (Elem f g))) a
 extractSummand _ = inj
 
 removeZeroeSummands :: forall f. (f :<: RemoveZeroeSummands f) => forall a. f a :-> (RemoveZeroeSummands f) a
 removeZeroeSummands = inj
+
+
+-- Products
+
+infixr 8 :**:
+
+-- |Formal product of signatures (hfunctors).
+data ((f :: (* -> *) -> * -> *) :**: (g :: (* -> *) -> * -> *)) a b = f a b :**: g a b
+
+
+hffst :: (f :**: g) a :-> f a
+hffst (x :**: _) = x
+
+hfsnd :: (f :**: g) a :-> g a
+hfsnd (_ :**: x) = x
+
+instance (HFunctor f, HFunctor g) => HFunctor (f :**: g) where
+    hfmap h (f :**: g) = hfmap h f :**: hfmap h g
+
+
+instance (HFoldable f, HFoldable g) => HFoldable (f :**: g) where
+    hfoldr f e (x :**: y) = hfoldr f (hfoldr f e y) x
+    hfoldl f e (x :**: y) = hfoldl f (hfoldl f e x) y
+
+
+instance (HTraversable f, HTraversable g) => HTraversable (f :**: g) where
+    htraverse f (x :**: y) = do a <- htraverse f x
+                                b <- htraverse f y
+                                return $ a :**: b
+    hmapM f (x :**: y) = do a <- hmapM f x
+                            b <- hmapM f y
+                            return $ a :**: b
+
 
 -- Constant Products
 
@@ -230,7 +263,7 @@ instance (HFoldable f) => HFoldable (f :&: a) where
 
 
 instance (HTraversable f) => HTraversable (f :&: a) where
-    htraverse f (v :&: c) =  (:&: c) <$> (htraverse f v)
+    htraverse f (v :&: c) =  (:&: c) <$> htraverse f v
     hmapM f (v :&: c) = liftM (:&: c) (hmapM f v)
 
 -- | This class defines how to distribute an annotation over a sum of
@@ -265,6 +298,6 @@ instance (DistAnn s p s') => DistAnn (f :+: s) p ((f :&: p) :+: s') where
     injectA p (Inl v) = Inl (v :&: p)
     injectA p (Inr v) = Inr $ injectA p v
 
-    projectA (Inl (v :&: p)) = (Inl v O.:&: p)
+    projectA (Inl (v :&: p)) = Inl v O.:&: p
     projectA (Inr v) = let (v' O.:&: p) = projectA v
                         in  (Inr v' O.:&: p)
