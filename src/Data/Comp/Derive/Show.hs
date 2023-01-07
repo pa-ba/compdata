@@ -54,7 +54,7 @@ makeShowF fname = do
             genShowFClause fArg (constr, args, gadtTy) = do
               let n = length args
               varNs <- newNames n "x"
-              let pat = ConP constr $ map VarP varNs
+              let pat = ConP constr [] $ map VarP varNs
                   allVars = zipWith (filterFarg (getUnaryFArg fArg gadtTy)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr
@@ -90,7 +90,7 @@ makeShowConstr fname = do
             genShowConstrClause fArg (constr, args, gadtTy) = do
               let n = length args
               varNs <- newNames n "x"
-              let pat = ConP constr $ map VarP varNs
+              let pat = ConP constr [] $ map VarP varNs
                   allVars = zipWith (filterFarg (getUnaryFArg fArg gadtTy)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr

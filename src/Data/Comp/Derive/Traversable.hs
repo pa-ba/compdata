@@ -55,13 +55,34 @@ makeTraversable fname = do
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
-            mkCPat constr varNs = ConP constr $ map mkPat varNs
+            mkCPat :: Name -> [Name] -> Pat
+            mkCPat constr varNs = ConP constr [] (map mkPat varNs)
+            mkPat :: Name -> Pat
             mkPat = VarP
+            mkPatAndVars ::
+              (Name, [[t]]) ->
+              Q
+                ( Q Exp,
+                  Pat,
+                  (t -> Q Exp -> c) -> (Q Exp -> c) -> [c],
+                  Bool,
+                  [Q Exp],
+                  [(t, Name)]
+                )
             mkPatAndVars (constr, args) =
                 do varNs <- newNames (length args) "x"
                    return (conE constr, mkCPat constr varNs,
                            \f g -> filterVars args varNs (\ d x -> f d (varE x)) (g . varE),
                            any (not . null) args, map varE varNs, catMaybes $ filterVars args varNs (curry Just) (const Nothing))
+            traverseClause ::
+              ( Q Exp,
+                Pat,
+                (Int -> Q Exp -> Q Exp) -> (Q Exp -> Q Exp) -> [Q Exp],
+                Bool,
+                e,
+                f
+              ) ->
+              Q Clause
             traverseClause (con, pat,vars',hasFargs,_allVars,_fVars) =
                 do fn <- newName "f"
                    let f = varE fn

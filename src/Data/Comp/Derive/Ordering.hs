@@ -56,8 +56,8 @@ makeOrdF fname = do
             genEqClause (constr, n) = do
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
-              let pat = ConP constr $ map VarP varNs
-                  pat' = ConP constr $ map VarP varNs'
+              let pat = ConP constr [] $ map VarP varNs
+                  pat' = ConP constr [] $ map VarP varNs'
                   vars = map VarE varNs
                   vars' = map VarE varNs'
                   mkEq x y = let (x',y') = (return x,return y)

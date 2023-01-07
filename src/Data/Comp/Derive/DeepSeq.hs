@@ -44,7 +44,7 @@ makeNFDataF fname = do
             genRnfFClause (constr, args,_) = do
               let n = length args
               varNs <- newNames n "x"
-              let pat = ConP constr $ map VarP varNs
+              let pat = ConP constr [] $ map VarP varNs
                   allVars = map varE varNs
               body <- foldr (\ x y -> [|rnf $x `seq` $y|]) [| () |] allVars
               return $ Clause [pat] (NormalB body) []
