@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Derive.HFoldable
@@ -58,12 +59,16 @@ makeHFoldable fname = do
   foldlDecl <- funD 'hfoldl (map foldlClause constrs')
   foldrDecl <- funD 'hfoldr (map foldrClause constrs')
   return [mkInstanceD [] classType [foldDecl,foldMapDecl,foldlDecl,foldrDecl]]
-      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getBinaryFArg fArg gadtTy)) args)
+      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` getBinaryFArg fArg gadtTy) args)
             filterVar [] _ = Nothing
             filterVar [d] x =Just (d, varE x)
             filterVar _ _ =  error "functor variable occurring twice in argument type"
             filterVars args varNs = catMaybes $ zipWith filterVar args varNs
+#if __GLASGOW_HASKELL__ < 900
             mkCPat constr args varNs = ConP constr $ zipWith mkPat args varNs
+#else
+            mkCPat constr args varNs = ConP [] constr $ zipWith mkPat args varNs
+#endif
             mkPat [] _ = WildP
             mkPat _ x = VarP x
             mkPatAndVars (constr, args) =
