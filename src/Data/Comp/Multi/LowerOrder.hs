@@ -21,9 +21,7 @@ module Data.Comp.Multi.LowerOrder
 import Data.Comp.Multi
 import Data.Comp.Multi.Ops
 import Data.Comp.Multi.Derive
-import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HFoldable
-import Data.Comp.Multi.HTraversable
 import qualified Data.Comp as C
 import qualified Data.Comp.Ops as C
 import qualified Data.Comp.Show as C

@@ -67,7 +67,7 @@ makeHFoldable fname = do
 #if __GLASGOW_HASKELL__ < 900
             mkCPat constr args varNs = ConP constr $ zipWith mkPat args varNs
 #else
-            mkCPat constr args varNs = ConP [] constr $ zipWith mkPat args varNs
+            mkCPat constr args varNs = ConP constr [] $ zipWith mkPat args varNs
 #endif
             mkPat [] _ = WildP
             mkPat _ x = VarP x

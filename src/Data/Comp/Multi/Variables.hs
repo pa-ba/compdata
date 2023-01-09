@@ -1,12 +1,13 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE KindSignatures        #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE RankNTypes            #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE FlexibleContexts             #-}
+{-# LANGUAGE FlexibleInstances            #-}
+{-# LANGUAGE GADTs                        #-}
+{-# LANGUAGE KindSignatures               #-}
+{-# LANGUAGE MultiParamTypeClasses        #-}
+{-# LANGUAGE RankNTypes                   #-}
+{-# LANGUAGE ScopedTypeVariables          #-}
+{-# LANGUAGE TemplateHaskell              #-}
+{-# LANGUAGE TypeOperators                #-}
+{-# LANGUAGE UndecidableInstances         #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Variables

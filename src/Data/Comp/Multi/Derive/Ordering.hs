@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE CPP                 #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Derive.Ordering
@@ -56,8 +57,13 @@ makeOrdHF fname = do
             genEqClause coArg (constr, args,gadtTy) = do
               varXs <- newNames (length args) "x"
               varYs <- newNames (length args) "y"
+#if __GLASGOW_HASKELL__ < 900
               let patX = ConP constr $ map VarP varXs
               let patY = ConP constr $ map VarP varYs
+#else
+              let patX = ConP constr [] $ map VarP varXs
+              let patY = ConP constr [] $ map VarP varYs
+#endif
               body <- eqDBody (getBinaryFArg coArg gadtTy) (zip3 varXs varYs args)
               return $ Clause [patX, patY] (NormalB body) []
             eqDBody :: Type -> [(Name, Name, Type)] -> ExpQ

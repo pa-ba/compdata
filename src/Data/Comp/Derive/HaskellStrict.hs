@@ -92,7 +92,11 @@ makeHaskellStrict fname = do
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
+#if __GLASGOW_HASKELL__ < 900
             mkCPat constr varNs = ConP constr $ map mkPat varNs
+#else
+            mkCPat constr varNs = ConP constr [] $ map mkPat varNs
+#endif
             mkPat = VarP
             mkClauses (constr, args) =
                 do varNs <- newNames (length args) "x"

@@ -115,7 +115,11 @@ generateShrinkFDecl constrs
                  binds <- mapM (\(var,resVar) -> bindS (varP resVar) [| $(varE var) : shrink $(varE var) |]) $ zip varNs resVarNs
                  let ret = NoBindS $ AppE (VarE 'return) (foldl1 AppE ( ConE constr: map VarE resVarNs ))
                      stmtSeq = binds ++ [ret]
+#if __GLASGOW_HASKELL__ < 900
                      pat = ConP constr $ map VarP varNs
+#else
+                     pat = ConP constr [] $ map VarP varNs
+#endif
 #if __GLASGOW_HASKELL__ < 900
                  return $ Clause [pat] (NormalB $ AppE (VarE 'tail) (DoE stmtSeq)) []
 #else

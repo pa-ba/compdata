@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeOperators   #-}
+{-# LANGUAGE CPP             #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Derive.Show
@@ -62,7 +63,11 @@ makeShowHF fname = do
             genShowFClause fArg (constr, args, ty) = do
               let n = length args
               varNs <- newNames n "x"
+#if __GLASGOW_HASKELL__ < 900
               let pat = ConP constr $ map VarP varNs
+#else
+              let pat = ConP constr [] $ map VarP varNs
+#endif
                   allVars = zipWith (filterFarg (getBinaryFArg fArg ty)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr

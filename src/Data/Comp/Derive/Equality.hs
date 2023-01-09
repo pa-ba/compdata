@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Equality
@@ -46,8 +47,13 @@ makeEqF fname = do
             genEqClause (constr, n) = do
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
+#if __GLASGOW_HASKELL__ < 900
               let pat = ConP constr $ map VarP varNs
                   pat' = ConP constr $ map VarP varNs'
+#else
+              let pat = ConP constr [] $ map VarP varNs
+                  pat' = ConP constr [] $ map VarP varNs'
+#endif
                   vars = map VarE varNs
                   vars' = map VarE varNs'
                   mkEq x y = let (x',y') = (return x,return y)

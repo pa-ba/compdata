@@ -56,7 +56,7 @@ makeHTraversable fname = do
 #if __GLASGOW_HASKELL__ < 900
             mkCPat constr varNs = ConP constr $ map mkPat varNs
 #else
-            mkCPat constr varNs = ConP [] constr $ map mkPat varNs
+            mkCPat constr varNs = ConP constr [] $ map mkPat varNs
 #endif
             mkPat = VarP
             mkPatAndVars (constr, args) =

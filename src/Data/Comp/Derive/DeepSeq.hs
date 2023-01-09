@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.DeepSeq
@@ -44,7 +45,11 @@ makeNFDataF fname = do
             genRnfFClause (constr, args,_) = do
               let n = length args
               varNs <- newNames n "x"
+#if __GLASGOW_HASKELL__ < 900
               let pat = ConP constr $ map VarP varNs
+#else
+              let pat = ConP constr [] $ map VarP varNs
+#endif
                   allVars = map varE varNs
               body <- foldr (\ x y -> [|rnf $x `seq` $y|]) [| () |] allVars
               return $ Clause [pat] (NormalB body) []
