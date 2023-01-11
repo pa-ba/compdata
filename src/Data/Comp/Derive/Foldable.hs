@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Foldable
@@ -21,6 +20,7 @@ module Data.Comp.Derive.Foldable
 
 import Control.Monad
 import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Compat
 import Data.Foldable
 import Data.Maybe
 import Data.Monoid
@@ -58,11 +58,7 @@ makeFoldable fname = do
             filterVar [d] x =Just (d, varE x)
             filterVar _ _ =  error "functor variable occurring twice in argument type"
             filterVars args varNs = catMaybes $ zipWith filterVar args varNs
-#if __GLASGOW_HASKELL__ < 900
-            mkCPat constr args varNs = ConP constr $ zipWith mkPat args varNs
-#else
-            mkCPat constr args varNs = ConP constr [] $ zipWith mkPat args varNs
-#endif
+            mkCPat constr args varNs = conP_ constr $ zipWith mkPat args varNs
             mkPat [] _ = WildP
             mkPat _ x = VarP x
             mkPatAndVars (constr, args) =

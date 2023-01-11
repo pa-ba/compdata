@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Show
@@ -22,6 +21,7 @@ module Data.Comp.Derive.Show
     ) where
 
 import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Compat
 import Language.Haskell.TH
 
 {-| Signature printing. An instance @ShowF f@ gives rise to an instance
@@ -55,11 +55,7 @@ makeShowF fname = do
             genShowFClause fArg (constr, args, gadtTy) = do
               let n = length args
               varNs <- newNames n "x"
-#if __GLASGOW_HASKELL__ < 900
-              let pat = ConP constr $ map VarP varNs
-#else
-              let pat = ConP constr [] $ map VarP varNs
-#endif
+              let pat = conP_ constr $ map VarP varNs
                   allVars = zipWith (filterFarg (getUnaryFArg fArg gadtTy)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr
@@ -95,11 +91,7 @@ makeShowConstr fname = do
             genShowConstrClause fArg (constr, args, gadtTy) = do
               let n = length args
               varNs <- newNames n "x"
-#if __GLASGOW_HASKELL__ < 900
-              let pat = ConP constr $ map VarP varNs
-#else
-              let pat = ConP constr [] $ map VarP varNs
-#endif
+              let pat = conP_ constr $ map VarP varNs
                   allVars = zipWith (filterFarg (getUnaryFArg fArg gadtTy)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr

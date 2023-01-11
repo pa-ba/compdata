@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.DeepSeq
@@ -22,6 +21,7 @@ module Data.Comp.Derive.DeepSeq
 
 import Control.DeepSeq
 import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Compat
 import Language.Haskell.TH
 
 {-| Signature normal form. An instance @NFDataF f@ gives rise to an instance
@@ -45,11 +45,7 @@ makeNFDataF fname = do
             genRnfFClause (constr, args,_) = do
               let n = length args
               varNs <- newNames n "x"
-#if __GLASGOW_HASKELL__ < 900
-              let pat = ConP constr $ map VarP varNs
-#else
-              let pat = ConP constr [] $ map VarP varNs
-#endif
+              let pat = conP_ constr $ map VarP varNs
                   allVars = map varE varNs
               body <- foldr (\ x y -> [|rnf $x `seq` $y|]) [| () |] allVars
               return $ Clause [pat] (NormalB body) []

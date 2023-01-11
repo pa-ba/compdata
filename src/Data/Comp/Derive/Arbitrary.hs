@@ -1,6 +1,5 @@
 {-# LANGUAGE GADTs           #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE CPP             #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Arbitrary
@@ -24,6 +23,8 @@ module Data.Comp.Derive.Arbitrary
 import Data.Comp.Derive.Utils hiding (derive)
 import Language.Haskell.TH
 import Test.QuickCheck
+
+import Data.Comp.Derive.Compat
 
 {-| Signature arbitration. An instance @ArbitraryF f@ gives rise to an instance
   @Arbitrary (Term f)@. -}
@@ -115,13 +116,5 @@ generateShrinkFDecl constrs
                  binds <- mapM (\(var,resVar) -> bindS (varP resVar) [| $(varE var) : shrink $(varE var) |]) $ zip varNs resVarNs
                  let ret = NoBindS $ AppE (VarE 'return) (foldl1 AppE ( ConE constr: map VarE resVarNs ))
                      stmtSeq = binds ++ [ret]
-#if __GLASGOW_HASKELL__ < 900
-                     pat = ConP constr $ map VarP varNs
-#else
-                     pat = ConP constr [] $ map VarP varNs
-#endif
-#if __GLASGOW_HASKELL__ < 900
-                 return $ Clause [pat] (NormalB $ AppE (VarE 'tail) (DoE stmtSeq)) []
-#else
-                 return $ Clause [pat] (NormalB $ AppE (VarE 'tail) (DoE Nothing stmtSeq)) []
-#endif
+                     pat = conP_ constr $ map VarP varNs
+                 return $ Clause [pat] (NormalB $ AppE (VarE 'tail) (doE_ stmtSeq)) []

@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Ordering
@@ -20,6 +19,7 @@ module Data.Comp.Derive.Ordering
 
 import Data.Comp.Derive.Equality
 import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Compat
 
 import Data.List
 import Data.Maybe
@@ -57,13 +57,8 @@ makeOrdF fname = do
             genEqClause (constr, n) = do
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
-#if __GLASGOW_HASKELL__ < 900
-              let pat = ConP constr $ map VarP varNs
-                  pat' = ConP constr $ map VarP varNs'
-#else
-              let pat = ConP constr [] $ map VarP varNs
-                  pat' = ConP constr [] $ map VarP varNs'
-#endif
+              let pat = conP_ constr $ map VarP varNs
+                  pat' = conP_ constr $ map VarP varNs'
                   vars = map VarE varNs
                   vars' = map VarE varNs'
                   mkEq x y = let (x',y') = (return x,return y)

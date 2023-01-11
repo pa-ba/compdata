@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell   #-}
-{-# LANGUAGE CPP               #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Derive.Equality
@@ -21,6 +20,7 @@ module Data.Comp.Multi.Derive.Equality
     ) where
 
 import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Compat
 import Data.Comp.Multi.Equality
 import Language.Haskell.TH hiding (Cxt, match)
 
@@ -47,13 +47,8 @@ makeEqHF fname = do
               let n = length argts
               varNs <- newNames n "x"
               varNs' <- newNames n "y"
-#if __GLASGOW_HASKELL__ < 900
-              let pat = ConP constr $ map VarP varNs
-                  pat' = ConP constr $ map VarP varNs'
-#else
-              let pat = ConP constr [] $ map VarP varNs
-                  pat' = ConP constr [] $ map VarP varNs'
-#endif
+              let pat = conP_ constr $ map VarP varNs
+                  pat' = conP_ constr $ map VarP varNs'
                   vars = map VarE varNs
                   vars' = map VarE varNs'
                   mkEq ty x y = let (x',y') = (return x,return y)
