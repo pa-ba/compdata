@@ -58,11 +58,7 @@ makeFoldable fname = do
             filterVar [d] x =Just (d, varE x)
             filterVar _ _ =  error "functor variable occurring twice in argument type"
             filterVars args varNs = catMaybes $ zipWith filterVar args varNs
-<<<<<<< HEAD
-            mkCPat constr args varNs = ConP constr [] $ zipWith mkPat args varNs
-=======
             mkCPat constr args varNs = conP_ constr $ zipWith mkPat args varNs
->>>>>>> b970ed8b8397d2c787e54842778ebd1abf1e35d7
             mkPat [] _ = WildP
             mkPat _ x = VarP x
             mkPatAndVars (constr, args) =
