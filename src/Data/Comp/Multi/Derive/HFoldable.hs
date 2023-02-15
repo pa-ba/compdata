@@ -20,6 +20,7 @@ module Data.Comp.Multi.Derive.HFoldable
 
 import Control.Monad
 import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Compat
 import Data.Comp.Multi.HFoldable
 import Data.Comp.Multi.HFunctor
 import Data.Foldable
@@ -58,12 +59,12 @@ makeHFoldable fname = do
   foldlDecl <- funD 'hfoldl (map foldlClause constrs')
   foldrDecl <- funD 'hfoldr (map foldrClause constrs')
   return [mkInstanceD [] classType [foldDecl,foldMapDecl,foldlDecl,foldrDecl]]
-      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getBinaryFArg fArg gadtTy)) args)
+      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` getBinaryFArg fArg gadtTy) args)
             filterVar [] _ = Nothing
             filterVar [d] x =Just (d, varE x)
             filterVar _ _ =  error "functor variable occurring twice in argument type"
             filterVars args varNs = catMaybes $ zipWith filterVar args varNs
-            mkCPat constr args varNs = ConP constr [] $ zipWith mkPat args varNs
+            mkCPat constr args varNs = conP_ constr $ zipWith mkPat args varNs
             mkPat [] _ = WildP
             mkPat _ x = VarP x
             mkPatAndVars (constr, args) =

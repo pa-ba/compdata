@@ -25,6 +25,7 @@ module Data.Comp.Derive.HaskellStrict
 
 import Control.Monad hiding (mapM, sequence)
 import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Compat
 import Data.Comp.Sum
 import Data.Comp.Thunk
 import Data.Foldable hiding (any, or)
@@ -78,7 +79,7 @@ makeHaskellStrict fname = do
          injectDecl' = FunD 'thunkSequenceInject' ic'
      return [mkInstanceD [] classType [sequenceDecl, injectDecl, injectDecl']]
       where isFarg fArg (constr, args, gadtTy) = (constr, map (containsStr (getUnaryFArg fArg gadtTy)) args)
-            
+
 #if __GLASGOW_HASKELL__ < 800
             containsStr fArg (IsStrict,ty) = ty `containsType'` fArg
             containsStr fArg (Unpacked,ty) = ty `containsType'` fArg
@@ -92,7 +93,7 @@ makeHaskellStrict fname = do
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
-            mkCPat constr varNs = ConP constr [] $ map mkPat varNs
+            mkCPat constr varNs = conP_ constr $ map mkPat varNs
             mkPat = VarP
             mkClauses (constr, args) =
                 do varNs <- newNames (length args) "x"

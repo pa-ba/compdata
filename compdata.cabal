@@ -179,6 +179,7 @@ library
                         Data.Comp.Derive.Foldable
                         Data.Comp.Derive.Traversable
                         Data.Comp.Derive.HaskellStrict
+                        Data.Comp.Derive.Compat
 
                         Data.Comp.Multi.Derive.HFunctor
                         Data.Comp.Multi.Derive.HFoldable
@@ -226,6 +227,7 @@ Test-Suite test
         Data.Comp.Derive.SmartConstructors
         Data.Comp.Derive.Traversable
         Data.Comp.Derive.Utils
+        Data.Comp.Derive.Compat
         Data.Comp.Desugar
         Data.Comp.Equality
         Data.Comp.Equality_Test
@@ -313,6 +315,7 @@ Benchmark algebra
         Data.Comp.Derive.SmartConstructors
         Data.Comp.Derive.Traversable
         Data.Comp.Derive.Utils
+        Data.Comp.Derive.Compat
         Data.Comp.Equality
         Data.Comp.Generic
         Data.Comp.Mapping

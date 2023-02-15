@@ -21,6 +21,7 @@ module Data.Comp.Multi.Derive.HTraversable
 import Control.Applicative
 import Control.Monad hiding (mapM, sequence)
 import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Compat
 import Data.Comp.Multi.HTraversable
 import Data.Foldable hiding (any, or)
 import Data.Maybe
@@ -47,12 +48,12 @@ makeHTraversable fname = do
   traverseDecl <- funD 'htraverse (map traverseClause constrs')
   mapMDecl <- funD 'hmapM (map mapMClause constrs')
   return [mkInstanceD [] classType [traverseDecl, mapMDecl]]
-      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getBinaryFArg fArg gadtTy)) args)
+      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` getBinaryFArg fArg gadtTy) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
-            mkCPat constr varNs = ConP constr [] $ map mkPat varNs
+            mkCPat constr varNs = conP_ constr $ map mkPat varNs
             mkPat = VarP
             mkPatAndVars (constr, args) =
                 do varNs <- newNames (length args) "x"

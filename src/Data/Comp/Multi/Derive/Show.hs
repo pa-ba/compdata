@@ -21,6 +21,7 @@ module Data.Comp.Multi.Derive.Show
     ) where
 
 import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Compat
 import Data.Comp.Multi.Algebra
 import Data.Comp.Multi.HFunctor
 import Language.Haskell.TH
@@ -62,7 +63,7 @@ makeShowHF fname = do
             genShowFClause fArg (constr, args, ty) = do
               let n = length args
               varNs <- newNames n "x"
-              let pat = ConP constr [] $ map VarP varNs
+              let pat = conP_ constr $ map VarP varNs
                   allVars = zipWith (filterFarg (getBinaryFArg fArg ty)) args varNs
                   shows = listE $ map mkShow allVars
                   conName = nameBase constr

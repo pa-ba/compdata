@@ -1,8 +1,9 @@
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE FlexibleInstances       #-}
+{-# LANGUAGE GADTs                   #-}
+{-# LANGUAGE MultiParamTypeClasses   #-}
+{-# LANGUAGE ScopedTypeVariables     #-}
+{-# LANGUAGE TemplateHaskell         #-}
+{-# LANGUAGE TypeOperators           #-}
 
 --------------------------------------------------------------------------------
 -- |
@@ -112,23 +113,23 @@ isVar' b t = do v <- isVar t
 -- | This combinator pairs every argument of a given constructor with
 -- the set of (newly) bound variables according to the corresponding
 -- 'HasVars' type class instance.
-getBoundVars :: (HasVars f v, Traversable f) => f a -> f (Set v, a)
+getBoundVars :: forall f v a . (HasVars f v, Traversable f) => f a -> f (Set v, a)
 getBoundVars t = let n = number t
-                     m = bindsVars n
+                     m = bindsVars n :: NumMap a (Set v)
                      trans (Numbered i x) = (lookupNumMap Set.empty i m, x)
                  in fmap trans n
 
 -- | This combinator combines 'getBoundVars' with the generic 'fmap' function.
-fmapBoundVars :: (HasVars f v, Traversable f) => (Set v -> a -> b) -> f a -> f b
+fmapBoundVars :: forall f v a b . (HasVars f v, Traversable f) => (Set v -> a -> b) -> f a -> f b
 fmapBoundVars f t = let n = number t
-                        m = bindsVars n
+                        m = bindsVars n :: NumMap a (Set v)
                         trans (Numbered i x) = f (lookupNumMap Set.empty i m) x
                     in fmap trans n
 
 -- | This combinator combines 'getBoundVars' with the generic 'foldl' function.
-foldlBoundVars :: (HasVars f v, Traversable f) => (b -> Set v -> a -> b) -> b -> f a -> b
+foldlBoundVars :: forall f v a b . (HasVars f v, Traversable f) => (b -> Set v -> a -> b) -> b -> f a -> b
 foldlBoundVars f e t = let n = number t
-                           m = bindsVars n
+                           m = bindsVars n :: NumMap a (Set v)
                            trans x (Numbered i y) = f x (lookupNumMap Set.empty i m) y
                        in foldl trans e n
 
@@ -160,9 +161,7 @@ containsVar v = free (containsVarAlg v) (const False)
 -- that are bound.
 variablesAlg :: (Ord v, HasVars f v, Traversable f) => Alg f (Set v)
 variablesAlg t = foldlBoundVars run local t
-    where local = case isVar t of
-                    Just v -> Set.singleton v
-                    Nothing -> Set.empty
+    where local = maybe Set.empty Set.singleton (isVar t)
           run acc bvars vars = acc `Set.union` (vars `Set.difference` bvars)
 
 
@@ -176,9 +175,7 @@ variables = free variablesAlg (const Set.empty)
 
 {-| This function computes the set of variables occurring in a constant. -}
 variables' :: (Ord v, HasVars f v, Foldable f, Functor f) => Const f -> Set v
-variables' c = case isVar c of
-                 Nothing -> Set.empty
-                 Just v -> Set.singleton v
+variables' c = maybe Set.empty Set.singleton (isVar c)
 
 {-| This multiparameter class defines substitution of values of type @t@ for
   variables of type @v@ in values of type @a@. -}

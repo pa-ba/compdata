@@ -1,4 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Derive.Traversable
@@ -21,6 +22,7 @@ module Data.Comp.Derive.Traversable
 import Control.Applicative
 import Control.Monad hiding (mapM, sequence)
 import Data.Comp.Derive.Utils
+import Data.Comp.Derive.Compat
 import Data.Foldable hiding (any, or)
 import Data.Maybe
 import Data.Traversable
@@ -50,14 +52,12 @@ makeTraversable fname = do
   mapMDecl <- funD 'mapM (map mapMClause constrs')
   sequenceDecl <- funD 'sequence (map sequenceClause constrs')
   return [mkInstanceD [] classType [traverseDecl, sequenceADecl, mapMDecl,sequenceDecl]]
-      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` (getUnaryFArg fArg gadtTy)) args)
+      where isFarg fArg (constr, args, gadtTy) = (constr, map (`containsType'` getUnaryFArg fArg gadtTy) args)
             filterVar _ nonFarg [] x  = nonFarg x
             filterVar farg _ [depth] x = farg depth x
             filterVar _ _ _ _ = error "functor variable occurring twice in argument type"
             filterVars args varNs farg nonFarg = zipWith (filterVar farg nonFarg) args varNs
-            mkCPat :: Name -> [Name] -> Pat
-            mkCPat constr varNs = ConP constr [] (map mkPat varNs)
-            mkPat :: Name -> Pat
+            mkCPat constr varNs = conP_ constr $ map mkPat varNs
             mkPat = VarP
             mkPatAndVars ::
               (Name, [[t]]) ->

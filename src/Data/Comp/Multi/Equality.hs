@@ -1,6 +1,7 @@
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GADTs             #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE FlexibleInstances    #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE TypeOperators        #-}
 --------------------------------------------------------------------------------
 -- |
 -- Module      :  Data.Comp.Multi.Equality
