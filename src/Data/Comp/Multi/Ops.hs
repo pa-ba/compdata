@@ -129,6 +129,7 @@ instance (Subsume (Found p1) f1 g, Subsume (Found p2) f2 g)
                              _      -> Nothing
 
 
+infixl 5 :<<:
 
 -- | A constraint @f :<: g@ expresses that the signature @f@ is
 -- subsumed by @g@, i.e. @f@ can be used to construct elements in @g@.
