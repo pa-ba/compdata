@@ -179,8 +179,8 @@ type f :<<: g = (IsSummandOf (ComprEmb (SummandPos f g)) f g)
 summandInj :: forall f g a . (f :<<: g) => f a :-> g a
 summandInj = summandInj' (P :: Proxy (ComprEmb (SummandPos f g)))
 
-summmandProj :: forall f g a . (f :<<: g) => NatM Maybe (g a) (f a)
-summmandProj = summandPrj' (P :: Proxy (ComprEmb (SummandPos f g)))
+summandProj :: forall f g a . (f :<<: g) => NatM Maybe (g a) (f a)
+summandProj = summandPrj' (P :: Proxy (ComprEmb (SummandPos f g)))
 
 -- Products
 
