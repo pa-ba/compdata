@@ -174,13 +174,13 @@ instance IsSummandOf (Found p) f g => IsSummandOf (Found (Ri p)) f (g' :+: g) wh
     summandPrj' _ (Inr x) = summandPrj' (P :: Proxy (Found p)) x
     summandPrj' _ _       = Nothing
 
-type f :<<: g = (IsSummandOf (ComprEmb (SummandPos f g)) f g)
+type f :<<: g = (IsSummandOf (SummandPos f g) f g)
 
 summandInj :: forall f g a . (f :<<: g) => f a :-> g a
-summandInj = summandInj' (P :: Proxy (ComprEmb (SummandPos f g)))
+summandInj = summandInj' (P :: Proxy (SummandPos f g))
 
 summandProj :: forall f g a . (f :<<: g) => NatM Maybe (g a) (f a)
-summandProj = summandPrj' (P :: Proxy (ComprEmb (SummandPos f g)))
+summandProj = summandPrj' (P :: Proxy (SummandPos f g))
 
 -- Products
 
@@ -223,7 +223,7 @@ instance (HFoldable f) => HFoldable (f :&: a) where
 
 
 instance (HTraversable f) => HTraversable (f :&: a) where
-    htraverse f (v :&: c) =  (:&: c) <$> (htraverse f v)
+    htraverse f (v :&: c) =  (:&: c) <$> htraverse f v
     hmapM f (v :&: c) = liftM (:&: c) (hmapM f v)
 
 -- | This class defines how to distribute an annotation over a sum of
