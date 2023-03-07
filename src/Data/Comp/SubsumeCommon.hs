@@ -1,5 +1,4 @@
 {-# LANGUAGE DataKinds            #-}
-{-# LANGUAGE FlexibleContexts     #-}
 {-# LANGUAGE TypeFamilies         #-}
 {-# LANGUAGE TypeOperators        #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -24,16 +23,14 @@ module Data.Comp.SubsumeCommon
     , Pos (..)
     , Emb (..)
     , Choose
-    , UnsafeChoose
     , Sum'
     , Proxy (..)
-    , Or
     ) where
 
 -- | This type is used in its promoted form only. It represents
 -- pointers from the left-hand side of a subsumption to the right-hand
 -- side.
-data Pos = Nowhere | Here | Le Pos | Ri Pos | Sum Pos Pos
+data Pos = Here | Le Pos | Ri Pos | Sum Pos Pos
 
 -- | This type is used in its promoted form only. It represents
 -- possible results for checking for subsumptions. 'Found' indicates a
@@ -53,12 +50,6 @@ type family Choose (e1 :: Emb) (r :: Emb) :: Emb where
     Choose x (Found y) = Found (Ri y)
     Choose x y = NotFound
 
-type family UnsafeChoose (e1 :: Emb) (r :: Emb) :: Emb where
-    UnsafeChoose x (Found y) = Found (Ri y)
-    UnsafeChoose (Found x) y = Found (Le x)
-    UnsafeChoose Ambiguous y = y
-    UnsafeChoose x Ambiguous = x
-    UnsafeChoose x y = NotFound
 
 type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
     Sum' (Found x) (Found y) = Found (Sum x y)
@@ -87,7 +78,6 @@ type family Sum' (e1 :: Emb) (r :: Emb) :: Emb where
 -- implementations of 'inj' and 'prj'.
 
 type family ComprPos (p :: Pos) :: Pos where
-    ComprPos Nowhere = Nowhere
     ComprPos Here = Here
     ComprPos (Le p) = Le (ComprPos p)
     ComprPos (Ri p) = Ri (ComprPos p)
@@ -161,7 +151,6 @@ type Dupl s = Dupl' (ToList '[s])
 -- | This type family checks whether the list of positions given as an
 -- argument contains any duplicates.
 type family Dupl' (s :: [Pos]) :: Bool where
-    Dupl' (Nowhere ': r) = Dupl' r
     Dupl' (p ': r) = OrDupl' (Find p r) r
     Dupl' '[] = False
 
@@ -177,8 +166,3 @@ type family Find (p :: Pos) (s :: [Pos]) :: Bool where
 type family OrDupl' (a :: Bool) (b :: [Pos]) :: Bool where
     OrDupl'  True  c  = True
     OrDupl'  False c  = Dupl' c
-
-type family Or (p :: Bool) (q :: Bool) :: Bool where
-    Or True f = True
-    Or False f = f
-

@@ -1,7 +1,5 @@
-{-# LANGUAGE ApplicativeDo          #-}
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE EmptyDataDecls         #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -13,6 +11,7 @@
 {-# LANGUAGE ScopedTypeVariables    #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
+{-# LANGUAGE TypeSynonymInstances   #-}
 {-# LANGUAGE UndecidableInstances   #-}
 
 --------------------------------------------------------------------------------
@@ -29,12 +28,11 @@
 --
 --------------------------------------------------------------------------------
 
-module Data.Comp.Multi.Ops
+module Data.Comp.Multi.Ops 
     ( module Data.Comp.Multi.Ops
     , (O.:*:)(..)
     , O.ffst
     , O.fsnd
-    , Proxy(..)
     ) where
 
 
@@ -52,16 +50,6 @@ infixr 6 :+:
 -- |Data type defining coproducts.
 data (f :+: g) (h :: * -> *) e = Inl (f h e)
                                | Inr (g h e)
-
--- |Identity for sums.
-data HZero a i
-instance HFunctor HZero where
-    hfmap _ _ = let x=x in x
-
--- |Allow ambiguous subsumption.
-newtype AllowAmbiguous f g a = AllowAmbiguous {fromAllowAmbiguous :: f g a}
-instance HFunctor f => HFunctor (AllowAmbiguous f) where
-    hfmap h = AllowAmbiguous . hfmap h . fromAllowAmbiguous
 
 {-| Utility function to case on a higher-order functor sum, without exposing the
   internal representation of sums. -}
@@ -102,11 +90,8 @@ infixl 5 :=:
 
 type family Elem (f :: (* -> *) -> * -> *)
                  (g :: (* -> *) -> * -> *) :: Emb where
-    Elem (AllowAmbiguous f) (AllowAmbiguous f) = Found Here
-    Elem HZero f = Found Nowhere
     Elem f f = Found Here
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
-    Elem (AllowAmbiguous f) (g1 :+: g2) = UnsafeChoose (Elem (AllowAmbiguous f) g1) (Elem (AllowAmbiguous f) g2)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
@@ -115,14 +100,10 @@ class Subsume (e :: Emb) (f :: (* -> *) -> * -> *)
   inj'  :: Proxy e -> f a :-> g a
   prj'  :: Proxy e -> NatM Maybe (g a) (f a)
 
-instance {-# INCOHERENT #-} Subsume e f f where
+instance Subsume (Found Here) f f where
     inj' _ = id
 
     prj' _ = Just
-
-instance Subsume (Found Nowhere) HZero g where
-    inj' _ _ = let x=x in x
-    prj' _ _ = Nothing
 
 instance Subsume (Found p) f g => Subsume (Found (Le p)) f (g :+: g') where
     inj' _ = Inl . inj' (P :: Proxy (Found p))
@@ -169,38 +150,36 @@ spl f1 f2 x = case inj x of
             Inl y -> f1 y
             Inr y -> f2 y
 
-type family RemoveEmb (f :: (* -> *) -> * -> *) (e :: Emb) :: (* -> *) -> * -> * where
-    RemoveEmb (f :+: g) (Found (Le a)) = RemoveEmb f (Found a) :+: g
-    RemoveEmb (f :+: g) (Found (Ri a)) = f :+: RemoveEmb g (Found a)
-    RemoveEmb f (Found (Sum a b)) = RemoveEmb (RemoveEmb f (Found a)) (Found b)
-    RemoveEmb f (Found Here) = HZero
-    RemoveEmb f (Found Nowhere) = f
-    RemoveEmb f NotFound = f
+-- | Position of f as a summand of g (simpler version of subsumption)
+type family SummandPos (f :: (* -> *) -> * -> *) (g :: (* -> *) -> * -> *) :: Emb where
+    SummandPos f f = Found Here
+    SummandPos f (g1 :+: g2) = Choose (SummandPos f g1) (SummandPos f g2)
+    SummandPos f g = NotFound
 
-type g :-: f = RemoveEmb g (ComprEmb (Elem f g))
+class IsSummandOf (e :: Emb) (f :: (* -> *) -> * -> *)
+                         (g :: (* -> *) -> * -> *) where
+  summandInj'  :: Proxy e -> f a :-> g a
+  summandPrj'  :: Proxy e -> NatM Maybe (g a) (f a)
 
--- |Removes all Zero summands from a functor
-type family RemoveZeroeSummands (f :: (* -> *) -> * -> *) :: (* -> *) -> * -> * where
-    RemoveZeroeSummands f = RemoveZeroeSummands' (HasZeroSummand f) f
+instance IsSummandOf (Found p) f g => IsSummandOf (Found (Le p)) f (g :+: g') where
+    summandInj' _ = Inl . summandInj' (P :: Proxy (Found p))
 
-type family RemoveZeroeSummands' (p :: Bool) (f :: (* -> *) -> * -> *) where
-    RemoveZeroeSummands' True (HZero :+: f) = RemoveZeroeSummands f
-    RemoveZeroeSummands' True (f :+: HZero) = RemoveZeroeSummands f
-    RemoveZeroeSummands' True (f :+: g) = RemoveZeroeSummands (RemoveZeroeSummands f :+: RemoveZeroeSummands g)
-    RemoveZeroeSummands' False f = f
+    summandPrj' _ (Inl x) = summandPrj' (P :: Proxy (Found p)) x
+    summandPrj' _ _       = Nothing
 
-type family HasZeroSummand (f :: (* -> *) -> * -> *) :: Bool where
-    HasZeroSummand (HZero :+: f) = True
-    HasZeroSummand (f :+: HZero) = True
-    HasZeroSummand (f :+: g) = Or (HasZeroSummand f) (HasZeroSummand g)
-    HasZeroSummand f = False
+instance IsSummandOf (Found p) f g => IsSummandOf (Found (Ri p)) f (g' :+: g) where
+    summandInj' _ = Inr . summandInj' (P :: Proxy (Found p))
 
-extractSummand :: forall f g. (g :<: f :+: RemoveEmb g (ComprEmb (Elem f g))) => Proxy f -> forall a. g a :-> (f :+: RemoveEmb g (ComprEmb (Elem f g))) a
-extractSummand _ = inj
+    summandPrj' _ (Inr x) = summandPrj' (P :: Proxy (Found p)) x
+    summandPrj' _ _       = Nothing
 
-removeZeroeSummands :: forall f. (f :<: RemoveZeroeSummands f) => forall a. f a :-> (RemoveZeroeSummands f) a
-removeZeroeSummands = inj
+type f :<<: g = (IsSummandOf (ComprEmb (SummandPos f g)) f g)
 
+summandInj :: forall f g a . (f :<<: g) => f a :-> g a
+summandInj = summandInj' (P :: Proxy (ComprEmb (SummandPos f g)))
+
+summmandProj :: forall f g a . (f :<<: g) => NatM Maybe (g a) (f a)
+summmandProj = summandPrj' (P :: Proxy (ComprEmb (SummandPos f g)))
 
 -- Products
 
@@ -209,34 +188,14 @@ infixr 8 :**:
 -- |Formal product of signatures (hfunctors).
 data ((f :: (* -> *) -> * -> *) :**: (g :: (* -> *) -> * -> *)) a b = f a b :**: g a b
 
-
 hffst :: (f :**: g) a :-> f a
 hffst (x :**: _) = x
 
 hfsnd :: (f :**: g) a :-> g a
 hfsnd (_ :**: x) = x
-
-instance (HFunctor f, HFunctor g) => HFunctor (f :**: g) where
-    hfmap h (f :**: g) = hfmap h f :**: hfmap h g
-
-
-instance (HFoldable f, HFoldable g) => HFoldable (f :**: g) where
-    hfoldr f e (x :**: y) = hfoldr f (hfoldr f e y) x
-    hfoldl f e (x :**: y) = hfoldl f (hfoldl f e x) y
-
-
-instance (HTraversable f, HTraversable g) => HTraversable (f :**: g) where
-    htraverse f (x :**: y) = do a <- htraverse f x
-                                b <- htraverse f y
-                                return $ a :**: b
-    hmapM f (x :**: y) = do a <- hmapM f x
-                            b <- hmapM f y
-                            return $ a :**: b
-
-
 -- Constant Products
 
-infixl 7 :&:
+infixr 7 :&:
 
 -- | This data type adds a constant product to a
 -- signature. Alternatively, this could have also been defined as
@@ -263,7 +222,7 @@ instance (HFoldable f) => HFoldable (f :&: a) where
 
 
 instance (HTraversable f) => HTraversable (f :&: a) where
-    htraverse f (v :&: c) =  (:&: c) <$> htraverse f v
+    htraverse f (v :&: c) =  (:&: c) <$> (htraverse f v)
     hmapM f (v :&: c) = liftM (:&: c) (hmapM f v)
 
 -- | This class defines how to distribute an annotation over a sum of
@@ -298,6 +257,6 @@ instance (DistAnn s p s') => DistAnn (f :+: s) p ((f :&: p) :+: s') where
     injectA p (Inl v) = Inl (v :&: p)
     injectA p (Inr v) = Inr $ injectA p v
 
-    projectA (Inl (v :&: p)) = Inl v O.:&: p
+    projectA (Inl (v :&: p)) = (Inl v O.:&: p)
     projectA (Inr v) = let (v' O.:&: p) = projectA v
                         in  (Inr v' O.:&: p)

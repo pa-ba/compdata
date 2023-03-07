@@ -18,6 +18,7 @@ module Data.Comp.Multi.LowerOrder
     )
     where
 
+import Data.Comp.SubsumeCommon
 import Data.Comp.Multi
 import Data.Comp.Multi.Ops
 import Data.Comp.Multi.Derive

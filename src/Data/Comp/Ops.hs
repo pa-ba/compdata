@@ -1,17 +1,12 @@
-{-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE ConstraintKinds        #-}
 {-# LANGUAGE DataKinds              #-}
-{-# LANGUAGE DeriveFunctor          #-}
-{-# LANGUAGE EmptyDataDecls         #-}
 {-# LANGUAGE FlexibleContexts       #-}
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs                  #-}
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE PolyKinds              #-}
-{-# LANGUAGE RankNTypes             #-}
 {-# LANGUAGE ScopedTypeVariables    #-}
-{-# LANGUAGE StandaloneDeriving     #-}
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE TypeOperators          #-}
 {-# LANGUAGE TypeSynonymInstances   #-}
@@ -51,13 +46,6 @@ infixr 6 :+:
 -- |Formal sum of signatures (functors).
 data (f :+: g) e = Inl (f e)
                  | Inr (g e)
-
--- |Identity for sums.
-data Zero a deriving Functor
-
--- |Allow ambiguous subsumption.  AllowAmbiguous f is subsumed by any sum that contains AllowAmbiguous f as a summand, as long as all type variables appear on the same side of AllowAmbiguous f.
-newtype AllowAmbiguous f a = AllowAmbiguous {fromAllowAmbiguous :: f a}
-deriving instance Functor f => Functor (AllowAmbiguous f)
 
 fromInl :: (f :+: g) e -> Maybe (f e)
 fromInl = caseF Just (const Nothing)
@@ -105,11 +93,8 @@ infixl 5 :<:
 infixl 5 :=:
 
 type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
-    Elem (AllowAmbiguous f) (AllowAmbiguous f) = Found Here
-    Elem Zero f = Found Nowhere
     Elem f f = Found Here
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
-    Elem (AllowAmbiguous f) (g1 :+: g2) = UnsafeChoose (Elem (AllowAmbiguous f) g1) (Elem (AllowAmbiguous f) g2)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
@@ -117,26 +102,10 @@ class Subsume (e :: Emb) (f :: * -> *) (g :: * -> *) where
   inj'  :: Proxy e -> f a -> g a
   prj'  :: Proxy e -> g a -> Maybe (f a)
 
-instance {-# INCOHERENT #-} Subsume e f f where
-    inj' _ = id
-
-    prj' _ = Just
-
 instance Subsume (Found Here) f f where
     inj' _ = id
 
     prj' _ = Just
-
-instance Subsume (Found Nowhere) Zero g where
-    inj' _ = let x=x in x
-    prj' _ _ = Nothing
-
-instance {-# INCOHERENT #-} forall (e :: Emb) (e' :: Emb) f g g'. Subsume e (AllowAmbiguous f) g => Subsume e' (AllowAmbiguous f) (g :+: g') where
-    inj' _ = Inl . inj' (P :: Proxy e)
-
-    prj' _ (Inl x) = prj' (P :: Proxy e) x
-    prj' _ _       = Nothing
-
 
 instance Subsume (Found p) f g => Subsume (Found (Le p)) f (g :+: g') where
     inj' _ = Inl . inj' (P :: Proxy (Found p))
@@ -182,37 +151,7 @@ spl f1 f2 x = case inj x of
             Inl y -> f1 y
             Inr y -> f2 y
 
-type family RemoveEmb (f :: * -> *) (e :: Emb) :: * -> * where
-    RemoveEmb (f :+: g) (Found (Le a)) = RemoveEmb f (Found a) :+: g
-    RemoveEmb (f :+: g) (Found (Ri a)) = f :+: RemoveEmb g (Found a)
-    RemoveEmb f (Found (Sum a b)) = RemoveEmb (RemoveEmb f (Found a)) (Found b)
-    RemoveEmb f (Found Here) = Zero
-    RemoveEmb f (Found Nowhere) = f
-    RemoveEmb f NotFound = f
 
-type g :-: f = RemoveEmb g (ComprEmb (Elem f g))
-
--- |Removes all Zero summands from a functor.
-type family RemoveZeroSummands (f :: * -> *) :: * -> * where
-    RemoveZeroSummands f = RemoveZeroSummands' (HasZeroSummand f) f
-
-type family RemoveZeroSummands' (p :: Bool) (f :: * -> *) where
-    RemoveZeroSummands' True (Zero :+: f) = RemoveZeroSummands f
-    RemoveZeroSummands' True (f :+: Zero) = RemoveZeroSummands f
-    RemoveZeroSummands' True (f :+: g) = RemoveZeroSummands (RemoveZeroSummands f :+: RemoveZeroSummands g)
-    RemoveZeroSummands' False f = f
-
-type family HasZeroSummand (f :: * -> *) :: Bool where
-    HasZeroSummand (Zero :+: f) = True
-    HasZeroSummand (f :+: Zero) = True
-    HasZeroSummand (f :+: g) = Or (HasZeroSummand f) (HasZeroSummand g)
-    HasZeroSummand f = False
-
-extractSummand :: forall f g. (g :<: (g :-: f) :+: f) => Proxy f -> forall a. g a -> ((g :-: f) :+: f) a
-extractSummand _ = inj
-
-removeZeroSummands :: forall f. (f :<: RemoveZeroSummands f) => forall a. f a -> (RemoveZeroSummands f) a
-removeZeroSummands = inj
 
 -- Products
 
@@ -229,7 +168,7 @@ fsnd :: (f :*: g) a -> g a
 fsnd (_ :*: x) = x
 
 instance (Functor f, Functor g) => Functor (f :*: g) where
-    fmap h (f :*: g) = fmap h f :*: fmap h g
+    fmap h (f :*: g) = (fmap h f :*: fmap h g)
 
 
 instance (Foldable f, Foldable g) => Foldable (f :*: g) where
@@ -245,7 +184,7 @@ instance (Traversable f, Traversable g) => Traversable (f :*: g) where
 
 -- Constant Products
 
-infixl 7 :&:
+infixr 7 :&:
 
 {-| This data type adds a constant product (annotation) to a signature. -}
 data (f :&: a) e = f e :&: a
