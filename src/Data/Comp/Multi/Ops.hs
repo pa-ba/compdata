@@ -162,6 +162,11 @@ class IsSummandOf (e :: Emb) (f :: (* -> *) -> * -> *)
   summandInj'  :: Proxy e -> f a :-> g a
   summandPrj'  :: Proxy e -> NatM Maybe (g a) (f a)
 
+instance IsSummandOf (Found Here) f f where
+    summandInj' _ = id
+
+    summandPrj' _ = Just
+
 instance IsSummandOf (Found p) f g => IsSummandOf (Found (Le p)) f (g :+: g') where
     summandInj' _ = Inl . summandInj' (P :: Proxy (Found p))
 
