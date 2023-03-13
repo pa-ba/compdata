@@ -20,6 +20,7 @@ import Data.Comp.Decompose
 import Data.Comp.Term
 import Data.Comp.Variables
 
+import Control.Monad
 import Control.Monad.Except
 import Control.Monad.State
 

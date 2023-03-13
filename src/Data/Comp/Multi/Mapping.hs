@@ -30,6 +30,8 @@ module Data.Comp.Multi.Mapping
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HTraversable
 
+import Data.Kind
+
 import Control.Monad.State
 
 import Data.IntMap (IntMap)
@@ -57,7 +59,7 @@ infix 1 |->
 infixr 0 &
 
 
-class Mapping m (k :: * -> *) | m -> k where
+class Mapping m (k :: Type -> Type) | m -> k where
     -- | left-biased union of two mappings.
     (&) :: m v -> m v -> m v
 
@@ -76,7 +78,7 @@ class Mapping m (k :: * -> *) | m -> k where
     findWithDefault :: a -> k i -> m a -> a
 
 
-newtype NumMap (k :: * -> *) v = NumMap (IntMap v) deriving Functor
+newtype NumMap (k :: Type -> Type) v = NumMap (IntMap v) deriving Functor
 
 lookupNumMap :: a -> Int -> NumMap t a -> a
 lookupNumMap d k (NumMap m) = IntMap.findWithDefault d k m

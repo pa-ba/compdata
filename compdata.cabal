@@ -1,5 +1,5 @@
 Name:			compdata
-Version:		0.12.1
+Version:		0.13.0
 Synopsis:            	Compositional Data Types
 Description:
 
@@ -190,9 +190,10 @@ library
 
 
 
-  Build-Depends:	base >= 4.16, base < 4.17, template-haskell, containers, mtl >= 2.2.1,
+  Build-Depends:	base >= 4.16, base < 4.19, template-haskell, containers, mtl >= 2.2.1,
                         QuickCheck >= 2, deepseq, transformers, th-expand-syns,
                         tree-view >= 0.5
+  Default-Language:     Haskell2010
   Default-Extensions:   FlexibleContexts
   hs-source-dirs:	src
   ghc-options:          -W
@@ -205,6 +206,7 @@ Test-Suite test
   Build-Depends:        base >= 4.9, base < 5, template-haskell, containers, mtl >= 2.2.1,
                         QuickCheck >= 2, HUnit, test-framework, test-framework-hunit,
                         test-framework-quickcheck2 >= 0.3, deepseq, transformers, th-expand-syns
+  Default-Language:     Haskell2010
 
   ghc-options:          -W -Wno-incomplete-patterns
   Other-Modules:
@@ -293,6 +295,7 @@ Benchmark algebra
   Build-Depends:        base >= 4.9, base < 5, template-haskell, containers, mtl >= 2.2.1,
                         QuickCheck >= 2, deepseq, criterion, random, uniplate, transformers,
                         th-expand-syns
+  Default-Language:     Haskell2010
   Other-Modules:
         Data.Comp
         Data.Comp.Algebra

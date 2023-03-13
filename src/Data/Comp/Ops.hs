@@ -29,6 +29,7 @@ module Data.Comp.Ops where
 
 import Data.Foldable
 import Data.Traversable
+import Data.Kind
 
 import Control.Applicative
 import Control.Monad hiding (mapM, sequence)
@@ -92,13 +93,13 @@ instance (Traversable f, Traversable g) => Traversable (f :+: g) where
 infixl 5 :<:
 infixl 5 :=:
 
-type family Elem (f :: * -> *) (g :: * -> *) :: Emb where
+type family Elem (f :: Type -> Type) (g :: Type -> Type) :: Emb where
     Elem f f = Found Here
     Elem (f1 :+: f2) g =  Sum' (Elem f1 g) (Elem f2 g)
     Elem f (g1 :+: g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
-class Subsume (e :: Emb) (f :: * -> *) (g :: * -> *) where
+class Subsume (e :: Emb) (f :: Type -> Type) (g :: Type -> Type) where
   inj'  :: Proxy e -> f a -> g a
   prj'  :: Proxy e -> g a -> Maybe (f a)
 

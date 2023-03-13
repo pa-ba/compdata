@@ -35,7 +35,7 @@ import qualified Data.IntMap as IntMap
 import Data.Traversable
 import Data.Foldable
 
-import Control.Monad.State hiding (mapM)
+import Control.Monad.State
 import Prelude hiding (mapM)
 
 

@@ -47,8 +47,9 @@ import Data.Comp.Multi.HFoldable
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.Mapping
 import Data.Comp.Multi.Ops
-
 import Data.Comp.Multi.Term
+
+import Data.Kind
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Data.Set (Set)
@@ -71,7 +72,7 @@ substFun s (K v) = fmap unA $ Map.lookup v s
 {-| This multiparameter class defines functors with variables. An instance
   @HasVar f v@ denotes that values over @f@ might contain and bind variables of
   type @v@. -}
-class HasVars (f  :: (* -> *) -> * -> *) v where
+class HasVars (f  :: (Type -> Type) -> Type -> Type) v where
     -- | Indicates whether the @f@ constructor is a variable. The
     -- default implementation returns @Nothing@.
     isVar :: f a :=> Maybe v

@@ -36,13 +36,13 @@ import Data.Comp.Multi.HFoldable
 import Data.Comp.Multi.HFunctor
 import Data.Comp.Multi.HTraversable
 
-
+import Data.Kind
 
 import Control.Monad
 
 import Unsafe.Coerce
 
-type Const (f :: (* -> *) -> * -> *) = f (K ())
+type Const (f :: (Type -> Type) -> Type -> Type) = f (K ())
 
 -- | This function converts a constant to a term. This assumes that
 -- the argument is indeed a constant, i.e. does not have a value for

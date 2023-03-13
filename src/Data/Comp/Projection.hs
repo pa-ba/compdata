@@ -30,15 +30,17 @@ module Data.Comp.Projection (pr, (:<)) where
 
 import Data.Comp.SubsumeCommon
 
-type family Elem (f :: *)
-                 (g :: *) :: Emb where
+import Data.Kind
+
+type family Elem (f :: Type)
+                 (g :: Type) :: Emb where
     Elem f f = Found Here
     Elem (f1, f2) g =  Sum' (Elem f1 g) (Elem f2 g)
     Elem f (g1, g2) = Choose (Elem f g1) (Elem f g2)
     Elem f g = NotFound
 
-class Proj (e :: Emb) (p :: *)
-                      (q :: *) where
+class Proj (e :: Emb) (p :: Type)
+                      (q :: Type) where
     pr'  :: Proxy e -> q -> p
 
 instance Proj (Found Here) f f where

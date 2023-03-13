@@ -35,6 +35,7 @@ module Data.Comp.Term
 import Control.Applicative hiding (Const)
 import Control.Monad hiding (mapM, sequence)
 
+import Data.Kind
 import Data.Foldable
 import Data.Traversable
 import Unsafe.Coerce
@@ -58,7 +59,7 @@ supposed to be one of the phantom types 'Hole' and 'NoHole'. The
 second parameter is the signature of the context. The third parameter
 is the type of the holes. -}
 
-data Cxt :: * -> (* -> *) -> * -> * where
+data Cxt :: Type -> (Type -> Type) -> Type -> Type where
             Term :: f (Cxt h f a) -> Cxt h f a
             Hole :: a -> Cxt Hole f a
 
