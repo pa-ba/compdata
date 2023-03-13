@@ -38,7 +38,7 @@ import Prelude hiding (foldl, mapM)
 getSubterm :: (Functor g, Foldable g) => [Int] -> Term g -> Maybe (Term g)
 getSubterm path t = cata alg t path where
     alg :: (Functor g, Foldable g) => Alg g ([Int] -> Maybe (Cxt h g a))
-    alg t [] = Just $ Term $ fmap ((fromJust) . ($[])) t
+    alg t [] = Just $ Term $ fmap ((fromJust) . ($ [])) t
     alg t (i:is) = case drop i (toList t) of
                      [] -> Nothing
                      x : _ -> x is
