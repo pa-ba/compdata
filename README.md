@@ -1,4 +1,4 @@
-# Compositional Data Types [![Build Status](https://travis-ci.org/pa-ba/compdata.svg?branch=master)](https://travis-ci.org/pa-ba/compdata)
+# Compositional Data Types [![CI](https://github.com/pa-ba/compdata/actions/workflows/ci.yml/badge.svg)](https://github.com/pa-ba/compdata/actions/workflows/ci.yml)
 
 This library implements the ideas of
 [*Data types a la carte*](https://www.staff.science.uu.nl/%7Eswier004/Publications/DataTypesALaCarte.pdf)
