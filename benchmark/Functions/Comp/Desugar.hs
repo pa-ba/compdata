@@ -20,6 +20,8 @@ import Data.Comp.Derive
 class (Functor e, Traversable f) => Desug f e where
     desugAlg :: Hom f e
 
+$(derive [liftSum] [''Desug])
+
 desugExpr :: SugarExpr -> Expr
 desugExpr = desug
 
@@ -33,8 +35,6 @@ desug = appHom desugAlg
 desug' :: Desug f e => Term f -> Term e
 {-# INLINE desug' #-}
 desug' = appHom' desugAlg
-
-$(derive [liftSum] [''Desug])
 
 instance (Value :<: v, Functor v) => Desug Value v where
     desugAlg = liftCxt

@@ -30,10 +30,10 @@ import Control.Monad
 class (Monad m, Traversable v) => EvalT e v m where
     evalTAlg :: AlgT m e v
 
+$(derive [liftSum] [''EvalT])
+
 evalT :: (EvalT e v m, Functor e) => Term e -> m (Term v)
 evalT = nf . cata evalTAlg
-
-$(derive [liftSum] [''EvalT])
 
 instance (Monad m, Traversable v, Value :<: m :+: v) => EvalT Value v m where
     evalTAlg = inject
@@ -100,10 +100,10 @@ instance (Value :<: (m :+: v), Value :<: v, Traversable v, MonadFail m) => EvalT
 class Monad m => Eval e v m where
     evalAlg :: e (Term v) -> m (Term v)
 
+$(derive [liftSum] [''Eval])
+
 eval :: (Traversable e, Eval e v m) => Term e -> m (Term v)
 eval = cataM evalAlg
-
-$(derive [liftSum] [''Eval])
 
 instance (Value :<: v, Monad m) => Eval Value v m where
     evalAlg = return . inject
@@ -150,13 +150,13 @@ instance (Value :<: v, MonadFail m) => Eval Sugar v m where
 class MonadFail m => EvalDir e m where
     evalDir :: (Traversable f, EvalDir f m) => e (Term f) -> m ValueExpr
 
+$(derive [liftSum] [''EvalDir])
+
 evalDirect :: (Traversable e, EvalDir e m) => Term e -> m ValueExpr
 evalDirect (Term x) = evalDir x
 
 evalDirectE :: SugarExpr -> Err ValueExpr
 evalDirectE = evalDirect
-
-$(derive [liftSum] [''EvalDir])
 
 instance (MonadFail m) => EvalDir Value m where
     evalDir (VInt i) = return $ iVInt i
@@ -213,10 +213,10 @@ instance (MonadFail m) => EvalDir Sugar m where
 class Functor e => Eval2 e v where
     eval2Alg :: e (Term v) -> Term v
 
+$(derive [liftSum] [''Eval2])
+
 eval2 :: (Functor e, Eval2 e v) => Term e -> Term v
 eval2 = cata eval2Alg
-
-$(derive [liftSum] [''Eval2])
 
 instance (Value :<: v) => Eval2 Value v where
     eval2Alg = inject
@@ -264,13 +264,13 @@ instance (Value :<: v) => Eval2 Sugar v where
 class EvalDir2 e where
     evalDir2 :: (EvalDir2 f) => e (Term f) -> ValueExpr
 
+$(derive [liftSum] [''EvalDir2])
+
 evalDirect2 :: (EvalDir2 e) => Term e -> ValueExpr
 evalDirect2 (Term x) = evalDir2 x
 
 evalDirectE2 :: SugarExpr -> ValueExpr
 evalDirectE2 = evalDirect2
-
-$(derive [liftSum] [''EvalDir2])
 
 instance EvalDir2 Value where
     evalDir2 (VInt i) = iVInt i

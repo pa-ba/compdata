@@ -45,7 +45,7 @@ standardBenchmarks :: (PExpr, SugarExpr, String) -> Benchmark
 standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench n
     where getBench n = bgroup n paperBenchmarks
           -- these are the benchmarks for evaluation
-          evalBenchmarks = [
+          _evalBenchmarks = [
                  bench "evalDesug" (nf A.desugEval2 aExpr),
                  bench "evalDesug (fusion)" (nf A.desugEval2' aExpr),
                  bench "evalDesug (comparison)" (nf S.desugEval2 sExpr),
@@ -97,7 +97,7 @@ standardBenchmarks  (sExpr,aExpr,n) = rnf aExpr `seq` rnf sExpr `seq` getBench n
                  bench "freeVarsU" (nf S.freeVarsGen sExpr),
                  bench "freeVars (comparison)" (nf S.freeVars sExpr)]
           -- these are all the benchmarks
-          allBenchmarks = [
+          _allBenchmarks = [
                  bench "Comp.desug" (nf A.desugExpr aExpr),
                  bench "Comp.desug'" (nf A.desugExpr' aExpr),
                  bench "Comp.desugAlg" (nf A.desugExpr2 aExpr),
