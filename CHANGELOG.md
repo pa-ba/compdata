@@ -1,3 +1,8 @@
+0.13.1
+---
+
+- Compatibility with GHC 9.8
+
 0.13
 ---
 
