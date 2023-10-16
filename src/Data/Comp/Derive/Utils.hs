@@ -1,3 +1,4 @@
+{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE CPP #-}
 --------------------------------------------------------------------------------
 -- |
@@ -20,20 +21,20 @@ import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Language.Haskell.TH.ExpandSyns
 
-data DataInfo flag = DataInfo Cxt Name [TyVarBndr flag] [Con] [DerivClause] 
+data DataInfo = forall flag . DataInfo Cxt Name [TyVarBndr flag] [Con] [DerivClause] 
 
 
 {-|
   This is the @Q@-lifted version of 'abstractNewtype.
 -}
-abstractNewtypeQ :: Q Info -> Q (Maybe (DataInfo ()))
+abstractNewtypeQ :: Q Info -> Q (Maybe DataInfo)
 abstractNewtypeQ = liftM abstractNewtype
 
 {-|
   This function abstracts away @newtype@ declaration, it turns them into
   @data@ declarations.
 -}
-abstractNewtype :: Info -> Maybe (DataInfo ())
+abstractNewtype :: Info -> Maybe DataInfo
 abstractNewtype (TyConI (NewtypeD cxt name args _ constr derive))
     = Just (DataInfo cxt name args [constr] derive)
 abstractNewtype (TyConI (DataD cxt name args _ constrs derive))

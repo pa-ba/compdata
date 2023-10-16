@@ -19,7 +19,7 @@ jobs:
     strategy:
       matrix:
         cabal: ["3.10.1.0"]
-        ghc: ["9.2", "9.4.4" , "9.6.1"]
+        ghc: ["9.2", "9.4" , "9.6" , "9.8"]
     env:
       CONFIG: "--enable-tests"
     steps:

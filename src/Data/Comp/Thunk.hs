@@ -54,11 +54,6 @@ import qualified Data.IntSet as IntSet
 import Control.Monad hiding (mapM, sequence)
 import Data.Traversable
 
--- Control.Monad.Fail import is redundant since GHC 8.8.1
-#if !MIN_VERSION_base(4,13,0)
-import Control.Monad.Fail (MonadFail)
-#endif
-
 import Prelude hiding (foldl, foldl1, foldr, foldr1, mapM, sequence)
 
 

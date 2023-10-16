@@ -1,5 +1,5 @@
 Name:			compdata
-Version:		0.13.0
+Version:		0.13.1
 Synopsis:            	Compositional Data Types
 Description:
 
@@ -191,9 +191,16 @@ library
 
 
 
-  Build-Depends:	base >= 4.16 && < 4.19, template-haskell, containers, mtl >= 2.2.1,
-                        QuickCheck >= 2, deepseq, transformers, th-expand-syns,
-                        tree-view >= 0.5
+  Build-Depends:        base >= 4.16 && < 4.19,
+                        QuickCheck >= 2.14.3 && < 2.15,
+                        containers >= 0.6.8 && < 0.7,
+                        deepseq >= 1.4 && < 1.6,
+                        template-haskell >= 2.17 && < 2.22,
+                        mtl >= 2.3.1 && < 2.4,
+                        transformers >= 0.6.1 && < 0.7,
+                        th-expand-syns >= 0.4.11 && < 0.5,
+                        tree-view >= 0.5.1 && < 0.6
+
   Default-Language:     Haskell2010
   Default-Extensions:   FlexibleContexts
   hs-source-dirs:	src
