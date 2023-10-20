@@ -23,23 +23,76 @@ jobs:
     env:
       CONFIG: "--enable-tests"
     steps:
-      - uses: actions/checkout@v3
-      - uses: haskell/actions/setup@v2
+      - uses: actions/checkout@v4
+      - uses: haskell-actions/setup@v2
         id: setup-haskell-cabal
         with:
-          ghc-version: ${{ matrix.ghc }}
+          ghc-version:   ${{ matrix.ghc }}
           cabal-version: ${{ matrix.cabal }}
-      - run: cabal update
-      - run: cabal freeze $CONFIG
+          cabal-update:  true
+      - name: Configure
+        run: cabal configure $CONFIG
+      - name: Ensure buildability with GHC-shipped versions of dependencies
+        # Fix all GHC-shipped libraries to their installed version.
+        # This list is a superset of libraries that are actually used during the build,
+        # but this does not matter, as it does not entail that all these libraries are built.
+        run: |
+          cat >> cabal.project.local <<EOF
+          constraints:  Cabal              installed
+          constraints:  Cabal-syntax       installed
+          constraints:  array              installed
+          constraints:  base               installed
+          constraints:  binary             installed
+          constraints:  bytestring         installed
+          constraints:  containers         installed
+          constraints:  deepseq            installed
+          constraints:  directory          installed
+          constraints:  exceptions         installed
+          constraints:  filepath           installed
+          constraints:  ghc                installed
+          constraints:  ghc-bignum         installed
+          constraints:  ghc-boot           installed
+          constraints:  ghc-boot-th        installed
+          constraints:  ghc-compact        installed
+          constraints:  ghc-heap           installed
+          constraints:  ghc-prim           installed
+          constraints:  ghci               installed
+          constraints:  haskeline          installed
+          constraints:  hpc                installed
+          constraints:  integer-gmp        installed
+          constraints:  libiserv           installed
+          constraints:  mtl                installed
+          constraints:  parsec             installed
+          constraints:  pretty             installed
+          constraints:  process            installed
+          constraints:  rts                installed
+          constraints:  semaphore-compat   installed
+          constraints:  stm                installed
+          constraints:  system-cxx-std-lib installed
+          constraints:  template-haskell   installed
+          constraints:  terminfo           installed
+          constraints:  text               installed
+          constraints:  time               installed
+          constraints:  transformers       installed
+          constraints:  unix               installed
+          constraints:  xhtml              installed
+          EOF
+      - name: Construct the build plan
+        run: cabal build --dry-run
+        # The dry-run generates the build plan 'dist-newstyle/cache/plan.json'.
+        # The freeze file is not suitable for a cache key as it contains the hackage timestamp,
+        # which updates for every run of this action (via `cabal update`).
       - uses: actions/cache@v3
+        env:
+          key: ${{ runner.os }}-ghc-${{ steps.setup-haskell-cabal.outputs.ghc-version }}-cabal-${{ steps.setup-haskell-cabal.outputs.cabal-version }}
         with:
           path: |
             ${{ steps.setup-haskell-cabal.outputs.cabal-store }}
             dist-newstyle
-          key: ${{ runner.os }}-${{ matrix.ghc }}-${{ matrix.cabal }}-${{ hashFiles('cabal.project.freeze') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.ghc }}-${{ matrix.cabal }}-
-      - run: cabal build $CONFIG
-      - run: cabal test $CONFIG
-      - run: cabal haddock $CONFIG
+          key:          ${{ env.key }}-plan-${{ hashfiles('dist-newstyle/cache/plan.json') }}
+          restore-keys: ${{ env.key }}-
+      - run: cabal build --dependencies-only
+      - run: cabal build
+      - run: cabal test
+      - run: cabal haddock
       - run: cabal sdist
