@@ -187,15 +187,15 @@ library
 
 
 
-  Build-Depends:        base >= 4.16 && < 4.20,
-                        QuickCheck >= 2.14.3 && < 2.15,
-                        containers >= 0.6.8 && < 0.7,
-                        deepseq >= 1.4 && < 1.6,
-                        template-haskell >= 2.17 && < 2.22,
-                        mtl >= 2.3.1 && < 2.4,
-                        transformers >= 0.6.1 && < 0.7,
-                        th-expand-syns >= 0.4.11 && < 0.5,
-                        tree-view >= 0.5.1 && < 0.6
+  Build-Depends:        base             >= 4.16   && < 4.20,
+                        QuickCheck       >= 2.14.3 && < 2.15,
+                        containers       >= 0.6.5  && < 0.8,
+                        deepseq          >= 1.4    && < 1.6,
+                        template-haskell >= 2.17   && < 2.22,
+                        mtl              >= 2.2.2  && < 2.4,
+                        transformers     >= 0.5.6  && < 0.7,
+                        th-expand-syns   >= 0.4.11 && < 0.5,
+                        tree-view        >= 0.5.1  && < 0.6
 
   Default-Language:     Haskell2010
   Default-Extensions:   FlexibleContexts
@@ -207,9 +207,17 @@ Test-Suite test
   Type:                 exitcode-stdio-1.0
   Main-is:		Data_Test.hs
   hs-source-dirs:	testsuite/tests examples src
-  Build-Depends:        base >= 4.16 && < 5, template-haskell, containers, mtl >= 2.2.1,
-                        QuickCheck >= 2, HUnit, test-framework, test-framework-hunit,
-                        test-framework-quickcheck2 >= 0.3, deepseq, transformers, th-expand-syns
+  Build-Depends:        base >= 4.16 && < 5,
+                        HUnit,
+                        QuickCheck >= 2,
+                        containers, mtl >= 2.2.1,
+                        deepseq,
+                        template-haskell,
+                        test-framework,
+                        test-framework-hunit,
+                        test-framework-quickcheck2 >= 0.3,
+                        th-expand-syns,
+                        transformers
   Default-Language:     Haskell2010
 
   ghc-options:          -W -Wno-incomplete-patterns
